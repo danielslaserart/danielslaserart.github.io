@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daniels Laser Art | Lasergravuren & Kunst</title>
+  <meta name="description" content="Daniels Laser Art – individuelle Lasergravuren und kreative Kunstwerke. Entdecke handgefertigte Designs, personalisierte Geschenke und moderne Lasergravur-Kunst." />
+  <meta name="keywords" content="Daniels Laser Art, Lasergravur, Lasergravuren, personalisierte Geschenke, Holzgravur, Kunst" />
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-2: #1f2430;
+      --text: #f4f7fb;
+      --muted: #b9c2d0;
+      --accent: #ffd166;
+      --line: rgba(255,255,255,0.08);
+      --shadow: 0 18px 45px rgba(0,0,0,0.28);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0b0d12 0%, #131720 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      background: rgba(11, 13, 18, 0.72);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      font-size: 1.05rem;
+    }
+
+    .brand span { color: var(--accent); }
+
+    .menu {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .hero {
+      padding: 74px 0 40px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border: 1px solid rgba(255, 209, 102, 0.22);
+      background: rgba(255, 209, 102, 0.1);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3 { line-height: 1.12; margin: 0 0 14px; }
+    h1 { font-size: clamp(2.3rem, 5vw, 4.3rem); }
+    h2 { font-size: clamp(1.65rem, 3vw, 2.35rem); }
+    h3 { font-size: 1.1rem; }
+
+    p.lead {
+      font-size: 1.08rem;
+      color: var(--muted);
+      max-width: 60ch;
+      margin-bottom: 22px;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #111;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.03);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .hero-card {
+      background: linear-gradient(180deg, #1a1f2b 0%, #151924 100%);
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 4px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-art {
+      aspect-ratio: 4 / 5;
+      background:
+        linear-gradient(160deg, rgba(255,209,102,0.2), rgba(255,209,102,0.02) 40%),
+        radial-gradient(circle at 18% 20%, rgba(255,255,255,0.18), transparent 20%),
+        linear-gradient(135deg, #2b3140, #171c27 60%, #10141b);
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    .frame {
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .frame::before,
+    .frame::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 20px;
+      border: 1px dashed rgba(255, 209, 102, 0.25);
+    }
+
+    .frame::after {
+      inset: 42px;
+      border-style: solid;
+      opacity: 0.35;
+    }
+
+    .frame-text {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .frame-text strong {
+      display: block;
+      font-size: 1.7rem;
+      margin-bottom: 10px;
+      color: var(--accent);
+    }
+
+    section { padding: 34px 0; }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-head p { color: var(--muted); margin: 0; }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .art-placeholder {
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      color: #111;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      background:
+        linear-gradient(135deg, rgba(255,209,102,1) 0%, rgba(255,229,163,1) 45%, rgba(214,173,83,1) 100%);
+    }
+
+    .card-body { padding: 18px; }
+    .card-body p { color: var(--muted); margin: 0; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 18px;
+    }
+
+    .list {
+      margin: 16px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .contact-box {
+      display: grid;
+      gap: 12px;
+    }
+
+    .contact-item {
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+    }
+
+    footer {
+      padding: 30px 0 50px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .notice {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-left: 3px solid var(--accent);
+      background: rgba(255,209,102,0.08);
+      border-radius: 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 860px) {
+      .hero-grid,
+      .grid-3,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .hero { padding-top: 48px; }
+      .section-head { align-items: start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a href="#start" class="brand">Daniels <span>Laser Art</span></a>
+      <nav class="menu">
+        <a href="#galerie">Galerie</a>
+        <a href="#ueber-mich">Über mich</a>
+        <a href="#kontakt">Kontakt</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="start">
+      <div class="container hero-grid">
+        <div>
+          <div class="badge">Individuelle Lasergravuren & kreative Designs</div>
+          <h1>Daniels Laser Art</h1>
+          <p class="lead">
+            Willkommen bei Daniels Laser Art. Hier findest du individuelle Lasergravuren,
+            moderne Kunstwerke und personalisierte Designs auf Holz und anderen Materialien.
+            Jedes Werk wird mit viel Liebe zum Detail gestaltet.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#galerie">Zur Galerie</a>
+            <a class="btn btn-secondary" href="#kontakt">Kontakt aufnehmen</a>
+          </div>
+          <div class="notice">
+            Tipp: Ersetze später die Platzhalterbilder unten durch deine echten Werke.
+            Dann wirkt die Seite direkt professionell.
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-art">
+            <div class="frame">
+              <div class="frame-text">
+                <strong>Dein bestes Werk</strong>
+                Hier kann auf GitHub Pages dein Hauptbild eingebaut werden.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="galerie">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Galerie</h2>
+            <p>Instagram-ähnliche Kartenansicht für deine Lasergravuren.</p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <div class="art-placeholder">Lasergravur<br>Holz Adler</div>
+            <div class="card-body">
+              <h3>Lasergravur Holz Adler</h3>
+              <p>Detailreiche Gravur auf Holz mit starkem Kontrast und individueller Gestaltung.</p>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="art-placeholder">Personalisierte<br>Gravur</div>
+            <div class="card-body">
+              <h3>Personalisierte Gravur</h3>
+              <p>Ideal als Geschenk mit Namen, Datum oder besonderer Botschaft.</p>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="art-placeholder">Modernes<br>Wandbild</div>
+            <div class="card-body">
+              <h3>Modernes Wandbild</h3>
+              <p>Künstlerische Laserarbeit für Dekoration, Zuhause oder kreative Räume.</p>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="art-placeholder">Tiermotiv<br>Laser Art</div>
+            <div class="card-body">
+              <h3>Tiermotiv Laser Art</h3>
+              <p>Saubere Linien und ausdrucksstarke Motive mit persönlichem Stil.</p>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="art-placeholder">Logo / Name<br>auf Holz</div>
+            <div class="card-body">
+              <h3>Logo oder Name auf Holz</h3>
+              <p>Perfekt für Schilder, kleine Markenpräsentationen oder individuelle Deko.</p>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="art-placeholder">Kreative<br>Einzelstücke</div>
+            <div class="card-body">
+              <h3>Kreative Einzelstücke</h3>
+              <p>Jedes Design kann nach Wunsch angepasst und einzigartig angefertigt werden.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="ueber-mich">
+      <div class="container two-col">
+        <div class="card">
+          <div class="card-body">
+            <h2>Über mich</h2>
+            <p>
+              Ich bin Daniel und gestalte unter dem Namen <strong>Daniels Laser Art</strong>
+              individuelle Lasergravuren und kreative Kunstwerke. Mein Ziel ist es, besondere
+              Motive mit Präzision und einem modernen Look umzusetzen.
+            </p>
+            <ul class="list">
+              <li>Individuelle Motive</li>
+              <li>Personalisierte Geschenkideen</li>
+              <li>Kunstwerke mit Liebe zum Detail</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <h2>Was ich anbiete</h2>
+            <p>
+              Von Holzgravuren über personalisierte Designs bis hin zu modernen Wandbildern –
+              hier entstehen einzigartige Stücke für Geschenke, Dekoration und besondere Anlässe.
+            </p>
+            <p style="margin-top: 14px; color: var(--muted);">
+              Diese Website ist als einfache Startseite für GitHub Pages aufgebaut und kann jederzeit
+              erweitert werden, zum Beispiel mit mehr Bildern, Preisen oder einem Anfrageformular.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="kontakt">
+      <div class="container two-col">
+        <div>
+          <h2>Kontakt</h2>
+          <p class="lead" style="font-size: 1rem; margin-bottom: 0;">
+            Interesse an einem eigenen Design oder einer Lasergravur? Dann melde dich direkt bei mir.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-body contact-box">
+            <div class="contact-item"><strong>E-Mail:</strong> deine-email@example.com</div>
+            <div class="contact-item"><strong>Instagram:</strong> @deinprofil</div>
+            <div class="contact-item"><strong>WhatsApp:</strong> +49 …</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      © 2026 Daniels Laser Art – Lasergravuren & Kunst.
+    </div>
+  </footer>
+</body>
+</html>
