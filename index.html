@@ -6,7 +6,42 @@
   <title>Daniels Laser Art | Lasergravuren & Kunst</title>
   <meta name="description" content="Daniels Laser Art – individuelle Lasergravuren und kreative Kunstwerke. Entdecke handgefertigte Designs, personalisierte Geschenke und moderne Lasergravur-Kunst." />
   <meta name="keywords" content="Daniels Laser Art, Lasergravur, Lasergravuren, personalisierte Geschenke, Holzgravur, Kunst" />
-  <style>
+  <style>.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.gallery-item {
+  overflow: hidden;
+  border-radius: 20px;
+  position: relative;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover img {
+  transform: scale(1.08);
+}
+
+.gallery-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.5));
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.gallery-item:hover::after {
+  opacity: 1;
+}
     :root {
       --bg: #09030d;
       --bg-2: #140611;
@@ -384,7 +419,33 @@
           </div>
         </div>
 
-        <div class="grid-3">
+       <div class="gallery-grid">
+
+  <div class="gallery-item">
+    <img src="images/bild1.jpg">
+  </div>
+
+  <div class="gallery-item">
+    <img src="images/bild2.jpg">
+  </div>
+
+  <div class="gallery-item">
+    <img src="images/bild3.jpg">
+  </div>
+
+  <div class="gallery-item">
+    <img src="images/bild4.jpg">
+  </div>
+
+  <div class="gallery-item">
+    <img src="images/bild5.jpg">
+  </div>
+
+  <div class="gallery-item">
+    <img src="images/bild6.jpg">
+  </div>
+
+</div>
           <article class="card">
             <div class="art-placeholder">Lasergravur<br>Holz Adler</div>
             <div class="card-body">
