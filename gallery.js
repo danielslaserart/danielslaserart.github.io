@@ -2,10 +2,12 @@
 const params = new URLSearchParams(window.location.search);
 const gallery = params.get("type");
 
-// Container holen
-const container = document.getElementById("gallery-container");
+// Richtigen Container holen
+const container = document.getElementById("imageGrid");
+const title = document.getElementById("galleryTitle");
+const description = document.getElementById("galleryDescription");
 
-// Bilder pro Galerie (HIER DEINE BILDER EINTRAGEN)
+// Bilder pro Galerie
 const galleries = {
   gravur: [
     "images/holz-adler-1.jpg",
@@ -24,7 +26,7 @@ const galleries = {
     "images/tier-1.jpg",
     "images/tier-2.jpg"
   ],
-  3d: [
+  "3d": [
     "images/logo-1.jpg",
     "images/logo-2.jpg"
   ],
@@ -34,22 +36,75 @@ const galleries = {
   ]
 };
 
-// Bilder anzeigen
-if (gallery && galleries[gallery]) {
-  galleries[gallery].forEach(src => {
+// Texte pro Galerie
+const galleryInfo = {
+  gravur: {
+    title: "Lasergravur auf Holz",
+    description: "Hier findest du detailreiche Gravuren auf Holz."
+  },
+  personalisiert: {
+    title: "Personalisierte Gravur",
+    description: "Individuelle Geschenkideen mit Namen, Datum oder Botschaft."
+  },
+  leinwand: {
+    title: "Modernes Wandbild",
+    description: "Kreative Arbeiten für Dekoration, Zuhause oder besondere Räume."
+  },
+  plott: {
+    title: "Plotterarbeiten",
+    description: "Saubere Linien und starke Motive mit persönlichem Stil."
+  },
+  "3d": {
+    title: "3D Drucke",
+    description: "Modelle, Schilder und kreative Umsetzungen."
+  },
+  einzel: {
+    title: "Kreative Einzelstücke",
+    description: "Einzigartige Arbeiten nach deinen eigenen Vorstellungen."
+  }
+};
+
+// Falls Galerie nicht gefunden wird
+if (!gallery || !galleries[gallery]) {
+  if (title) title.textContent = "Galerie nicht gefunden";
+  if (description) description.textContent = "Diese Galerie existiert nicht oder wurde noch nicht angelegt.";
+  if (container) {
+    container.innerHTML = `
+      <div class="image-card">
+        <div class="image-fallback">Keine Galerie gefunden</div>
+        <div class="card-body">
+          <p>Bitte gehe zurück zur Startseite und wähle eine Galerie aus.</p>
+        </div>
+      </div>
+    `;
+  }
+} else {
+  // Titel und Beschreibung setzen
+  if (title) title.textContent = galleryInfo[gallery].title;
+  if (description) description.textContent = galleryInfo[gallery].description;
+
+  // Bilder anzeigen
+  galleries[gallery].forEach((src, index) => {
+    const card = document.createElement("div");
+    card.className = "image-card";
+
     const img = document.createElement("img");
     img.src = src;
-    img.style.width = "100%";
-    img.style.borderRadius = "12px";
-    img.style.marginBottom = "16px";
+    img.alt = `${galleryInfo[gallery].title} Bild ${index + 1}`;
 
-    // Falls Bild fehlt → Platzhalter
     img.onerror = () => {
-      img.src = "https://via.placeholder.com/400x300?text=Bild+fehlt";
+      img.replaceWith(createFallback(`Bild ${index + 1} fehlt`));
     };
 
-    container.appendChild(img);
+    card.appendChild(img);
+    container.appendChild(card);
   });
-} else {
-  container.innerHTML = "<p>Keine Galerie gefunden.</p>";
+}
+
+// Platzhalter bei fehlendem Bild
+function createFallback(text) {
+  const fallback = document.createElement("div");
+  fallback.className = "image-fallback";
+  fallback.textContent = text;
+  return fallback;
 }
