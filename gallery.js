@@ -31,7 +31,7 @@ const galleries = {
     "images/logo-2.jpg"
   ],
   einzel: [
-    "images/einzel-1.jpg",
+    "images/einzelstück/einzelstück1.jpg",
     "images/einzel-2.jpg"
   ]
 };
