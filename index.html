@@ -350,7 +350,11 @@
       grid-template-columns: 0.95fr 1.05fr;
       gap: 18px;
     }
-
+.three-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
     .list {
       margin: 16px 0 0;
       padding-left: 18px;
@@ -562,7 +566,7 @@
     </section>
 
     <section id="ueber-mich">
-      <div class="container two-col">
+      <div class="container three-col">
         <div class="card">
           <div class="card-body">
             <h2 style="text-align:left;">Über mich</h2>
@@ -578,7 +582,10 @@
             </ul>
           </div>
         </div>
-
+ <!-- BILD -->
+    <div class="card">
+      <img src="images/über_mich.png" class="about-img">
+    </div>
         <div class="card">
           <div class="card-body">
             <h2 style="text-align:left;">Was ich anbiete</h2>
