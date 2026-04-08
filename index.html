@@ -295,7 +295,7 @@
 
     .grid-3 {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
     }
 
@@ -381,93 +381,48 @@
     }
 
     @media (max-width: 1080px) {
-      .hero-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
-      .hero-visual {
-        min-height: 380px;
-      }
-    
-
-   
-      @media (max-width: 860px) {
+@media (max-width: 860px) {
   .hero-shell {
     background:
       linear-gradient(rgba(8, 2, 10, 0.18), rgba(8, 2, 10, 0.78)),
       radial-gradient(circle at top left, rgba(255, 122, 24, 0.16), transparent 28%),
       radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
-      url('images/banner2.png') 85% 18% / cover no-repeat;
+      url('images/banner2.png') 72% 16% / cover no-repeat;
+  }
+
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .menu {
+    gap: 14px;
+  }
+
+  .grid-3,
+  .two-col,
+  .three-col {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-copy {
+    padding: 34px 22px 22px;
+  }
+
+  .section-shell {
+    padding: 28px 18px 26px;
+  }
+
+  .section-head {
+    align-items: start;
+    flex-direction: column;
   }
 }
-      
-      .nav {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .menu {
-        gap: 14px;
-      }
-
-      .grid-3,
-      .two-col {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-copy {
-        padding: 34px 22px 22px;
-      }
-
-      .hero-visual {
-        min-height: 320px;
-        background-position: 72% center;
-      }
-
-      .section-shell {
-        padding: 28px 18px 26px;
-      }
-
-      .section-head {
-        align-items: start;
-        flex-direction: column;
-      }
-    }
-
-      .menu {
-        gap: 14px;
-      }
-
-      .hero-grid,
-      .panel-grid,
-      .contact-grid,
-      .grid-4 {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-copy {
-        padding: 34px 22px 22px;
-      }
-
-      .hero-visual {
-        min-height: 320px;
-        background-position: 72% center;
-      }
-
-      .section-shell {
-        padding: 28px 18px 26px;
-      }
-
-      .text-panel {
-        padding: 26px 20px;
-      }
-
-      .about-visual {
-        min-height: 320px;
-        background-position: center;
-      }
-    
   </style>
   <script src="gallery.js" defer></script>
 </head>
