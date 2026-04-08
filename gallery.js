@@ -28,8 +28,14 @@ const galleries = {
     "images/personalisiert-2.jpg"
   ],
   leinwand: [
-    "images/wandbild-1.jpg",
-    "images/wandbild-2.jpg"
+    "images/leinwand/portrait.jpg",
+    "images/leinwand/portrait2.jpg",
+    "images/leinwand/portrait3.jpg",
+    "images/leinwand/natsu.jpg",
+    "images/leinwand/natsu2.jpg",
+    "images/leinwand/tanchiro.jpg",
+    "images/leinwand/tanchiro2.jpg",
+    "images/leinwand/tanchiro3.jpg"
   ],
   plott: [
     "images/tier-1.jpg",
@@ -40,8 +46,10 @@ const galleries = {
     "images/logo-2.jpg"
   ],
   einzel: [
-    "images/einzel-1.jpg",
-    "images/einzel-2.jpg"
+    "images/einzelstück/einzelstück1.jpg",
+    "images/einzelstück/einzelstück2.jpg",
+    "images/einzelstück/einzelstück3.jpg",
+    "images/leinwand/portrait.jpg"
   ]
 };
 
