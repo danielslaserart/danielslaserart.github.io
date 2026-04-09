@@ -25,13 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const galleries = {
     gravur: [
-      "images/holz-adler-1.jpg",
-      "images/holz-adler-2.jpg",
-      "images/holz-adler-3.jpg"
+      "images/gravur/holz-adler-1.jpg",
+      "images/gravur/holz-adler-2.jpg",
+      "images/gravur/holz-adler-3.jpg"
     ],
     personalisiert: [
-      "images/personalisiert-1.jpg",
-      "images/personalisiert-2.jpg"
+      "images/personalisiert/personalisiert-1.jpg",
+      "images/personalisiert/personalisiert-2.jpg"
     ],
     leinwand: [
       "images/leinwand/portrait.jpg",
@@ -44,12 +44,12 @@ document.addEventListener("DOMContentLoaded", () => {
       "images/leinwand/tanchiro3.jpg"
     ],
     plott: [
-      "images/tier-1.jpg",
-      "images/tier-2.jpg"
+      "images/plott/tier-1.jpg",
+      "images/plott/tier-2.jpg"
     ],
     "3d": [
-      "images/logo-1.jpg",
-      "images/logo-2.jpg"
+      "images/3d/logo-1.jpg",
+      "images/3d/logo-2.jpg"
     ],
     einzel: [
       "images/einzelstück/einzelstück1.jpg",
