@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isSwiping = false;
 
   const galleries = {
-    gravur: 
+    gravuren: 
       "images/gravuren/ygdrasil1.jpg",
       "images/gravuren/ygdrasil2.jpg",
       "images/gravuren/ygdrasil3.jpg"
