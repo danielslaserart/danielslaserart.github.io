@@ -25,9 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const galleries = {
     gravur: [
-      "images/gravur/ygdrasil1.jpg",
-      "images/gravur/ygdrasil2.jpg",
-      "images/gravur/ygsrasil3.jpg"
+      "images/gravuren/ygdrasil1.jpg",
+      "images/gravuren/ygdrasil2.jpg",
+      "images/gravuren/ygsrasil3.jpg"
     ],
     personalisiert: [
       "images/personalisiert/brettchen-Anna.jpg",
