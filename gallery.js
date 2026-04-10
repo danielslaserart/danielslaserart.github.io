@@ -24,10 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let isSwiping = false;
 
   const galleries = {
-    gravur: [
+    gravur: 
       "images/gravuren/ygdrasil1.jpg",
       "images/gravuren/ygdrasil2.jpg",
-      "images/gravuren/ygsrasil3.jpg"
+      "images/gravuren/ygdrasil3.jpg"
     ],
     personalisiert: [
       "images/personalisiert/brettchen-Anna.jpg",
