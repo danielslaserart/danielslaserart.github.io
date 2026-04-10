@@ -2,8 +2,16 @@ const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const OWNER_SECRET = "daniel123";
 
-const COUNTER_BOX = document.getElementById("admin-visitor-counter");
-const COUNTER_VALUE = document.getElementById("visitor-count-value");
+
+const PANEL = document.getElementById("admin-stats-panel");
+const CONTENT = document.getElementById("admin-stats-content");
+const TOGGLE = document.getElementById("admin-stats-toggle");
+
+const EL_TOTAL = document.getElementById("stat-total");
+const EL_TODAY = document.getElementById("stat-today");
+const EL_WEEK = document.getElementById("stat-week");
+const EL_PAGE = document.getElementById("stat-page");
+const EL_PAGE_PATH = document.getElementById("stat-page-path");
 
 function getQueryParam(name) {
   return new URLSearchParams(window.location.search).get(name);
@@ -38,6 +46,25 @@ function getVisitorId() {
   return id;
 }
 
+function formatNumber(value) {
+  return new Intl.NumberFormat("de-DE").format(value || 0);
+}
+
+function startOfTodayISO() {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return now.toISOString();
+}
+
+function startOfWeekISO() {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? 6 : day - 1; // Montag = Wochenstart
+  now.setDate(now.getDate() - diff);
+  now.setHours(0, 0, 0, 0);
+  return now.toISOString();
+}
+
 async function supabaseFetch(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}${path}`, {
     ...options,
@@ -50,7 +77,8 @@ async function supabaseFetch(path, options = {}) {
   });
 
   if (!res.ok) {
-    throw new Error(`Supabase Fehler: ${res.status}`);
+    const text = await res.text();
+    throw new Error(`Supabase Fehler ${res.status}: ${text}`);
   }
 
   const text = await res.text();
@@ -58,17 +86,14 @@ async function supabaseFetch(path, options = {}) {
 }
 
 async function countVisit() {
-  const owner = isOwner();
-  if (owner) return;
+  if (isOwner()) return;
 
   const visitorId = getVisitorId();
   const page = window.location.pathname || "/";
   const now = Date.now();
-
   const lastKey = `dla_last_count_${page}`;
   const lastCount = Number(localStorage.getItem(lastKey) || "0");
 
-  // dieselbe Person nur alle 12 Stunden erneut zählen
   if (now - lastCount < 12 * 60 * 60 * 1000) return;
 
   await supabaseFetch("/rest/v1/visits", {
@@ -86,23 +111,58 @@ async function countVisit() {
   localStorage.setItem(lastKey, String(now));
 }
 
-async function loadCount() {
-  if (!isOwner()) return;
+async function fetchCount(path) {
+  const data = await supabaseFetch(path, { method: "GET" });
+  return Array.isArray(data) ? data.length : 0;
+}
 
-  const data = await supabaseFetch("/rest/v1/visits?select=id", {
-    method: "GET"
-  });
+async function loadStats() {
+  if (!isOwner() || !PANEL) return;
 
-  if (COUNTER_BOX && COUNTER_VALUE) {
-    COUNTER_VALUE.textContent = Array.isArray(data) ? data.length : 0;
-    COUNTER_BOX.style.display = "block";
+  const page = window.location.pathname || "/";
+  const todayISO = startOfTodayISO();
+  const weekISO = startOfWeekISO();
+
+  const [total, today, week, pageCount] = await Promise.all([
+    fetchCount("/rest/v1/visits?select=id"),
+    fetchCount(`/rest/v1/visits?select=id&counted_at=gte.${encodeURIComponent(todayISO)}`),
+    fetchCount(`/rest/v1/visits?select=id&counted_at=gte.${encodeURIComponent(weekISO)}`),
+    fetchCount(`/rest/v1/visits?select=id&page_path=eq.${encodeURIComponent(page)}`)
+  ]);
+
+  EL_TOTAL.textContent = formatNumber(total);
+  EL_TODAY.textContent = formatNumber(today);
+  EL_WEEK.textContent = formatNumber(week);
+  EL_PAGE.textContent = formatNumber(pageCount);
+  EL_PAGE_PATH.textContent = page;
+
+  PANEL.style.display = "block";
+}
+
+function setupPanelToggle() {
+  if (!TOGGLE || !CONTENT) return;
+
+  const saved = localStorage.getItem("dla_admin_panel_collapsed") === "1";
+
+  function apply(collapsed) {
+    CONTENT.style.display = collapsed ? "none" : "block";
+    TOGGLE.textContent = collapsed ? "+" : "−";
   }
+
+  apply(saved);
+
+  TOGGLE.addEventListener("click", () => {
+    const collapsed = CONTENT.style.display !== "none";
+    localStorage.setItem("dla_admin_panel_collapsed", collapsed ? "1" : "0");
+    apply(collapsed);
+  });
 }
 
 (async () => {
   try {
+    setupPanelToggle();
     await countVisit();
-    await loadCount();
+    await loadStats();
   } catch (err) {
     console.error(err);
   }
