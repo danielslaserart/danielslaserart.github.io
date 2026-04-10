@@ -595,10 +595,42 @@
   </main>
 
   <footer>
-    <div class="container">© 2025 Daniels Laser Art – C'est la vie.</div>
-  </footer>
-  <div id="admin-visitor-counter" style="display:none; position:fixed; right:16px; bottom:16px; z-index:9999; background:rgba(20,10,18,0.92); color:#fff4ea; padding:12px 14px; border-radius:14px; border:1px solid rgba(255,190,120,0.22); font:600 14px Inter, Arial, sans-serif;">
-  Besucher: <span id="visitor-count-value">…</span>
+    <div id="admin-stats-panel" style="display:none; position:fixed; right:16px; bottom:16px; z-index:9999; width:min(340px, calc(100vw - 24px)); border-radius:18px; overflow:hidden; background:linear-gradient(180deg, rgba(28,12,22,0.96), rgba(18,8,15,0.96)); border:1px solid rgba(255,190,120,0.22); box-shadow:0 18px 45px rgba(0,0,0,0.45); backdrop-filter:blur(12px); color:#fff4ea; font-family:Inter, Arial, sans-serif;">
+  <div style="padding:14px 16px; border-bottom:1px solid rgba(255,190,120,0.12); display:flex; align-items:center; justify-content:space-between; gap:12px;">
+    <div>
+      <div style="font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#ffcfab;">Admin</div>
+      <div style="font-size:16px; font-weight:800;">Besucherstatistik</div>
+    </div>
+    <button id="admin-stats-toggle" type="button" style="border:0; border-radius:10px; padding:8px 10px; cursor:pointer; background:rgba(255,255,255,0.06); color:#fff4ea; font-weight:700;">
+      −
+    </button>
+  </div>
+
+  <div id="admin-stats-content" style="padding:14px 16px;">
+    <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
+      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
+        <div style="font-size:12px; color:#e6cbbf;">Gesamt</div>
+        <div id="stat-total" style="font-size:24px; font-weight:800;">…</div>
+      </div>
+      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
+        <div style="font-size:12px; color:#e6cbbf;">Heute</div>
+        <div id="stat-today" style="font-size:24px; font-weight:800;">…</div>
+      </div>
+      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
+        <div style="font-size:12px; color:#e6cbbf;">Diese Woche</div>
+        <div id="stat-week" style="font-size:24px; font-weight:800;">…</div>
+      </div>
+      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
+        <div style="font-size:12px; color:#e6cbbf;">Diese Seite</div>
+        <div id="stat-page" style="font-size:24px; font-weight:800;">…</div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px; padding:12px; border-radius:14px; background:rgba(255,122,24,0.08); border:1px solid rgba(255,190,120,0.10);">
+      <div style="font-size:12px; color:#e6cbbf;">Aktuelle Seite</div>
+      <div id="stat-page-path" style="font-size:13px; font-weight:700; word-break:break-all;">…</div>
+    </div>
+  </div>
 </div>
 
 <script src="counter.js"></script>
