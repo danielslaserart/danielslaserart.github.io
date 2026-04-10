@@ -25,13 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const galleries = {
     gravur: [
-      "images/gravur/holz-adler-1.jpg",
-      "images/gravur/holz-adler-2.jpg",
-      "images/gravur/holz-adler-3.jpg"
+      "images/gravur/ygdrasil1.jpg",
+      "images/gravur/ygdrasil2.jpg",
+      "images/gravur/ygsrasil3.jpg"
     ],
     personalisiert: [
-      "images/personalisiert/personalisiert-1.jpg",
-      "images/personalisiert/personalisiert-2.jpg"
+      "images/personalisiert/brettchen-Anna.jpg",
+      "images/personalisiert/brettchen-tattoogirl.jpg"
     ],
     leinwand: [
       "images/leinwand/portrait.jpg",
