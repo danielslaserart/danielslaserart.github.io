@@ -62,27 +62,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const galleryInfo = {
     gravur: {
       title: "Lasergravur auf Holz",
-      description: "Hier findest du detailreiche Gravuren auf Holz."
+      description: "Detailreiche Gravur auf Holz mit starkem Kontrast und individueller Gestaltung."
     },
     personalisiert: {
       title: "Personalisierte Gravur",
-      description: "Individuelle Geschenkideen mit Namen, Datum oder Botschaft."
+      description: "Ideal als Geschenk mit Namen, Datum oder besonderer Botschaft"
     },
     leinwand: {
-      title: "Modernes Wandbild",
+      title: "Modernes Wandbild / Leinwand gravuren",
       description: "Kreative Arbeiten für Dekoration, Zuhause oder besondere Räume."
     },
     plott: {
       title: "Plotterarbeiten",
-      description: "Saubere Linien und starke Motive mit persönlichem Stil."
+      description: "Alles an geplotteten sachen, ob Aufkleber oder Textil plott für Kleidung."
     },
     "3d": {
       title: "3D Drucke",
-      description: "Modelle, Schilder und kreative Umsetzungen."
+      description: "Hier findest du alles was mit 3D Prints zu tun hat"
     },
     einzel: {
       title: "Kreative Einzelstücke",
-      description: "Einzigartige Arbeiten nach deinen eigenen Vorstellungen."
+      description: "Jedes Design kann nach Wunsch angepasst und einzigartig angefertigt werden."
     }
   };
 
