@@ -85,10 +85,12 @@
 
     h1 {
       font-size: clamp(2rem, 5vw, 3.2rem);
-      background: linear-gradient(90deg, #fff4ea 0%, #ffcfab 38%, #ffb347 58%, #cf9cff 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+  line-height: 1.2; /* WICHTIG: höher */
+  padding-bottom: 4px; /* verhindert Abschneiden unten */
+  background: linear-gradient(90deg, #fff4ea 0%, #ffcfab 38%, #ffb347 58%, #cf9cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
     }
 
     h2 {
@@ -124,7 +126,9 @@
       }
 
       h1 {
-        font-size: 1.9rem;
+        font-size: 1.8rem;
+    line-height: 1.25;
+    padding-bottom: 6px;
       }
 
       h2 {
