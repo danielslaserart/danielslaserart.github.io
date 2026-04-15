@@ -2,15 +2,17 @@
 <html lang="de">
 <head>
   <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="images/favicon.svg" />
-<link rel="shortcut icon" href="images/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
-<link rel="manifest" href="images/site.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg" />
+  <link rel="shortcut icon" href="images/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
+  <link rel="manifest" href="images/site.webmanifest" />
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daniels Laser Art | C'est la vie</title>
   <meta name="description" content="Daniels Laser Art – individuelle Lasergravuren und kreative Kunstwerke. Entdecke handgefertigte Designs, personalisierte Geschenke und moderne Lasergravur-Kunst." />
   <meta name="keywords" content="Daniels Laser Art, Lasergravur, Lasergravuren, personalisierte Geschenke, Holzgravur, Kunst" />
+
   <style>
     :root {
       --bg: #09030d;
@@ -130,14 +132,17 @@
     .menu a:hover::after { transform: scaleX(1); }
 
     h1, h2, h3 { line-height: 1.08; margin: 0 0 14px; }
+
     h1 {
       font-size: clamp(2.5rem, 5vw, 4.9rem);
       text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     }
+
     h2 {
       font-size: clamp(2.05rem, 4vw, 3.2rem);
       text-align: center;
     }
+
     h3 { font-size: 1.22rem; }
 
     section { padding: 34px 0; }
@@ -267,7 +272,13 @@
       backdrop-filter: blur(10px);
     }
 
-    
+    .hero-points {
+      margin: 16px 0 0;
+      color: #ffd8bc;
+      font-size: 0.98rem;
+      font-weight: 600;
+      text-shadow: 0 0 12px rgba(255, 122, 24, 0.12);
+    }
 
     .section-title {
       margin-bottom: 8px;
@@ -296,26 +307,31 @@
       margin-bottom: 20px;
     }
 
-    .section-head p { color: var(--muted); margin: 0; }
+    .section-head p {
+      color: var(--muted);
+      margin: 0;
+    }
 
     .grid-3 {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
     }
-#galerie .grid-3 {
-  align-items: stretch;
-}
 
-#galerie .card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
+    #galerie .grid-3 {
+      align-items: stretch;
+    }
 
-#galerie .card-body {
-  flex: 1;
-}
+    #galerie .card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    #galerie .card-body {
+      flex: 1;
+    }
+
     .card {
       border-radius: var(--radius);
       overflow: hidden;
@@ -338,41 +354,49 @@
       outline: none;
     }
 
-   .gallery-thumb,
-.art-placeholder {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  display: block;
-}
+    .gallery-thumb,
+    .art-placeholder {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+    }
 
-.art-placeholder {
-  display: grid;
-  place-items: center;
-  text-align: center;
-  padding: 20px;
-  color: #fff6ee;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  background:
-    linear-gradient(145deg, rgba(255, 122, 24, 0.82), rgba(111, 32, 20, 0.65) 40%, rgba(130, 60, 200, 0.68) 100%),
-    url('background.jpg') center center / cover no-repeat;
-  text-shadow: 0 3px 12px rgba(0,0,0,0.35);
-}
+    .art-placeholder {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      color: #fff6ee;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      background:
+        linear-gradient(145deg, rgba(255, 122, 24, 0.82), rgba(111, 32, 20, 0.65) 40%, rgba(130, 60, 200, 0.68) 100%),
+        url('background.jpg') center center / cover no-repeat;
+      text-shadow: 0 3px 12px rgba(0,0,0,0.35);
+    }
 
-    .card-body { padding: 18px; }
-    .card-body p { color: var(--muted); margin: 0; }
+    .card-body {
+      padding: 18px;
+    }
+
+    .card-body p {
+      color: var(--muted);
+      margin: 0;
+    }
 
     .two-col {
       display: grid;
       grid-template-columns: 0.95fr 1.05fr;
       gap: 18px;
     }
-.three-col {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
     .list {
       margin: 16px 0 0;
       padding-left: 18px;
@@ -391,6 +415,126 @@
       border: 1px solid rgba(255, 190, 120, 0.14);
     }
 
+    .request-process-wrap {
+      padding: 6px 0 18px;
+    }
+
+    .request-process {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 145, 60, 0.18);
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(32, 12, 20, 0.58), rgba(18, 7, 14, 0.74)),
+        radial-gradient(circle at top left, rgba(255, 122, 24, 0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(184, 108, 255, 0.14), transparent 24%);
+      box-shadow: var(--shadow);
+    }
+
+    .request-process::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%),
+        radial-gradient(circle at 0% 100%, rgba(255,122,24,0.16), transparent 18%),
+        radial-gradient(circle at 100% 0%, rgba(184,108,255,0.14), transparent 18%);
+    }
+
+    .request-process__overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(255, 140, 40, 0.10), transparent 18%),
+        radial-gradient(circle at 84% 14%, rgba(185, 108, 255, 0.10), transparent 18%);
+    }
+
+    .request-process__inner {
+      position: relative;
+      z-index: 1;
+      padding: 34px 30px;
+    }
+
+    .request-process__title {
+      margin-bottom: 22px;
+      text-align: center;
+    }
+
+    .request-steps {
+      display: grid;
+      gap: 18px;
+    }
+
+    .request-step {
+      display: grid;
+      grid-template-columns: 58px 1fr 56px;
+      align-items: center;
+      gap: 16px;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255, 190, 120, 0.14);
+      backdrop-filter: blur(10px);
+    }
+
+    .request-step__number {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #2a1204;
+      background: linear-gradient(180deg, var(--accent-gold), var(--accent-fire));
+      box-shadow: 0 12px 26px rgba(255, 122, 24, 0.24);
+    }
+
+    .request-step__content h3 {
+      margin: 0 0 4px;
+      font-size: 1.2rem;
+    }
+
+    .request-step__content p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .request-step__icon {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255, 190, 120, 0.14);
+      font-size: 1.6rem;
+    }
+
+    .request-process__text {
+      margin: 22px 0 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .request-process__actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .about-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      min-height: 320px;
+    }
+
     footer {
       padding: 26px 0 44px;
       color: var(--muted);
@@ -399,57 +543,82 @@
     }
 
     @media (max-width: 1080px) {
-  .hero-grid {
-    grid-template-columns: 1fr;
-  }
-}
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
 
-@media (max-width: 860px) {
-  .hero-shell {
-    background:
-      linear-gradient(rgba(8, 2, 10, 0.18), rgba(8, 2, 10, 0.78)),
-      radial-gradient(circle at top left, rgba(255, 122, 24, 0.16), transparent 28%),
-      radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
-      url('images/banner2.png') 85% 16% / cover no-repeat;
-  }
+    @media (max-width: 860px) {
+      .hero-shell {
+        background:
+          linear-gradient(rgba(8, 2, 10, 0.18), rgba(8, 2, 10, 0.78)),
+          radial-gradient(circle at top left, rgba(255, 122, 24, 0.16), transparent 28%),
+          radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
+          url('images/banner2.png') 85% 16% / cover no-repeat;
+      }
 
-  .nav {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+      .nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
 
-  .menu {
-    gap: 14px;
-  }
+      .menu {
+        gap: 14px;
+      }
 
-  #galerie .grid-3 {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-  #galerie .card img,
-#galerie .art-placeholder {
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-}
-  .two-col,
-  .three-col {
-    grid-template-columns: 1fr;
-  }
+      #galerie .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
 
-  .hero-copy {
-    padding: 34px 22px 22px;
-  }
+      #galerie .card img,
+      #galerie .art-placeholder {
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+      }
 
-  .section-shell {
-    padding: 28px 18px 26px;
-  }
+      .two-col,
+      .three-col {
+        grid-template-columns: 1fr;
+      }
 
-  .section-head {
-    align-items: start;
-    flex-direction: column;
-  }
-}
+      .hero-copy {
+        padding: 34px 22px 22px;
+      }
+
+      .section-shell {
+        padding: 28px 18px 26px;
+      }
+
+      .section-head {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .request-process__inner {
+        padding: 28px 18px;
+      }
+
+      .request-step {
+        grid-template-columns: 52px 1fr;
+        gap: 14px;
+      }
+
+      .request-step__icon {
+        grid-column: 2;
+        justify-self: start;
+        width: 48px;
+        height: 48px;
+        font-size: 1.35rem;
+      }
+
+      .hero-points {
+        font-size: 0.94rem;
+        line-height: 1.5;
+      }
+    }
   </style>
+
   <script src="gallery.js" defer></script>
 </head>
 <body>
@@ -475,12 +644,15 @@
               Willkommen bei Daniels Laser Art.
               Ich fertige personalisierte Lasergravuren auf Holz und anderen Materialien – perfekt als Geschenk oder Erinnerung.
             </p>
+
             <div class="notice">Schreib mir direkt deine Idee – ich melde mich persönlich bei dir zurück.</div>
+
             <div class="cta-row">
               <a class="btn btn-primary" href="#kontakt">Anfrage senden</a>
               <a class="btn btn-secondary" href="#galerie">Beispiele ansehen</a>
-              <p>• Individuelle Anfertigung • Persönlicher Kontakt •</p>
             </div>
+
+            <p class="hero-points">• Individuelle Anfertigung • Persönlicher Kontakt • Kein Massenprodukt</p>
           </div>
         </div>
       </div>
@@ -491,40 +663,36 @@
         <div class="section-head">
           <div>
             <h2>Beispiele meiner Arbeiten</h2>
-            <p>Hier findest du ein paar kleine Einblicke in meine Arbeiten, die ich nach kundenwunsch umgesetzt habe.</p>
+            <p>Hier findest du ein paar Einblicke in meine Arbeiten, die ich nach Kundenwunsch umgesetzt habe.</p>
           </div>
         </div>
 
         <div class="grid-3">
           <article class="card gallery-card-old" onclick="location.href='galerie.html?type=gravur'" tabindex="0">
-             <img class="gallery-thumb" src="images/cover/gravur.jpg" alt="Gravur">
+            <img class="gallery-thumb" src="images/cover/gravur.jpg" alt="Lasergravur auf Holz">
             <div class="card-body">
               <h3>Lasergravur auf Holz</h3>
-              <!-- <p>Detailreiche Gravur auf Holz mit starkem Kontrast und individueller Gestaltung.</p> -->
             </div>
           </article>
 
           <article class="card gallery-card-old" onclick="location.href='galerie.html?type=personalisiert'" tabindex="0">
-             <img class="gallery-thumb" src="images/cover/personalisiert.png" alt="personalisiert">
+            <img class="gallery-thumb" src="images/cover/personalisiert.png" alt="Personalisierte Gravur">
             <div class="card-body">
               <h3>Personalisierte Gravur</h3>
-              <!-- <p>Ideal als Geschenk mit Namen, Datum oder besonderer Botschaft.</p> -->
             </div>
           </article>
 
           <article class="card gallery-card-old" onclick="location.href='galerie.html?type=leinwand'" tabindex="0">
-            <img class="gallery-thumb" src="images/cover/leinwand.png" alt="Leinwand">
+            <img class="gallery-thumb" src="images/cover/leinwand.png" alt="Modernes Wandbild und Leinwandgravuren">
             <div class="card-body">
-              <h3>Modernes Wandbild / Leinwand gravuren</h3>
-              <!-- <p>Künstlerische Laserarbeit für Dekoration, Zuhause oder kreative Räume. </p> -->
+              <h3>Modernes Wandbild / Leinwandgravuren</h3>
             </div>
           </article>
 
           <article class="card gallery-card-old" onclick="location.href='galerie.html?type=plott'" tabindex="0">
             <div class="art-placeholder">Plotter<br>arbeiten</div>
             <div class="card-body">
-              <h3>Plotter arbeiten</h3>
-              <!-- <p>Alles an geplotteten sachen, ob Aufkleber oder Textil plott für Kleidung.</p> -->
+              <h3>Plotterarbeiten</h3>
             </div>
           </article>
 
@@ -532,70 +700,67 @@
             <div class="art-placeholder">3D<br>Drucke</div>
             <div class="card-body">
               <h3>3D Drucke</h3>
-              <!-- <p>Hier findest du alles was mit 3D Prints zu tun hat</p> -->
             </div>
           </article>
 
           <article class="card gallery-card-old" onclick="location.href='galerie.html?type=einzel'" tabindex="0">
-            <img class="gallery-thumb" src="images/cover/einzel.jpg" alt="Einzelstücke">
+            <img class="gallery-thumb" src="images/cover/einzel.jpg" alt="Kreative Einzelstücke">
             <div class="card-body">
               <h3>Kreative Einzelstücke</h3>
-              <!-- <p>Jedes Design kann nach Wunsch angepasst und einzigartig angefertigt werden.</p> -->
             </div>
           </article>
         </div>
       </div>
     </section>
 
+    <section class="request-process-wrap" id="anfrage-ablauf">
+      <div class="container">
+        <div class="request-process">
+          <div class="request-process__overlay"></div>
 
+          <div class="request-process__inner">
+            <h2 class="request-process__title">So funktioniert deine Anfrage</h2>
 
+            <div class="request-steps">
+              <div class="request-step">
+                <div class="request-step__number">1</div>
+                <div class="request-step__content">
+                  <h3>Anfrage senden</h3>
+                  <p>Du schickst mir deine Idee, einen Text oder ein Bild.</p>
+                </div>
+                <div class="request-step__icon">💬</div>
+              </div>
 
-<section class="request-process" id="anfrage-ablauf">
-  <div class="request-process__overlay"></div>
+              <div class="request-step">
+                <div class="request-step__number">2</div>
+                <div class="request-step__content">
+                  <h3>Abstimmung</h3>
+                  <p>Ich melde mich mit einem Vorschlag und der passenden Umsetzung bei dir.</p>
+                </div>
+                <div class="request-step__icon">✍️</div>
+              </div>
 
-  <div class="request-process__inner">
-    <h2 class="request-process__title">So funktioniert deine Anfrage</h2>
+              <div class="request-step">
+                <div class="request-step__number">3</div>
+                <div class="request-step__content">
+                  <h3>Anfertigung</h3>
+                  <p>Ich fertige dein persönliches Unikat mit viel Liebe zum Detail.</p>
+                </div>
+                <div class="request-step__icon">🔥</div>
+              </div>
+            </div>
 
-    <div class="request-steps">
-      <div class="request-step">
-        <div class="request-step__number">1</div>
-        <div class="request-step__content">
-          <h3>Anfrage senden</h3>
-          <p>Du schickst mir deine Idee, Text oder Bild.</p>
+            <p class="request-process__text">
+              Schreib mir direkt deine Idee – ich melde mich persönlich bei dir zurück.
+            </p>
+
+            <div class="request-process__actions">
+              <a href="#kontakt" class="btn btn-primary">Wunschgravur anfragen</a>
+            </div>
+          </div>
         </div>
-        <div class="request-step__icon">💬</div>
       </div>
-
-      <div class="request-step">
-        <div class="request-step__number">2</div>
-        <div class="request-step__content">
-          <h3>Abstimmung</h3>
-          <p>Ich melde mich mit Vorschlag und passender Umsetzung.</p>
-        </div>
-        <div class="request-step__icon">✍️</div>
-      </div>
-
-      <div class="request-step">
-        <div class="request-step__number">3</div>
-        <div class="request-step__content">
-          <h3>Anfertigung</h3>
-          <p>Ich fertige dein persönliches Unikat mit viel Liebe zum Detail.</p>
-        </div>
-        <div class="request-step__icon">🔥</div>
-      </div>
-    </div>
-
-    <p class="request-process__text">
-      Schreib mir direkt deine Idee – ich melde mich persönlich bei dir zurück.
-    </p>
-
-    <a href="#kontakt" class="request-process__button">Wunschgravur anfragen</a>
-  </div>
-</section>
-
-
-
-    
+    </section>
 
     <section id="ueber-mich">
       <div class="container three-col">
@@ -614,10 +779,11 @@
             </ul>
           </div>
         </div>
- <!-- BILD -->
-    <div class="card">
-      <img src="images/über_mich.png" class="about-img">
-    </div>
+
+        <div class="card">
+          <img src="images/über_mich.png" class="about-img" alt="Daniel von Daniels Laser Art">
+        </div>
+
         <div class="card">
           <div class="card-body">
             <h2 style="text-align:left;">Was ich anbiete</h2>
@@ -638,12 +804,13 @@
             Interesse an einem eigenen Design oder einer Lasergravur? Dann melde dich direkt bei mir.
           </p>
         </div>
+
         <div class="card">
           <div class="card-body contact-box">
             <div class="contact-item"><strong>E-Mail:</strong> <a href="mailto:daniels.laser.art@gmail.com">daniels.laser.art@gmail.com</a></div>
-            <div class="contact-item"><strong>Instagram:</strong> <a href="https://instagram.com/daniels.laser.art" target="_blank">@daniels.laser.art</a></div>
-            <div class="contact-item"><strong>Facebook:</strong> <a href="https://www.facebook.com/Daniels.laser.art/" target="_blank">@Daniels.laser.art</a></div>
-            <div class="contact-item"><strong>WhatsApp:</strong> <a href="https://wa.me/4915147906749">+4915147906749</a></div>
+            <div class="contact-item"><strong>Instagram:</strong> <a href="https://instagram.com/daniels.laser.art" target="_blank" rel="noopener noreferrer">@daniels.laser.art</a></div>
+            <div class="contact-item"><strong>Facebook:</strong> <a href="https://www.facebook.com/Daniels.laser.art/" target="_blank" rel="noopener noreferrer">@Daniels.laser.art</a></div>
+            <div class="contact-item"><strong>WhatsApp:</strong> <a href="https://wa.me/4915147906749">+49 1514 7906749</a></div>
           </div>
         </div>
       </div>
@@ -652,47 +819,49 @@
 
   <footer>
     <div id="admin-stats-panel" style="display:none; position:fixed; right:16px; bottom:16px; z-index:9999; width:min(340px, calc(100vw - 24px)); border-radius:18px; overflow:hidden; background:linear-gradient(180deg, rgba(28,12,22,0.96), rgba(18,8,15,0.96)); border:1px solid rgba(255,190,120,0.22); box-shadow:0 18px 45px rgba(0,0,0,0.45); backdrop-filter:blur(12px); color:#fff4ea; font-family:Inter, Arial, sans-serif;">
-  <div style="padding:14px 16px; border-bottom:1px solid rgba(255,190,120,0.12); display:flex; align-items:center; justify-content:space-between; gap:12px;">
-    <div>
-      <div style="font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#ffcfab;">Admin</div>
-      <div style="font-size:16px; font-weight:800;">Besucherstatistik</div>
-    </div>
-    <button id="admin-stats-toggle" type="button" style="border:0; border-radius:10px; padding:8px 10px; cursor:pointer; background:rgba(255,255,255,0.06); color:#fff4ea; font-weight:700;">
-      −
-    </button>
-  </div>
+      <div style="padding:14px 16px; border-bottom:1px solid rgba(255,190,120,0.12); display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div>
+          <div style="font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#ffcfab;">Admin</div>
+          <div style="font-size:16px; font-weight:800;">Besucherstatistik</div>
+        </div>
+        <button id="admin-stats-toggle" type="button" style="border:0; border-radius:10px; padding:8px 10px; cursor:pointer; background:rgba(255,255,255,0.06); color:#fff4ea; font-weight:700;">
+          −
+        </button>
+      </div>
 
-  <div id="admin-stats-content" style="padding:14px 16px;">
-    <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
-      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
-        <div style="font-size:12px; color:#e6cbbf;">Gesamt</div>
-        <div id="stat-total" style="font-size:24px; font-weight:800;">…</div>
-      </div>
-      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
-        <div style="font-size:12px; color:#e6cbbf;">Heute</div>
-        <div id="stat-today" style="font-size:24px; font-weight:800;">…</div>
-      </div>
-      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
-        <div style="font-size:12px; color:#e6cbbf;">Diese Woche</div>
-        <div id="stat-week" style="font-size:24px; font-weight:800;">…</div>
-      </div>
-      <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
-        <div style="font-size:12px; color:#e6cbbf;">Diese Seite</div>
-        <div id="stat-page" style="font-size:24px; font-weight:800;">…</div>
+      <div id="admin-stats-content" style="padding:14px 16px;">
+        <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
+          <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
+            <div style="font-size:12px; color:#e6cbbf;">Gesamt</div>
+            <div id="stat-total" style="font-size:24px; font-weight:800;">…</div>
+          </div>
+          <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
+            <div style="font-size:12px; color:#e6cbbf;">Heute</div>
+            <div id="stat-today" style="font-size:24px; font-weight:800;">…</div>
+          </div>
+          <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
+            <div style="font-size:12px; color:#e6cbbf;">Diese Woche</div>
+            <div id="stat-week" style="font-size:24px; font-weight:800;">…</div>
+          </div>
+          <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
+            <div style="font-size:12px; color:#e6cbbf;">Diese Seite</div>
+            <div id="stat-page" style="font-size:24px; font-weight:800;">…</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; padding:12px; border-radius:14px; background:rgba(255,122,24,0.08); border:1px solid rgba(255,190,120,0.10);">
+          <div style="font-size:12px; color:#e6cbbf;">Aktuelle Seite</div>
+          <div id="stat-page-path" style="font-size:13px; font-weight:700; word-break:break-all;">…</div>
+        </div>
       </div>
     </div>
 
-    <div style="margin-top:12px; padding:12px; border-radius:14px; background:rgba(255,122,24,0.08); border:1px solid rgba(255,190,120,0.10);">
-      <div style="font-size:12px; color:#e6cbbf;">Aktuelle Seite</div>
-      <div id="stat-page-path" style="font-size:13px; font-weight:700; word-break:break-all;">…</div>
-    </div>
-  </div>
-</div>
+    <script src="counter.js"></script>
 
-<script src="counter.js"></script>
     <div style="margin-top:20px;">
-  <a href="impressum.html">Impressum</a> · 
-  <a href="datenschutz.html">Datenschutz</a>
-</div>
+      <a href="impressum.html">Impressum</a> ·
+      <a href="datenschutz.html">Datenschutz</a>
+    </div>
+  </footer>
 </body>
 </html>
