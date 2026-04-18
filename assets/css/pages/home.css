@@ -99,9 +99,10 @@
           radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
           url('../../images/hero/banner2.webp') 85% 16% / cover no-repeat;
       }
+
+}
   @media (max-width: 860px) {
   .category-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 }
