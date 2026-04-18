@@ -1,5 +1,8 @@
-// --- Menü & Navigation ---
 document.addEventListener("DOMContentLoaded", () => {
+
+  // ------------------------------
+  // 🔹 Menü & Navigation
+  // ------------------------------
   const toggle = document.querySelector(".menu-toggle");
   const menu = document.querySelector(".menu");
 
@@ -24,14 +27,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-});
 
-
-// --- Besucherzähler + versteckter Admin-Modus ---
-document.addEventListener("DOMContentLoaded", () => {
+  // ------------------------------
+  // 🔹 Admin-Modus (versteckt)
+  // ------------------------------
   const params = new URLSearchParams(window.location.search);
 
-  // 🔒 Admin-Modus (versteckt)
   if (params.get("dlart") === "hide") {
     localStorage.setItem("excludeVisitorCount", "true");
   }
@@ -42,7 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const exclude = localStorage.getItem("excludeVisitorCount") === "true";
 
-  // 👉 GoatCounter nur laden, wenn du NICHT ausgeschlossen bist
+  // ------------------------------
+  // 🔹 GoatCounter laden (nur wenn du NICHT ausgeschlossen bist)
+  // ------------------------------
   if (!exclude) {
     const script = document.createElement("script");
     script.async = true;
@@ -54,22 +57,73 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(script);
   }
 
-  // 👀 Besucherzahl nur für dich anzeigen
+  // ------------------------------
+  // 🔹 Footer-Statistik (nur für dich)
+  // ------------------------------
   if (exclude) {
-    const counterBox = document.getElementById("visitorCounter");
-    const counterText = document.getElementById("visitorCount");
+    const box = document.getElementById("visitorCounter");
+    if (!box) return;
 
-    if (!counterBox || !counterText) return;
+    box.style.display = "block";
 
-    counterBox.style.display = "block";
+    const todayEl = document.getElementById("statToday");
+    const weekEl = document.getElementById("statWeek");
+    const monthEl = document.getElementById("statMonth");
+    const totalEl = document.getElementById("statTotal");
 
-    fetch("https://danielslaserart.goatcounter.com/counter/TOTAL.json")
-      .then((res) => res.json())
-      .then((data) => {
-        counterText.textContent = data.count;
+    const now = new Date();
+
+    // Datum formatieren YYYY-MM-DD
+    const formatDate = (date) => {
+      return date.toISOString().split("T")[0];
+    };
+
+    // Startpunkte berechnen
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const day = (now.getDay() + 6) % 7; // Montag = 0
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - day);
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Funktion zum Laden der Stats
+    const fetchCount = async (start = null, end = null) => {
+      let url = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
+
+      const params = new URLSearchParams();
+      if (start) params.set("start", start);
+      if (end) params.set("end", end);
+
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.count ?? "–";
+    };
+
+    // Alle Werte gleichzeitig laden
+    Promise.all([
+      fetchCount(formatDate(startOfToday), formatDate(now)),
+      fetchCount(formatDate(startOfWeek), formatDate(now)),
+      fetchCount(formatDate(startOfMonth), formatDate(now)),
+      fetchCount()
+    ])
+      .then(([today, week, month, total]) => {
+        if (todayEl) todayEl.textContent = today;
+        if (weekEl) weekEl.textContent = week;
+        if (monthEl) monthEl.textContent = month;
+        if (totalEl) totalEl.textContent = total;
       })
-      .catch(() => {
-        counterText.textContent = "–";
+      .catch((err) => {
+        console.error("GoatCounter Fehler:", err);
+        if (todayEl) todayEl.textContent = "–";
+        if (weekEl) weekEl.textContent = "–";
+        if (monthEl) monthEl.textContent = "–";
+        if (totalEl) totalEl.textContent = "–";
       });
   }
+
 });
