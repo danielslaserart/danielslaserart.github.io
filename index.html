@@ -25,24 +25,26 @@
   <link rel="stylesheet" href="assets/css/components.css" />
   <link rel="stylesheet" href="assets/css/pages/home.css" />
 </head>
+
 <body>
-  <header class="site-header">
-    <div class="container nav">
-      <a href="#start" class="brand">Daniels <span>Laser Art</span></a>
 
-      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
-        Menü
-      </button>
+<header class="site-header">
+  <div class="container nav">
+    <a href="#start" class="brand">Daniels <span>Laser Art</span></a>
 
-      <nav class="menu" id="site-menu">
-        <a href="#galerie">Galerie</a>
-        <a href="#ablauf">Ablauf</a>
-        <a href="#ueber-mich">Über mich</a>
-        <a href="#faq">FAQ</a>
-        <a href="#kontakt">Kontakt</a>
-      </nav>
-    </div>
-  </header>
+    <button class="menu-toggle" type="button" aria-expanded="false">
+      Menü
+    </button>
+
+    <nav class="menu">
+      <a href="#galerie">Galerie</a>
+      <a href="#ablauf">Ablauf</a>
+      <a href="#ueber-mich">Über mich</a>
+      <a href="#faq">FAQ</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+  </div>
+</header>
 
   <main>
     <section class="hero" id="start">
@@ -289,34 +291,7 @@
 </div>
   </footer>
 
- <script>
-  (function () {
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("dlart") === "hide") {
-      localStorage.setItem("excludeVisitorCount", "true");
-    }
-
-    if (params.get("dlart") === "show") {
-      localStorage.removeItem("excludeVisitorCount");
-    }
-
-    const exclude = localStorage.getItem("excludeVisitorCount") === "true";
-
-    if (!exclude) {
-      window.goatcounter = window.goatcounter || {};
-      const script = document.createElement("script");
-      script.async = true;
-      script.src = "https://gc.zgo.at/count.js";
-      script.setAttribute(
-        "data-goatcounter",
-        "https://danielslaserart.goatcounter.com/count"
-      );
-      document.head.appendChild(script);
-    }
-  })();
-</script>
-
+ 
 <script src="assets/js/main.js" defer></script>
 </body>
 </html>
