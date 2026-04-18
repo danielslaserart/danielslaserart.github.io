@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-  // 🔹 Menü
+  // Menü
   const toggle = document.querySelector(".menu-toggle");
   const menu = document.querySelector(".menu");
 
@@ -11,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 🔹 Karten klickbar
+  // Karten klickbar
   document.querySelectorAll("[data-link]").forEach((card) => {
     const go = () => {
       const href = card.getAttribute("data-link");
@@ -27,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 🔹 Admin-Modus
+  // Admin-Modus
   const params = new URLSearchParams(window.location.search);
 
   if (params.get("dlart") === "hide") {
@@ -40,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const exclude = localStorage.getItem("excludeVisitorCount") === "true";
 
-  // 🔹 GoatCounter laden
+  // GoatCounter nur für normale Besucher laden
   if (!exclude) {
     const script = document.createElement("script");
     script.async = true;
@@ -52,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(script);
   }
 
-  // 🔹 Footer Stats (nur für dich)
+  // Footer-Stats nur im Admin-Modus anzeigen
   if (exclude) {
     const box = document.getElementById("visitorCounter");
     const todayEl = document.getElementById("statToday");
@@ -73,12 +72,32 @@ document.addEventListener("DOMContentLoaded", () => {
       return `${y}-${m}-${d}`;
     };
 
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
 
-    const day = (now.getDay() + 6) % 7;
-    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
+    const day = (now.getDay() + 6) % 7; // Montag = 0
+    const startOfWeek = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - day
+    );
 
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+    // Wichtig: Enddatum auf morgen setzen,
+    // damit der aktuelle Tag vollständig im Zeitraum enthalten ist
+    const endOfRange = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1
+    );
 
     const fetchCount = async (start = null, end = null) => {
       let url = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
@@ -91,17 +110,19 @@ document.addEventListener("DOMContentLoaded", () => {
         url += `?${query.toString()}`;
       }
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Fehler beim Laden");
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error(`Fehler beim Laden: ${res.status}`);
+      }
 
       const data = await res.json();
       return data.count ?? "–";
     };
 
     Promise.all([
-      fetchCount(formatDate(startOfToday), formatDate(now)),
-      fetchCount(formatDate(startOfWeek), formatDate(now)),
-      fetchCount(formatDate(startOfMonth), formatDate(now)),
+      fetchCount(formatDate(startOfToday), formatDate(endOfRange)),
+      fetchCount(formatDate(startOfWeek), formatDate(endOfRange)),
+      fetchCount(formatDate(startOfMonth), formatDate(endOfRange)),
       fetchCount()
     ])
       .then(([today, week, month, total]) => {
@@ -111,8 +132,11 @@ document.addEventListener("DOMContentLoaded", () => {
         totalEl.textContent = total;
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Besucherzähler konnte nicht geladen werden:", err);
+        todayEl.textContent = "–";
+        weekEl.textContent = "–";
+        monthEl.textContent = "–";
+        totalEl.textContent = "–";
       });
   }
-
 });
