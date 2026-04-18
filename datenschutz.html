@@ -1,194 +1,85 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Datenschutz | Daniels Laser Art</title>
-  <style>
-    :root {
-      --bg: #09030d;
-      --bg-2: #140611;
-      --text: #fff4ea;
-      --muted: #e6cbbf;
-      --accent-fire: #ff7a18;
-      --accent-gold: #ffb347;
-      --accent-violet: #b86cff;
-      --line: rgba(255, 190, 120, 0.18);
-      --shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Inter, Arial, Helvetica, sans-serif;
-      color: var(--text);
-      line-height: 1.6;
-      background:
-        linear-gradient(rgba(8, 2, 10, 0.68), rgba(8, 2, 10, 0.9)),
-        radial-gradient(circle at top left, rgba(255, 122, 24, 0.22), transparent 30%),
-        radial-gradient(circle at top right, rgba(184, 108, 255, 0.18), transparent 28%),
-        url('background.jpg') center center / cover fixed no-repeat,
-        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
-      min-height: 100vh;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 14% 18%, rgba(255, 140, 40, 0.16), transparent 18%),
-        radial-gradient(circle at 86% 10%, rgba(185, 108, 255, 0.18), transparent 20%);
-      z-index: -1;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .container {
-      width: min(900px, calc(100% - 32px));
-      margin: 40px auto;
-    }
-
-    .card {
-      border-radius: 28px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(32, 12, 20, 0.82), rgba(18, 7, 14, 0.9));
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-      padding: 32px 28px;
-    }
-
-    .back {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 46px;
-      padding: 10px 16px;
-      border-radius: 14px;
-      font-weight: 700;
-      margin-bottom: 22px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255, 190, 120, 0.22);
-      color: var(--text);
-    }
-
-    h1, h2 {
-      margin: 0 0 14px;
-      line-height: 1.1;
-    }
-
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.2rem);
-  line-height: 1.2; /* WICHTIG: höher */
-  padding-bottom: 4px; /* verhindert Abschneiden unten */
-  background: linear-gradient(90deg, #fff4ea 0%, #ffcfab 38%, #ffb347 58%, #cf9cff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-    }
-
-    h2 {
-      font-size: clamp(1.1rem, 2vw, 1.4rem);
-      color: #ffcfab;
-      margin-top: 24px;
-    }
-
-    p {
-      margin: 0;
-      color: var(--muted);
-      word-break: break-word;
-    }
-
-    .block + .block {
-      margin-top: 22px;
-    }
-
-    @media (max-width: 700px) {
-      .container {
-        width: calc(100% - 20px);
-        margin: 18px auto;
-      }
-
-      .card {
-        padding: 22px 16px;
-        border-radius: 20px;
-      }
-
-      .back {
-        width: 100%;
-        margin-bottom: 18px;
-      }
-
-      h1 {
-        font-size: 1.8rem;
-    line-height: 1.25;
-    padding-bottom: 6px;
-      }
-
-      h2 {
-        margin-top: 20px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages/legal.css" />
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <a href="index.html" class="back">← Zurück zur Startseite</a>
+  <main class="legal-page">
+    <div class="container legal-container">
+      <div class="card legal-card">
+        <a href="index.html" class="btn btn-secondary legal-back">← Zurück zur Startseite</a>
+       <h1>Datenschutzerklärung</h1>
 
-      <h1>Datenschutzerklärung</h1>
+<section class="legal-block">
+  <h2>1. Verantwortlicher</h2>
+  <p>
+    Daniel Häßler<br>
+    Augasse 12<br>
+    08393 Meerane<br>
+    E-Mail: <a href="mailto:daniels.laser.art@gmail.com">daniels.laser.art@gmail.com</a>
+  </p>
+</section>
 
-      <div class="block">
-        <h2>1. Verantwortlicher</h2>
-        <p>
-          Daniel Häßler<br>
-          Augasse 12<br>
-          08393 Meerane<br>
-          E-Mail: <a href="mailto:daniels.laser.art@gmail.com">daniels.laser.art@gmail.com</a>
-        </p>
-      </div>
+<section class="legal-block">
+  <h2>2. Hosting</h2>
+  <p>
+    Diese Website wird über GitHub Pages gehostet. Anbieter ist GitHub Inc., 88 Colin P Kelly Jr St,
+    San Francisco, CA 94107, USA. Beim Aufruf der Website werden technisch notwendige Daten
+    (z. B. IP-Adresse, Datum und Uhrzeit, Browserinformationen) verarbeitet.
+  </p>
+</section>
 
-      <div class="block">
-        <h2>2. Hosting</h2>
-        <p>
-          Diese Website wird über GitHub Pages gehostet.
-        </p>
-      </div>
+<section class="legal-block">
+  <h2>3. Zugriffsdaten</h2>
+  <p>
+    Beim Besuch dieser Website werden automatisch Informationen allgemeiner Natur erfasst.
+    Diese Informationen (Server-Logfiles) beinhalten beispielsweise den Browsertyp,
+    das verwendete Betriebssystem, den Domainnamen deines Internet-Service-Providers
+    sowie ähnliche Daten. Diese Daten sind technisch erforderlich, um die Inhalte korrekt
+    auszuliefern.
+  </p>
+</section>
 
-      <div class="block">
-        <h2>3. Zugriffsdaten</h2>
-        <p>
-          Beim Besuch dieser Website können technisch notwendige Daten verarbeitet werden, etwa IP-Adresse, Datum und Uhrzeit des Aufrufs, Browsertyp und Betriebssystem.
-        </p>
-      </div>
+<section class="legal-block">
+  <h2>4. Reichweitenmessung (Besucherstatistik)</h2>
+  <p>
+    Diese Website nutzt GoatCounter zur datenschutzfreundlichen Analyse der Besucherzahlen.
+  </p>
+  <p>
+    GoatCounter erfasst Seitenaufrufe und erstellt daraus anonyme Statistiken. Laut Anbieter
+    werden keine Cookies zur Wiedererkennung im Browser gesetzt.
+  </p>
+  <p>
+    Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO
+    (berechtigtes Interesse an der Analyse und Optimierung dieser Website).
+  </p>
+  <p>
+    Weitere Informationen findest du unter:
+    <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener noreferrer">
+      https://www.goatcounter.com/help/privacy
+    </a>
+  </p>
+</section>
 
-      <div class="block">
-        <h2>4. Besucherzähler / Statistik</h2>
-        <p>
-          Auf dieser Website wird ein Besucherzähler eingesetzt. Dabei werden Seitenaufrufe technisch erfasst. Nach dem eingebundenen Skript werden dafür lokale Speicherfunktionen im Browser sowie Cookies genutzt und Daten an Supabase verarbeitet. :contentReference[oaicite:0]{index=0}
-        </p>
-      </div>
+<section class="legal-block">
+  <h2>5. Kontaktaufnahme</h2>
+  <p>
+    Wenn du mich per E-Mail, WhatsApp oder über soziale Netzwerke kontaktierst,
+    werden die von dir übermittelten Daten zur Bearbeitung deiner Anfrage gespeichert
+    und verarbeitet.
+  </p>
+</section>
 
-      <div class="block">
-        <h2>5. Kontaktaufnahme</h2>
-        <p>
-          Wenn du mich per E-Mail, WhatsApp oder über soziale Netzwerke kontaktierst, werden die von dir übermittelten Daten zur Bearbeitung deiner Anfrage verwendet.
-        </p>
-      </div>
-
-      <div class="block">
-        <h2>6. Deine Rechte</h2>
-        <p>
-          Du hast das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung deiner personenbezogenen Daten.
-        </p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+<section class="legal-block">
+  <h2>6. Hinweis</h2>
+  <p>
+    Diese Website verwendet keine Cookies zur Nutzerverfolgung und keine
+    externen Tracking-Dienste, die personenbezogene Profile erstellen.
+  </p>
+</section>

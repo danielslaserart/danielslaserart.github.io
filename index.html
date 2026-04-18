@@ -1,649 +1,44 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <link rel="icon" href="https://www.danielslaserart.de/favicon.png" sizes="96x96">
-  <link rel="shortcut icon" href="https://www.danielslaserart.de/favicon.png">
-  <link rel="icon" href="https://www.danielslaserart.de/favicon.png" sizes="96x96" type="image/png">
-  <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="shortcut icon" href="favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
-  <link rel="manifest" href="site.webmanifest" />
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Personalisierte Lasergravuren & Geschenkideen | Daniels Laser Art</title>
-  <meta name="description" content="Individuelle Lasergravuren nach Wunsch – personalisierte Geschenke aus Holz und mehr. Perfekt für besondere Anlässe. Jetzt unverbindlich anfragen." />
-  <meta name="keywords" content="personalisierte Lasergravuren, Lasergravur Holz, Geschenk mit Gravur, individuelle Gravur, Holzgravur, personalisierte Geschenke, Daniels Laser Art" />
+  <meta name="description" content="Individuelle Lasergravuren nach Wunsch – personalisierte Geschenke aus Holz und mehr. Jetzt unverbindlich anfragen." />
   <link rel="canonical" href="https://www.danielslaserart.de/" />
 
-  <meta property="og:title" content="Personalisierte Lasergravuren & Geschenkideen | Daniels Laser Art" />
-  <meta property="og:description" content="Individuelle Lasergravuren nach Wunsch – personalisierte Geschenke aus Holz und mehr. Perfekt für besondere Anlässe. Jetzt unverbindlich anfragen." />
+  <link rel="icon" type="image/png" href="assets/images/branding/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/branding/favicon.svg" />
+  <link rel="shortcut icon" href="assets/images/branding/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/branding/apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+
+  <meta property="og:title" content="Daniels Laser Art" />
+  <meta property="og:description" content="Individuelle Lasergravuren nach Wunsch – persönlich, hochwertig und mit Liebe zum Detail." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.danielslaserart.de/" />
-  <meta property="og:image" content="https://www.danielslaserart.de/images/banner2.png" />
-
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Personalisierte Lasergravuren & Geschenkideen | Daniels Laser Art" />
-  <meta name="twitter:description" content="Individuelle Lasergravuren nach Wunsch – personalisierte Geschenke aus Holz und mehr." />
-  <meta name="twitter:image" content="https://www.danielslaserart.de/images/banner2.png" />
-
-  <style>
-    :root {
-      --bg: #09030d;
-      --bg-2: #140611;
-      --panel: rgba(24, 10, 18, 0.72);
-      --panel-strong: rgba(30, 12, 22, 0.9);
-      --text: #fff4ea;
-      --muted: #e6cbbf;
-      --accent-fire: #ff7a18;
-      --accent-gold: #ffb347;
-      --accent-violet: #b86cff;
-      --line: rgba(255, 190, 120, 0.18);
-      --shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
-      --radius: 24px;
-      --container: 1180px;
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      margin: 0;
-      font-family: Inter, Arial, Helvetica, sans-serif;
-      color: var(--text);
-      line-height: 1.6;
-      background:
-        linear-gradient(rgba(8, 2, 10, 0.5), rgba(8, 2, 10, 0.9)),
-        radial-gradient(circle at top left, rgba(255, 122, 24, 0.22), transparent 30%),
-        radial-gradient(circle at top right, rgba(184, 108, 255, 0.18), transparent 28%),
-        url('background.jpg') center center / cover fixed no-repeat,
-        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
-      min-height: 100vh;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 14% 18%, rgba(255, 140, 40, 0.16), transparent 18%),
-        radial-gradient(circle at 86% 10%, rgba(185, 108, 255, 0.18), transparent 20%),
-        radial-gradient(circle at 88% 72%, rgba(165, 97, 255, 0.14), transparent 16%),
-        radial-gradient(circle at 6% 58%, rgba(255, 122, 24, 0.12), transparent 14%);
-      z-index: -1;
-    }
-
-    a { color: inherit; text-decoration: none; }
-    img { max-width: 100%; display: block; }
-
-    .container {
-      width: min(var(--container), calc(100% - 32px));
-      margin: 0 auto;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(14px);
-      background: rgba(10, 3, 11, 0.48);
-      border-bottom: 1px solid rgba(255, 180, 110, 0.12);
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 14px 0;
-    }
-
-    .brand {
-      font-weight: 800;
-      letter-spacing: 0.4px;
-      font-size: 1.1rem;
-      text-shadow: 0 0 16px rgba(255, 122, 24, 0.18);
-      white-space: nowrap;
-    }
-
-    .brand span,
-    .gradient-text {
-      background: linear-gradient(90deg, #fff4ea 0%, #ffcfab 38%, #ffb347 58%, #cf9cff 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .menu {
-      display: flex;
-      align-items: center;
-      gap: 22px;
-      flex-wrap: wrap;
-      font-size: 0.98rem;
-      color: var(--muted);
-    }
-
-    .menu a {
-      position: relative;
-      transition: color 0.2s ease;
-    }
-
-    .menu a::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: -6px;
-      width: 100%;
-      height: 1px;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.25s ease;
-      background: linear-gradient(90deg, var(--accent-fire), var(--accent-violet));
-    }
-
-    .menu a:hover { color: #fff; }
-    .menu a:hover::after { transform: scaleX(1); }
-
-    h1, h2, h3 { line-height: 1.08; margin: 0 0 14px; }
-
-    h1 {
-      font-size: clamp(2.5rem, 5vw, 4.9rem);
-      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-    }
-
-    h2 {
-      font-size: clamp(2.05rem, 4vw, 3.2rem);
-      text-align: center;
-    }
-
-    h3 { font-size: 1.22rem; }
-
-    section { padding: 34px 0; }
-
-    .hero {
-      position: relative;
-      padding: 40px 0 28px;
-    }
-
-    .hero-shell,
-    .section-shell {
-      position: relative;
-      border: 1px solid rgba(255, 145, 60, 0.18);
-      border-radius: 28px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(32, 12, 20, 0.48), rgba(18, 7, 14, 0.62));
-      box-shadow: var(--shadow);
-    }
-
-    .hero-shell {
-      position: relative;
-      isolation: isolate;
-      background:
-        linear-gradient(rgba(8, 2, 10, 0.2), rgba(8, 2, 10, 0.84)),
-        radial-gradient(circle at top left, rgba(255, 122, 24, 0.16), transparent 28%),
-        radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
-        url('images/banner2.png') center 20% / cover no-repeat;
-    }
-
-    .hero-shell::before,
-    .section-shell::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%),
-        radial-gradient(circle at 0% 100%, rgba(255,122,24,0.18), transparent 18%),
-        radial-gradient(circle at 100% 100%, rgba(184,108,255,0.16), transparent 18%);
-    }
-
-    .hero-grid {
-      position: relative;
-      z-index: 2;
-      display: block;
-      min-height: 470px;
-    }
-
-    .hero-copy {
-      position: relative;
-      z-index: 3;
-      padding: 52px 42px 52px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-height: 470px;
-      background: transparent;
-      max-width: 760px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      width: fit-content;
-      padding: 8px 14px;
-      border: 1px solid rgba(255, 179, 71, 0.35);
-      background: rgba(255, 122, 24, 0.12);
-      color: #ffd4ad;
-      border-radius: 999px;
-      font-size: 0.86rem;
-      margin-bottom: 18px;
-      box-shadow: inset 0 0 25px rgba(255, 122, 24, 0.08);
-    }
-
-    .lead {
-      font-size: 1.08rem;
-      color: var(--muted);
-      max-width: 34rem;
-      margin-bottom: 20px;
-    }
-
-    .notice {
-      width: fit-content;
-      margin-top: 2px;
-      margin-bottom: 20px;
-      padding: 12px 15px;
-      border-left: 3px solid var(--accent-fire);
-      background: rgba(255, 122, 24, 0.1);
-      border-radius: 12px;
-      color: #ffd8bc;
-    }
-
-    .cta-row {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-top: 2px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 52px;
-      padding: 13px 22px;
-      border-radius: 15px;
-      font-weight: 800;
-      border: 1px solid transparent;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn-primary {
-      background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold));
-      color: #220b03;
-      box-shadow: 0 14px 32px rgba(255, 122, 24, 0.24);
-    }
-
-    .btn-secondary {
-      background: rgba(255,255,255,0.04);
-      border-color: rgba(255, 190, 120, 0.22);
-      color: var(--text);
-      backdrop-filter: blur(10px);
-    }
-
-    .hero-points {
-      margin: 16px 0 0;
-      color: #ffd8bc;
-      font-size: 0.98rem;
-      font-weight: 600;
-      text-shadow: 0 0 12px rgba(255, 122, 24, 0.12);
-    }
-
-    .section-title {
-      margin-bottom: 8px;
-    }
-
-    .section-subtitle {
-      margin: 0;
-      text-align: center;
-      color: var(--muted);
-      font-size: 1.05rem;
-    }
-
-    .gallery-wrap {
-      padding: 22px 0 10px;
-    }
-
-    .section-shell {
-      padding: 36px 30px 34px;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .section-head p {
-      color: var(--muted);
-      margin: 0;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    #galerie .grid-3 {
-      align-items: stretch;
-    }
-
-    #galerie .card {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    #galerie .card-body {
-      flex: 1;
-    }
-
-    .card {
-      border-radius: var(--radius);
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(32, 12, 20, 0.82), rgba(18, 7, 14, 0.9));
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-    }
-
-    .gallery-card-old {
-      cursor: pointer;
-      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
-    }
-
-    .gallery-card-old:hover,
-    .gallery-card-old:focus-visible {
-      transform: translateY(-4px);
-      border-color: rgba(255, 190, 120, 0.4);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-      outline: none;
-    }
-
-    .gallery-thumb,
-    .art-placeholder {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      display: block;
-    }
-
-    .art-placeholder {
-      display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 20px;
-      color: #fff6ee;
-      font-weight: 800;
-      letter-spacing: 0.4px;
-      background:
-        linear-gradient(145deg, rgba(255, 122, 24, 0.82), rgba(111, 32, 20, 0.65) 40%, rgba(130, 60, 200, 0.68) 100%),
-        url('background.jpg') center center / cover no-repeat;
-      text-shadow: 0 3px 12px rgba(0,0,0,0.35);
-    }
-
-    .card-body {
-      padding: 18px;
-    }
-
-    .card-body p {
-      color: var(--muted);
-      margin: 0;
-    }
-
-    .two-col {
-      display: grid;
-      grid-template-columns: 0.95fr 1.05fr;
-      gap: 18px;
-    }
-
-    .three-col {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-
-    .list {
-      margin: 16px 0 0;
-      padding-left: 18px;
-      color: var(--muted);
-    }
-
-    .contact-box {
-      display: grid;
-      gap: 12px;
-    }
-
-    .contact-item {
-      padding: 16px 18px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255, 190, 120, 0.14);
-    }
-
-    .request-process-wrap {
-      padding: 6px 0 18px;
-    }
-
-    .request-process {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(255, 145, 60, 0.18);
-      border-radius: 28px;
-      background:
-        linear-gradient(180deg, rgba(32, 12, 20, 0.58), rgba(18, 7, 14, 0.74)),
-        radial-gradient(circle at top left, rgba(255, 122, 24, 0.14), transparent 28%),
-        radial-gradient(circle at top right, rgba(184, 108, 255, 0.14), transparent 24%);
-      box-shadow: var(--shadow);
-    }
-
-    .request-process::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%),
-        radial-gradient(circle at 0% 100%, rgba(255,122,24,0.16), transparent 18%),
-        radial-gradient(circle at 100% 0%, rgba(184,108,255,0.14), transparent 18%);
-    }
-
-    .request-process__overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        radial-gradient(circle at 16% 18%, rgba(255, 140, 40, 0.10), transparent 18%),
-        radial-gradient(circle at 84% 14%, rgba(185, 108, 255, 0.10), transparent 18%);
-    }
-
-    .request-process__inner {
-      position: relative;
-      z-index: 1;
-      padding: 34px 30px;
-    }
-
-    .request-process__title {
-      margin-bottom: 22px;
-      text-align: center;
-    }
-
-    .request-steps {
-      display: grid;
-      gap: 18px;
-    }
-
-    .request-step {
-      display: grid;
-      grid-template-columns: 58px 1fr 56px;
-      align-items: center;
-      gap: 16px;
-      padding: 18px;
-      border-radius: 22px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255, 190, 120, 0.14);
-      backdrop-filter: blur(10px);
-    }
-
-    .request-step__number {
-      width: 58px;
-      height: 58px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: #2a1204;
-      background: linear-gradient(180deg, var(--accent-gold), var(--accent-fire));
-      box-shadow: 0 12px 26px rgba(255, 122, 24, 0.24);
-    }
-
-    .request-step__content h3 {
-      margin: 0 0 4px;
-      font-size: 1.2rem;
-    }
-
-    .request-step__content p {
-      margin: 0;
-      color: var(--muted);
-    }
-
-    .request-step__icon {
-      display: grid;
-      place-items: center;
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255, 190, 120, 0.14);
-      font-size: 1.6rem;
-    }
-
-    .request-process__text {
-      margin: 22px 0 0;
-      text-align: center;
-      color: var(--muted);
-      font-size: 1.02rem;
-    }
-
-    .request-process__actions {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    .about-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      min-height: 320px;
-    }
-
-    footer {
-      padding: 26px 0 44px;
-      color: var(--muted);
-      font-size: 0.95rem;
-      text-align: center;
-    }
-
-    @media (max-width: 1080px) {
-      .hero-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 860px) {
-      .hero-shell {
-        background:
-          linear-gradient(rgba(8, 2, 10, 0.18), rgba(8, 2, 10, 0.78)),
-          radial-gradient(circle at top left, rgba(255, 122, 24, 0.16), transparent 28%),
-          radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
-          url('images/banner2.png') 85% 16% / cover no-repeat;
-      }
-
-      .nav {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .menu {
-        gap: 14px;
-      }
-
-      #galerie .grid-3 {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-
-      #galerie .card img,
-      #galerie .art-placeholder {
-        aspect-ratio: 1 / 1;
-        object-fit: cover;
-      }
-
-      .two-col,
-      .three-col {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-copy {
-        padding: 34px 22px 22px;
-      }
-
-      .section-shell {
-        padding: 28px 18px 26px;
-      }
-
-      .section-head {
-        align-items: start;
-        flex-direction: column;
-      }
-
-      .request-process__inner {
-        padding: 28px 18px;
-      }
-
-      .request-step {
-        grid-template-columns: 52px 1fr;
-        gap: 14px;
-      }
-
-      .request-step__icon {
-        grid-column: 2;
-        justify-self: start;
-        width: 48px;
-        height: 48px;
-        font-size: 1.35rem;
-      }
-
-      .hero-points {
-        font-size: 0.94rem;
-        line-height: 1.5;
-      }
-    }
-  </style>
-
-  <script src="gallery.js" defer></script>
+  <meta property="og:image" content="https://www.danielslaserart.de/assets/images/hero/banner2.webp" />
+
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages/home.css" />
 </head>
 <body>
-  <header>
+  <header class="site-header">
     <div class="container nav">
       <a href="#start" class="brand">Daniels <span>Laser Art</span></a>
-      <nav class="menu">
+
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+        Menü
+      </button>
+
+      <nav class="menu" id="site-menu">
         <a href="#galerie">Galerie</a>
+        <a href="#ablauf">Ablauf</a>
         <a href="#ueber-mich">Über mich</a>
+        <a href="#faq">FAQ</a>
         <a href="#kontakt">Kontakt</a>
       </nav>
     </div>
@@ -652,237 +47,259 @@
   <main>
     <section class="hero" id="start">
       <div class="container hero-shell">
-        <div class="hero-grid">
-          <div class="hero-copy">
-            <div class="badge">Personalisierte Lasergravuren mit Liebe zum Detail</div>
+        <div class="hero-copy">
+          <p class="badge">Personalisierte Lasergravuren mit Liebe zum Detail</p>
+          <h1>Einzigartige Lasergravuren für besondere Momente</h1>
+          <p class="lead">
+            Ich fertige individuelle Lasergravuren nach Wunsch – als Geschenk, Erinnerung
+            oder ganz persönliches Einzelstück.
+          </p>
 
-            <h1><span class="gradient-text">Einzigartige Lasergravuren für besondere Momente</span></h1>
-
-            <p class="lead">
-              Ich fertige individuelle Lasergravuren nach Wunsch – persönlich, detailreich und mit besonderem Blick für echte Unikate.
-              Perfekt als Geschenk, Erinnerung oder für dein ganz eigenes Projekt.
-            </p>
-
-            <div class="notice">
-              Du hast eine Idee im Kopf? Schreib mir einfach – ich melde mich persönlich bei dir und wir schauen gemeinsam, wie wir sie umsetzen können.
-            </div>
-
-            <div class="cta-row">
-              <a class="btn btn-primary" href="#kontakt">Anfrage senden</a>
-              <a class="btn btn-secondary" href="#galerie">Beispiele ansehen</a>
-            </div>
-
-            <p class="hero-points">• Einzelanfertigung nach Wunsch • Persönliche Abstimmung • Mit Liebe gefertigt</p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#kontakt">Jetzt anfragen</a>
+            <a class="btn btn-secondary" href="#galerie">Arbeiten ansehen</a>
           </div>
+
+          <p class="hero-points">• Einzelanfertigung • Persönliche Abstimmung • Mit Liebe gefertigt</p>
         </div>
       </div>
     </section>
 
-    <section class="gallery-wrap" id="galerie">
+    <section id="vorteile" class="section">
+      <div class="container">
+        <div class="section-head center">
+          <h2>Warum Daniels Laser Art?</h2>
+          <p>Persönlich, kreativ und auf deine Idee abgestimmt.</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <div class="card-body">
+              <h3>Individuell</h3>
+              <p>Jedes Motiv wird passend zu deinem Wunsch umgesetzt – kein Standard von der Stange.</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <h3>Persönlich</h3>
+              <p>Du schreibst mir direkt deine Idee und bekommst eine persönliche Rückmeldung.</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <h3>Besondere Geschenkidee</h3>
+              <p>Perfekt für Geburtstage, Jahrestage, Erinnerungsstücke und kreative Einzelstücke.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="galerie" class="section">
       <div class="container">
         <div class="section-head">
           <div>
             <h2>Beispiele meiner Arbeiten</h2>
-            <p>Hier findest du Beispiele für personalisierte Lasergravuren, Holzgravuren und kreative Einzelstücke, die ich nach Kundenwunsch umgesetzt habe.</p>
+            <p>Wähle eine Kategorie und sieh dir weitere Bilder an.</p>
           </div>
         </div>
 
-        <div class="grid-3">
-          <article class="card gallery-card-old" onclick="location.href='galerie.html?type=gravur'" tabindex="0">
-            <img class="gallery-thumb" src="images/cover/gravur.jpg" alt="Personalisierte Lasergravur auf Holz">
-            <div class="card-body">
-              <h3>Lasergravur auf Holz</h3>
-            </div>
+        <div class="grid-3 category-grid">
+          <article class="card category-card" data-link="galerie.html?type=gravur" tabindex="0">
+            <img class="gallery-thumb" src="assets/images/cover/gravur.webp" alt="Lasergravur auf Holz" />
+            <div class="card-body"><h3>Lasergravur auf Holz</h3></div>
           </article>
 
-          <article class="card gallery-card-old" onclick="location.href='galerie.html?type=personalisiert'" tabindex="0">
-            <img class="gallery-thumb" src="images/cover/personalisiert.png" alt="Personalisierte Gravur als Geschenkidee">
-            <div class="card-body">
-              <h3>Personalisierte Gravur</h3>
-            </div>
+          <article class="card category-card" data-link="galerie.html?type=personalisiert" tabindex="0">
+            <img class="gallery-thumb" src="assets/images/cover/personalisiert.webp" alt="Personalisierte Gravur" />
+            <div class="card-body"><h3>Personalisierte Gravur</h3></div>
           </article>
 
-          <article class="card gallery-card-old" onclick="location.href='galerie.html?type=leinwand'" tabindex="0">
-            <img class="gallery-thumb" src="images/cover/leinwand.png" alt="Modernes Wandbild mit Lasergravur">
-            <div class="card-body">
-              <h3>Modernes Wandbild / Leinwandgravuren</h3>
-            </div>
+          <article class="card category-card" data-link="galerie.html?type=leinwand" tabindex="0">
+            <img class="gallery-thumb" src="assets/images/cover/leinwand.webp" alt="Modernes Wandbild" />
+            <div class="card-body"><h3>Modernes Wandbild</h3></div>
           </article>
 
-          <article class="card gallery-card-old" onclick="location.href='galerie.html?type=plott'" tabindex="0">
-            <div class="art-placeholder">Plotter<br>arbeiten</div>
-            <div class="card-body">
-              <h3>Plotterarbeiten</h3>
-            </div>
+          <article class="card category-card" data-link="galerie.html?type=plott" tabindex="0">
+            <div class="art-placeholder">Plotterarbeiten</div>
+            <div class="card-body"><h3>Plotterarbeiten</h3></div>
           </article>
 
-          <article class="card gallery-card-old" onclick="location.href='galerie.html?type=3d'" tabindex="0">
-            <div class="art-placeholder">3D<br>Drucke</div>
-            <div class="card-body">
-              <h3>3D Drucke</h3>
-            </div>
+          <article class="card category-card" data-link="galerie.html?type=3d" tabindex="0">
+            <div class="art-placeholder">3D Drucke</div>
+            <div class="card-body"><h3>3D Drucke</h3></div>
           </article>
 
-          <article class="card gallery-card-old" onclick="location.href='galerie.html?type=einzel'" tabindex="0">
-            <img class="gallery-thumb" src="images/cover/einzel.jpg" alt="Kreatives Einzelstück mit individueller Gravur">
-            <div class="card-body">
-              <h3>Kreative Einzelstücke</h3>
-            </div>
+          <article class="card category-card" data-link="galerie.html?type=einzel" tabindex="0">
+            <img class="gallery-thumb" src="assets/images/cover/einzel.webp" alt="Kreative Einzelstücke" />
+            <div class="card-body"><h3>Kreative Einzelstücke</h3></div>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="request-process-wrap" id="anfrage-ablauf">
+    <section id="ablauf" class="section">
       <div class="container">
-        <div class="request-process">
-          <div class="request-process__overlay"></div>
+        <div class="section-head center">
+          <h2>So läuft deine Anfrage ab</h2>
+          <p>Einfach, persönlich und ohne komplizierten Bestellprozess.</p>
+        </div>
 
-          <div class="request-process__inner">
-            <h2 class="request-process__title">So funktioniert deine Anfrage</h2>
-
-            <div class="request-steps">
-              <div class="request-step">
-                <div class="request-step__number">1</div>
-                <div class="request-step__content">
-                  <h3>Anfrage senden</h3>
-                  <p>Du schickst mir deine Idee, einen Text oder ein Bild.</p>
-                </div>
-                <div class="request-step__icon">💬</div>
-              </div>
-
-              <div class="request-step">
-                <div class="request-step__number">2</div>
-                <div class="request-step__content">
-                  <h3>Abstimmung</h3>
-                  <p>Ich melde mich mit einem Vorschlag und der passenden Umsetzung bei dir.</p>
-                </div>
-                <div class="request-step__icon">✍️</div>
-              </div>
-
-              <div class="request-step">
-                <div class="request-step__number">3</div>
-                <div class="request-step__content">
-                  <h3>Anfertigung</h3>
-                  <p>Ich fertige dein persönliches Unikat mit viel Liebe zum Detail.</p>
-                </div>
-                <div class="request-step__icon">🔥</div>
-              </div>
+        <div class="steps">
+          <article class="step card">
+            <div class="card-body">
+              <h3>1. Idee schicken</h3>
+              <p>Du schreibst mir per WhatsApp, E-Mail oder Instagram.</p>
             </div>
-
-            <p class="request-process__text">
-              Schreib mir direkt deine Idee – ich melde mich persönlich bei dir zurück.
-            </p>
-
-            <div class="request-process__actions">
-              <a href="#kontakt" class="btn btn-primary">Wunschgravur anfragen</a>
+          </article>
+          <article class="step card">
+            <div class="card-body">
+              <h3>2. Abstimmung</h3>
+              <p>Ich melde mich mit Vorschlag, Möglichkeiten und Rückfragen bei dir.</p>
             </div>
-          </div>
+          </article>
+          <article class="step card">
+            <div class="card-body">
+              <h3>3. Umsetzung</h3>
+              <p>Dein Wunschmotiv wird präzise und mit viel Liebe zum Detail angefertigt.</p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
 
-    <section id="ueber-mich">
-      <div class="container three-col">
+    <section id="ueber-mich" class="section">
+      <div class="container two-col">
         <div class="card">
           <div class="card-body">
-            <h2 style="text-align:left;">Über mich</h2>
+            <h2>Über mich</h2>
             <p>
-              Ich bin Daniel und gestalte unter dem Namen <strong>Daniels Laser Art</strong>
-              individuelle Lasergravuren, personalisierte Geschenke und kreative Einzelstücke.
-              Mein Ziel ist es, besondere Motive mit Präzision, modernem Look und viel Liebe zum Detail umzusetzen.
-            </p>
-            <ul class="list">
-              <li>Individuelle Motive</li>
-              <li>Personalisierte Geschenkideen</li>
-              <li>Kunstwerke mit Liebe zum Detail</li>
-            </ul>
+  Ich bin Daniel und gestalte unter dem Namen <strong>Daniels Laser Art</strong> individuelle Lasergravuren,
+  personalisierte Geschenke und kreative Einzelstücke.
+</p>
+
+<p>
+  Was als Leidenschaft für kreative Gestaltung begonnen hat, ist heute meine Möglichkeit,
+  einzigartige Ideen in echte, greifbare Unikate zu verwandeln. Jede Gravur entsteht mit viel
+  Liebe zum Detail, einem Auge für saubere Linien und dem Anspruch, etwas Besonderes zu schaffen.
+</p>
+
+<p>
+  Besonders wichtig ist mir der persönliche Kontakt: Du hast eine Idee, ein Motiv oder einfach
+  nur eine grobe Vorstellung – ich helfe dir dabei, daraus ein fertiges Design zu entwickeln.
+  So entsteht am Ende kein Produkt von der Stange, sondern etwas, das genau zu dir oder dem
+  Anlass passt.
+</p>
+
+<p>
+  Ob personalisierte Geschenke, Erinnerungsstücke, moderne Wandbilder oder kreative Einzelstücke –
+  ich arbeite mit verschiedenen Materialien und setze deine Wünsche präzise und hochwertig um.
+</p>
+
+<p>
+  Mein Ziel ist es, nicht nur etwas Schönes zu erschaffen, sondern etwas mit Bedeutung.
+  Ein Geschenk, das im Kopf bleibt. Ein Stück, das eine Geschichte erzählt.
+</p>
+<ul class="list">
+  <li>Individuelle Motive nach Wunsch</li>
+  <li>Persönliche Beratung und Abstimmung</li>
+  <li>Hochwertige Umsetzung mit Liebe zum Detail</li>
+  <li>Perfekt als Geschenk oder Erinnerung</li>
+</ul>
           </div>
         </div>
 
         <div class="card">
-          <img src="images/über_mich.png" class="about-img" alt="Daniel von Daniels Laser Art bei seiner kreativen Arbeit">
-        </div>
-
-        <div class="card">
-          <div class="card-body">
-            <h2 style="text-align:left;">Was ich anbiete</h2>
-            <p>
-              Ich fertige personalisierte Lasergravuren auf Holz und anderen Materialien, individuelle Designs,
-              moderne Wandbilder und kreative Einzelstücke. So entstehen besondere Geschenke und persönliche Erinnerungsstücke nach Wunsch.
-            </p>
-          </div>
+          <img class="about-img" src="assets/images/hero/ueber-mich.webp" alt="Daniel bei der Arbeit bei der Lasergravur" loading="lazy" />
         </div>
       </div>
     </section>
 
-    <section id="kontakt">
+    <section id="faq" class="section">
+      <div class="container">
+        <div class="section-head center">
+          <h2>Häufige Fragen</h2>
+        </div>
+
+        <div class="faq-list">
+          <details class="faq-item card">
+            <summary>Welche Motive sind möglich?</summary>
+            <div class="faq-content">Texte, Namen, Logos, Bilder und persönliche Wunschmotive – je nach Vorlage und Material.</div>
+          </details>
+          <details class="faq-item card">
+            <summary>Kann ich personalisierte Geschenke anfragen?</summary>
+            <div class="faq-content">Ja, genau darauf ist die Seite ausgelegt – mit Namen, Daten oder individuellen Botschaften.</div>
+          </details>
+          <details class="faq-item card">
+            <summary>Wie läuft die Preisabstimmung?</summary>
+            <div class="faq-content">Nach deiner Anfrage bespreche ich Aufwand, Größe, Material und Wunschmotiv direkt mit dir.</div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="kontakt" class="section">
       <div class="container two-col">
         <div>
-          <h2 style="text-align:left;">Kontakt</h2>
-          <p class="lead" style="font-size: 1rem; margin-bottom: 0;">
-            Du möchtest eine personalisierte Lasergravur oder ein individuelles Geschenk anfertigen lassen? Dann schreib mir direkt deine Idee.
-          </p>
+          <h2>Kontakt</h2>
+          <p class="lead">Du hast eine Idee? Schreib mir direkt – ich melde mich persönlich bei dir.</p>
         </div>
 
         <div class="card">
           <div class="card-body contact-box">
-            <div class="contact-item"><strong>E-Mail:</strong> <a href="mailto:daniels.laser.art@gmail.com">daniels.laser.art@gmail.com</a></div>
-            <div class="contact-item"><strong>Instagram:</strong> <a href="https://instagram.com/daniels.laser.art" target="_blank" rel="noopener noreferrer">@daniels.laser.art</a></div>
-            <div class="contact-item"><strong>Facebook:</strong> <a href="https://www.facebook.com/Daniels.laser.art/" target="_blank" rel="noopener noreferrer">@Daniels.laser.art</a></div>
-            <div class="contact-item"><strong>WhatsApp:</strong> <a href="https://wa.me/4915147906749">+49 1514 7906749</a></div>
+            <a class="contact-item" href="https://wa.me/4915147906749">WhatsApp: +49 1514 7906749</a>
+            <a class="contact-item" href="mailto:daniels.laser.art@gmail.com">E-Mail: daniels.laser.art@gmail.com</a>
+            <a class="contact-item" href="https://instagram.com/daniels.laser.art" target="_blank" rel="noopener noreferrer">Instagram: @daniels.laser.art</a>
+            <a class="contact-item" href="https://www.facebook.com/Daniels.laser.art/" target="_blank" rel="noopener noreferrer">Facebook: Daniels.laser.art</a>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer>
-    <div id="admin-stats-panel" style="display:none; position:fixed; right:16px; bottom:16px; z-index:9999; width:min(340px, calc(100vw - 24px)); border-radius:18px; overflow:hidden; background:linear-gradient(180deg, rgba(28,12,22,0.96), rgba(18,8,15,0.96)); border:1px solid rgba(255,190,120,0.22); box-shadow:0 18px 45px rgba(0,0,0,0.45); backdrop-filter:blur(12px); color:#fff4ea; font-family:Inter, Arial, sans-serif;">
-      <div style="padding:14px 16px; border-bottom:1px solid rgba(255,190,120,0.12); display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <div>
-          <div style="font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#ffcfab;">Admin</div>
-          <div style="font-size:16px; font-weight:800;">Besucherstatistik</div>
-        </div>
-        <button id="admin-stats-toggle" type="button" style="border:0; border-radius:10px; padding:8px 10px; cursor:pointer; background:rgba(255,255,255,0.06); color:#fff4ea; font-weight:700;">
-          −
-        </button>
-      </div>
+  <a class="floating-cta" href="https://wa.me/4915147906749" aria-label="WhatsApp Anfrage starten">WhatsApp</a>
 
-      <div id="admin-stats-content" style="padding:14px 16px;">
-        <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
-          <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
-            <div style="font-size:12px; color:#e6cbbf;">Gesamt</div>
-            <div id="stat-total" style="font-size:24px; font-weight:800;">…</div>
-          </div>
-          <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
-            <div style="font-size:12px; color:#e6cbbf;">Heute</div>
-            <div id="stat-today" style="font-size:24px; font-weight:800;">…</div>
-          </div>
-          <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
-            <div style="font-size:12px; color:#e6cbbf;">Diese Woche</div>
-            <div id="stat-week" style="font-size:24px; font-weight:800;">…</div>
-          </div>
-          <div style="padding:12px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,190,120,0.10);">
-            <div style="font-size:12px; color:#e6cbbf;">Diese Seite</div>
-            <div id="stat-page" style="font-size:24px; font-weight:800;">…</div>
-          </div>
-        </div>
-
-        <div style="margin-top:12px; padding:12px; border-radius:14px; background:rgba(255,122,24,0.08); border:1px solid rgba(255,190,120,0.10);">
-          <div style="font-size:12px; color:#e6cbbf;">Aktuelle Seite</div>
-          <div id="stat-page-path" style="font-size:13px; font-weight:700; word-break:break-all;">…</div>
-        </div>
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <p>© 2025 Daniels Laser Art – C'est la vie.</p>
+      <div class="footer-links">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
       </div>
     </div>
-
-    <script src="counter.js"></script>
-
-    <div style="margin-top:20px;">
-      <a href="impressum.html">Impressum</a> ·
-      <a href="datenschutz.html">Datenschutz</a>
-    </div>
-    &copy; Daniel's Laser Art | C'est La Vie
+    <div id="visitorCounter" style="display:none; text-align:center; margin-top:20px;">
+  Besucher: <span id="visitorCount">–</span>
+</div>
   </footer>
+
+ <script>
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("dlart") === "hide") {
+      localStorage.setItem("excludeVisitorCount", "true");
+    }
+
+    if (params.get("dlart") === "show") {
+      localStorage.removeItem("excludeVisitorCount");
+    }
+
+    const exclude = localStorage.getItem("excludeVisitorCount") === "true";
+
+    if (!exclude) {
+      window.goatcounter = window.goatcounter || {};
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = "https://gc.zgo.at/count.js";
+      script.setAttribute(
+        "data-goatcounter",
+        "https://danielslaserart.goatcounter.com/count"
+      );
+      document.head.appendChild(script);
+    }
+  })();
+</script>
+
+<script src="assets/js/main.js" defer></script>
 </body>
 </html>

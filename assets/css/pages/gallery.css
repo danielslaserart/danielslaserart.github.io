@@ -1,0 +1,101 @@
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.gallery-grid img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+}
+
+.image-fallback {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 20px;
+
+  font-weight: 800;
+  color: #fff6ee;
+
+  background:
+    linear-gradient(rgba(8,2,10,0.5), rgba(8,2,10,0.85)),
+    url('../../images/hero/background.webp') center center / cover no-repeat;
+
+  text-shadow: 0 3px 12px rgba(0,0,0,0.6);
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 2, 8, 0.92);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 9999;
+}
+
+.lightbox.open { display: flex; }
+
+.lightbox img {
+  max-width: min(1100px, 92vw);
+  max-height: 88vh;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.lightbox-close,
+.lightbox-nav {
+  position: absolute;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: white;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+}
+
+.lightbox-close {
+  top: 18px;
+  right: 22px;
+  width: 48px;
+  height: 48px;
+  font-size: 2rem;
+}
+
+.lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  font-size: 2rem;
+}
+.lightbox-prev { left: 18px; }
+.lightbox-next { right: 18px; }
+
+.lightbox-counter {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+
+@media (max-width: 560px) {
+  .gallery-grid { grid-template-columns: 1fr; }
+}

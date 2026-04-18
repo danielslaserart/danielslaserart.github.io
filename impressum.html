@@ -1,170 +1,61 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Impressum | Daniels Laser Art</title>
-  <style>
-    :root {
-      --bg: #09030d;
-      --bg-2: #140611;
-      --text: #fff4ea;
-      --muted: #e6cbbf;
-      --accent-fire: #ff7a18;
-      --accent-gold: #ffb347;
-      --accent-violet: #b86cff;
-      --line: rgba(255, 190, 120, 0.18);
-      --shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
-    }
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Inter, Arial, Helvetica, sans-serif;
-      color: var(--text);
-      line-height: 1.6;
-      background:
-        linear-gradient(rgba(8, 2, 10, 0.68), rgba(8, 2, 10, 0.9)),
-        radial-gradient(circle at top left, rgba(255, 122, 24, 0.22), transparent 30%),
-        radial-gradient(circle at top right, rgba(184, 108, 255, 0.18), transparent 28%),
-        url('background.jpg') center center / cover fixed no-repeat,
-        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
-      min-height: 100vh;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 14% 18%, rgba(255, 140, 40, 0.16), transparent 18%),
-        radial-gradient(circle at 86% 10%, rgba(185, 108, 255, 0.18), transparent 20%);
-      z-index: -1;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .container {
-      width: min(900px, calc(100% - 32px));
-      margin: 40px auto;
-    }
-
-    .card {
-      border-radius: 28px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(32, 12, 20, 0.82), rgba(18, 7, 14, 0.9));
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-      padding: 32px 28px;
-    }
-
-    .back {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 46px;
-      padding: 10px 16px;
-      border-radius: 14px;
-      font-weight: 700;
-      margin-bottom: 22px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255, 190, 120, 0.22);
-      color: var(--text);
-    }
-
-    h1, h2 {
-      margin: 0 0 14px;
-      line-height: 1.1;
-    }
-
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      background: linear-gradient(90deg, #fff4ea 0%, #ffcfab 38%, #ffb347 58%, #cf9cff 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    h2 {
-      font-size: clamp(1.1rem, 2vw, 1.4rem);
-      color: #ffcfab;
-      margin-top: 24px;
-    }
-
-    p {
-      margin: 0;
-      color: var(--muted);
-      word-break: break-word;
-    }
-
-    .block + .block {
-      margin-top: 22px;
-    }
-
-    @media (max-width: 700px) {
-      .container {
-        width: calc(100% - 20px);
-        margin: 18px auto;
-      }
-
-      .card {
-        padding: 22px 16px;
-        border-radius: 20px;
-      }
-
-      .back {
-        width: 100%;
-        margin-bottom: 18px;
-      }
-
-      h1 {
-        font-size: 1.9rem;
-      }
-
-      h2 {
-        margin-top: 20px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages/legal.css" />
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <a href="index.html" class="back">← Zurück zur Startseite</a>
 
-      <h1>Impressum</h1>
+  <main class="legal-page">
+    <div class="container legal-container">
+      <div class="card legal-card">
 
-      <div class="block">
-        <h2>Angaben gemäß § 5 TMG</h2>
-        <p>
-          Daniel Häßler<br>
-          Daniels Laser Art<br>
-          Augasse 12<br>
-          08393 Meerane
-        </p>
-      </div>
+        <a href="index.html" class="btn btn-secondary legal-back">
+          ← Zurück zur Startseite
+        </a>
 
-      <div class="block">
-        <h2>Kontakt</h2>
-        <p>
-          E-Mail: <a href="mailto:daniels.laser.art@gmail.com">daniels.laser.art@gmail.com</a><br>
-          Telefon: <a href="tel:+4915147906749">+49 151 47906749</a>
-        </p>
-      </div>
+        <h1>Impressum</h1>
 
-      <div class="block">
-        <h2>Hinweis</h2>
-        <p>
-          Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmer).
-        </p>
+        <section class="legal-block">
+          <h2>Angaben gemäß § 5 TMG</h2>
+          <p>
+            Daniel Häßler<br>
+            Daniels Laser Art<br>
+            Augasse 12<br>
+            08393 Meerane
+          </p>
+        </section>
+
+        <section class="legal-block">
+          <h2>Kontakt</h2>
+          <p>
+            E-Mail:
+            <a href="mailto:daniels.laser.art@gmail.com">
+              daniels.laser.art@gmail.com
+            </a><br>
+            Telefon:
+            <a href="tel:+4915147906749">
+              +49 151 47906749
+            </a>
+          </p>
+        </section>
+
+        <section class="legal-block">
+          <h2>Hinweis</h2>
+          <p>
+            Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.
+          </p>
+        </section>
+
       </div>
     </div>
-  </div>
+  </main>
+
 </body>
 </html>

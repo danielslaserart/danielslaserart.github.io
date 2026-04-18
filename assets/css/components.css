@@ -1,0 +1,115 @@
+.card {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(32, 12, 20, 0.82), rgba(18, 7, 14, 0.9));
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+
+.card-body {
+  padding: 18px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-weight: 800;
+  border: 1px solid transparent;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold));
+  color: #220b03;
+  box-shadow: 0 14px 32px rgba(255, 122, 24, 0.24);
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255, 190, 120, 0.22);
+  color: var(--text);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 179, 71, 0.35);
+  background: rgba(255, 122, 24, 0.12);
+  color: #ffd4ad;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  margin-bottom: 18px;
+}
+
+.gallery-thumb,
+.art-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.art-placeholder {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 20px;
+  font-weight: 800;
+  color: #fff6ee;
+
+  background:
+    linear-gradient(rgba(8,2,10,0.5), rgba(8,2,10,0.85)),
+    url('../images/hero/background.webp') center center / cover no-repeat;
+
+  text-shadow: 0 3px 12px rgba(0,0,0,0.6);
+}
+
+.contact-box {
+  display: grid;
+  gap: 12px;
+}
+
+.contact-item {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255, 190, 120, 0.14);
+}
+
+.floating-cta {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 90;
+  min-height: 52px;
+  padding: 14px 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold));
+  color: #220b03;
+  font-weight: 800;
+  box-shadow: 0 16px 34px rgba(255, 122, 24, 0.30);
+}
+
+.faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px;
+  font-weight: 700;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-content {
+  padding: 0 18px 18px;
+  color: var(--muted);
+}
