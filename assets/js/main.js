@@ -1,8 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ------------------------------
-  // 🔹 Menü & Navigation
-  // ------------------------------
+  // 🔹 Menü
   const toggle = document.querySelector(".menu-toggle");
   const menu = document.querySelector(".menu");
 
@@ -13,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 🔹 Karten klickbar
   document.querySelectorAll("[data-link]").forEach((card) => {
     const go = () => {
       const href = card.getAttribute("data-link");
@@ -28,9 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ------------------------------
-  // 🔹 Admin-Modus (versteckt)
-  // ------------------------------
+  // 🔹 Admin-Modus
   const params = new URLSearchParams(window.location.search);
 
   if (params.get("dlart") === "hide") {
@@ -43,9 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const exclude = localStorage.getItem("excludeVisitorCount") === "true";
 
-  // ------------------------------
-  // 🔹 GoatCounter laden (nur wenn du NICHT ausgeschlossen bist)
-  // ------------------------------
+  // 🔹 GoatCounter laden
   if (!exclude) {
     const script = document.createElement("script");
     script.async = true;
@@ -57,54 +52,52 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(script);
   }
 
-  // ------------------------------
-  // 🔹 Footer-Statistik (nur für dich)
-  // ------------------------------
+  // 🔹 Footer Stats (nur für dich)
   if (exclude) {
     const box = document.getElementById("visitorCounter");
-    if (!box) return;
-
-    box.style.display = "block";
-
     const todayEl = document.getElementById("statToday");
     const weekEl = document.getElementById("statWeek");
     const monthEl = document.getElementById("statMonth");
     const totalEl = document.getElementById("statTotal");
 
+    if (!box || !todayEl || !weekEl || !monthEl || !totalEl) return;
+
+    box.style.display = "block";
+
     const now = new Date();
 
-    // Datum formatieren YYYY-MM-DD
     const formatDate = (date) => {
-      return date.toISOString().split("T")[0];
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     };
 
-    // Startpunkte berechnen
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const day = (now.getDay() + 6) % 7; // Montag = 0
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - day);
+    const day = (now.getDay() + 6) % 7;
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
 
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Funktion zum Laden der Stats
     const fetchCount = async (start = null, end = null) => {
       let url = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
 
-      const params = new URLSearchParams();
-      if (start) params.set("start", start);
-      if (end) params.set("end", end);
+      const query = new URLSearchParams();
+      if (start) query.set("start", start);
+      if (end) query.set("end", end);
 
-      if (params.toString()) {
-        url += `?${params.toString()}`;
+      if (query.toString()) {
+        url += `?${query.toString()}`;
       }
 
       const res = await fetch(url);
+      if (!res.ok) throw new Error("Fehler beim Laden");
+
       const data = await res.json();
       return data.count ?? "–";
     };
 
-    // Alle Werte gleichzeitig laden
     Promise.all([
       fetchCount(formatDate(startOfToday), formatDate(now)),
       fetchCount(formatDate(startOfWeek), formatDate(now)),
@@ -112,17 +105,13 @@ document.addEventListener("DOMContentLoaded", () => {
       fetchCount()
     ])
       .then(([today, week, month, total]) => {
-        if (todayEl) todayEl.textContent = today;
-        if (weekEl) weekEl.textContent = week;
-        if (monthEl) monthEl.textContent = month;
-        if (totalEl) totalEl.textContent = total;
+        todayEl.textContent = today;
+        weekEl.textContent = week;
+        monthEl.textContent = month;
+        totalEl.textContent = total;
       })
       .catch((err) => {
-        console.error("GoatCounter Fehler:", err);
-        if (todayEl) todayEl.textContent = "–";
-        if (weekEl) weekEl.textContent = "–";
-        if (monthEl) monthEl.textContent = "–";
-        if (totalEl) totalEl.textContent = "–";
+        console.error(err);
       });
   }
 
