@@ -3,26 +3,26 @@ window.GALLERIES = {
     title: "Lasergravur auf Holz",
     description: "Hier findest du detailreiche Gravuren auf Holz.",
     images: [
-      "assets/images/gravuren/ygdrasil1.jpg",
-      "assets/images/gravuren/ygdrasil2.jpg",
-      "assets/images/gravuren/ygdrasil3.jpg"
+      "assets/images/gravuren/ygdrasil1.webp",
+      "assets/images/gravuren/ygdrasil2.webp",
+      "assets/images/gravuren/ygdrasil3.webp"
     ]
   },
   personalisiert: {
     title: "Personalisierte Gravur",
     description: "Individuelle Geschenkideen mit Namen, Datum oder Botschaft.",
     images: [
-      "assets/images/personalisiert/brettchen-anna.jpg",
-      "assets/images/personalisiert/brettchen-tattoogirl.jpg"
+      "assets/images/personalisiert/brettchen-anna.webp",
+      "assets/images/personalisiert/brettchen-tattoogirl.webp"
     ]
   },
   leinwand: {
     title: "Modernes Wandbild",
     description: "Kreative Arbeiten für Dekoration, Zuhause oder besondere Räume.",
     images: [
-      "assets/images/leinwand/portrait.jpg",
-      "assets/images/leinwand/portrait2.jpg",
-      "assets/images/leinwand/portrait3.jpg"
+      "assets/images/leinwand/portrait.webp",
+      "assets/images/leinwand/portrait2.webp",
+      "assets/images/leinwand/portrait3.webp"
     ]
   },
   plott: {
@@ -45,8 +45,9 @@ window.GALLERIES = {
     title: "Kreative Einzelstücke",
     description: "Einzigartige Arbeiten nach deinen eigenen Vorstellungen.",
     images: [
-      "assets/images/einzelstuecke/einzelstück1.jpg",
-      "assets/images/einzelstuecke/einzelstück2.jpg"
+      "assets/images/einzelstuecke/einzelstück1.webp",
+      "assets/images/einzelstuecke/einzelstück2.webp",
+      "assets/images/einzelstuecke/einzelstück3.webp"
     ]
   }
 };
