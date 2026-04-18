@@ -97,6 +97,6 @@
           linear-gradient(rgba(8, 2, 10, 0.18), rgba(8, 2, 10, 0.78)),
           radial-gradient(circle at top left, rgba(255, 122, 24, 0.16), transparent 28%),
           radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
-          url('images/banner2.png') 85% 16% / cover no-repeat;
+          url('../../images/hero/banner2.webp') 85% 16% / cover no-repeat;
       }
 }
