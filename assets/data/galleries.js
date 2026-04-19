@@ -5,14 +5,25 @@ window.GALLERIES = {
     images: [
       "assets/images/gravuren/ygdrasil1.webp",
       "assets/images/gravuren/ygdrasil2.webp",
-      "assets/images/gravuren/ygdrasil3.webp"
+      "assets/images/gravuren/ygdrasil3.webp",
+      "assets/images/gravuren/geldkarte1.webp",
+      "assets/images/gravuren/geldkarte2.webp",
+      "assets/images/gravuren/geldkarte3.webp",
+      "assets/images/gravuren/flatlays1.webp",
+      "assets/images/gravuren/flatlays2.webp",
+      "assets/images/gravuren/kamera.webp",
+      "assets/images/gravuren/rammstein-uhr.webp",
+      "assets/images/gravuren/schwibbogen1.webp",
+      "assets/images/gravuren/schwibbogen2.webp",
+      "assets/images/gravuren/schwibbogen-westi.webp",
+      "assets/images/gravuren/schwibbogen-bosti.webp"
     ]
   },
   personalisiert: {
     title: "Personalisierte Gravur",
     description: "Individuelle Geschenkideen mit Namen, Datum oder Botschaft.",
     images: [
-      "assets/images/personalisiert/brettchen-anna.webp",
+      "assets/images/personalisiert/brettchen-Anna.webp",
       "assets/images/personalisiert/brettchen-tattoogirl.webp"
     ]
   },
@@ -22,7 +33,12 @@ window.GALLERIES = {
     images: [
       "assets/images/leinwand/portrait.webp",
       "assets/images/leinwand/portrait2.webp",
-      "assets/images/leinwand/portrait3.webp"
+      "assets/images/leinwand/portrait3.webp",
+      "assets/images/leinwand/natsu.webp",
+      "assets/images/leinwand/natsu2.webp",
+      "assets/images/leinwand/tanchiro.webp",
+      "assets/images/leinwand/tanchiro2.webp",
+      "assets/images/leinwand/tanchiro3.webp"
     ]
   },
   plott: {
