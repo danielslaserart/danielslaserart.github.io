@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
    const img = document.createElement("img");
 img.src = src;
-img.alt = `${gallery.title} Bild ${index + 1}`;
+img.alt = `${gallery.title} personalisiert – individuelles Motiv ${index + 1}`;
 img.loading = "lazy";
 
 img.onerror = () => {
