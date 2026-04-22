@@ -22,28 +22,33 @@ document.addEventListener("DOMContentLoaded", () => {
   title.textContent = gallery.title;
   description.textContent = gallery.description;
 
-  gallery.images.forEach((src, index) => {
+  gallery.images.forEach((item, index) => {
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "card gallery-card";
 
-   const img = document.createElement("img");
-img.src = src;
-img.alt = `${gallery.title} personalisiert – individuelles Motiv ${index + 1}`;
-img.loading = "lazy";
+    const img = document.createElement("img");
+    img.src = item.src;
+    img.alt = item.text || `${gallery.title} – individuelles Motiv ${index + 1}`;
+    img.loading = "lazy";
 
-img.onerror = () => {
-  const fallback = document.createElement("div");
-  fallback.className = "image-fallback";
-  fallback.textContent = gallery.title;
+    img.onerror = () => {
+      const fallback = document.createElement("div");
+      fallback.className = "image-fallback";
+      fallback.textContent = gallery.title;
+      img.replaceWith(fallback);
+    };
 
-  img.replaceWith(fallback);
-};
+    img.addEventListener("click", () => {
+      const imageList = gallery.images.map((image) => image.src);
+      Lightbox.open(imageList, index);
+    });
 
-img.addEventListener("click", () => {
-  Lightbox.open(gallery.images, index);
-});
+    const caption = document.createElement("div");
+    caption.className = "image-caption";
+    caption.textContent = item.text || "";
 
     card.appendChild(img);
+    card.appendChild(caption);
     container.appendChild(card);
   });
 });
