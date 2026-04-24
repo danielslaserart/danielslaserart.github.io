@@ -58,6 +58,22 @@ window.GALLERIES = {
       {
         src: "assets/images/gravuren/schwibbogen-bosti.webp",
         text: "Einzigartiger Schwibbogen als kreatives Geschenk oder Dekoidee."
+      },
+      {
+        src: "assets/images/gravuren/herz.webp",
+        text: "Verziertes Herz mit Name Ein liebevolles Detail – personalisiert und einzigartig."
+      },
+      {
+        src: "assets/images/gravuren/lederlabel.webp",
+        text: "Lederlabels Rustikaler Look für deine Handmade-Unikate – mit Charakter."
+      },
+      {
+        src: "assets/images/gravuren/polaroidhandmade.webp",
+        text: "Polaroid „Handmade“ mit Nadel & Garn Detailverliebt und authentisch – für echte Kreativköpfe."
+      },
+      {
+        src: "assets/images/gravuren/smileys.webp",
+        text: "Smiley-Set Kleine Hingucker mit großer Wirkung – bring Freude in jedes Projekt."
       }
     ]
   },
@@ -73,6 +89,25 @@ window.GALLERIES = {
       {
         src: "assets/images/personalisiert/brettchen-tattoogirl.webp",
         text: "Individuell graviertes Brettchen mit persönlichem Wunschmotiv."
+      },
+      {
+        src: "assets/images/personalisiert/kleiderbügel.webp",
+        text: "Kleiderbügel mit Namen Praktisch & dekorativ – dein Name elegant verewigt."
+      },{
+        src: "assets/images/personalisiert/logopaedie.webp",
+        text: "Logopädie-Schild Kreativ & individuell – perfekt für Praxis oder Geschenk."
+      },{
+        src: "assets/images/personalisiert/nikilina.webp",
+        text: "Rundes Namensschild „Nikilina“ Natürlich schön – dein Name im modernen Holzdesign."
+      },{
+        src: "assets/images/personalisiert/herz.webp",
+        text: "Blumenherz „Nähzauber“ Zartes Design für echte Handarbeitsliebe."
+      },{
+        src: "assets/images/personalisiert/polaroid-nikilina.webp",
+        text: "Polaroid „Made by Nikilina“ Individuell gefertigt – dein Name stilvoll in Szene gesetzt."
+      },{
+        src: "assets/images/personalisiert/polaroid-wundernaht.webp",
+        text: "Polaroid „Handmade by … / #NÄHLIEBE“ Perfekt für Handmade-Liebhaber – persönlich & mit Herz gestaltet."
       }
     ]
   },
