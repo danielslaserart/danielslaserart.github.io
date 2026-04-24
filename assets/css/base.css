@@ -20,7 +20,7 @@
 
   background:
     linear-gradient(rgba(8,2,10,0.48), rgba(8,2,10,0.78)),
-    url('../images/hero/background.webp') center 20% / cover no-repeat;
+    url('../images/hero/background.webp') center center / cover no-repeat;
 
   pointer-events: none;
 }
