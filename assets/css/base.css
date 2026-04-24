@@ -13,7 +13,17 @@
   --radius: 24px;
   --container: 1180px;
 }
+.bg-fixed {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
 
+  background:
+    linear-gradient(rgba(8,2,10,0.48), rgba(8,2,10,0.78)),
+    url('../images/hero/background.webp') center 20% / cover no-repeat;
+
+  pointer-events: none;
+}
 html {
   color-scheme: dark;
   -webkit-text-size-adjust: 100%;
@@ -29,7 +39,7 @@ body {
   line-height: 1.6;
   background:
     linear-gradient(rgba(8,2,10,0.48), rgba(8,2,10,0.78)),
-    url('../images/hero/background.webp') center center / cover no-repeat fixed,
+    /* url('../images/hero/background.webp') center center / cover no-repeat fixed, */
     radial-gradient(circle at top left, rgba(255, 122, 24, 0.18), transparent 30%),
     radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 28%),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
