@@ -72,7 +72,7 @@ window.GALLERIES = {
         text: "Polaroid „Handmade“ mit Nadel & Garn Detailverliebt und authentisch – für echte Kreativköpfe."
       },
       {
-        src: "assets/images/gravuren/smileys.webp",
+        src: "assets/images/gravuren/smilieys.webp",
         text: "Smiley-Set Kleine Hingucker mit großer Wirkung – bring Freude in jedes Projekt."
       }
     ]
