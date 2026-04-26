@@ -59,7 +59,7 @@
 
 .grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 18px;
 }
 
@@ -127,4 +127,22 @@
     flex-direction: column;
     align-items: flex-start;
   }
+}
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.brand-logo strong {
+  background: linear-gradient(90deg, #fff4ea 0%, #ffcfab 38%, #ffb347 58%, #cf9cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

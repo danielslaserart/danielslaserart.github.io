@@ -1,3 +1,7 @@
+/* =========================================
+   HERO
+========================================= */
+
 .hero {
   padding: 34px 0 24px;
 }
@@ -23,50 +27,6 @@
   max-width: 760px;
 }
 
-.lead {
-  font-size: 1.08rem;
-  max-width: 34rem;
-  margin-bottom: 20px;
-}
-
-.cta-row {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.hero-points {
-  margin-top: 18px;
-  font-size: 0.98rem;
-  font-weight: 600;
-  color: #ffd8bc;
-}
-
-.category-card {
-  cursor: pointer;
-  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
-}
-.category-card:hover,
-.category-card:focus-visible {
-  transform: translateY(-4px);
-  border-color: rgba(255, 190, 120, 0.4);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-  outline: none;
-}
-
-.steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.about-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  min-height: 320px;
-}
 .hero h1 {
   display: inline-block;
   background: linear-gradient(
@@ -83,98 +43,102 @@
   color: transparent;
 }
 
-@media (max-width: 860px) {
-  .hero-copy {
-    padding: 34px 22px;
-    min-height: 400px;
-  }
-
-  .steps {
-    grid-template-columns: 1fr;
-  }
-  .hero-shell {
-        background:
-          linear-gradient(rgba(8, 2, 10, 0.18), rgba(8, 2, 10, 0.78)),
-          radial-gradient(circle at top left, rgba(255, 122, 24, 0.16), transparent 28%),
-          radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
-          url('../../images/hero/banner2.webp') 85% 16% / cover no-repeat;
-      }
-
-}
-  @media (max-width: 860px) {
-  .category-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-.reviews-grid {
-  align-items: stretch;
+.lead {
+  font-size: 1.08rem;
+  max-width: 34rem;
+  margin-bottom: 20px;
 }
 
-.review-card {
-  height: 100%;
+.cta-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hero-points {
+  margin-top: 18px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #ffd8bc;
+}
+
+
+/* =========================================
+   CATEGORY / GRID
+========================================= */
+
+.category-card {
+  cursor: pointer;
   transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
-.review-card:hover {
+.category-card:hover {
   transform: translateY(-4px);
   border-color: rgba(255, 190, 120, 0.4);
-  box-shadow: 0 24px 60px rgba(255, 122, 24, 0.12);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
 }
 
-.review-stars {
-  color: var(--accent-gold);
-  font-size: 1.25rem;
-  letter-spacing: 3px;
-  margin-bottom: 14px;
-  text-shadow: 0 0 14px rgba(255, 179, 71, 0.35);
+
+/* =========================================
+   STEPS
+========================================= */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 
-.review-text {
-  font-size: 1rem;
-  line-height: 1.65;
-  margin-bottom: 16px;
+
+/* =========================================
+   ABOUT
+========================================= */
+
+.about-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 320px;
 }
 
-.review-source {
-  font-size: 0.9rem;
-  color: #ffd4ad;
-  font-weight: 800;
-}
 
-.reviews-actions {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-top: 24px;
+/* =========================================
+   REVIEWS
+========================================= */
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
 }
-/* ===== Bewertungen ===== */
 
 .review-card {
   position: relative;
   overflow: hidden;
   height: 100%;
+  border: 1px solid rgba(255, 190, 120, 0.16);
+  background: linear-gradient(180deg, rgba(35, 13, 23, 0.9), rgba(16, 6, 12, 0.94));
+  backdrop-filter: blur(14px);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.review-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent, rgba(255, 179, 71, 0.08), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
 .review-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 28px 70px rgba(255, 122, 24, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 22px 50px rgba(255, 122, 24, 0.12);
 }
 
-.review-card:hover::before {
-  opacity: 1;
+/* Quote Effekt */
+.review-card::after {
+  content: "”";
+  position: absolute;
+  right: 18px;
+  top: 8px;
+  font-size: 5rem;
+  color: rgba(255, 179, 71, 0.08);
+  font-family: Georgia, serif;
 }
 
+/* Header */
 .review-header {
   display: flex;
   align-items: center;
@@ -194,47 +158,78 @@
   color: #220b03;
 }
 
-.review-stars {
-  color: var(--accent-gold);
-  font-size: 1rem;
-  letter-spacing: 2px;
-  text-shadow: 0 0 10px rgba(255, 179, 71, 0.35);
-}
-
+/* Text */
 .review-text {
-  font-size: 1rem;
   line-height: 1.7;
   margin-bottom: 18px;
 }
 
-.review-footer {
-  font-size: 0.85rem;
-  color: #ffd4ad;
-  opacity: 0.8;
-}
-.review-card {
-  backdrop-filter: blur(14px);
-}
-
-/* ===== Stern-Animation ===== */
-
+/* Sterne */
 .review-stars {
+  color: var(--accent-gold);
+  font-size: 1rem;
+  letter-spacing: 2px;
+  animation: none;
+}
+
+.review-card:hover .review-stars {
   animation: starGlow 2.4s ease-in-out infinite;
 }
 
+/* Meta */
+.review-meta {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+/* Footer */
+.review-footer {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Google Label */
+.google-review {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 190, 120, 0.12);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffd4ad;
+  font-weight: 700;
+}
+
+/* Google Icon */
+.google-g {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(45deg, #4285F4, #34A853, #FBBC05, #EA4335);
+  color: white;
+}
+
+/* Sterne Animation */
 @keyframes starGlow {
   0%, 100% {
     text-shadow: 0 0 8px rgba(255, 179, 71, 0.25);
-    transform: scale(1);
   }
-
   50% {
     text-shadow: 0 0 18px rgba(255, 179, 71, 0.75);
-    transform: scale(1.04);
   }
 }
 
-/* ===== Vertrauens-Siegel ===== */
+
+/* =========================================
+   TRUST BADGES
+========================================= */
 
 .trust-row {
   display: grid;
@@ -250,26 +245,29 @@
   border: 1px solid rgba(255, 190, 120, 0.18);
   text-align: center;
   box-shadow: var(--shadow);
+  transition: transform 0.22s ease, border-color 0.22s ease;
+}
+
+.trust-badge:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 190, 120, 0.38);
 }
 
 .trust-badge span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 44px;
   height: 44px;
   margin-bottom: 10px;
   border-radius: 50%;
   background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold));
-  color: #220b03;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 900;
-  box-shadow: 0 0 22px rgba(255, 122, 24, 0.28);
+  color: #220b03;
 }
 
 .trust-badge strong {
   display: block;
-  color: var(--text);
-  font-size: 1.05rem;
   margin-bottom: 4px;
 }
 
@@ -277,7 +275,49 @@
   color: var(--muted);
 }
 
+
+/* =========================================
+   CTA BOX
+========================================= */
+
+.reviews-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.premium-review-actions {
+  padding: 22px;
+  margin: 28px auto 0;
+  max-width: 720px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255, 190, 120, 0.14);
+  box-shadow: var(--shadow);
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
 @media (max-width: 860px) {
+
+  .hero-copy {
+    padding: 34px 22px;
+    min-height: 400px;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .trust-row {
     grid-template-columns: 1fr;
   }

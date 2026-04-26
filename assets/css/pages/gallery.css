@@ -116,3 +116,20 @@
     grid-template-columns: repeat(2, 1fr); 
   }
 }
+.gallery-image-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.gallery-image-wrap::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 44px;
+  height: 44px;
+  background: url('../../images/branding/logo.webp') center / contain no-repeat;
+  opacity: 0.18;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
+}

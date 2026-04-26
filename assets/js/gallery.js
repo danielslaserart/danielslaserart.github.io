@@ -47,8 +47,13 @@ document.addEventListener("DOMContentLoaded", () => {
     caption.className = "image-caption";
     caption.textContent = item.text || "";
 
-    card.appendChild(img);
-    card.appendChild(caption);
+    const imageWrap = document.createElement("div");
+imageWrap.className = "gallery-image-wrap";
+
+imageWrap.appendChild(img);
+
+card.appendChild(imageWrap);
+card.appendChild(caption);
     container.appendChild(card);
   });
 });
