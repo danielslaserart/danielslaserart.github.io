@@ -108,6 +108,12 @@ window.GALLERIES = {
       },{
         src: "assets/images/personalisiert/polaroid-wundernaht.webp",
         text: "Polaroid „Handmade by … / #NÄHLIEBE“ Perfekt für Handmade-Liebhaber – persönlich & mit Herz gestaltet."
+      },{
+        src: "assets/images/personalisiert/oscar2.webp",
+        text: "Personalisierter Holzname mit Wunschmotiv – einzigartig, individuell und perfekt als Geschenk."
+      },{
+        src: "assets/images/personalisiert/oscar1.webp",
+        text: "Detailreiche Lasergravur auf Holz – präzise umgesetzt und individuell nach Wunsch gestaltet."
       }
     ]
   },
