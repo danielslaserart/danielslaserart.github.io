@@ -15,7 +15,7 @@
     linear-gradient(rgba(8, 2, 10, 0.28), rgba(8, 2, 10, 0.84)),
     radial-gradient(circle at top left, rgba(255, 122, 24, 0.16), transparent 28%),
     radial-gradient(circle at top right, rgba(184, 108, 255, 0.16), transparent 24%),
-    url('../../images/hero/banner2.webp') 60% center  / cover no-repeat;
+    url('../../images/hero/banner2.webp') center center / cover no-repeat;
 }
 
 .hero-copy {
