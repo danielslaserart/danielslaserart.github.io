@@ -4,6 +4,11 @@
   gap: 18px;
 }
 
+/* 👉 HIER EINFÜGEN */
+.gallery-grid {
+  margin-top: 20px;
+}
+
 .gallery-grid img {
   width: 100%;
   aspect-ratio: 1 / 1;
