@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
-  const galleryKey = params.get("type");
+  const galleryKey = params.get("type") || "gravur";
 
   const container = document.getElementById("imageGrid");
   const title = document.getElementById("galleryTitle");
