@@ -20,15 +20,15 @@
 
 <header class="site-header">
   <div class="container nav">
-    <a href="index.html" class="brand brand-logo">
+    <a href="index.html#start" class="brand brand-logo">
       <img src="assets/images/branding/logo.webp" alt="Daniels Laser Art Logo" />
       Daniels <span>Laser Art</span>
     </a>
-<a class="btn btn-secondary" href="index.html#galerie">← Zurück</a>
+    <button class="header-back" type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='index.html'; }" aria-label="Zurück zur vorherigen Seite">← Zurück</button>
+    <button class="menu-toggle" type="button" aria-expanded="false">Menü</button>
     <nav class="menu">
       <a href="index.html#galerie">Galerie</a>
       <a href="index.html#ablauf">Ablauf</a>
-      <a href="index.html#ueber-mich">Über mich</a>
       <a href="index.html#faq">FAQ</a>
       <a href="index.html#kontakt">Kontakt</a>
     </nav>
@@ -80,6 +80,7 @@
     </div>
   </div>
 </footer>
+<script src="assets/js/main.js" defer></script>
 
 <script src="assets/data/galleries.js" defer></script>
 <script src="assets/js/lightbox.js" defer></script>
