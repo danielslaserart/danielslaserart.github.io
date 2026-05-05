@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Galerie | Daniels Laser Art</title>
+  <meta name="description" content="Galerie mit individuellen Lasergravuren, personalisierten Geschenken, Wandbildern und kreativen Einzelstücken von Daniels Laser Art." />
+
+  <link rel="canonical" href="https://danielslaserart.de/galerie.html" />
+
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages/gallery.css" />
+</head>
+
+<body>
+<div class="bg-fixed"></div>
+
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html#start" class="brand brand-logo">
+      <img src="assets/images/branding/logo.webp" alt="Daniels Laser Art Logo" />
+      Daniels <span>Laser Art</span>
+    </a>
+    <button class="header-back" type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='index.html'; }" aria-label="Zurück zur vorherigen Seite">← Zurück</button>
+    <button class="menu-toggle" type="button" aria-expanded="false">Menü</button>
+    <nav class="menu">
+      <a href="index.html#galerie">Galerie</a>
+      <a href="index.html#ablauf">Ablauf</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="index.html#kontakt">Kontakt</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h1 id="galleryTitle">Galerie</h1>
+
+          <p id="galleryDescription">
+            Ich fertige individuelle Lasergravuren und personalisierte Geschenke nach Wunsch.
+            Jede Arbeit ist ein Unikat und wird präzise umgesetzt.
+          </p>
+
+          <p>
+            Alle gezeigten Arbeiten sind echte Projekte und können individuell angepasst werden.
+          </p>
+
+          <p>
+            Besonders beliebt sind Lasergravuren auf Holz sowie personalisierte Geschenke
+            für besondere Anlässe wie Geburtstage oder Jahrestage.
+          </p>
+        </div>
+      </div>
+
+      <div class="gallery-grid" id="imageGrid"></div>
+    </div>
+  </section>
+</main>
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Schließen">×</button>
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Vorheriges Bild">‹</button>
+  <img id="lightboxImage" src="" alt="" />
+  <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Nächstes Bild">›</button>
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+</div>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <p>© 2025 Daniels Laser Art – C'est la vie.</p>
+    <div class="footer-links">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+<script src="assets/js/main.js" defer></script>
+
+<script src="assets/data/galleries.js" defer></script>
+<script src="assets/js/lightbox.js" defer></script>
+<script src="assets/js/gallery.js" defer></script>
+</body>
+</html>

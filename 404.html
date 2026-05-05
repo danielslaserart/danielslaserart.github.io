@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seite nicht gefunden | Daniels Laser Art</title>
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+</head>
+<body>
+  <div class="bg-fixed"></div>
+  <header class="site-header">
+    <div class="container nav">
+      <a href="index.html#start" class="brand brand-logo">
+        <img src="assets/images/branding/logo.webp" alt="Daniels Laser Art Logo" />
+        Daniels <span>Laser Art</span>
+      </a>
+      <button class="header-back" type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='index.html'; }" aria-label="Zurück zur vorherigen Seite">← Zurück</button>
+      <button class="menu-toggle" type="button" aria-expanded="false">Menü</button>
+      <nav class="menu">
+        <a href="index.html#galerie">Galerie</a>
+        <a href="index.html#ablauf">Ablauf</a>
+        <a href="index.html#faq">FAQ</a>
+        <a href="index.html#kontakt">Kontakt</a>
+      </nav>
+    </div>
+  </header>
+  <main class="section">
+    <div class="container">
+      <div class="card" style="padding:32px;">
+        <h1>404</h1>
+        <p>Diese Seite wurde nicht gefunden.</p>
+        <p><a class="btn btn-primary" href="index.html">Zur Startseite</a></p>
+      </div>
+    </div>
+  </main>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
