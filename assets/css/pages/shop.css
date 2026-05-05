@@ -410,3 +410,34 @@
     min-height: 36px;
   }
 }
+#shopGrid {
+  align-items: stretch;
+}
+
+#shopGrid .product-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#shopGrid .product-image-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
+}
+
+#shopGrid .product-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#shopGrid .product-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#shopGrid .product-footer {
+  margin-top: auto;
+}
