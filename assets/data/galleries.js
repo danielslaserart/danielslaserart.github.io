@@ -91,7 +91,7 @@ window.GALLERIES = {
         text: "Individuell graviertes Brettchen mit persönlichem Wunschmotiv."
       },
       {
-        src: "assets/images/personalisiert/kleiderbügel.webp",
+        src: "assets/images/personalisiert/kleiderb#U00fcgel.webp",
         text: "Kleiderbügel mit Namen Praktisch & dekorativ – dein Name elegant verewigt."
       },{
         src: "assets/images/personalisiert/logopaedie.webp",
@@ -192,15 +192,15 @@ window.GALLERIES = {
     description: "Einzigartige Arbeiten nach deinen eigenen Vorstellungen.",
     images: [
       {
-        src: "assets/images/einzelstuecke/einzelstück1.webp",
+        src: "assets/images/einzelstuecke/einzelst#U00fcck1.webp",
         text: "Kreatives Einzelstück mit individueller Gestaltung."
       },
       {
-        src: "assets/images/einzelstuecke/einzelstück2.webp",
+        src: "assets/images/einzelstuecke/einzelst#U00fcck2.webp",
         text: "Persönlich angefertigtes Unikat für besondere Anlässe."
       },
       {
-        src: "assets/images/einzelstuecke/einzelstück3.webp",
+        src: "assets/images/einzelstuecke/einzelst#U00fcck3.webp",
         text: "Einzigartige Umsetzung nach Wunsch und Idee."
       }
     ]

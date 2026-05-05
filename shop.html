@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="supported-color-schemes" content="dark" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Shop | Personalisierte Lasergravuren | Daniels Laser Art</title>
+  <meta name="description" content="Online anfragen: personalisierte Lasergravuren, Holzdeko, Wandbilder und kreative Einzelstücke von Daniels Laser Art." />
+  <link rel="canonical" href="https://danielslaserart.de/shop.html" />
+  <link rel="icon" type="image/png" href="assets/images/branding/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/branding/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon-v2.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/branding/apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta property="og:title" content="Shop | Daniels Laser Art" />
+  <meta property="og:description" content="Personalisierte Lasergravuren und Geschenkideen direkt anfragen." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://danielslaserart.de/shop.html" />
+  <meta property="og:image" content="https://www.danielslaserart.de/assets/images/cover/gravur.webp" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/pages/shop.css" />
+</head>
+<body>
+<div class="bg-fixed"></div>
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html#start" class="brand brand-logo">
+      <img src="assets/images/branding/logo.webp" alt="Daniels Laser Art Logo" />
+      Daniels <span>Laser Art</span>
+    </a>
+    <button class="menu-toggle" type="button" aria-expanded="false">Menü</button>
+    <nav class="menu">
+      <a href="index.html#galerie">Galerie</a>
+      <a href="index.html#ablauf">Ablauf</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="index.html#kontakt">Kontakt</a>
+      <a href="#warenkorb">Warenkorb (<span id="cartCount">0</span>)</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="shop-hero" id="shop-start">
+    <div class="container hero-shell">
+      <div class="hero-copy">
+        <p class="badge">Shop-Anfrage für personalisierte Einzelstücke</p>
+        <h1>Wähle dein Wunschprodukt und schicke mir deine Idee.</h1>
+        <p class="lead">Dieser Shop funktioniert bewusst als Anfrage-Shop: Du legst Produkte in den Warenkorb, ergänzt deine Personalisierung und sendest alles direkt per WhatsApp. Preis und Machbarkeit bestätige ich danach persönlich.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#produkte">Produkte ansehen</a>
+          <a class="btn btn-secondary" href="#warenkorb">Zum Warenkorb</a>
+        </div>
+        <p class="hero-points">• Personalisierbar • Persönliche Rückmeldung • Ideal für Geschenke</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="produkte">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2>Produkte</h2>
+          <p>Startpreise dienen als Orientierung. Der finale Preis hängt von Größe, Motiv und Aufwand ab.</p>
+        </div>
+      </div>
+      <div class="shop-toolbar">
+        <div class="filter-row" aria-label="Produktfilter">
+          <button class="filter-chip active" type="button" data-filter="Alle">Alle</button>
+          <button class="filter-chip" type="button" data-filter="Gravur">Gravur</button>
+          <button class="filter-chip" type="button" data-filter="Holzdeko">Holzdeko</button>
+          <button class="filter-chip" type="button" data-filter="Wandbild">Wandbild</button>
+          <button class="filter-chip" type="button" data-filter="Branding">Branding</button>
+        </div>
+        <input class="shop-search" id="shopSearch" type="search" placeholder="Produkt suchen …" aria-label="Produkt suchen" />
+      </div>
+      <div class="grid-3" id="shopGrid"></div>
+    </div>
+  </section>
+
+  <section class="section" id="warenkorb">
+    <div class="container cart-layout">
+      <div class="card">
+        <div class="card-body">
+          <h2>Warenkorb</h2>
+          <div class="cart-list" id="cartList"></div>
+          <div class="cart-total"><span>Zwischensumme</span><strong id="cartTotal">0,00 €</strong></div>
+          <p class="shop-note">Hinweis: Noch keine Zahlung. Die Anfrage wird per WhatsApp gesendet und danach persönlich bestätigt.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h2>Anfrage senden</h2>
+          <form class="order-form" id="orderForm">
+            <label>Name
+              <input name="name" autocomplete="name" required />
+            </label>
+            <label>E-Mail oder Telefonnummer
+              <input name="contact" autocomplete="email" required />
+            </label>
+            <label>Personalisierungswunsch
+              <textarea name="details" placeholder="Name, Datum, Motiv, Anlass, Größe, Farbwunsch …" required></textarea>
+            </label>
+            <!-- <label>Versand
+              <input name="delivery" value="Versand gewünscht" readonly />
+            </label> -->
+            <button class="btn btn-primary" type="submit">Anfrage per WhatsApp senden</button>
+            <a class="btn btn-secondary" href="mailto:daniels.laser.art@gmail.com">Lieber per E-Mail schreiben</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid-3">
+      <article class="card"><div class="card-body"><h3>1. Auswählen</h3><p>Lege passende Produkte in den Warenkorb.</p></div></article>
+      <article class="card"><div class="card-body"><h3>2. Personalisieren</h3><p>Schreibe mir Namen, Datum, Motivwunsch oder Anlass dazu.</p></div></article>
+      <article class="card"><div class="card-body"><h3>3. Bestätigen</h3><p>Ich melde mich mit Preis, Vorschlag und Umsetzbarkeit zurück.</p></div></article>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <p>© 2025 Daniels Laser Art – C'est la vie.</p>
+    <div class="footer-links">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="index.html#kontakt">Kontakt</a>
+    </div>
+  </div>
+</footer>
+<script src="assets/data/products.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/shop.js"></script>
+</body>
+</html>

@@ -29,7 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const img = document.createElement("img");
     img.src = item.src;
     img.alt = item.text || `${gallery.title} – individuelles Motiv ${index + 1}`;
-    img.loading = "lazy";
+    img.loading = index < 3 ? "eager" : "lazy";
+    if (index === 0) img.fetchPriority = "high";
 
     img.onerror = () => {
       const fallback = document.createElement("div");

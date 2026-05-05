@@ -138,3 +138,141 @@
   pointer-events: none;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
 }
+
+/* Nutzerfreundliche Detailseiten-Galerie */
+.ux-gallery {
+  align-items: stretch;
+}
+
+.ux-gallery-card.is-hidden {
+  display: none;
+}
+
+.ux-gallery-card {
+  animation: galleryFadeIn 0.28s ease both;
+}
+
+.ux-gallery-card .card-body h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.ux-gallery-card .card-body p {
+  margin: 0;
+}
+
+.gallery-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.gallery-count {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.compact-section-head {
+  margin-bottom: 20px;
+}
+
+@keyframes galleryFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Hochwertiger Hover-Effekt für Galerie-Bilder */
+.gallery-card,
+.ux-gallery-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+  will-change: transform;
+}
+
+.gallery-card:hover,
+.ux-gallery-card:hover,
+.gallery-card:focus-within,
+.ux-gallery-card:focus-within {
+  transform: translateY(-6px);
+  border-color: rgba(255, 190, 120, 0.42);
+  box-shadow: 0 20px 46px rgba(0,0,0,0.48), 0 0 22px rgba(255, 122, 24, 0.18);
+}
+
+.gallery-card img,
+.ux-gallery-card img {
+  transition: transform 0.42s ease, filter 0.42s ease;
+  will-change: transform;
+}
+
+.gallery-card:hover img,
+.ux-gallery-card:hover img,
+.gallery-card:focus-within img,
+.ux-gallery-card:focus-within img {
+  transform: scale(1.07);
+  filter: brightness(1.08) contrast(1.04);
+}
+
+.gallery-image-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(255, 122, 24, 0.00), rgba(255, 122, 24, 0.18));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.gallery-card:hover .gallery-image-wrap::before,
+.ux-gallery-card:hover .gallery-image-wrap::before,
+.gallery-card:focus-within .gallery-image-wrap::before,
+.ux-gallery-card:focus-within .gallery-image-wrap::before {
+  opacity: 1;
+}
+
+.gallery-card .card-body,
+.ux-gallery-card .card-body {
+  transition: transform 0.28s ease, background 0.28s ease;
+}
+
+.gallery-card:hover .card-body,
+.ux-gallery-card:hover .card-body,
+.gallery-card:focus-within .card-body,
+.ux-gallery-card:focus-within .card-body {
+  transform: translateY(-2px);
+  background: rgba(255, 122, 24, 0.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-card,
+  .ux-gallery-card,
+  .gallery-card img,
+  .ux-gallery-card img,
+  .gallery-image-wrap::before,
+  .gallery-card .card-body,
+  .ux-gallery-card .card-body {
+    transition: none;
+  }
+
+  .gallery-card:hover,
+  .ux-gallery-card:hover,
+  .gallery-card:focus-within,
+  .ux-gallery-card:focus-within,
+  .gallery-card:hover img,
+  .ux-gallery-card:hover img,
+  .gallery-card:focus-within img,
+  .ux-gallery-card:focus-within img,
+  .gallery-card:hover .card-body,
+  .ux-gallery-card:hover .card-body,
+  .gallery-card:focus-within .card-body,
+  .ux-gallery-card:focus-within .card-body {
+    transform: none;
+  }
+}

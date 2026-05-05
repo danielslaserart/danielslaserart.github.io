@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /shop.html
 
 Sitemap: https://danielslaserart.de/sitemap.xml
