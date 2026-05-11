@@ -14,47 +14,74 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!gallery) {
     title.textContent = "Galerie nicht gefunden";
-    description.textContent = "Diese Galerie existiert nicht oder wurde noch nicht angelegt.";
-    container.innerHTML = '<div class="card"><div class="card-body">Keine Galerie gefunden.</div></div>';
+    description.textContent =
+      "Diese Galerie existiert nicht oder wurde noch nicht angelegt.";
+
+    container.innerHTML =
+      '<div class="card"><div class="card-body">Keine Galerie gefunden.</div></div>';
+
     return;
   }
 
   title.textContent = gallery.title;
   description.textContent = gallery.description;
 
+  const imageList = gallery.images.map((image) => image.src);
+
   gallery.images.forEach((item, index) => {
     const card = document.createElement("div");
     card.className = "card gallery-card";
 
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "gallery-image-wrap";
+
     const img = document.createElement("img");
+
     img.src = item.src;
-    img.alt = item.text || `${gallery.title} – individuelles Motiv ${index + 1}`;
+
+    img.alt =
+      item.text ||
+      `${gallery.title} – individuelles Motiv ${index + 1}`;
+
     img.loading = index < 3 ? "eager" : "lazy";
-    if (index === 0) img.fetchPriority = "high";
+
+    if (index === 0) {
+      img.fetchPriority = "high";
+    }
+
+    img.setAttribute("draggable", "false");
+    img.setAttribute("oncontextmenu", "return false");
 
     img.onerror = () => {
       const fallback = document.createElement("div");
+
       fallback.className = "image-fallback";
       fallback.textContent = gallery.title;
+
       img.replaceWith(fallback);
     };
 
-    img.addEventListener("click", () => {
-      const imageList = gallery.images.map((image) => image.src);
+    imageWrap.addEventListener("click", () => {
       Lightbox.open(imageList, index);
+    });
+
+    imageWrap.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
+
+    imageWrap.addEventListener("dragstart", (e) => {
+      e.preventDefault();
     });
 
     const caption = document.createElement("div");
     caption.className = "image-caption";
     caption.textContent = item.text || "";
 
-    const imageWrap = document.createElement("div");
-imageWrap.className = "gallery-image-wrap";
+    imageWrap.appendChild(img);
 
-imageWrap.appendChild(img);
+    card.appendChild(imageWrap);
+    card.appendChild(caption);
 
-card.appendChild(imageWrap);
-card.appendChild(caption);
     container.appendChild(card);
   });
 });
