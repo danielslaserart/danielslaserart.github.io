@@ -14,12 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!gallery) {
     title.textContent = "Galerie nicht gefunden";
-    description.textContent =
-      "Diese Galerie existiert nicht oder wurde noch nicht angelegt.";
-
-    container.innerHTML =
-      '<div class="card"><div class="card-body">Keine Galerie gefunden.</div></div>';
-
+    description.textContent = "Diese Galerie existiert nicht oder wurde noch nicht angelegt.";
+    container.innerHTML = '<div class="card"><div class="card-body">Keine Galerie gefunden.</div></div>';
     return;
   }
 
@@ -36,13 +32,8 @@ document.addEventListener("DOMContentLoaded", () => {
     imageWrap.className = "gallery-image-wrap";
 
     const img = document.createElement("img");
-
     img.src = item.src;
-
-    img.alt =
-      item.text ||
-      `${gallery.title} – individuelles Motiv ${index + 1}`;
-
+    img.alt = item.text || `${gallery.title} – individuelles Motiv ${index + 1}`;
     img.loading = index < 3 ? "eager" : "lazy";
 
     if (index === 0) {
@@ -51,13 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     img.setAttribute("draggable", "false");
     img.setAttribute("oncontextmenu", "return false");
+    img.setAttribute("decoding", "async");
 
     img.onerror = () => {
       const fallback = document.createElement("div");
-
       fallback.className = "image-fallback";
       fallback.textContent = gallery.title;
-
       img.replaceWith(fallback);
     };
 
@@ -78,10 +68,8 @@ document.addEventListener("DOMContentLoaded", () => {
     caption.textContent = item.text || "";
 
     imageWrap.appendChild(img);
-
     card.appendChild(imageWrap);
     card.appendChild(caption);
-
     container.appendChild(card);
   });
 });
