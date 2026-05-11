@@ -3,20 +3,11 @@ window.Lightbox = (() => {
   let currentImages = [];
 
   let scale = 1;
-  let translateX = 0;
-  let translateY = 0;
-
-  let isDragging = false;
-  let isPinching = false;
-
-  let startX = 0;
-  let startY = 0;
-  let lastX = 0;
-  let lastY = 0;
 
   let swipeStartX = 0;
   let swipeEndX = 0;
 
+  let isPinching = false;
   let pinchStartDistance = 0;
   let pinchStartScale = 1;
 
@@ -37,25 +28,20 @@ window.Lightbox = (() => {
   function applyTransform() {
     if (!elements.image) return;
 
-    elements.image.style.transform =
-      `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-
+    elements.image.style.transform = `scale(${scale})`;
     elements.image.classList.toggle("is-zoomed", scale > 1);
   }
 
   function resetZoom() {
     scale = 1;
-    translateX = 0;
-    translateY = 0;
     applyTransform();
   }
 
   function zoomTo(newScale) {
     scale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
 
-    if (scale === 1) {
-      translateX = 0;
-      translateY = 0;
+    if (scale <= 1.05) {
+      scale = 1;
     }
 
     applyTransform();
@@ -72,8 +58,13 @@ window.Lightbox = (() => {
 
     img.setAttribute("draggable", "false");
 
-    img.addEventListener("dragstart", (e) => e.preventDefault());
-    img.addEventListener("contextmenu", (e) => e.preventDefault());
+    img.addEventListener("dragstart", (e) => {
+      e.preventDefault();
+    });
+
+    img.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
   }
 
   function update() {
@@ -96,6 +87,7 @@ window.Lightbox = (() => {
 
     elements.lightbox.classList.add("open");
     elements.lightbox.setAttribute("aria-hidden", "false");
+
     document.body.style.overflow = "hidden";
   }
 
@@ -111,12 +103,14 @@ window.Lightbox = (() => {
 
   function next() {
     if (!currentImages.length) return;
+
     currentIndex = (currentIndex + 1) % currentImages.length;
     update();
   }
 
   function prev() {
     if (!currentImages.length) return;
+
     currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
     update();
   }
@@ -160,31 +154,6 @@ window.Lightbox = (() => {
       zoomTo(scale + direction);
     }, { passive: false });
 
-    elements.image?.addEventListener("mousedown", (e) => {
-      if (scale <= 1) return;
-
-      e.preventDefault();
-
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      lastX = translateX;
-      lastY = translateY;
-    });
-
-    document.addEventListener("mousemove", (e) => {
-      if (!isDragging) return;
-
-      translateX = lastX + (e.clientX - startX);
-      translateY = lastY + (e.clientY - startY);
-
-      applyTransform();
-    });
-
-    document.addEventListener("mouseup", () => {
-      isDragging = false;
-    });
-
     elements.image?.addEventListener("touchstart", (e) => {
       if (e.touches.length === 2) {
         isPinching = true;
@@ -196,11 +165,6 @@ window.Lightbox = (() => {
       if (e.touches.length === 1) {
         swipeStartX = e.touches[0].clientX;
         swipeEndX = swipeStartX;
-
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        lastX = translateX;
-        lastY = translateY;
       }
     }, { passive: true });
 
@@ -212,16 +176,6 @@ window.Lightbox = (() => {
         const newScale = pinchStartScale * (distance / pinchStartDistance);
 
         zoomTo(newScale);
-        return;
-      }
-
-      if (e.touches.length === 1 && scale > 1) {
-        e.preventDefault();
-
-        translateX = lastX + (e.touches[0].clientX - startX);
-        translateY = lastY + (e.touches[0].clientY - startY);
-
-        applyTransform();
         return;
       }
 
@@ -287,7 +241,10 @@ window.Lightbox = (() => {
       if (e.key === "ArrowRight") next();
       if (e.key === "ArrowLeft") prev();
 
-      if ((e.ctrlKey || e.metaKey) && ["s", "u", "p"].includes(e.key.toLowerCase())) {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        ["s", "u", "p"].includes(e.key.toLowerCase())
+      ) {
         e.preventDefault();
       }
     });
