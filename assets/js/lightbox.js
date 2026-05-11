@@ -13,16 +13,37 @@ window.Lightbox = (() => {
     elements.counter = document.getElementById("lightboxCounter");
   }
 
+  function protectImage(img) {
+    if (!img) return;
+
+    img.setAttribute("draggable", "false");
+
+    img.addEventListener("dragstart", (e) => {
+      e.preventDefault();
+    });
+
+    img.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
+  }
+
   function update() {
     if (!elements.image || !currentImages.length) return;
+
     elements.image.src = currentImages[currentIndex];
-    elements.counter.textContent = `${currentIndex + 1} / ${currentImages.length}`;
+    elements.image.alt = "Geschütztes Galerie-Bild";
+    elements.image.setAttribute("draggable", "false");
+
+    elements.counter.textContent =
+      `${currentIndex + 1} / ${currentImages.length}`;
   }
 
   function open(images, index = 0) {
     currentImages = images;
     currentIndex = index;
+
     update();
+
     elements.lightbox.classList.add("open");
     document.body.style.overflow = "hidden";
   }
@@ -34,64 +55,96 @@ window.Lightbox = (() => {
   }
 
   function next() {
-    currentIndex = (currentIndex + 1) % currentImages.length;
+    currentIndex =
+      (currentIndex + 1) % currentImages.length;
+
     update();
   }
 
   function prev() {
-    currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
+    currentIndex =
+      (currentIndex - 1 + currentImages.length) %
+      currentImages.length;
+
     update();
   }
 
- function bind() {
-  cacheElements();
-  if (!elements.lightbox) return;
+  function bindProtection() {
+    document.addEventListener("contextmenu", (e) => {
+      if (
+        e.target.closest(".gallery-grid") ||
+        e.target.closest(".lightbox")
+      ) {
+        e.preventDefault();
+      }
+    });
 
-  elements.close?.addEventListener("click", close);
-  elements.next?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    next();
-  });
-  elements.prev?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    prev();
-  });
+    document.addEventListener("dragstart", (e) => {
+      if (
+        e.target.closest(".gallery-grid") ||
+        e.target.closest(".lightbox")
+      ) {
+        e.preventDefault();
+      }
+    });
+  }
 
-  elements.lightbox.addEventListener("click", (e) => {
-    if (e.target === elements.lightbox) close();
-  });
+  function bind() {
+    cacheElements();
 
-  document.addEventListener("keydown", (e) => {
-    if (!elements.lightbox.classList.contains("open")) return;
-    if (e.key === "Escape") close();
-    if (e.key === "ArrowRight") next();
-    if (e.key === "ArrowLeft") prev();
-  });
+    if (!elements.lightbox) return;
 
-  let startX = 0;
-  let endX = 0;
+    protectImage(elements.image);
+    bindProtection();
 
-  elements.image?.addEventListener("touchstart", (e) => {
-    startX = e.touches[0].clientX;
-    endX = startX;
-  }, { passive: true });
+    elements.close?.addEventListener("click", close);
 
-  elements.image?.addEventListener("touchmove", (e) => {
-    endX = e.touches[0].clientX;
-  }, { passive: true });
-
-  elements.image?.addEventListener("touchend", () => {
-    const diff = startX - endX;
-
-    if (Math.abs(diff) < 50) return;
-
-    if (diff > 0) {
+    elements.next?.addEventListener("click", (e) => {
+      e.stopPropagation();
       next();
-    } else {
+    });
+
+    elements.prev?.addEventListener("click", (e) => {
+      e.stopPropagation();
       prev();
-    }
-  });
-}
+    });
+
+    elements.lightbox.addEventListener("click", (e) => {
+      if (e.target === elements.lightbox) close();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (!elements.lightbox.classList.contains("open")) return;
+
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    });
+
+    let startX = 0;
+    let endX = 0;
+
+    elements.image?.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+      endX = startX;
+    }, { passive: true });
+
+    elements.image?.addEventListener("touchmove", (e) => {
+      endX = e.touches[0].clientX;
+    }, { passive: true });
+
+    elements.image?.addEventListener("touchend", () => {
+      const diff = startX - endX;
+
+      if (Math.abs(diff) < 50) return;
+
+      if (diff > 0) {
+        next();
+      } else {
+        prev();
+      }
+    });
+  }
 
   return { bind, open };
 })();
