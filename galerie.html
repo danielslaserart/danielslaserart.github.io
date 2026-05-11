@@ -80,8 +80,12 @@
     ‹
   </button>
 
-  <div class="lightbox-image-wrap">
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Schließen">×</button>
 
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Vorheriges Bild">‹</button>
+
+  <div class="lightbox-image-wrap">
     <img
       id="lightboxImage"
       src=""
@@ -90,25 +94,12 @@
       oncontextmenu="return false"
     />
 
-    <span
-      class="lightbox-protection-layer"
-      aria-hidden="true">
-    </span>
-
+    <span class="lightbox-protection-layer" aria-hidden="true"></span>
   </div>
 
-  <button
-    class="lightbox-nav lightbox-next"
-    id="lightboxNext"
-    aria-label="Nächstes Bild">
-    ›
-  </button>
+  <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Nächstes Bild">›</button>
 
-  <div
-    class="lightbox-counter"
-    id="lightboxCounter">
-  </div>
-
+  <div class="lightbox-counter" id="lightboxCounter"></div>
 </div>
 
 <footer class="site-footer">
