@@ -3,7 +3,7 @@ window.SHOP_PRODUCTS = [
     id: 'geldkarte-herz',
     name: 'Personalisierte Geldgeschenk-Karte',
     category: 'Gravur',
-    price: 14.90,
+    price: 9.50,
     image: 'assets/images/gravuren/geldkarte1.webp',
     badge: 'Beliebt',
     description: 'Holzkarte für Geldgeschenke mit Wunschtext, Namen oder Datum.',
@@ -13,7 +13,7 @@ window.SHOP_PRODUCTS = [
     id: 'lebensbaum-led',
     name: 'Lebensbaum mit Beleuchtung',
     category: 'Holzdeko',
-    price: 39.90,
+    price: 54.90,
     image: 'assets/images/gravuren/ygdrasil1.webp',
     badge: 'Geschenkidee',
     description: 'Dekorativer Lebensbaum als persönliches Geschenk oder Erinnerungsstück.',
@@ -40,14 +40,40 @@ window.SHOP_PRODUCTS = [
     options: ['Motividee', 'Formatwunsch', 'Farbstil']
   },
   {
-    id: 'lederlabel',
+    id: 'Lederlabel',
     name: 'Lederlabel mit Logo oder Name',
-    category: 'Branding',
+    category: 'Lederlabel',
     price: 1.50,
-    image: 'assets/images/gravuren/lederlabel.webp',
+    image: 'assets/images/leder/shopcollage.webp',
     badge: 'Für Handmade',
     description: 'Individuelle Labels für Handarbeiten, Branding oder kleine Serien.',
-    options: ['Logo/Name', 'Größe', 'Stückzahl', 'Farbe']
+    options: ['Logo/Name', 'Größe', 'Stückzahl', 'Farbe'],
+    colorExamples: [
+      {
+        name: 'Mamor',
+        image: 'assets/images/leder/farbe-mamor.webp'
+      },
+      {
+        name: 'Rustikal/Gold',
+        image: 'assets/images/leder/farbe-rustikal.webp'
+      },
+      {
+        name: 'Rohleder',
+        image: 'assets/images/leder/farbe-rohleder.webp'
+       }
+      // {
+      //   name: 'Schwarz',
+      //   image: 'assets/images/leder/farbe-schwarz.webp'
+      // },
+      // {
+      //   name: 'Beige',
+      //   image: 'assets/images/leder/farbe-beige.webp'
+      // },
+      // {
+      //   name: 'Grau',
+      //   image: 'assets/images/leder/farbe-grau.webp'
+      // }
+    ]
   },
   {
     id: 'polaroid',

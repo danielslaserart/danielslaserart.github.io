@@ -425,3 +425,149 @@
     font-size: 0.72rem;
   }
 }
+/* =========================================
+   FARBBEISPIELE LEDERLABEL
+========================================= */
+.color-preview-btn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 2px;
+}
+
+.color-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(5, 2, 8, 0.88);
+  backdrop-filter: blur(10px);
+}
+
+.color-preview-modal.open {
+  display: flex;
+}
+
+.color-preview-dialog {
+  position: relative;
+  width: min(920px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 190, 120, 0.2);
+  background: linear-gradient(180deg, rgba(32, 12, 20, 0.96), rgba(18, 7, 14, 0.98));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.62);
+  padding: 24px;
+}
+
+.color-preview-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 190, 120, 0.22);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.color-preview-head {
+  max-width: 680px;
+  padding-right: 46px;
+  margin-bottom: 18px;
+}
+
+.color-preview-head h2 {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    #fff4ea 0%,
+    #f3d7bb 24%,
+    #e0a94f 52%,
+    #dca25f 68%,
+    #d29bc4 84%,
+    #c59cff 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.color-preview-head p:not(.badge) {
+  color: var(--muted);
+  margin: 0;
+}
+
+.color-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.color-preview-card {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 190, 120, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.color-preview-image-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(8,2,10,0.44), rgba(8,2,10,0.82)),
+    url('../../images/hero/background.webp') center center / cover no-repeat;
+}
+
+.color-preview-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.color-preview-image-wrap.missing-color-image::after {
+  content: "Bild folgt";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  text-align: center;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.color-preview-card strong {
+  display: block;
+  padding: 10px 12px 12px;
+  text-align: center;
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  #shopGrid .color-preview-btn {
+    min-height: 34px;
+    padding: 7px 8px;
+    border-radius: 12px;
+    font-size: 0.74rem;
+    line-height: 1.1;
+  }
+
+  .color-preview-dialog {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .color-preview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}

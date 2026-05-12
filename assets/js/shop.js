@@ -12,11 +12,73 @@ document.addEventListener('DOMContentLoaded', () => {
   const currency = (value) => value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
   const save = () => localStorage.setItem('dlaCart', JSON.stringify(cart));
 
+  function encodeColorExamples(examples) {
+    return encodeURIComponent(JSON.stringify(examples || []));
+  }
+
+  function createColorModal() {
+    if (document.getElementById('colorPreviewModal')) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'color-preview-modal';
+    modal.id = 'colorPreviewModal';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = `
+      <div class="color-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="colorPreviewTitle">
+        <button class="color-preview-close" type="button" aria-label="Farben schließen">×</button>
+        <div class="color-preview-head">
+          <p class="badge">Lederlabel</p>
+          <h2 id="colorPreviewTitle">Farben ansehen</h2>
+          <p>Hier siehst du Beispielbilder der verfügbaren Lederfarben. Farbwirkung kann je nach Bildschirm leicht abweichen.</p>
+        </div>
+        <div class="color-preview-grid" id="colorPreviewGrid"></div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+  }
+
+  function closeColorModal() {
+    const modal = document.getElementById('colorPreviewModal');
+    if (!modal) return;
+
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  function openColorModal(colors) {
+    createColorModal();
+
+    const modal = document.getElementById('colorPreviewModal');
+    const modalGrid = document.getElementById('colorPreviewGrid');
+    if (!modal || !modalGrid) return;
+
+    modalGrid.innerHTML = colors.map((color) => `
+      <article class="color-preview-card">
+        <div class="color-preview-image-wrap">
+          <img src="${color.image}" alt="Lederlabel Farbe ${color.name}" loading="lazy" onerror="this.parentElement.classList.add('missing-color-image')">
+        </div>
+        <strong>${color.name}</strong>
+      </article>
+    `).join('');
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
   function renderProducts() {
     if (!grid) return;
+
     const active = document.querySelector('[data-filter].active')?.dataset.filter || 'Alle';
     const query = (searchInput?.value || '').trim().toLowerCase();
-    const visible = products.filter(p => (active === 'Alle' || p.category === active) && [p.name, p.category, p.description].join(' ').toLowerCase().includes(query));
+
+    const visible = products.filter((product) => {
+      const searchable = [product.name, product.category, product.description].join(' ').toLowerCase();
+      return (active === 'Alle' || product.category === active) && searchable.includes(query);
+    });
+
     grid.innerHTML = visible.map(product => `
       <article class="card product-card">
         <div class="product-image-wrap">
@@ -27,7 +89,20 @@ document.addEventListener('DOMContentLoaded', () => {
           <p class="product-category">${product.category}</p>
           <h3>${product.name}</h3>
           <p>${product.description}</p>
-          <div class="product-options">${product.options.map(option => `<span>${option}</span>`).join('')}</div>
+
+          <div class="product-options">
+            ${product.options.map(option => `<span>${option}</span>`).join('')}
+          </div>
+
+          ${product.colorExamples ? `
+            <button
+              class="btn btn-secondary color-preview-btn"
+              type="button"
+              data-colors="${encodeColorExamples(product.colorExamples)}">
+              Farben ansehen
+            </button>
+          ` : ''}
+
           <div class="product-footer">
             <strong>ab ${currency(product.price)}</strong>
             <button class="btn btn-primary" type="button" data-add="${product.id}">In den Warenkorb</button>
@@ -39,9 +114,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderCart() {
     const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
     if (cartCount) cartCount.textContent = cart.reduce((sum, item) => sum + item.qty, 0);
     if (cartTotal) cartTotal.textContent = currency(total);
     if (!cartList) return;
+
     cartList.innerHTML = cart.length ? cart.map(item => `
       <div class="cart-item">
         <div>
@@ -55,25 +132,64 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `).join('') : '<p>Dein Warenkorb ist noch leer.</p>';
+
     save();
   }
 
   document.addEventListener('click', (event) => {
+    const colorBtn = event.target.closest('[data-colors]');
+    const closeColorBtn = event.target.closest('.color-preview-close');
+    const colorModal = event.target.closest('#colorPreviewModal');
     const addId = event.target.closest('[data-add]')?.dataset.add;
     const incId = event.target.closest('[data-inc]')?.dataset.inc;
     const decId = event.target.closest('[data-dec]')?.dataset.dec;
     const removeId = event.target.closest('[data-remove]')?.dataset.remove;
+
+    if (colorBtn) {
+      const colors = JSON.parse(decodeURIComponent(colorBtn.dataset.colors || '%5B%5D'));
+      openColorModal(colors);
+      return;
+    }
+
+    if (closeColorBtn || (colorModal && event.target.id === 'colorPreviewModal')) {
+      closeColorModal();
+      return;
+    }
+
     if (addId) {
       const product = products.find(p => p.id === addId);
+      if (!product) return;
+
       const existing = cart.find(item => item.id === addId);
       if (existing) existing.qty += 1;
       else cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
+
       renderCart();
       document.getElementById('warenkorb')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    if (incId) { const item = cart.find(i => i.id === incId); if (item) item.qty += 1; renderCart(); }
-    if (decId) { const item = cart.find(i => i.id === decId); if (item) item.qty -= 1; if (item?.qty <= 0) cart.splice(cart.indexOf(item), 1); renderCart(); }
-    if (removeId) { const idx = cart.findIndex(i => i.id === removeId); if (idx > -1) cart.splice(idx, 1); renderCart(); }
+
+    if (incId) {
+      const item = cart.find(i => i.id === incId);
+      if (item) item.qty += 1;
+      renderCart();
+    }
+
+    if (decId) {
+      const item = cart.find(i => i.id === decId);
+      if (item) item.qty -= 1;
+      if (item?.qty <= 0) cart.splice(cart.indexOf(item), 1);
+      renderCart();
+    }
+
+    if (removeId) {
+      const idx = cart.findIndex(i => i.id === removeId);
+      if (idx > -1) cart.splice(idx, 1);
+      renderCart();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeColorModal();
   });
 
   filterButtons.forEach(button => button.addEventListener('click', () => {
@@ -81,13 +197,20 @@ document.addEventListener('DOMContentLoaded', () => {
     button.classList.add('active');
     renderProducts();
   }));
+
   searchInput?.addEventListener('input', renderProducts);
 
   orderForm?.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (!cart.length) { alert('Bitte lege zuerst ein Produkt in den Warenkorb.'); return; }
+
+    if (!cart.length) {
+      alert('Bitte lege zuerst ein Produkt in den Warenkorb.');
+      return;
+    }
+
     const data = new FormData(orderForm);
     const orderText = cart.map(item => `- ${item.qty}x ${item.name} (${currency(item.price)} / Stück)`).join('\n');
+
     const message = encodeURIComponent(`Hallo Daniel 👋
 
 ich möchte eine Shop-Anfrage senden:
@@ -103,6 +226,7 @@ Personalisierungswunsch:
 ${data.get('details') || ''}
 
 Versand: ${data.get('delivery') || 'Versand gewünscht'}`);
+
     window.location.href = `https://wa.me/4915147906749?text=${message}`;
   });
 
