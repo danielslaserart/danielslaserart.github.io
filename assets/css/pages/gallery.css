@@ -39,13 +39,22 @@
 .lightbox {
   position: fixed;
   inset: 0;
-  background: rgba(5, 2, 8, 0.92);
+
+  background:
+    linear-gradient(
+      rgba(5,2,8,0.82),
+      rgba(5,2,8,0.92)
+    ),
+    url('../../images/hero/background.webp') center center / cover no-repeat fixed;
+
   display: none;
   align-items: center;
   justify-content: center;
   padding: 24px;
   z-index: 9999;
   overflow: hidden;
+
+  backdrop-filter: blur(4px);
 }
 
 .lightbox.open { 
