@@ -243,3 +243,30 @@ Versand: ${data.get('delivery') || 'Versand gewünscht'}`);
   renderProducts();
   renderCart();
 });
+
+/* Bild Zoom */
+
+const lightbox = document.getElementById('imageLightbox');
+const lightboxImage = document.getElementById('lightboxImage');
+const closeLightbox = document.querySelector('.close-lightbox');
+
+document.addEventListener('click', function(e){
+
+  const img = e.target.closest('.color-card img');
+
+  if(img){
+    lightbox.style.display = 'flex';
+    lightboxImage.src = img.src;
+  }
+
+});
+
+closeLightbox.addEventListener('click', () => {
+  lightbox.style.display = 'none';
+});
+
+lightbox.addEventListener('click', (e) => {
+  if(e.target === lightbox){
+    lightbox.style.display = 'none';
+  }
+});
