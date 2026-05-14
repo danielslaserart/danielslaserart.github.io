@@ -44,22 +44,22 @@ window.SHOP_PRODUCTS = [
     name: 'Lederlabel mit Logo oder Name',
     category: 'Lederlabel',
     price: 1.50,
-    image: 'assets/images/leder/shopcollage.webp',
+    image: 'assets/images/shop/shopcollage.webp',
     badge: 'Für Handmade',
     description: 'Individuelle Labels für Handarbeiten, Branding oder kleine Serien.',
     options: ['Logo/Name', 'Größe', 'Stückzahl', 'Farbe'],
     colorExamples: [
       {
         name: 'Mamor',
-        image: 'assets/images/leder/farbe-mamor.webp'
+        image: 'assets/images/shop/farbe-mamor.webp'
       },
       {
         name: 'Rustikal/Gold',
-        image: 'assets/images/leder/farbe-rustikal.webp'
+        image: 'assets/images/shop/farbe-rustikal.webp'
       },
       {
         name: 'Rohleder',
-        image: 'assets/images/leder/farbe-rohleder.webp'
+        image: 'assets/images/shop/farbe-rohleder.webp'
        }
       // {
       //   name: 'Schwarz',
