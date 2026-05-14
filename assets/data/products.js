@@ -88,18 +88,18 @@ window.SHOP_PRODUCTS = [
 
     options: ['Text', 'Datum', 'Motivhinweis'],
 
-    // preview: {
-    //   button: 'Beispiele ansehen',
-    //   badge: 'Polaroid',
-    //   title: 'Beispiele ansehen',
-    //   text: 'Hier siehst du Beispielbilder für Polaroid-Holzgravuren.',
+    preview: {
+       button: 'Beispiele ansehen',
+       badge: 'Polaroid',
+       title: 'Beispiele ansehen',
+       text: 'Hier siehst du Beispielbilder für Polaroid-Holzgravuren.',
 
-    //   items: [
-    //     {
-    //       name: 'Beispiel 1',
-    //       image: 'assets/images/shop/farbe-mamor.webp'
-    //     }
-    //   ]
-    // }
+       items: [
+         {
+           name: 'Beispiel 1',
+           image: 'assets/images/shop/farbe-mamor.webp'
+         }
+       ]
+     }
   }
 ];
