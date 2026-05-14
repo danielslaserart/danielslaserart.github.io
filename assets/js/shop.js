@@ -9,7 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const orderForm = document.getElementById('orderForm');
   const cart = JSON.parse(localStorage.getItem('dlaCart') || '[]');
 
-  const currency = (value) => value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+  const currency = (value) => value.toLocaleString('de-DE', {
+    style: 'currency',
+    currency: 'EUR'
+  });
+
   const save = () => localStorage.setItem('dlaCart', JSON.stringify(cart));
 
   function encodeColorExamples(examples) {
@@ -76,6 +80,43 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+  }
+
+  function createImageLightbox() {
+    if (document.getElementById('imageLightbox')) return;
+
+    const lightbox = document.createElement('div');
+    lightbox.id = 'imageLightbox';
+    lightbox.className = 'image-lightbox';
+    lightbox.innerHTML = `
+      <button class="close-lightbox" type="button" aria-label="Bild schließen">×</button>
+      <img id="lightboxImage" alt="Großansicht">
+    `;
+
+    document.body.appendChild(lightbox);
+  }
+
+  function openImageLightbox(img) {
+    createImageLightbox();
+
+    const lightbox = document.getElementById('imageLightbox');
+    const lightboxImage = document.getElementById('lightboxImage');
+
+    if (!lightbox || !lightboxImage || !img) return;
+
+    lightboxImage.src = img.src;
+    lightboxImage.alt = img.alt || 'Großansicht';
+
+    lightbox.style.display = 'flex';
+    lightbox.classList.add('open');
+  }
+
+  function closeImageLightbox() {
+    const lightbox = document.getElementById('imageLightbox');
+    if (!lightbox) return;
+
+    lightbox.style.display = 'none';
+    lightbox.classList.remove('open');
   }
 
   function renderProducts() {
@@ -147,13 +188,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.addEventListener('click', (event) => {
+    const zoomImg = event.target.closest('.color-preview-card img');
+    const closeZoomBtn = event.target.closest('.close-lightbox');
+    const zoomModal = event.target.closest('#imageLightbox');
+
     const colorBtn = event.target.closest('[data-preview]');
     const closeColorBtn = event.target.closest('.color-preview-close');
     const colorModal = event.target.closest('#colorPreviewModal');
+
     const addId = event.target.closest('[data-add]')?.dataset.add;
     const incId = event.target.closest('[data-inc]')?.dataset.inc;
     const decId = event.target.closest('[data-dec]')?.dataset.dec;
     const removeId = event.target.closest('[data-remove]')?.dataset.remove;
+
+    if (zoomImg) {
+      openImageLightbox(zoomImg);
+      return;
+    }
+
+    if (closeZoomBtn || (zoomModal && event.target.id === 'imageLightbox')) {
+      closeImageLightbox();
+      return;
+    }
 
     if (colorBtn) {
       const preview = JSON.parse(decodeURIComponent(colorBtn.dataset.preview || '{}'));
@@ -175,7 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
       else cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
 
       renderCart();
-      document.getElementById('warenkorb')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('warenkorb')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
     }
 
     if (incId) {
@@ -199,7 +258,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeColorModal();
+    if (event.key === 'Escape') {
+      closeImageLightbox();
+      closeColorModal();
+    }
   });
 
   filterButtons.forEach(button => button.addEventListener('click', () => {
@@ -240,33 +302,7 @@ Versand: ${data.get('delivery') || 'Versand gewünscht'}`);
     window.location.href = `https://wa.me/4915147906749?text=${message}`;
   });
 
+  createImageLightbox();
   renderProducts();
   renderCart();
-});
-
-/* Bild Zoom */
-
-const lightbox = document.getElementById('imageLightbox');
-const lightboxImage = document.getElementById('lightboxImage');
-const closeLightbox = document.querySelector('.close-lightbox');
-
-document.addEventListener('click', function(e){
-
-  const img = e.target.closest('.color-card img');
-
-  if(img){
-    lightbox.style.display = 'flex';
-    lightboxImage.src = img.src;
-  }
-
-});
-
-closeLightbox.addEventListener('click', () => {
-  lightbox.style.display = 'none';
-});
-
-lightbox.addEventListener('click', (e) => {
-  if(e.target === lightbox){
-    lightbox.style.display = 'none';
-  }
 });
