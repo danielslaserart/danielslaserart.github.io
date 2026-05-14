@@ -16,105 +16,98 @@
 </head>
 
 <body>
-<div class="bg-fixed"></div>
+  <div class="bg-fixed"></div>
 
-<header class="site-header">
-  <div class="container nav">
-    <a href="index.html#start" class="brand brand-logo">
-      <img src="assets/images/branding/logo.webp" alt="Daniels Laser Art Logo" />
-      Daniels <span>Laser Art</span>
-    </a>
-    
-    <button class="menu-toggle" type="button" aria-expanded="false">Menü</button>
-    <nav class="menu">
-      <a href="javascript:history.back()" class="back-link">← Zurück</a>
-      <a href="index.html#galerie">Galerie</a>
-      <a href="index.html#ablauf">Ablauf</a>
-      <a href="index.html#faq">FAQ</a>
-      <a href="index.html#kontakt">Kontakt</a>
-    </nav>
-  </div>
-</header>
+  <header class="site-header">
+    <div class="container nav">
+      <a href="index.html#start" class="brand brand-logo">
+        <img src="assets/images/branding/logo.webp" alt="Daniels Laser Art Logo" />
+        Daniels <span>Laser Art</span>
+      </a>
 
-<main>
-  <section class="section">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <h1 id="galleryTitle">Galerie</h1>
+      <button class="menu-toggle" type="button" aria-expanded="false">Menü</button>
 
-          <p id="galleryDescription">
-            Ich fertige individuelle Lasergravuren und personalisierte Geschenke nach Wunsch.
-            Jede Arbeit ist ein Unikat und wird präzise umgesetzt.
-          </p>
+      <nav class="menu">
+        <a href="javascript:history.back()" class="back-link">← Zurück</a>
+        <a href="index.html#galerie">Galerie</a>
+        <a href="index.html#ablauf">Ablauf</a>
+        <a href="index.html#faq">FAQ</a>
+        <a href="index.html#kontakt">Kontakt</a>
+      </nav>
+    </div>
+  </header>
 
-          <p>
-            Alle gezeigten Arbeiten sind echte Projekte und können individuell angepasst werden.
-          </p>
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h1 id="galleryTitle">Galerie</h1>
 
-          <p>
-            Besonders beliebt sind Lasergravuren auf Holz sowie personalisierte Geschenke
-            für besondere Anlässe wie Geburtstage oder Jahrestage.
-          </p>
+            <p id="galleryDescription">
+              Ich fertige individuelle Lasergravuren und personalisierte Geschenke nach Wunsch.
+              Jede Arbeit ist ein Unikat und wird präzise umgesetzt.
+            </p>
+
+            <p>
+              Alle gezeigten Arbeiten sind echte Projekte und können individuell angepasst werden.
+            </p>
+
+            <p>
+              Besonders beliebt sind Lasergravuren auf Holz sowie personalisierte Geschenke
+              für besondere Anlässe wie Geburtstage oder Jahrestage.
+            </p>
+          </div>
         </div>
+
+        <div class="gallery-grid" id="imageGrid"></div>
       </div>
+    </section>
+  </main>
 
-      <div class="gallery-grid" id="imageGrid"></div>
-    </div>
-  </section>
-</main>
-
-<div class="lightbox" id="lightbox" aria-hidden="true">
-
-  <button
-    class="lightbox-close"
-    id="lightboxClose"
-    aria-label="Schließen">
-    ×
-  </button>
-
-  <button
-    class="lightbox-nav lightbox-prev"
-    id="lightboxPrev"
-    aria-label="Vorheriges Bild">
-    ‹
-  </button>
-
+  <!-- Lightbox -->
   <div class="lightbox" id="lightbox" aria-hidden="true">
-  <button class="lightbox-close" id="lightboxClose" aria-label="Schließen">×</button>
+    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Schließen">
+      ×
+    </button>
 
-  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Vorheriges Bild">‹</button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev" type="button" aria-label="Vorheriges Bild">
+      ‹
+    </button>
 
-  <div class="lightbox-image-wrap">
-    <img
-      id="lightboxImage"
-      src=""
-      alt="Geschütztes Galerie-Bild"
-      draggable="false"
-      oncontextmenu="return false"
-    />
+    <div class="lightbox-image-wrap">
+      <img
+        id="lightboxImage"
+        src=""
+        alt="Geschütztes Galerie-Bild"
+        draggable="false"
+        oncontextmenu="return false"
+      />
 
-    <span class="lightbox-protection-layer" aria-hidden="true"></span>
-  </div>
-
-  <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Nächstes Bild">›</button>
-
-  <div class="lightbox-counter" id="lightboxCounter"></div>
-</div>
-
-<footer class="site-footer">
-  <div class="container footer-row">
-    <p>© 2025 Daniels Laser Art – C'est la vie.</p>
-    <div class="footer-links">
-      <a href="impressum.html">Impressum</a>
-      <a href="datenschutz.html">Datenschutz</a>
+      <span class="lightbox-protection-layer" aria-hidden="true"></span>
     </div>
-  </div>
-</footer>
-<script src="assets/js/main.js" defer></script>
 
-<script src="assets/data/galleries.js" defer></script>
-<script src="assets/js/lightbox.js" defer></script>
-<script src="assets/js/gallery.js" defer></script>
+    <button class="lightbox-nav lightbox-next" id="lightboxNext" type="button" aria-label="Nächstes Bild">
+      ›
+    </button>
+
+    <div class="lightbox-counter" id="lightboxCounter"></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <p>© 2025 Daniels Laser Art – C'est la vie.</p>
+
+      <div class="footer-links">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js" defer></script>
+  <script src="assets/data/galleries.js" defer></script>
+  <script src="assets/js/lightbox.js" defer></script>
+  <script src="assets/js/gallery.js" defer></script>
 </body>
 </html>
