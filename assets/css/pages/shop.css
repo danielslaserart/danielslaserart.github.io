@@ -571,3 +571,36 @@
     gap: 10px;
   }
 }
+
+/* LIGHTBOX HINTERGRUND AUF SHOP-SEITE */
+.lightbox {
+  background:
+    linear-gradient(
+      rgba(5, 2, 8, 0.82),
+      rgba(5, 2, 8, 0.94)
+    ),
+    url('../../images/hero/background.webp') center center / cover no-repeat fixed !important;
+
+  backdrop-filter: blur(4px);
+}
+
+/* FARBFENSTER MIT HINTERGRUNDBILD */
+.color-preview-modal {
+  background:
+    linear-gradient(
+      rgba(5, 2, 8, 0.74),
+      rgba(5, 2, 8, 0.9)
+    ),
+    url('../../images/hero/background.webp') center center / cover no-repeat fixed !important;
+}
+
+.color-preview-dialog {
+  background:
+    linear-gradient(
+      rgba(32, 12, 20, 0.88),
+      rgba(18, 7, 14, 0.94)
+    ),
+    url('../../images/hero/background.webp') center center / cover no-repeat !important;
+
+  backdrop-filter: blur(10px);
+}
