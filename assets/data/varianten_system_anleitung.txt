@@ -1,0 +1,127 @@
+Daniels Laser Art – Varianten / Farben System
+
+SO FUNKTIONIERT DAS SYSTEM
+
+Du kannst jetzt bei jedem Produkt:
+- Farben
+- Varianten
+- Beispiele
+- Stile
+- Mit/Ohne Licht
+anzeigen lassen.
+
+-----------------------------------
+1. BUTTONTEXT FESTLEGEN
+-----------------------------------
+
+Im jeweiligen Produkt einfach:
+
+previewButton: 'Farben ansehen',
+
+ODER:
+
+previewButton: 'Varianten ansehen',
+
+ODER:
+
+previewButton: 'Beispiele ansehen',
+
+einfügen.
+
+BEISPIEL:
+
+{
+  id: 'Lederlabel',
+
+  previewButton: 'Farben ansehen',
+
+  colorExamples: [
+    {
+      name: 'Marmor',
+      image: 'assets/images/shop/farbe-marmor.webp'
+    },
+    {
+      name: 'Rustikal',
+      image: 'assets/images/shop/farbe-rustikal.webp'
+    }
+  ]
+}
+
+-----------------------------------
+2. BILDER HINZUFÜGEN
+-----------------------------------
+
+Die Bilder müssen wirklich existieren.
+
+Beispiel:
+
+assets/images/shop/farbe-marmor.webp
+assets/images/shop/farbe-rustikal.webp
+
+Wichtig:
+- Groß-/Kleinschreibung beachten
+- Dateiendung beachten (.webp / .jpg / .png)
+
+-----------------------------------
+3. BUTTON AUTOMATISCH
+-----------------------------------
+
+Sobald:
+- previewButton
+UND
+- colorExamples
+
+vorhanden sind,
+
+erscheint automatisch ein Button im Shop.
+
+-----------------------------------
+4. VARIANTEN HINZUFÜGEN
+-----------------------------------
+
+Du kannst jederzeit neue Varianten ergänzen:
+
+{
+  name: 'Schwarz',
+  image: 'assets/images/shop/farbe-schwarz.webp'
+}
+
+ODER:
+
+{
+  name: 'Mit Beleuchtung',
+  image: 'assets/images/shop/led.webp'
+}
+
+-----------------------------------
+5. WAS MAN DAMIT MACHEN KANN
+-----------------------------------
+
+Lederlabel:
+- Farben
+- Materialien
+- Größen
+
+Wandbilder:
+- Stile
+- Motive
+- Varianten
+
+Schwibbogen:
+- Mit Licht
+- Ohne Licht
+
+Gravuren:
+- Beispielmotive
+- Schriftarten
+
+-----------------------------------
+6. FERTIG
+-----------------------------------
+
+Nach dem Speichern:
+- Seite neu laden
+- Cache ggf. leeren
+- Fertig
+
+Das Popup und die Buttons werden automatisch erstellt.

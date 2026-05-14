@@ -9,6 +9,7 @@ window.SHOP_PRODUCTS = [
     description: 'Holzkarte für Geldgeschenke mit Wunschtext, Namen oder Datum.',
     options: ['Name/Wunschtext', 'Anlass', 'Kurze Botschaft']
   },
+
   {
     id: 'lebensbaum-led',
     name: 'Lebensbaum mit Beleuchtung',
@@ -19,6 +20,7 @@ window.SHOP_PRODUCTS = [
     description: 'Dekorativer Lebensbaum als persönliches Geschenk oder Erinnerungsstück.',
     options: ['Name', 'Datum', 'Wunschmotiv']
   },
+
   {
     id: 'schwibbogen-hund',
     name: 'Mini Schwibbogen mit Wunschmotiv',
@@ -29,6 +31,7 @@ window.SHOP_PRODUCTS = [
     description: 'Personalisierter Schwibbogen, z. B. mit Tiermotiv oder Familienmotiv. ca. 17cm Breite',
     options: ['Motivbeschreibung', 'Name', 'Besonderheiten', 'mit oder ohne Licht']
   },
+
   {
     id: 'portrait-leinwand',
     name: 'Modernes Wandbild / Portrait',
@@ -39,6 +42,7 @@ window.SHOP_PRODUCTS = [
     description: 'Künstlerisches Wandbild nach Motivwunsch für Zuhause oder als Geschenk.',
     options: ['Motividee', 'Formatwunsch', 'Farbstil']
   },
+
   {
     id: 'Lederlabel',
     name: 'Lederlabel mit Logo oder Name',
@@ -47,34 +51,32 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/shop/shopcollage.webp',
     badge: 'Für Handmade',
     description: 'Individuelle Labels für Handarbeiten, Branding oder kleine Serien.',
+
     options: ['Logo/Name', 'Größe', 'Stückzahl', 'Farbe'],
-    colorExamples: [
-      {
-        name: 'Mamor',
-        image: 'assets/images/shop/farbe-mamor.webp'
-      },
-      {
-        name: 'Rustikal/Gold',
-        image: 'assets/images/shop/farbe-rustikal.webp'
-      },
-      {
-        name: 'Rohleder',
-        image: 'assets/images/shop/farbe-rohleder.webp'
-       }
-      // {
-      //   name: 'Schwarz',
-      //   image: 'assets/images/leder/farbe-schwarz.webp'
-      // },
-      // {
-      //   name: 'Beige',
-      //   image: 'assets/images/leder/farbe-beige.webp'
-      // },
-      // {
-      //   name: 'Grau',
-      //   image: 'assets/images/leder/farbe-grau.webp'
-      // }
-    ]
+
+    preview: {
+      button: 'Farben ansehen',
+      badge: 'Lederlabel',
+      title: 'Farben ansehen',
+      text: 'Hier siehst du Beispielbilder der verfügbaren Lederfarben.',
+
+      items: [
+        {
+          name: 'Mamor',
+          image: 'assets/images/shop/farbe-mamor.webp'
+        },
+        {
+          name: 'Rustikal/Gold',
+          image: 'assets/images/shop/rustikal.webp'
+        },
+        {
+          name: 'Rohleder',
+          image: 'assets/images/shop/rohleder.webp'
+        }
+      ]
+    }
   },
+
   {
     id: 'polaroid',
     name: 'Polaroid Holzgravur',
@@ -83,6 +85,21 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/gravuren/polaroidhandmade.webp',
     badge: 'Persönlich',
     description: 'Persönliches Erinnerungsstück mit Foto-Optik und individueller Gravur.',
-    options: ['Text', 'Datum', 'Motivhinweis']
+
+    options: ['Text', 'Datum', 'Motivhinweis'],
+
+    // preview: {
+    //   button: 'Beispiele ansehen',
+    //   badge: 'Polaroid',
+    //   title: 'Beispiele ansehen',
+    //   text: 'Hier siehst du Beispielbilder für Polaroid-Holzgravuren.',
+
+    //   items: [
+    //     {
+    //       name: 'Beispiel 1',
+    //       image: 'assets/images/shop/farbe-mamor.webp'
+    //     }
+    //   ]
+    // }
   }
 ];

@@ -1,0 +1,128 @@
+Daniels Laser Art – Neues Preview-System
+
+SO FUNKTIONIERT ES
+
+Du kannst jetzt bei jedem Produkt:
+- Farben
+- Varianten
+- Stile
+- Beispiele
+- Mit/Ohne Licht
+anzeigen lassen.
+
+========================================
+1. GRUNDSTRUKTUR
+========================================
+
+Ein Produkt bekommt jetzt:
+
+preview: {
+  button: '',
+  badge: '',
+  title: '',
+  text: '',
+  items: []
+}
+
+========================================
+2. KOMPLETTES BEISPIEL
+========================================
+
+preview: {
+  button: 'Farben ansehen',
+  badge: 'Lederlabel',
+  title: 'Farben ansehen',
+  text: 'Hier siehst du verfügbare Lederfarben.',
+
+  items: [
+    {
+      name: 'Marmor',
+      image: 'assets/images/shop/farbe-marmor.webp'
+    },
+
+    {
+      name: 'Rustikal',
+      image: 'assets/images/shop/farbe-rustikal.webp'
+    }
+  ]
+}
+
+========================================
+3. WAS DIE FELDER MACHEN
+========================================
+
+button:
+Text auf dem Button
+
+badge:
+Kleiner Badge oben im Popup
+
+title:
+Große Überschrift im Popup
+
+text:
+Beschreibung unter der Überschrift
+
+items:
+Alle Bilder/Varianten
+
+========================================
+4. VARIANTEN HINZUFÜGEN
+========================================
+
+Neue Varianten einfach ergänzen:
+
+{
+  name: 'Schwarz',
+  image: 'assets/images/shop/farbe-schwarz.webp'
+}
+
+ODER:
+
+{
+  name: 'Mit Beleuchtung',
+  image: 'assets/images/shop/led.webp'
+}
+
+========================================
+5. FÜR ALLE PRODUKTE NUTZBAR
+========================================
+
+Lederlabel:
+- Farben
+- Materialien
+
+Wandbilder:
+- Stile
+- Motive
+
+Schwibbogen:
+- Mit Licht
+- Ohne Licht
+
+Gravuren:
+- Beispiele
+- Schriftarten
+
+========================================
+6. WICHTIG
+========================================
+
+Die Bilder müssen wirklich existieren.
+
+Beispiel:
+
+assets/images/shop/farbe-marmor.webp
+
+Groß-/Kleinschreibung beachten.
+
+========================================
+7. FERTIG
+========================================
+
+Nach dem Speichern:
+- Seite neu laden
+- Cache leeren falls nötig
+- Fertig
+
+Popup und Buttons werden automatisch erstellt.

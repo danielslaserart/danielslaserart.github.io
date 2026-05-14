@@ -25,12 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.setAttribute('aria-hidden', 'true');
     modal.innerHTML = `
       <div class="color-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="colorPreviewTitle">
-        <button class="color-preview-close" type="button" aria-label="Farben schließen">×</button>
+        <button class="color-preview-close" type="button" aria-label="Fenster schließen">×</button>
+
         <div class="color-preview-head">
-          <p class="badge">Lederlabel</p>
-          <h2 id="colorPreviewTitle">Farben ansehen</h2>
-          <p>Hier siehst du Beispielbilder der verfügbaren Lederfarben. Farbwirkung kann je nach Bildschirm leicht abweichen.</p>
+          <p class="badge" id="colorPreviewBadge"></p>
+          <h2 id="colorPreviewTitle"></h2>
+          <p id="colorPreviewText"></p>
         </div>
+
         <div class="color-preview-grid" id="colorPreviewGrid"></div>
       </div>
     `;
@@ -47,19 +49,27 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = '';
   }
 
-  function openColorModal(colors) {
+  function openColorModal(preview) {
     createColorModal();
 
     const modal = document.getElementById('colorPreviewModal');
     const modalGrid = document.getElementById('colorPreviewGrid');
+    const modalBadge = document.getElementById('colorPreviewBadge');
+    const modalTitle = document.getElementById('colorPreviewTitle');
+    const modalText = document.getElementById('colorPreviewText');
+
     if (!modal || !modalGrid) return;
 
-    modalGrid.innerHTML = colors.map((color) => `
+    modalBadge.textContent = preview.badge || '';
+    modalTitle.textContent = preview.title || 'Varianten ansehen';
+    modalText.textContent = preview.text || '';
+
+    modalGrid.innerHTML = (preview.items || []).map((item) => `
       <article class="color-preview-card">
         <div class="color-preview-image-wrap">
-          <img src="${color.image}" alt="Lederlabel Farbe ${color.name}" loading="lazy" onerror="this.parentElement.classList.add('missing-color-image')">
+          <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.parentElement.classList.add('missing-color-image')">
         </div>
-        <strong>${color.name}</strong>
+        <strong>${item.name}</strong>
       </article>
     `).join('');
 
@@ -94,12 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
             ${product.options.map(option => `<span>${option}</span>`).join('')}
           </div>
 
-          ${product.colorExamples ? `
+          ${product.preview ? `
             <button
               class="btn btn-secondary color-preview-btn"
               type="button"
-              data-colors="${encodeColorExamples(product.colorExamples)}">
-              Farben ansehen
+              data-preview="${encodeURIComponent(JSON.stringify(product.preview))}">
+              ${product.previewButton || 'Varianten ansehen'}
             </button>
           ` : ''}
 
@@ -137,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.addEventListener('click', (event) => {
-    const colorBtn = event.target.closest('[data-colors]');
+    const colorBtn = event.target.closest('[data-preview]');
     const closeColorBtn = event.target.closest('.color-preview-close');
     const colorModal = event.target.closest('#colorPreviewModal');
     const addId = event.target.closest('[data-add]')?.dataset.add;
@@ -146,8 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeId = event.target.closest('[data-remove]')?.dataset.remove;
 
     if (colorBtn) {
-      const colors = JSON.parse(decodeURIComponent(colorBtn.dataset.colors || '%5B%5D'));
-      openColorModal(colors);
+      const preview = JSON.parse(decodeURIComponent(colorBtn.dataset.preview || '{}'));
+      openColorModal(preview);
       return;
     }
 
