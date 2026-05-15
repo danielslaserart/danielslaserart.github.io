@@ -795,3 +795,58 @@
   transform: scale(1.06);
   box-shadow: 0 0 20px rgba(255,140,40,0.25);
 }
+/* =========================================
+   SHOP LIGHTBOX BESCHREIBUNG
+========================================= */
+
+.shop-lightbox-info {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+
+  width: min(720px, 90vw);
+
+  padding: 14px 18px;
+  border-radius: 20px;
+
+  background: rgba(12, 6, 14, 0.72);
+  backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255, 190, 120, 0.18);
+
+  text-align: center;
+
+  z-index: 10002;
+
+  box-shadow: 0 14px 38px rgba(0,0,0,0.34);
+}
+
+.shop-lightbox-info h3 {
+  margin: 0 0 5px;
+  color: #fff4ea;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.shop-lightbox-info p {
+  margin: 0;
+  color: rgba(255,255,255,0.78);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+  .shop-lightbox-info {
+    bottom: 18px;
+    padding: 12px 14px;
+  }
+
+  .shop-lightbox-info h3 {
+    font-size: 0.95rem;
+  }
+
+  .shop-lightbox-info p {
+    font-size: 0.82rem;
+  }
+}
