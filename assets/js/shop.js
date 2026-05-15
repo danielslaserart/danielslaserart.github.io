@@ -73,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <img
             src="${item.image}"
             alt="${item.name}"
+            data-title="${item.name || ''}"
+            data-caption="${item.description || ''}"
             loading="lazy"
             draggable="false"
             oncontextmenu="return false"
@@ -134,6 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="shop-lightbox-protection-layer"></span>
 
       </div>
+
+      <div class="shop-lightbox-info" id="shopLightboxInfo">
+        <h3 id="shopLightboxTitle"></h3>
+        <p id="shopLightboxCaption"></p>
+      </div>
     `;
 
     document.body.appendChild(lightbox);
@@ -143,10 +150,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const lightbox = document.getElementById('imageLightbox');
     const lightboxImage = document.getElementById('lightboxImage');
+    const lightboxInfo = document.getElementById('shopLightboxInfo');
+    const lightboxTitle = document.getElementById('shopLightboxTitle');
+    const lightboxCaption = document.getElementById('shopLightboxCaption');
 
     if (!lightbox || !lightboxImage) return;
 
+    const title = img.dataset.title || img.alt || '';
+    const caption = img.dataset.caption || '';
+
     lightboxImage.src = img.src;
+    lightboxImage.alt = title || 'Großansicht';
+
+    if (lightboxTitle) lightboxTitle.textContent = title;
+    if (lightboxCaption) lightboxCaption.textContent = caption;
+
+    if (lightboxInfo) {
+      if (title || caption) {
+        lightboxInfo.style.display = 'block';
+      } else {
+        lightboxInfo.style.display = 'none';
+      }
+    }
+
     lightbox.style.display = 'flex';
     lightbox.classList.add('open');
   }
