@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const lightboxTitle = document.getElementById('shopLightboxTitle');
     const lightboxCaption = document.getElementById('shopLightboxCaption');
 
-    if (!lightbox || !lightboxImage) return;
+    if (!lightbox || !lightboxImage || !img) return;
 
     const title = img.dataset.title || img.alt || '';
     const caption = img.dataset.caption || '';
@@ -162,8 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
     lightboxImage.src = img.src;
     lightboxImage.alt = title || 'Großansicht';
 
-    if (lightboxTitle) lightboxTitle.textContent = title;
-    if (lightboxCaption) lightboxCaption.textContent = caption;
+    if (lightboxTitle) {
+      lightboxTitle.textContent = title;
+    }
+
+    if (lightboxCaption) {
+      lightboxCaption.textContent = caption;
+    }
 
     if (lightboxInfo) {
       if (title || caption) {
@@ -339,8 +344,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', (event) => {
 
+    const previewCard =
+      event.target.closest('.color-preview-card');
+
     const zoomImg =
-      event.target.closest('.color-preview-card img');
+      previewCard ? previewCard.querySelector('img') : null;
 
     const closeZoomBtn =
       event.target.closest('.close-lightbox');
