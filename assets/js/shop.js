@@ -137,9 +137,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
       </div>
 
-      <div class="shop-lightbox-info" id="shopLightboxInfo">
-        <h3 id="shopLightboxTitle"></h3>
-        <p id="shopLightboxCaption"></p>
+      <div
+        id="shopLightboxInfo"
+        style="
+          position:absolute;
+          left:50%;
+          bottom:26px;
+          transform:translateX(-50%);
+          width:min(720px,90vw);
+          padding:14px 18px;
+          border-radius:20px;
+          background:rgba(12,6,14,0.92);
+          border:1px solid rgba(255,190,120,0.28);
+          text-align:center;
+          z-index:30000;
+          box-shadow:0 14px 38px rgba(0,0,0,0.45);
+          color:white;
+          pointer-events:none;
+          display:none;
+        "
+      >
+        <h3
+          id="shopLightboxTitle"
+          style="
+            margin:0 0 5px;
+            color:#fff4ea;
+            font-size:1.05rem;
+            line-height:1.2;
+          "
+        ></h3>
+
+        <p
+          id="shopLightboxCaption"
+          style="
+            margin:0;
+            color:rgba(255,255,255,0.82);
+            font-size:0.9rem;
+            line-height:1.45;
+          "
+        ></p>
       </div>
     `;
 
@@ -156,8 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!lightbox || !lightboxImage || !img) return;
 
-    const title = img.dataset.title || img.alt || '';
-    const caption = img.dataset.caption || '';
+    const title = img.getAttribute('data-title') || img.alt || '';
+    const caption = img.getAttribute('data-caption') || '';
 
     lightboxImage.src = img.src;
     lightboxImage.alt = title || 'Großansicht';
@@ -171,11 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (lightboxInfo) {
-      if (title || caption) {
-        lightboxInfo.style.display = 'block';
-      } else {
-        lightboxInfo.style.display = 'none';
-      }
+      lightboxInfo.style.display = (title || caption) ? 'block' : 'none';
     }
 
     lightbox.style.display = 'flex';
@@ -377,16 +409,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeId =
       event.target.closest('[data-remove]')?.dataset.remove;
 
-    if (zoomImg) {
-      openImageLightbox(zoomImg);
+    if (closeZoomBtn || (zoomModal && event.target.id === 'imageLightbox')) {
+      closeImageLightbox();
       return;
     }
 
-    if (
-      closeZoomBtn ||
-      (zoomModal && event.target.id === 'imageLightbox')
-    ) {
-      closeImageLightbox();
+    if (zoomImg) {
+      openImageLightbox(zoomImg);
       return;
     }
 
