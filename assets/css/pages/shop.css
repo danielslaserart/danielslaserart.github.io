@@ -973,3 +973,69 @@
     right: 10px;
   }
 }
+
+/* =========================================
+   FIX SHOP LIGHTBOX MOBILE BUTTONS
+========================================= */
+
+.close-lightbox {
+  position: fixed !important;
+  top: max(18px, env(safe-area-inset-top)) !important;
+  right: 18px !important;
+  width: 54px !important;
+  height: 54px !important;
+  z-index: 1000002 !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.shop-lightbox-prev,
+.shop-lightbox-next {
+  position: fixed !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 1000002 !important;
+  display: grid !important;
+  place-items: center !important;
+  pointer-events: auto !important;
+}
+
+.shop-lightbox-prev {
+  left: 14px !important;
+}
+
+.shop-lightbox-next {
+  right: 14px !important;
+}
+
+.image-lightbox::after {
+  pointer-events: none !important;
+}
+
+.shop-lightbox-image-wrap,
+.shop-lightbox-protection-layer {
+  pointer-events: none !important;
+}
+
+@media (max-width: 768px) {
+  .close-lightbox {
+    top: 22px !important;
+    right: 16px !important;
+  }
+
+  .shop-lightbox-prev,
+  .shop-lightbox-next {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 2rem !important;
+    background: rgba(255,255,255,0.18) !important;
+  }
+
+  .shop-lightbox-prev {
+    left: 12px !important;
+  }
+
+  .shop-lightbox-next {
+    right: 12px !important;
+  }
+}
