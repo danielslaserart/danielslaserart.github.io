@@ -1,0 +1,156 @@
+SHOP-ANLEITUNG – Daniels Laser Art
+
+1. Produkte ändern
+Datei:
+assets/data/products.js
+
+Ein Produkt besteht aus:
+
+id: eindeutiger Name ohne Leerzeichen
+name: sichtbarer Produktname
+category: Kategorie im Shop
+price: Preis
+image: Hauptbild
+badge: kleines Label oben im Bild
+description: Beschreibung im Shop
+options: kleine Auswahlpunkte
+preview: Varianten-/Beispielbilder
+
+2. Neues Produkt hinzufügen
+
+Beispiel:
+
+{
+  id: 'neues-produkt',
+  name: 'Neues Produkt',
+  category: 'Gravur',
+  price: 19.90,
+  image: 'assets/images/shop/bild.webp',
+  badge: 'Neu',
+  description: 'Kurze Beschreibung des Produkts.',
+  options: ['Name', 'Datum', 'Wunschtext']
+}
+
+3. Variantenbutton hinzufügen
+
+Im Produkt ergänzen:
+
+preview: {
+  button: 'Beispiele ansehen',
+  badge: 'Kategorie',
+  title: 'Beispiele ansehen',
+  text: 'Hier siehst du Beispielbilder.',
+
+  items: [
+    {
+      name: 'Beispiel 1',
+      image: 'assets/images/shop/beispiel.webp',
+      description: 'Beschreibung, die beim Vergrößern angezeigt wird.'
+    }
+  ]
+}
+
+4. Beschreibung beim Vergrößern ändern
+
+In products.js beim jeweiligen Variantenbild ändern:
+
+description: 'Dein neuer Beschreibungstext.'
+
+Diese Beschreibung erscheint unten beim vergrößerten Bild.
+
+5. Bildpfade beachten
+
+Richtig:
+assets/images/shop/mein-bild.webp
+
+Nicht verwenden:
+Leerzeichen
+Umlaute
+#
+Sonderzeichen
+
+Besser:
+polaroid-beispiel.webp
+lederlabel-rustikal.webp
+geldkarte-herz.webp
+
+6. Bilder austauschen
+
+Bild in passenden Ordner legen, z. B.:
+
+assets/images/shop/
+assets/images/gravuren/
+assets/images/leinwand/
+
+Dann in products.js den Pfad anpassen.
+
+7. Kategorien
+
+Die Kategorie bestimmt, unter welchem Filter das Produkt erscheint:
+
+category: 'Gravur'
+category: 'Holzdeko'
+category: 'Wandbild'
+category: 'Lederlabel'
+
+Wenn du neue Kategorien nutzt, muss auch der Filterbutton in shop.html existieren.
+
+8. Preis ändern
+
+In products.js:
+
+price: 24.90
+
+Wichtig: Punkt statt Komma verwenden.
+
+9. Badge ändern
+
+Beispiel:
+
+badge: 'Beliebt'
+badge: 'Neu'
+badge: 'Geschenkidee'
+badge: 'Persönlich'
+
+10. Wasserzeichen / Bildschutz
+
+Der Bildschutz liegt in:
+
+assets/css/pages/shop.css
+assets/js/shop.js
+
+Nicht löschen:
+shop-preview-protection-layer
+shop-lightbox-protection-layer
+image-lightbox
+shop-lightbox-image-wrap
+
+11. Nach Änderungen
+
+Immer:
+Datei speichern
+hochladen
+Browser hart neu laden
+
+PC:
+Strg + F5
+
+Handy:
+Inkognito-Tab öffnen oder Browser-Cache leeren
+
+12. Häufige Fehler
+
+Bild wird nicht angezeigt:
+- Pfad falsch
+- Dateiname falsch geschrieben
+- Groß-/Kleinschreibung stimmt nicht
+- Datei liegt im falschen Ordner
+
+Beschreibung wird nicht angezeigt:
+- description fehlt im preview item
+- Browser lädt alte Datei aus Cache
+
+Variantenbutton erscheint nicht:
+- preview Block fehlt
+- Komma im JavaScript vergessen
+- products.js hat Syntaxfehler
