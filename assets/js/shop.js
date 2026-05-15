@@ -120,15 +120,84 @@ document.addEventListener('DOMContentLoaded', () => {
     lightbox.className = 'image-lightbox';
 
     lightbox.innerHTML = `
-      <button class="close-lightbox" type="button">
+
+      <button
+        class="close-lightbox"
+        type="button"
+        style="
+          position:fixed;
+          top:18px;
+          right:14px;
+          width:56px;
+          height:56px;
+          border:none;
+          border-radius:50%;
+          background:rgba(0,0,0,0.78);
+          color:#fff;
+          font-size:2.2rem;
+          z-index:999999999;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          cursor:pointer;
+        "
+      >
         ×
       </button>
 
-      <button class="shop-lightbox-prev" type="button" aria-label="Vorheriges Bild">
+      <button
+        class="shop-lightbox-prev"
+        type="button"
+        aria-label="Vorheriges Bild"
+        style="
+          position:fixed;
+          left:6px;
+          top:50%;
+          transform:translateY(-50%);
+          width:58px;
+          height:58px;
+          border:none;
+          border-radius:50%;
+          background:rgba(0,0,0,0.78);
+          color:#fff;
+          font-size:3rem;
+          font-weight:700;
+          line-height:1;
+          z-index:999999999;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          cursor:pointer;
+        "
+      >
         ‹
       </button>
 
-      <button class="shop-lightbox-next" type="button" aria-label="Nächstes Bild">
+      <button
+        class="shop-lightbox-next"
+        type="button"
+        aria-label="Nächstes Bild"
+        style="
+          position:fixed;
+          right:6px;
+          top:50%;
+          transform:translateY(-50%);
+          width:58px;
+          height:58px;
+          border:none;
+          border-radius:50%;
+          background:rgba(0,0,0,0.78);
+          color:#fff;
+          font-size:3rem;
+          font-weight:700;
+          line-height:1;
+          z-index:999999999;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          cursor:pointer;
+        "
+      >
         ›
       </button>
 
@@ -233,9 +302,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextBtn = document.querySelector('.shop-lightbox-next');
 
     if (prevBtn && nextBtn) {
-      const showNavigation = currentPreviewImages.length > 1;
-      prevBtn.style.display = showNavigation ? 'block' : 'none';
-      nextBtn.style.display = showNavigation ? 'block' : 'none';
+
+      prevBtn.style.display = 'flex';
+      nextBtn.style.display = 'flex';
+
+      prevBtn.style.visibility = 'visible';
+      nextBtn.style.visibility = 'visible';
+
+      prevBtn.style.opacity = '1';
+      nextBtn.style.opacity = '1';
     }
   }
 
