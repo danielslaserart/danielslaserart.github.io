@@ -51,7 +51,6 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/shop/shopcollage.webp',
     badge: 'Für Handmade',
     description: 'Individuelle Labels für Handarbeiten, Branding oder kleine Serien.',
-
     options: ['Logo/Name', 'Größe', 'Stückzahl', 'Farbe'],
 
     preview: {
@@ -63,15 +62,18 @@ window.SHOP_PRODUCTS = [
       items: [
         {
           name: 'Mamor',
-          image: 'assets/images/shop/farbe-mamor.webp'
+          image: 'assets/images/shop/farbe-mamor.webp',
+          description: 'Marmorierter Lederlook mit moderner Gravuroptik.'
         },
         {
           name: 'Rustikal/Gold',
-          image: 'assets/images/shop/rustikal.webp'
+          image: 'assets/images/shop/rustikal.webp',
+          description: 'Rustikale Oberfläche mit goldener Gravurwirkung.'
         },
         {
           name: 'Rohleder',
-          image: 'assets/images/shop/rohleder.webp'
+          image: 'assets/images/shop/rohleder.webp',
+          description: 'Natürliche Lederoptik mit besonders warmer Ausstrahlung.'
         }
       ]
     }
@@ -85,21 +87,21 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/gravuren/polaroidhandmade.webp',
     badge: 'Persönlich',
     description: 'Persönliches Erinnerungsstück mit Foto-Optik und individueller Gravur.',
-
     options: ['Text', 'Datum', 'Motivhinweis'],
 
     preview: {
-       button: 'Beispiele ansehen',
-       badge: 'Polaroid',
-       title: 'Beispiele ansehen',
-       text: 'Hier siehst du Beispielbilder für Polaroid-Holzgravuren.',
+      button: 'Beispiele ansehen',
+      badge: 'Polaroid',
+      title: 'Beispiele ansehen',
+      text: 'Hier siehst du Beispielbilder für Polaroid-Holzgravuren.',
 
-       items: [
-         {
-           name: 'Beispiel 1',
-           image: 'assets/images/shop/farbe-mamor.webp'
-         }
-       ]
-     }
+      items: [
+        {
+          name: 'Beispiel 1',
+          image: 'assets/images/gravuren/polaroidhandmade.webp',
+          description: 'Personalisierte Polaroid-Holzgravur mit individuellem Text, Datum oder Wunschmotiv.'
+        }
+      ]
+    }
   }
 ];
