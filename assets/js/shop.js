@@ -136,47 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="shop-lightbox-protection-layer"></span>
 
       </div>
-
-      <div
-        id="shopLightboxInfo"
-        style="
-          position:absolute;
-          left:50%;
-          bottom:26px;
-          transform:translateX(-50%);
-          width:min(720px,90vw);
-          padding:14px 18px;
-          border-radius:20px;
-          background:rgba(12,6,14,0.92);
-          border:1px solid rgba(255,190,120,0.28);
-          text-align:center;
-          z-index:30000;
-          box-shadow:0 14px 38px rgba(0,0,0,0.45);
-          color:white;
-          pointer-events:none;
-          display:none;
-        "
-      >
-        <h3
-          id="shopLightboxTitle"
-          style="
-            margin:0 0 5px;
-            color:#fff4ea;
-            font-size:1.05rem;
-            line-height:1.2;
-          "
-        ></h3>
-
-        <p
-          id="shopLightboxCaption"
-          style="
-            margin:0;
-            color:rgba(255,255,255,0.82);
-            font-size:0.9rem;
-            line-height:1.45;
-          "
-        ></p>
-      </div>
     `;
 
     document.body.appendChild(lightbox);
@@ -186,9 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const lightbox = document.getElementById('imageLightbox');
     const lightboxImage = document.getElementById('lightboxImage');
-    const lightboxInfo = document.getElementById('shopLightboxInfo');
-    const lightboxTitle = document.getElementById('shopLightboxTitle');
-    const lightboxCaption = document.getElementById('shopLightboxCaption');
 
     if (!lightbox || !lightboxImage || !img) return;
 
@@ -198,17 +154,43 @@ document.addEventListener('DOMContentLoaded', () => {
     lightboxImage.src = img.src;
     lightboxImage.alt = title || 'Großansicht';
 
-    if (lightboxTitle) {
-      lightboxTitle.textContent = title;
+    let infoBox = document.getElementById('shopLightboxInfo');
+
+    if (!infoBox) {
+      infoBox = document.createElement('div');
+      infoBox.id = 'shopLightboxInfo';
+      lightbox.appendChild(infoBox);
     }
 
-    if (lightboxCaption) {
-      lightboxCaption.textContent = caption;
-    }
+    infoBox.innerHTML = `
+      <h3 style="margin:0 0 5px;color:#fff4ea;font-size:1.05rem;line-height:1.2;">
+        ${title}
+      </h3>
+      <p style="margin:0;color:rgba(255,255,255,0.82);font-size:0.9rem;line-height:1.45;">
+        ${caption}
+      </p>
+    `;
 
-    if (lightboxInfo) {
-      lightboxInfo.style.display = (title || caption) ? 'block' : 'none';
-    }
+    infoBox.setAttribute(
+      'style',
+      `
+        position:fixed !important;
+        left:50% !important;
+        bottom:72px !important;
+        transform:translateX(-50%) !important;
+        width:min(720px,88vw) !important;
+        padding:14px 18px !important;
+        border-radius:20px !important;
+        background:rgba(12,6,14,0.94) !important;
+        border:1px solid rgba(255,190,120,0.28) !important;
+        text-align:center !important;
+        z-index:999999 !important;
+        box-shadow:0 14px 38px rgba(0,0,0,0.45) !important;
+        color:white !important;
+        pointer-events:none !important;
+        display:${title || caption ? 'block' : 'none'} !important;
+      `
+    );
 
     lightbox.style.display = 'flex';
     lightbox.classList.add('open');
@@ -217,11 +199,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeImageLightbox() {
 
     const lightbox = document.getElementById('imageLightbox');
+    const infoBox = document.getElementById('shopLightboxInfo');
 
     if (!lightbox) return;
 
     lightbox.style.display = 'none';
     lightbox.classList.remove('open');
+
+    if (infoBox) {
+      infoBox.style.display = 'none';
+    }
   }
 
   function renderProducts() {
@@ -376,26 +363,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', (event) => {
 
-    const previewCard =
-      event.target.closest('.color-preview-card');
-
-    const zoomImg =
-      previewCard ? previewCard.querySelector('img') : null;
-
     const closeZoomBtn =
       event.target.closest('.close-lightbox');
 
-    const zoomModal =
-      event.target.closest('#imageLightbox');
+    const clickedLightboxBackground =
+      event.target.id === 'imageLightbox';
+
+    if (closeZoomBtn || clickedLightboxBackground) {
+      closeImageLightbox();
+      return;
+    }
 
     const colorBtn =
       event.target.closest('[data-preview]');
+
+    if (colorBtn) {
+      const preview = JSON.parse(
+        decodeURIComponent(colorBtn.dataset.preview || '{}')
+      );
+
+      openColorModal(preview);
+      return;
+    }
 
     const closeColorBtn =
       event.target.closest('.color-preview-close');
 
     const colorModal =
       event.target.closest('#colorPreviewModal');
+
+    if (
+      closeColorBtn ||
+      (colorModal && event.target.id === 'colorPreviewModal')
+    ) {
+      closeColorModal();
+      return;
+    }
+
+    const previewCard =
+      event.target.closest('.color-preview-card');
+
+    if (previewCard) {
+      const zoomImg = previewCard.querySelector('img');
+
+      if (zoomImg) {
+        openImageLightbox(zoomImg);
+        return;
+      }
+    }
 
     const addId =
       event.target.closest('[data-add]')?.dataset.add;
@@ -408,35 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const removeId =
       event.target.closest('[data-remove]')?.dataset.remove;
-
-    if (closeZoomBtn || (zoomModal && event.target.id === 'imageLightbox')) {
-      closeImageLightbox();
-      return;
-    }
-
-    if (zoomImg) {
-      openImageLightbox(zoomImg);
-      return;
-    }
-
-    if (colorBtn) {
-
-      const preview = JSON.parse(
-        decodeURIComponent(colorBtn.dataset.preview || '{}')
-      );
-
-      openColorModal(preview);
-
-      return;
-    }
-
-    if (
-      closeColorBtn ||
-      (colorModal && event.target.id === 'colorPreviewModal')
-    ) {
-      closeColorModal();
-      return;
-    }
 
     if (addId) {
 
