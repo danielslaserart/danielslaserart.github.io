@@ -909,3 +909,67 @@
     font-size: 0.82rem;
   }
 }
+
+/* =========================================
+   SHOP LIGHTBOX NAVIGATION
+========================================= */
+
+.shop-lightbox-prev,
+.shop-lightbox-next {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 52px;
+  height: 52px;
+
+  border: 0;
+  border-radius: 50%;
+
+  cursor: pointer;
+  color: white;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+
+  z-index: 100001;
+
+  font-size: 2rem;
+  line-height: 1;
+
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.shop-lightbox-prev {
+  left: 18px;
+}
+
+.shop-lightbox-next {
+  right: 18px;
+}
+
+.shop-lightbox-prev:hover,
+.shop-lightbox-next:hover {
+  background: rgba(255,255,255,0.16);
+  transform: translateY(-50%) scale(1.06);
+  box-shadow: 0 0 20px rgba(255,140,40,0.25);
+}
+
+@media (max-width: 768px) {
+  .shop-lightbox-prev,
+  .shop-lightbox-next {
+    width: 44px;
+    height: 44px;
+    font-size: 1.8rem;
+  }
+
+  .shop-lightbox-prev {
+    left: 10px;
+  }
+
+  .shop-lightbox-next {
+    right: 10px;
+  }
+}
