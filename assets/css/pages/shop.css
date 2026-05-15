@@ -77,7 +77,23 @@
   display: block;
   object-fit: cover;
   user-select: none;
+  -webkit-user-select: none;
   -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+.product-image-wrap::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 44px;
+  height: 44px;
+  background: url('../../images/branding/logo.webp') center / contain no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
+  z-index: 3;
 }
 
 .product-badge {
@@ -91,7 +107,7 @@
   color: var(--text);
   font-size: 0.82rem;
   font-weight: 800;
-  z-index: 2;
+  z-index: 4;
 }
 
 .product-body {
@@ -429,8 +445,9 @@
 }
 
 /* =========================================
-   FARBBEISPIELE LEDERLABEL
+   FARBBEISPIELE LEDERLABEL / VARIANTEN
 ========================================= */
+
 .color-preview-btn {
   width: 100%;
   min-height: 44px;
@@ -445,7 +462,14 @@
   align-items: center;
   justify-content: center;
   padding: 18px;
-  background: rgba(5, 2, 8, 0.88);
+
+  background:
+    linear-gradient(
+      rgba(5, 2, 8, 0.74),
+      rgba(5, 2, 8, 0.9)
+    ),
+    url('../../images/hero/background.webp') center center / cover no-repeat fixed !important;
+
   backdrop-filter: blur(10px);
 }
 
@@ -460,9 +484,17 @@
   overflow: auto;
   border-radius: 26px;
   border: 1px solid rgba(255, 190, 120, 0.2);
-  background: linear-gradient(180deg, rgba(32, 12, 20, 0.96), rgba(18, 7, 14, 0.98));
+
+  background:
+    linear-gradient(
+      rgba(32, 12, 20, 0.88),
+      rgba(18, 7, 14, 0.94)
+    ),
+    url('../../images/hero/background.webp') center center / cover no-repeat !important;
+
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.62);
   padding: 24px;
+  backdrop-filter: blur(10px);
 }
 
 .color-preview-close {
@@ -528,6 +560,11 @@
   background:
     linear-gradient(rgba(8,2,10,0.44), rgba(8,2,10,0.82)),
     url('../../images/hero/background.webp') center center / cover no-repeat;
+
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 .color-preview-image-wrap img {
@@ -535,19 +572,40 @@
   height: 100%;
   object-fit: cover;
   user-select: none;
+  -webkit-user-select: none;
   -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+.color-preview-image-wrap::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 44px;
+  height: 44px;
+  background: url('../../images/branding/logo.webp') center / contain no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
+  z-index: 3;
 }
 
 .color-preview-image-wrap.missing-color-image::after {
   content: "Bild folgt";
   position: absolute;
   inset: 0;
+  width: auto;
+  height: auto;
   display: grid;
   place-items: center;
   padding: 12px;
   text-align: center;
   color: var(--text);
   font-weight: 800;
+  background: transparent;
+  opacity: 1;
+  filter: none;
 }
 
 .color-preview-card strong {
@@ -555,6 +613,15 @@
   padding: 10px 12px 12px;
   text-align: center;
   color: var(--text);
+}
+
+.shop-preview-protection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: transparent;
+  pointer-events: none;
+  cursor: zoom-in;
 }
 
 @media (max-width: 768px) {
@@ -577,138 +644,154 @@
   }
 }
 
-/* LIGHTBOX HINTERGRUND AUF SHOP-SEITE */
-.lightbox {
+/* =========================================
+   SHOP LIGHTBOX WIE GALERIE
+========================================= */
+
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+
   background:
     linear-gradient(
-      rgba(5, 2, 8, 0.82),
-      rgba(5, 2, 8, 0.94)
+      rgba(5,2,8,0.82),
+      rgba(5,2,8,0.92)
     ),
-    url('../../images/hero/background.webp') center center / cover no-repeat fixed !important;
+    url('../../images/hero/background.webp') center center / cover no-repeat fixed;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 99999;
+  overflow: hidden;
 
   backdrop-filter: blur(4px);
 }
 
-/* FARBFENSTER MIT HINTERGRUNDBILD */
-.color-preview-modal {
+.image-lightbox.open {
+  display: flex;
+}
+
+.image-lightbox::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+
+  background-image: url('../../images/branding/logo.webp');
+  background-repeat: repeat;
+  background-size: 120px 120px;
+  background-position: center;
+
+  opacity: 0.16;
+  pointer-events: none;
+
+  z-index: 10000;
+
+  transform: rotate(-18deg) scale(1.25);
+
+  filter:
+    drop-shadow(0 2px 6px rgba(0,0,0,0.35))
+    blur(0.15px);
+}
+
+.image-lightbox::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
   background:
-    linear-gradient(
-      rgba(5, 2, 8, 0.74),
-      rgba(5, 2, 8, 0.9)
-    ),
-    url('../../images/hero/background.webp') center center / cover no-repeat fixed !important;
+    radial-gradient(
+      circle at center,
+      rgba(255,140,40,0.08),
+      transparent 70%
+    );
+
+  z-index: 1;
+  pointer-events: none;
 }
-
-.color-preview-dialog {
-  background:
-    linear-gradient(
-      rgba(32, 12, 20, 0.88),
-      rgba(18, 7, 14, 0.94)
-    ),
-    url('../../images/hero/background.webp') center center / cover no-repeat !important;
-
-  backdrop-filter: blur(10px);
-}
-
-/* Bild Zoom Lightbox */
-
-.image-lightbox{
-  display:none;
-  position:fixed;
-  z-index:99999;
-  inset:0;
-  background:rgba(0,0,0,0.92);
-  justify-content:center;
-  align-items:center;
-  padding:20px;
-}
-
-.image-lightbox.open{
-  display:flex;
-}
-
-.image-lightbox img{
-  max-width:95%;
-  max-height:95%;
-  border-radius:20px;
-  box-shadow:0 0 30px rgba(0,0,0,0.6);
-}
-
-.close-lightbox{
-  position:absolute;
-  top:20px;
-  right:25px;
-  color:white;
-  font-size:42px;
-  cursor:pointer;
-  z-index:100000;
-}
-
-/* Shop Bildschutz / Lightbox */
 
 .shop-lightbox-image-wrap {
   position: relative;
-  max-width: 95vw;
-  max-height: 90vh;
+  z-index: 2;
+
   display: inline-flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+
+  max-width: min(1100px, 92vw);
+  max-height: 88vh;
+
+  border-radius: 20px;
+  overflow: hidden;
+
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 .shop-lightbox-image-wrap img {
-  max-width: 95vw;
-  max-height: 90vh;
-  object-fit: contain;
-  border-radius: 18px;
-  user-select: none;
-  -webkit-user-drag: none;
-}
+  display: block;
 
-.shop-lightbox-watermark {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  z-index: 3;
-  color: rgba(255,255,255,0.75);
-  background: rgba(0,0,0,0.35);
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  pointer-events: none;
+  max-width: 100%;
+  max-height: 88vh;
+
+  object-fit: contain;
+  border-radius: 20px;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+
+  position: relative;
+  z-index: 2;
 }
 
 .shop-lightbox-protection-layer {
   position: absolute;
   inset: 0;
-  z-index: 4;
-  background:
-    repeating-linear-gradient(
-      -35deg,
-      rgba(255,255,255,0.08) 0,
-      rgba(255,255,255,0.08) 1px,
-      transparent 1px,
-      transparent 70px
-    );
-  border-radius: 18px;
-  pointer-events: none;
-}
-
-.color-preview-image-wrap {
-  position: relative;
-}
-
-.color-preview-image-wrap img {
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-.shop-preview-protection-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
+  z-index: 5;
   background: transparent;
   pointer-events: none;
-  cursor: zoom-in;
+}
+
+.shop-lightbox-watermark {
+  display: none;
+}
+
+.close-lightbox {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+
+  width: 48px;
+  height: 48px;
+
+  border: 0;
+  border-radius: 50%;
+
+  cursor: pointer;
+  color: white;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+
+  font-size: 2rem;
+  line-height: 1;
+
+  z-index: 10001;
+
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.close-lightbox:hover {
+  background: rgba(255,255,255,0.16);
+  transform: scale(1.06);
+  box-shadow: 0 0 20px rgba(255,140,40,0.25);
 }
