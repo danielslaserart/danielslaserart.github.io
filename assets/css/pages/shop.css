@@ -633,3 +633,73 @@
   cursor:pointer;
   z-index:100000;
 }
+
+/* Shop Bildschutz / Lightbox */
+
+.shop-lightbox-image-wrap {
+  position: relative;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shop-lightbox-image-wrap img {
+  max-width: 95vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 18px;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.shop-lightbox-watermark {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 3;
+  color: rgba(255,255,255,0.75);
+  background: rgba(0,0,0,0.35);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.shop-lightbox-protection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background:
+    repeating-linear-gradient(
+      -35deg,
+      rgba(255,255,255,0.08) 0,
+      rgba(255,255,255,0.08) 1px,
+      transparent 1px,
+      transparent 70px
+    );
+  border-radius: 18px;
+  pointer-events: auto;
+}
+
+.color-preview-image-wrap {
+  position: relative;
+}
+
+.color-preview-image-wrap img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.shop-preview-protection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: transparent;
+  pointer-events: auto;
+  cursor: zoom-in;
+}
