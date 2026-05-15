@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const cart = JSON.parse(localStorage.getItem('dlaCart') || '[]');
 
+  let currentPreviewImages = [];
+  let currentPreviewIndex = 0;
+  let touchStartX = 0;
+  let touchEndX = 0;
+
   const currency = (value) =>
     value.toLocaleString('de-DE', {
       style: 'currency',
@@ -119,6 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ×
       </button>
 
+      <button class="shop-lightbox-prev" type="button" aria-label="Vorheriges Bild">
+        ‹
+      </button>
+
+      <button class="shop-lightbox-next" type="button" aria-label="Nächstes Bild">
+        ›
+      </button>
+
       <div class="shop-lightbox-image-wrap">
 
         <img
@@ -141,12 +154,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(lightbox);
   }
 
-  function openImageLightbox(img) {
+  function updateLightboxImage() {
 
+    const img = currentPreviewImages[currentPreviewIndex];
     const lightbox = document.getElementById('imageLightbox');
     const lightboxImage = document.getElementById('lightboxImage');
 
-    if (!lightbox || !lightboxImage || !img) return;
+    if (!img || !lightbox || !lightboxImage) return;
 
     const title = img.getAttribute('data-title') || img.alt || '';
     const caption = img.getAttribute('data-caption') || '';
@@ -191,9 +205,59 @@ document.addEventListener('DOMContentLoaded', () => {
         display:${title || caption ? 'block' : 'none'} !important;
       `
     );
+  }
+
+  function openImageLightbox(img) {
+
+    const lightbox = document.getElementById('imageLightbox');
+
+    if (!lightbox || !img) return;
+
+    const cards = Array.from(document.querySelectorAll('.color-preview-card'));
+
+    currentPreviewImages = cards
+      .map(card => card.querySelector('img'))
+      .filter(Boolean);
+
+    const currentCard = img.closest('.color-preview-card');
+    const foundIndex = currentCard ? cards.indexOf(currentCard) : 0;
+
+    currentPreviewIndex = foundIndex >= 0 ? foundIndex : 0;
+
+    updateLightboxImage();
 
     lightbox.style.display = 'flex';
     lightbox.classList.add('open');
+
+    const prevBtn = document.querySelector('.shop-lightbox-prev');
+    const nextBtn = document.querySelector('.shop-lightbox-next');
+
+    if (prevBtn && nextBtn) {
+      const showNavigation = currentPreviewImages.length > 1;
+      prevBtn.style.display = showNavigation ? 'block' : 'none';
+      nextBtn.style.display = showNavigation ? 'block' : 'none';
+    }
+  }
+
+  function showNextImage() {
+
+    if (!currentPreviewImages.length) return;
+
+    currentPreviewIndex =
+      (currentPreviewIndex + 1) % currentPreviewImages.length;
+
+    updateLightboxImage();
+  }
+
+  function showPrevImage() {
+
+    if (!currentPreviewImages.length) return;
+
+    currentPreviewIndex =
+      (currentPreviewIndex - 1 + currentPreviewImages.length) %
+      currentPreviewImages.length;
+
+    updateLightboxImage();
   }
 
   function closeImageLightbox() {
@@ -366,8 +430,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeZoomBtn =
       event.target.closest('.close-lightbox');
 
+    const nextZoomBtn =
+      event.target.closest('.shop-lightbox-next');
+
+    const prevZoomBtn =
+      event.target.closest('.shop-lightbox-prev');
+
     const clickedLightboxBackground =
       event.target.id === 'imageLightbox';
+
+    if (nextZoomBtn) {
+      showNextImage();
+      return;
+    }
+
+    if (prevZoomBtn) {
+      showPrevImage();
+      return;
+    }
 
     if (closeZoomBtn || clickedLightboxBackground) {
       closeImageLightbox();
@@ -502,9 +582,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('keydown', (event) => {
 
+    const lightbox = document.getElementById('imageLightbox');
+    const isLightboxOpen =
+      lightbox && lightbox.classList.contains('open');
+
     if (event.key === 'Escape') {
       closeImageLightbox();
       closeColorModal();
+    }
+
+    if (isLightboxOpen && event.key === 'ArrowRight') {
+      showNextImage();
+    }
+
+    if (isLightboxOpen && event.key === 'ArrowLeft') {
+      showPrevImage();
+    }
+  });
+
+  document.addEventListener('touchstart', (event) => {
+    touchStartX = event.changedTouches[0].screenX;
+  });
+
+  document.addEventListener('touchend', (event) => {
+    touchEndX = event.changedTouches[0].screenX;
+
+    const lightbox = document.getElementById('imageLightbox');
+
+    if (!lightbox || !lightbox.classList.contains('open')) return;
+
+    const diff = touchStartX - touchEndX;
+
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        showNextImage();
+      } else {
+        showPrevImage();
+      }
     }
   });
 
