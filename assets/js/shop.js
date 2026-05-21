@@ -60,6 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const modal = document.getElementById('colorPreviewModal');
     const modalGrid = document.getElementById('colorPreviewGrid');
+    const previewItems = preview.items || [];
+
+    modal.classList.remove('has-many-items');
+    modalGrid.classList.remove('many-items');
+
+    if (previewItems.length > 2) {
+      modal.classList.add('has-many-items');
+      modalGrid.classList.add('many-items');
+    }
 
     document.getElementById('colorPreviewBadge').textContent =
       preview.badge || '';
@@ -70,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('colorPreviewText').textContent =
       preview.text || '';
 
-    modalGrid.innerHTML = (preview.items || []).map((item) => `
+    modalGrid.innerHTML = previewItems.map((item) => `
       <article class="color-preview-card">
 
         <div class="color-preview-image-wrap">

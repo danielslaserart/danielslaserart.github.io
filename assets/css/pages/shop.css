@@ -115,7 +115,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 330px;
+  min-height: auto;
 }
 
 .product-category {
@@ -541,8 +541,9 @@
 
 .color-preview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, 220px);
   gap: 14px;
+  justify-content: start;
 }
 
 .color-preview-card {
@@ -641,6 +642,7 @@
   .color-preview-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+    justify-content: start;
   }
 }
 
@@ -1061,14 +1063,6 @@
   }
 }
 
-/* =========================================
-   VARIANTEN-MODAL: EINZELBILD NICHT ZU GROẞ
-========================================= */
-
-.color-preview-grid:has(.color-preview-card:only-child) {
-  grid-template-columns: minmax(0, 360px);
-  justify-content: start;
-}
 
 .color-preview-grid:has(.color-preview-card:only-child) .color-preview-card {
   max-width: 360px;
@@ -1081,5 +1075,49 @@
 
   .color-preview-grid:has(.color-preview-card:only-child) .color-preview-card {
     max-width: 100%;
+  }
+}
+@media (min-width: 769px) {
+  #shopGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+    justify-content: start;
+    gap: 18px;
+  }
+
+  #shopGrid .product-card {
+    max-width: 320px;
+  }
+}
+
+/* =========================================
+   VARIANTEN-MODAL: NUR BEI VIELEN BILDERN SCROLLEN
+========================================= */
+
+.color-preview-dialog {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.color-preview-modal.has-many-items .color-preview-dialog {
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.color-preview-grid.many-items {
+  max-height: 68vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .color-preview-modal.has-many-items .color-preview-dialog {
+    max-height: 88vh !important;
+  }
+
+  .color-preview-grid.many-items {
+    max-height: 64vh;
   }
 }

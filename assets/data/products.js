@@ -2,22 +2,42 @@ window.SHOP_PRODUCTS = [
   {
     id: 'geldkarte-herz',
     name: 'Personalisierte Geldgeschenk-Karte',
-    category: 'Gravur',
+    category: 'Geschenk',
     price: 9.50,
-    image: 'assets/images/gravuren/geldkarte1.webp',
+    image: 'assets/images/shop/geldkarte1.webp',
     badge: 'Beliebt',
     description: 'Holzkarte für Geldgeschenke mit Wunschtext, Namen oder Datum.',
-    options: ['Name/Wunschtext', 'Anlass', 'Kurze Botschaft']
+    options: ['Name/Wunschtext', 'Anlass', 'Kurze Botschaft'],
+
+    preview: {
+      button: 'Mehr Ansichten',
+      badge: 'Geschenk',
+      title: 'Mehr Ansichten',
+      text: 'Hier siehst du die Rückseite und andere Ansichten der Geldkarte.',
+
+      items: [
+        {
+          name: 'Rückseite',
+          image: 'assets/images/shop/geldkarte3.webp',
+          description: 'Die Rückseite der Karte mit Zettel als Botschaft.'
+        },
+        {
+          name: 'Vordere und Hintere Seite',
+          image: 'assets/images/shop/geldkarte2.webp',
+          description: 'Vordere und Hintere Seite.'
+        }
+      ]
+    }
   },
 
   {
-    id: 'lebensbaum-led',
-    name: 'Lebensbaum mit Beleuchtung',
+    id: 'fruehstuecksbtrett',
+    name: 'Personalisierte Frühstücksbrettchen',
     category: 'Holzdeko',
-    price: 54.90,
-    image: 'assets/images/gravuren/ygdrasil1.webp',
+    price: 15.50,
+    image: 'assets/images/shop/brettchen.webp',
     badge: 'Geschenkidee',
-    description: 'Dekorativer Lebensbaum als persönliches Geschenk oder Erinnerungsstück.',
+    description: 'Dekoratives Frühstücksbrettchen als persönliches Geschenk oder Erinnerungsstück.',
     options: ['Name', 'Datum', 'Wunschmotiv']
   },
 
