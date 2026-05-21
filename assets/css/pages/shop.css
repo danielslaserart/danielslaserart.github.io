@@ -1121,3 +1121,79 @@
     max-height: 64vh;
   }
 }
+/* =========================================
+   FIX: PREVIEW-MODAL IMMER GLEICHE GRÖSSE
+========================================= */
+
+.color-preview-dialog {
+  width: min(920px, calc(100vw - 36px));
+  max-height: none;
+  overflow: visible;
+}
+
+.color-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.color-preview-card {
+  width: 100%;
+}
+
+.color-preview-image-wrap {
+  aspect-ratio: 1 / 1;
+}
+
+.color-preview-card strong {
+  min-height: 54px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+/* 2 Bilder: gleiche Kartengröße wie bei 3 Bildern */
+.color-preview-grid:has(.color-preview-card:nth-child(2):last-child) {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* 1 Bild: gleiche Kartengröße wie bei 3 Bildern */
+.color-preview-grid:has(.color-preview-card:only-child) {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.color-preview-grid:has(.color-preview-card:only-child) .color-preview-card {
+  max-width: none;
+}
+
+/* Mobil: immer 2 Spalten, gleiche Größe für alle */
+@media (max-width: 768px) {
+  .color-preview-dialog {
+    width: calc(100vw - 36px);
+    max-height: none;
+    overflow: visible;
+  }
+
+  .color-preview-grid,
+  .color-preview-grid:has(.color-preview-card:only-child),
+  .color-preview-grid:has(.color-preview-card:nth-child(2):last-child) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .color-preview-card {
+    width: 100%;
+    max-width: none;
+  }
+
+  .color-preview-image-wrap {
+    aspect-ratio: 1 / 1;
+  }
+
+  .color-preview-card strong {
+    min-height: 58px;
+    font-size: 1rem;
+    line-height: 1.2;
+    padding: 8px;
+  }
+}
