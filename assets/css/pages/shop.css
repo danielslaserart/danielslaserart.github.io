@@ -637,5 +637,275 @@
   }
 }
 
-  
+/* =========================================
+   DESKTOP: PRODUKTKARTEN NICHT ZU BREIT
+========================================= */
+
+@media (min-width: 769px) {
+  #shopGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+    justify-content: start;
+    gap: 18px;
+  }
+
+  #shopGrid .product-card {
+    max-width: 320px;
+  }
+}
+
+/* =========================================
+   BILD-LIGHTBOX / ZOOM
+========================================= */
+
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px;
+  overflow: hidden;
+
+  background:
+    linear-gradient(rgba(5,2,8,0.82), rgba(5,2,8,0.92)),
+    url('../../images/hero/background.webp') center / cover no-repeat fixed;
+
+  backdrop-filter: blur(6px);
+}
+
+.image-lightbox.open {
+  display: flex;
+}
+
+.image-lightbox::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+
+  background-image: url('../../images/branding/logo.webp');
+  background-repeat: repeat;
+  background-size: 120px 120px;
+  background-position: center;
+
+  opacity: 0.16;
+  pointer-events: none;
+
+  z-index: 10000;
+
+  transform: rotate(-18deg) scale(1.25);
+
+  filter:
+    drop-shadow(0 2px 6px rgba(0,0,0,0.35))
+    blur(0.15px);
+}
+
+.image-lightbox::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(255,140,40,0.08),
+      transparent 70%
+    );
+
+  z-index: 1;
+  pointer-events: none;
+}
+
+.shop-lightbox-image-wrap {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  max-width: min(900px, 82vw);
+  max-height: 78vh;
+
+  border-radius: 20px;
+  overflow: hidden;
+
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+.shop-lightbox-image-wrap img {
+  display: block;
+
+  max-width: min(900px, 82vw);
+  max-height: 78vh;
+
+  object-fit: contain;
+
+  border-radius: 20px;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+
+  position: relative;
+  z-index: 2;
+}
+
+.shop-lightbox-protection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: transparent;
+  pointer-events: none;
+}
+
+.shop-lightbox-watermark {
+  display: none;
+}
+
+.close-lightbox {
+  position: fixed !important;
+
+  top: 18px;
+  right: 18px;
+
+  width: 54px;
+  height: 54px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 2rem;
+  line-height: 1;
+
+  z-index: 999999999 !important;
+
+  cursor: pointer;
+}
+
+.shop-lightbox-prev,
+.shop-lightbox-next {
+  position: fixed !important;
+
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 58px;
+  height: 58px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: rgba(0,0,0,0.78);
+  color: white;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+
+  z-index: 999999999 !important;
+
+  cursor: pointer;
+}
+
+.shop-lightbox-prev {
+  left: 12px;
+}
+
+.shop-lightbox-next {
+  right: 12px;
+}
+
+#shopLightboxInfo {
+  position: fixed !important;
+
+  left: 50% !important;
+  bottom: 72px !important;
+
+  transform: translateX(-50%) !important;
+
+  width: min(720px, 88vw) !important;
+
+  padding: 14px 18px !important;
+
+  border-radius: 20px !important;
+
+  background: rgba(12,6,14,0.94) !important;
+
+  border: 1px solid rgba(255,190,120,0.28) !important;
+
+  text-align: center !important;
+
+  z-index: 999999 !important;
+
+  box-shadow: 0 14px 38px rgba(0,0,0,0.45) !important;
+
+  color: white !important;
+
+  pointer-events: none !important;
+}
+
+@media (max-width: 768px) {
+  .shop-lightbox-image-wrap {
+    max-width: 88vw;
+    max-height: 68vh;
+  }
+
+  .shop-lightbox-image-wrap img {
+    max-width: 88vw;
+    max-height: 68vh;
+  }
+
+  .shop-lightbox-prev,
+  .shop-lightbox-next {
+    width: 48px;
+    height: 48px;
+
+    font-size: 2.2rem;
+  }
+
+  .shop-lightbox-prev {
+    left: 4px;
+  }
+
+  .shop-lightbox-next {
+    right: 4px;
+  }
+
+  .close-lightbox {
+    width: 48px;
+    height: 48px;
+
+    right: 10px;
+    top: 14px;
+  }
+
+  #shopLightboxInfo {
+    bottom: 18px !important;
+
+    width: min(640px, 88vw) !important;
+
+    padding: 12px 14px !important;
+  }
+}  
 
