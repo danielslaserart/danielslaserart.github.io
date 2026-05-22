@@ -404,6 +404,23 @@ document.addEventListener('DOMContentLoaded', () => {
             ${product.badge}
           </span>
 
+          <div class="product-size-hover product-size-hover-image">
+
+            <button
+              class="product-size-info-btn"
+              type="button"
+              aria-label="Größe anzeigen"
+            >
+              i
+            </button>
+
+            <div class="product-size-tooltip">
+             
+              <p>${product.sizeInfo || 'Größe bitte in products.js bei sizeInfo eintragen.'}</p>
+            </div>
+
+          </div>
+
         </div>
 
         <div class="card-body product-body">
@@ -434,9 +451,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="product-footer">
 
-            <strong>
-              ab ${currency(product.price)}
-            </strong>
+            <div class="price-size-row">
+
+              <strong>
+                ab ${currency(product.price)}
+              </strong>
+
+              <div class="product-size-hover product-size-hover-price">
+
+                <button
+                  class="product-size-info-btn"
+                  type="button"
+                  aria-label="Größe anzeigen"
+                >
+                  i
+                </button>
+
+                <div class="product-size-tooltip">
+                  
+                  <p>${product.sizeInfo || 'Größe bitte in products.js bei sizeInfo eintragen.'}</p>
+                </div>
+
+              </div>
+
+            </div>
 
             <button
               class="btn btn-primary"

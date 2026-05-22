@@ -7,6 +7,7 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/shop/geldkarte1.webp',
     badge: 'Beliebt',
     description: 'Holzkarte für Geldgeschenke mit Wunschtext, Namen oder Datum.',
+    sizeInfo: 'z. B. 10 × 15 cm.',
     options: ['Name/Wunschtext', 'Anlass', 'Kurze Botschaft'],
 
     preview: {
@@ -38,7 +39,23 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/shop/brettchen.webp',
     badge: 'Geschenkidee',
     description: 'Dekoratives Frühstücksbrettchen als persönliches Geschenk oder Erinnerungsstück.',
-    options: ['Name', 'Datum', 'Wunschmotiv']
+    sizeInfo: 'z. B. 22,5 × 12,5 x 1,5 cm.',
+    options: ['Name', 'Datum', 'Wunschmotiv'],
+
+     preview: {
+      button: 'Beispiele ansehen',
+      badge: 'Geschenkidee',
+      title: 'Beispiele ansehen',
+      text: 'Hier siehst du Beispielbilder für Frühstücksbrettchen.',
+
+      items: [
+        {
+          name: 'Beispiel 1',
+          image: 'assets/images/shop/brettchen2.webp',
+          description: 'Personalisiertes Frühstücksbrettchen.'
+        }
+      ]
+    }
   },
 
   {
@@ -49,6 +66,7 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/gravuren/schwibbogen-bosti.webp',
     badge: 'Individuell',
     description: 'Personalisierter Schwibbogen, z. B. mit Tiermotiv oder Familienmotiv. ca. 17cm Breite',
+    sizeInfo: 'ca. 17 cm breit',
     options: ['Motivbeschreibung', 'Name', 'Besonderheiten', 'mit oder ohne Licht']
   },
 
@@ -60,6 +78,7 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/leinwand/portrait.webp',
     badge: 'Unikat',
     description: 'Künstlerisches Wandbild nach Motivwunsch für Zuhause oder als Geschenk.',
+    sizeInfo: 'Größe bitte hier eintragen, z. B. 30 × 40 cm.',
     options: ['Motividee', 'Formatwunsch', 'Farbstil']
   },
 
@@ -71,6 +90,7 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/shop/shopcollage.webp',
     badge: 'Für Handmade',
     description: 'Individuelle Labels für Handarbeiten, Branding oder kleine Serien.',
+    sizeInfo: 'z. B. 5 × 3 cm.',
     options: ['Logo/Name', 'Größe', 'Stückzahl', 'Farbe'],
 
     preview: {
@@ -107,6 +127,7 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/gravuren/polaroidhandmade.webp',
     badge: 'Persönlich',
     description: 'Persönliches Erinnerungsstück mit Foto-Optik und individueller Gravur.',
+    sizeInfo: 'z. B. 9 × 10 cm.',
     options: ['Text', 'Datum', 'Motivhinweis'],
 
     preview: {

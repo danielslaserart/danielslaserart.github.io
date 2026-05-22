@@ -1130,3 +1130,194 @@ FINALER PREVIEW FIX
     overflow-x: hidden;
   }
 }
+
+/* =========================================
+GRÖSSEN INFO-BUTTONS
+- 1x oben rechts im Produktbild
+- 1x direkt hinter dem Preis
+========================================= */
+
+.product-size-hover {
+position: relative;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+}
+
+.product-size-hover-image {
+position: absolute;
+top: 12px;
+right: 12px;
+z-index: 6;
+}
+
+.price-size-row {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.product-size-info-btn {
+width: 30px;
+height: 30px;
+border-radius: 50%;
+border: 1px solid rgba(255, 190, 120, 0.38);
+background: rgba(9, 3, 13, 0.76);
+color: var(--text);
+font-size: 0.95rem;
+font-weight: 800;
+line-height: 1;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+cursor: help;
+box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+backdrop-filter: blur(8px);
+transition:
+background 0.25s ease,
+border-color 0.25s ease,
+transform 0.25s ease;
+}
+
+.product-size-info-btn:hover,
+.product-size-info-btn:focus-visible {
+background: rgba(255, 122, 24, 0.18);
+border-color: rgba(255, 179, 71, 0.75);
+transform: scale(1.08);
+outline: none;
+}
+
+.product-size-tooltip {
+position: absolute;
+left: 50%;
+bottom: calc(100% + 10px);
+transform: translateX(-50%) translateY(4px);
+width: 220px;
+padding: 11px 13px;
+border-radius: 15px;
+background: rgba(12, 6, 14, 0.96);
+border: 1px solid rgba(255, 190, 120, 0.24);
+box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42);
+opacity: 0;
+visibility: hidden;
+pointer-events: none;
+z-index: 999;
+transition:
+opacity 0.2s ease,
+visibility 0.2s ease,
+transform 0.2s ease;
+}
+
+.product-size-hover:hover .product-size-tooltip,
+.product-size-hover:focus-within .product-size-tooltip {
+opacity: 1;
+visibility: visible;
+transform: translateX(-50%) translateY(0);
+}
+
+.product-size-tooltip strong {
+display: block;
+margin-bottom: 5px;
+color: #fff4ea;
+font-size: 0.86rem;
+line-height: 1.2;
+}
+
+.product-size-tooltip p {
+margin: 0;
+color: rgba(255, 255, 255, 0.82);
+font-size: 0.78rem;
+line-height: 1.4;
+}
+
+/* Tooltip vom Bild-Button etwas nach links, damit er nicht aus dem Bildschirm läuft */
+.product-size-hover-image .product-size-tooltip {
+left: auto;
+right: 0;
+transform: translateY(4px);
+}
+
+.product-size-hover-image:hover .product-size-tooltip,
+.product-size-hover-image:focus-within .product-size-tooltip {
+transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+
+#shopGrid .product-size-hover-image {
+top: 8px;
+right: 8px;
+}
+
+#shopGrid .price-size-row {
+gap: 8px;
+}
+
+#shopGrid .product-size-info-btn {
+width: 25px;
+height: 25px;
+font-size: 0.78rem;
+}
+
+#shopGrid .product-size-tooltip {
+width: 190px;
+padding: 10px 11px;
+}
+
+}
+
+
+/* =========================================
+MOBILE FIX FÜR INFO-TOOLTIPS
+========================================= */
+
+@media (hover: none) {
+
+.product-size-hover:active .product-size-tooltip,
+.product-size-hover:focus-within .product-size-tooltip {
+opacity: 1 !important;
+visibility: visible !important;
+transform: translateY(0) !important;
+}
+
+.product-size-info-btn {
+-webkit-tap-highlight-color: transparent;
+}
+
+}
+
+/* =========================================
+FIX BILD-TOOLTIP
+========================================= */
+
+.product-size-hover-image {
+z-index: 20 !important;
+pointer-events: auto;
+}
+
+.product-size-hover-image .product-size-tooltip {
+top: calc(100% + 8px) !important;
+bottom: auto !important;
+left: auto !important;
+right: 0 !important;
+transform: translateY(-4px) !important;
+z-index: 9999 !important;
+}
+
+.product-size-hover-image:hover .product-size-tooltip,
+.product-size-hover-image:focus-within .product-size-tooltip,
+.product-size-hover-image:active .product-size-tooltip {
+opacity: 1 !important;
+visibility: visible !important;
+transform: translateY(0) !important;
+}
+
+.product-size-hover-price .product-size-tooltip {
+top: auto;
+bottom: calc(100% + 10px);
+}
+
+.product-size-info-btn {
+position: relative;
+z-index: 21;
+}
