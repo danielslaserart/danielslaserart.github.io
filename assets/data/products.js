@@ -31,7 +31,7 @@ window.SHOP_PRODUCTS = [
   },
 
   {
-    id: 'fruehstuecksbtrett',
+    id: 'fruehstuecksbrett',
     name: 'Personalisierte Frühstücksbrettchen',
     category: 'Holzdeko',
     price: 15.50,
@@ -103,7 +103,7 @@ window.SHOP_PRODUCTS = [
     id: 'polaroid',
     name: 'Polaroid Holzgravur',
     category: 'Gravur',
-    price: 24.90,
+    price: 6.90,
     image: 'assets/images/gravuren/polaroidhandmade.webp',
     badge: 'Persönlich',
     description: 'Persönliches Erinnerungsstück mit Foto-Optik und individueller Gravur.',
