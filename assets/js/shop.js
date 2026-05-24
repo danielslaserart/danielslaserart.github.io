@@ -549,26 +549,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', (event) => {
 
-    const infoBtn =
-      event.target.closest('.product-size-info-btn');
+    const sizeBtn = event.target.closest('.product-size-info-btn');
 
-    document
-      .querySelectorAll('.product-size-hover.is-open')
-      .forEach(el => {
-        if (!infoBtn || el !== infoBtn.closest('.product-size-hover')) {
-          el.classList.remove('is-open');
-        }
-      });
+    document.querySelectorAll('.product-size-hover.is-open').forEach((box) => {
+      if (!sizeBtn || box !== sizeBtn.closest('.product-size-hover')) {
+        box.classList.remove('is-open');
+      }
+    });
 
-    if (infoBtn) {
-
+    if (sizeBtn) {
       event.preventDefault();
       event.stopPropagation();
 
-      const wrap =
-        infoBtn.closest('.product-size-hover');
-
-      wrap?.classList.toggle('is-open');
+      const box = sizeBtn.closest('.product-size-hover');
+      if (box) {
+        box.classList.toggle('is-open');
+      }
 
       return;
     }
@@ -736,9 +732,9 @@ document.addEventListener('DOMContentLoaded', () => {
       closeImageLightbox();
       closeColorModal();
 
-      document
-        .querySelectorAll('.product-size-hover.is-open')
-        .forEach(el => el.classList.remove('is-open'));
+      document.querySelectorAll('.product-size-hover.is-open').forEach((box) => {
+        box.classList.remove('is-open');
+      });
     }
 
     if (isLightboxOpen && event.key === 'ArrowRight') {
