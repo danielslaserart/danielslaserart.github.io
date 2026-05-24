@@ -549,6 +549,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', (event) => {
 
+    const infoBtn =
+      event.target.closest('.product-size-info-btn');
+
+    document
+      .querySelectorAll('.product-size-hover.is-open')
+      .forEach(el => {
+        if (!infoBtn || el !== infoBtn.closest('.product-size-hover')) {
+          el.classList.remove('is-open');
+        }
+      });
+
+    if (infoBtn) {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const wrap =
+        infoBtn.closest('.product-size-hover');
+
+      wrap?.classList.toggle('is-open');
+
+      return;
+    }
+
     const closeZoomBtn =
       event.target.closest('.close-lightbox');
 
@@ -711,6 +735,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.key === 'Escape') {
       closeImageLightbox();
       closeColorModal();
+
+      document
+        .querySelectorAll('.product-size-hover.is-open')
+        .forEach(el => el.classList.remove('is-open'));
     }
 
     if (isLightboxOpen && event.key === 'ArrowRight') {
