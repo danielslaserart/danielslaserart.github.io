@@ -1131,10 +1131,232 @@ FINALER PREVIEW FIX
   }
 }
 
+/* =========================================
+GRÖSSEN INFO-BUTTONS
+- 1x oben rechts im Produktbild
+- 1x direkt hinter dem Preis
+========================================= */
+
+.product-size-hover {
+position: relative;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+}
+
+.product-size-hover-image {
+position: absolute;
+top: 12px;
+right: 12px;
+z-index: 6;
+}
+
+.price-size-row {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.product-size-info-btn {
+width: 30px;
+height: 30px;
+border-radius: 50%;
+border: 1px solid rgba(255, 190, 120, 0.38);
+background: rgba(9, 3, 13, 0.76);
+color: var(--text);
+font-size: 0.95rem;
+font-weight: 800;
+line-height: 1;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+cursor: help;
+box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+backdrop-filter: blur(8px);
+transition:
+background 0.25s ease,
+border-color 0.25s ease,
+transform 0.25s ease;
+}
+
+.product-size-info-btn:hover,
+.product-size-info-btn:focus-visible {
+background: rgba(255, 122, 24, 0.18);
+border-color: rgba(255, 179, 71, 0.75);
+transform: scale(1.08);
+outline: none;
+}
+
+.product-size-tooltip {
+position: absolute;
+left: 50%;
+bottom: calc(100% + 10px);
+transform: translateX(-50%) translateY(4px);
+width: 220px;
+padding: 11px 13px;
+border-radius: 15px;
+background: rgba(12, 6, 14, 0.96);
+border: 1px solid rgba(255, 190, 120, 0.24);
+box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42);
+opacity: 0;
+visibility: hidden;
+pointer-events: none;
+z-index: 999;
+transition:
+opacity 0.2s ease,
+visibility 0.2s ease,
+transform 0.2s ease;
+}
+
+.product-size-hover:hover .product-size-tooltip,
+.product-size-hover:focus-within .product-size-tooltip {
+opacity: 1;
+visibility: visible;
+transform: translateX(-50%) translateY(0);
+}
+
+.product-size-tooltip strong {
+display: block;
+margin-bottom: 5px;
+color: #fff4ea;
+font-size: 0.86rem;
+line-height: 1.2;
+}
+
+.product-size-tooltip p {
+margin: 0;
+color: rgba(255, 255, 255, 0.82);
+font-size: 0.78rem;
+line-height: 1.4;
+}
+
+/* Tooltip vom Bild-Button etwas nach links, damit er nicht aus dem Bildschirm läuft */
+.product-size-hover-image .product-size-tooltip {
+left: auto;
+right: 0;
+transform: translateY(4px);
+}
+
+.product-size-hover-image:hover .product-size-tooltip,
+.product-size-hover-image:focus-within .product-size-tooltip {
+transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+
+#shopGrid .product-size-hover-image {
+top: 8px;
+right: 8px;
+}
+
+#shopGrid .price-size-row {
+gap: 8px;
+}
+
+#shopGrid .product-size-info-btn {
+width: 25px;
+height: 25px;
+font-size: 0.78rem;
+}
+
+#shopGrid .product-size-tooltip {
+width: 190px;
+padding: 10px 11px;
+}
+
+}
+
+
+/* =========================================
+MOBILE FIX FÜR INFO-TOOLTIPS
+========================================= */
+
+@media (hover: none) {
+
+.product-size-hover:active .product-size-tooltip,
+.product-size-hover:focus-within .product-size-tooltip {
+opacity: 1 !important;
+visibility: visible !important;
+transform: translateY(0) !important;
+}
+
 .product-size-info-btn {
 -webkit-tap-highlight-color: transparent;
 }
 
+}
+
+/* =========================================
+FIX BILD-TOOLTIP
+========================================= */
+
+.product-size-hover-image {
+z-index: 20 !important;
+pointer-events: auto;
+}
+
+.product-size-hover-image .product-size-tooltip {
+top: calc(100% + 8px) !important;
+bottom: auto !important;
+left: auto !important;
+right: 0 !important;
+transform: translateY(-4px) !important;
+z-index: 9999 !important;
+}
+
+.product-size-hover-image:hover .product-size-tooltip,
+.product-size-hover-image:focus-within .product-size-tooltip,
+.product-size-hover-image:active .product-size-tooltip {
+opacity: 1 !important;
+visibility: visible !important;
+transform: translateY(0) !important;
+}
+
+.product-size-hover-price .product-size-tooltip {
+top: auto;
+bottom: calc(100% + 10px);
+}
+
+.product-size-info-btn {
+position: relative;
+z-index: 21;
+}
+/* =========================================
+MOBILE FIX: GRÖSSEN-INFOBOX SAUBER ANZEIGEN
+========================================= */
+
+@media (max-width: 768px), (hover: none) {
+
+.product-size-hover .product-size-tooltip,
+.product-size-hover-image .product-size-tooltip,
+.product-size-hover-price .product-size-tooltip {
+
+position: fixed !important;
+
+top: 50% !important;
+left: 50% !important;
+right: auto !important;
+bottom: auto !important;
+
+width: min(280px, calc(100vw - 42px)) !important;
+max-width: calc(100vw - 42px) !important;
+
+padding: 14px 16px !important;
+border-radius: 18px !important;
+
+transform: translate(-50%, -50%) scale(0.96) !important;
+
+z-index: 999999999 !important;
+
+background: rgba(12, 6, 14, 0.97) !important;
+border: 1px solid rgba(255, 190, 120, 0.34) !important;
+box-shadow: 0 24px 60px rgba(0, 0, 0, 0.62) !important;
+
+text-align: left !important;
+
+opacity: 0 !important;
+visibility: hidden !important;
+pointer-events: none !important;
 }
 
 .product-size-hover:hover .product-size-tooltip,
@@ -1162,14 +1384,14 @@ line-height: 1.45 !important;
 }
 
 
+
 /* =========================================
-GRÖSSEN-INFOS FINAL
-Desktop: Hover
-Handy/Tablet: Antippen
+FINAL FIX: GRÖSSEN-INFO GLOBAL
+Desktop: Hover neben Button
+Mobile: Antippen, Box mittig
 ========================================= */
 
 .product-size-hover {
-position: relative;
 display: inline-flex;
 align-items: center;
 justify-content: center;
@@ -1177,10 +1399,9 @@ justify-content: center;
 
 .product-size-hover-image {
 position: absolute;
-top: 12px;
-right: 12px;
+top: 8px;
+right: 8px;
 z-index: 30;
-pointer-events: auto;
 }
 
 .price-size-row {
@@ -1190,8 +1411,6 @@ gap: 10px;
 }
 
 .product-size-info-btn {
-position: relative;
-z-index: 31;
 width: 30px;
 height: 30px;
 border-radius: 50%;
@@ -1218,63 +1437,37 @@ border-color: rgba(255, 179, 71, 0.75);
 outline: none;
 }
 
-.product-size-tooltip {
-position: absolute;
-left: 50%;
-bottom: calc(100% + 10px);
-width: 220px;
-padding: 11px 13px;
-border-radius: 15px;
-background: rgba(12, 6, 14, 0.97);
-border: 1px solid rgba(255, 190, 120, 0.26);
-box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42);
+.size-tooltip-global {
+position: fixed;
+z-index: 2147483647;
+width: max-content;
+max-width: min(280px, calc(100vw - 36px));
+padding: 12px 14px;
+border-radius: 16px;
+background: rgba(12, 6, 14, 0.98);
+border: 1px solid rgba(255, 190, 120, 0.36);
+box-shadow: 0 24px 70px rgba(0, 0, 0, 0.72);
+color: rgba(255, 255, 255, 0.88);
+font-size: 0.86rem;
+line-height: 1.45;
 opacity: 0;
 visibility: hidden;
 pointer-events: none;
-z-index: 9999;
-transform: translateX(-50%) translateY(4px);
-transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+transition: opacity 0.18s ease, visibility 0.18s ease;
+text-align: left;
 }
 
-.product-size-tooltip p {
-margin: 0;
-color: rgba(255, 255, 255, 0.84);
-font-size: 0.8rem;
-line-height: 1.42;
-}
-
-.product-size-hover:hover .product-size-tooltip,
-.product-size-hover:focus-within .product-size-tooltip,
-.product-size-hover.is-open .product-size-tooltip {
+.size-tooltip-global.open {
 opacity: 1;
 visibility: visible;
-transform: translateX(-50%) translateY(0);
 }
 
-.product-size-hover-image .product-size-tooltip {
-left: auto;
-right: 0;
-bottom: auto;
-top: calc(100% + 8px);
-transform: translateY(4px);
+.size-tooltip-global.mobile {
+width: min(280px, calc(100vw - 36px));
+text-align: center;
 }
 
-.product-size-hover-image:hover .product-size-tooltip,
-.product-size-hover-image:focus-within .product-size-tooltip,
-.product-size-hover-image.is-open .product-size-tooltip {
-transform: translateY(0);
-}
-
-@media (max-width: 768px), (hover: none), (pointer: coarse) {
-
-#shopGrid .product-size-hover-image {
-top: 8px;
-right: 8px;
-}
-
-#shopGrid .price-size-row {
-gap: 8px;
-}
+@media (max-width: 768px) {
 
 #shopGrid .product-size-info-btn {
 width: 25px;
@@ -1282,38 +1475,8 @@ height: 25px;
 font-size: 0.78rem;
 }
 
-.product-size-hover .product-size-tooltip,
-.product-size-hover-image .product-size-tooltip,
-.product-size-hover-price .product-size-tooltip {
-position: fixed !important;
-top: 50% !important;
-left: 50% !important;
-right: auto !important;
-bottom: auto !important;
-width: min(280px, calc(100vw - 40px)) !important;
-max-width: calc(100vw - 40px) !important;
-padding: 14px 16px !important;
-border-radius: 18px !important;
-background: rgba(12, 6, 14, 0.98) !important;
-border: 1px solid rgba(255, 190, 120, 0.36) !important;
-box-shadow: 0 24px 70px rgba(0, 0, 0, 0.72) !important;
-opacity: 0 !important;
-visibility: hidden !important;
-pointer-events: none !important;
-z-index: 2147483647 !important;
-transform: translate(-50%, -50%) scale(0.96) !important;
-text-align: left !important;
-}
-
-.product-size-hover.is-open .product-size-tooltip {
-opacity: 1 !important;
-visibility: visible !important;
-transform: translate(-50%, -50%) scale(1) !important;
-}
-
-.product-size-tooltip p {
-font-size: 0.86rem !important;
-line-height: 1.45 !important;
+#shopGrid .price-size-row {
+gap: 8px;
 }
 
 }
