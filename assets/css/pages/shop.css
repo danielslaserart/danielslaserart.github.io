@@ -1386,9 +1386,7 @@ line-height: 1.45 !important;
 
 
 /* =========================================
-FINAL FIX: GRÖSSEN-INFO GLOBAL
-Desktop: Hover neben Button
-Mobile: Antippen, Box mittig
+GRÖSSEN-INFO ALS LIGHTBOX
 ========================================= */
 
 .product-size-hover {
@@ -1399,8 +1397,8 @@ justify-content: center;
 
 .product-size-hover-image {
 position: absolute;
-top: 8px;
-right: 8px;
+top: 12px;
+right: 12px;
 z-index: 30;
 }
 
@@ -1437,37 +1435,92 @@ border-color: rgba(255, 179, 71, 0.75);
 outline: none;
 }
 
-.size-tooltip-global {
+.size-info-modal {
 position: fixed;
-z-index: 2147483647;
-width: max-content;
-max-width: min(280px, calc(100vw - 36px));
-padding: 12px 14px;
-border-radius: 16px;
-background: rgba(12, 6, 14, 0.98);
-border: 1px solid rgba(255, 190, 120, 0.36);
-box-shadow: 0 24px 70px rgba(0, 0, 0, 0.72);
-color: rgba(255, 255, 255, 0.88);
-font-size: 0.86rem;
-line-height: 1.45;
-opacity: 0;
-visibility: hidden;
-pointer-events: none;
-transition: opacity 0.18s ease, visibility 0.18s ease;
+inset: 0;
+z-index: 999999;
+display: none;
+align-items: center;
+justify-content: center;
+padding: 18px;
+
+background:
+linear-gradient(rgba(5, 2, 8, 0.78), rgba(5, 2, 8, 0.92)),
+url('../../images/hero/background.webp') center center / cover no-repeat fixed;
+
+backdrop-filter: blur(10px);
+}
+
+.size-info-modal.open {
+display: flex;
+}
+
+.size-info-dialog {
+position: relative;
+width: min(440px, 100%);
+border-radius: 24px;
+border: 1px solid rgba(255, 190, 120, 0.26);
+
+background:
+linear-gradient(rgba(32, 12, 20, 0.94), rgba(18, 7, 14, 0.97)),
+url('../../images/hero/background.webp') center center / cover no-repeat;
+
+box-shadow: 0 24px 70px rgba(0, 0, 0, 0.66);
+padding: 24px;
 text-align: left;
 }
 
-.size-tooltip-global.open {
-opacity: 1;
-visibility: visible;
+.size-info-close {
+position: absolute;
+top: 14px;
+right: 14px;
+width: 42px;
+height: 42px;
+border: 1px solid rgba(255, 190, 120, 0.22);
+border-radius: 50%;
+background: rgba(255, 255, 255, 0.06);
+color: var(--text);
+font-size: 1.8rem;
+line-height: 1;
+cursor: pointer;
 }
 
-.size-tooltip-global.mobile {
-width: min(280px, calc(100vw - 36px));
-text-align: center;
+.size-info-head {
+padding-right: 48px;
+margin-bottom: 14px;
+}
+
+.size-info-head h2 {
+margin: 6px 0 0;
+color: #fff4ea;
+font-size: 1.25rem;
+line-height: 1.2;
+}
+
+.size-info-content {
+padding: 16px;
+border-radius: 18px;
+border: 1px solid rgba(255, 190, 120, 0.16);
+background: rgba(255, 255, 255, 0.045);
+}
+
+.size-info-content p {
+margin: 0;
+color: rgba(255, 255, 255, 0.86);
+font-size: 1rem;
+line-height: 1.5;
 }
 
 @media (max-width: 768px) {
+
+#shopGrid .product-size-hover-image {
+top: 8px;
+right: 8px;
+}
+
+#shopGrid .price-size-row {
+gap: 8px;
+}
 
 #shopGrid .product-size-info-btn {
 width: 25px;
@@ -1475,8 +1528,18 @@ height: 25px;
 font-size: 0.78rem;
 }
 
-#shopGrid .price-size-row {
-gap: 8px;
+.size-info-dialog {
+width: min(360px, 94vw);
+padding: 20px;
+border-radius: 22px;
+}
+
+.size-info-head h2 {
+font-size: 1.05rem;
+}
+
+.size-info-content p {
+font-size: 0.94rem;
 }
 
 }

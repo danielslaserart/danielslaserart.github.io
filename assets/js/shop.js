@@ -25,84 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const save = () =>
     localStorage.setItem('dlaCart', JSON.stringify(cart));
 
-  let sizeTooltip = null;
-  let sizeTooltipOpenButton = null;
-
-  function createSizeTooltip() {
-    if (sizeTooltip) return sizeTooltip;
-
-    sizeTooltip = document.createElement('div');
-    sizeTooltip.className = 'size-tooltip-global';
-    sizeTooltip.setAttribute('role', 'tooltip');
-
-    document.body.appendChild(sizeTooltip);
-
-    return sizeTooltip;
-  }
-
-  function showSizeTooltip(button) {
-    if (!button) return;
-
-    const tooltip = createSizeTooltip();
-    const text = button.dataset.size || 'Größe folgt.';
-
-    tooltip.textContent = text;
-    tooltip.classList.add('open');
-
-    sizeTooltipOpenButton = button;
-
-    const isMobile =
-      window.matchMedia('(max-width: 768px), (hover: none), (pointer: coarse)').matches;
-
-    if (isMobile) {
-      tooltip.classList.add('mobile');
-      tooltip.style.left = '50%';
-      tooltip.style.top = '50%';
-      tooltip.style.transform = 'translate(-50%, -50%)';
-      return;
-    }
-
-    tooltip.classList.remove('mobile');
-
-    const rect = button.getBoundingClientRect();
-    const tooltipRect = tooltip.getBoundingClientRect();
-
-    let left =
-      rect.left + rect.width / 2 - tooltipRect.width / 2;
-
-    left = Math.max(
-      12,
-      Math.min(left, window.innerWidth - tooltipRect.width - 12)
-    );
-
-    let top =
-      rect.top - tooltipRect.height - 10;
-
-    if (top < 12) {
-      top = rect.bottom + 10;
-    }
-
-    tooltip.style.left = `${left}px`;
-    tooltip.style.top = `${top}px`;
-    tooltip.style.transform = 'none';
-  }
-
-  function hideSizeTooltip() {
-    if (!sizeTooltip) return;
-
-    sizeTooltip.classList.remove('open', 'mobile');
-    sizeTooltipOpenButton = null;
-  }
-
-  function toggleSizeTooltip(button) {
-    if (sizeTooltipOpenButton === button && sizeTooltip?.classList.contains('open')) {
-      hideSizeTooltip();
-      return;
-    }
-
-    showSizeTooltip(button);
-  }
-
   function createColorModal() {
     if (document.getElementById('colorPreviewModal')) return;
 
@@ -189,6 +111,75 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeColorModal() {
 
     const modal = document.getElementById('colorPreviewModal');
+
+    if (!modal) return;
+
+    modal.classList.remove('open');
+
+    document.body.style.overflow = '';
+  }
+
+
+  function createSizeInfoModal() {
+
+    if (document.getElementById('sizeInfoModal')) return;
+
+    const modal = document.createElement('div');
+
+    modal.className = 'size-info-modal';
+    modal.id = 'sizeInfoModal';
+
+    modal.innerHTML = `
+      <div class="size-info-dialog">
+
+        <button
+          class="size-info-close"
+          type="button"
+          aria-label="Größeninfo schließen"
+        >
+          ×
+        </button>
+
+        <div class="size-info-head">
+          <p class="badge" id="sizeInfoCategory"></p>
+          <h2 id="sizeInfoTitle"></h2>
+        </div>
+
+        <div class="size-info-content">
+          <p id="sizeInfoText"></p>
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+  }
+
+  function openSizeInfoModal(product) {
+
+    if (!product) return;
+
+    createSizeInfoModal();
+
+    const modal = document.getElementById('sizeInfoModal');
+
+    document.getElementById('sizeInfoCategory').textContent =
+      product.category || '';
+
+    document.getElementById('sizeInfoTitle').textContent =
+      product.name || '';
+
+    document.getElementById('sizeInfoText').textContent =
+      product.sizeInfo || 'Größe folgt.';
+
+    modal.classList.add('open');
+
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSizeInfoModal() {
+
+    const modal = document.getElementById('sizeInfoModal');
 
     if (!modal) return;
 
@@ -488,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
               class="product-size-info-btn"
               type="button"
               aria-label="Größe anzeigen"
-              data-size="${product.sizeInfo || 'Größe folgt.'}"
+              data-size-info="${product.id}"
             >
               i
             </button>
@@ -537,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   class="product-size-info-btn"
                   type="button"
                   aria-label="Größe anzeigen"
-                  data-size="${product.sizeInfo || 'Größe folgt.'}"
+                  data-size-info="${product.id}"
                 >
                   i
                 </button>
@@ -619,18 +610,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', (event) => {
 
-    const sizeButton =
-      event.target.closest('.product-size-info-btn');
+    const sizeInfoBtn =
+      event.target.closest('[data-size-info]');
 
-    if (sizeButton) {
+    if (sizeInfoBtn) {
+
       event.preventDefault();
       event.stopPropagation();
-      toggleSizeTooltip(sizeButton);
+
+      const product =
+        products.find(p => p.id === sizeInfoBtn.dataset.sizeInfo);
+
+      openSizeInfoModal(product);
+
       return;
     }
 
-    if (!event.target.closest('.size-tooltip-global')) {
-      hideSizeTooltip();
+    const closeSizeInfoBtn =
+      event.target.closest('.size-info-close');
+
+    const sizeInfoModal =
+      event.target.closest('#sizeInfoModal');
+
+    if (
+      closeSizeInfoBtn ||
+      (sizeInfoModal && event.target.id === 'sizeInfoModal')
+    ) {
+      closeSizeInfoModal();
+      return;
     }
 
     const closeZoomBtn =
@@ -795,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.key === 'Escape') {
       closeImageLightbox();
       closeColorModal();
-      hideSizeTooltip();
+      closeSizeInfoModal();
     }
 
     if (isLightboxOpen && event.key === 'ArrowRight') {
@@ -826,34 +833,6 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         showPrevImage();
       }
-    }
-  });
-
-  document.addEventListener('mouseover', (event) => {
-    const sizeButton =
-      event.target.closest('.product-size-info-btn');
-
-    if (!sizeButton) return;
-
-    const isMobile =
-      window.matchMedia('(max-width: 768px), (hover: none), (pointer: coarse)').matches;
-
-    if (!isMobile) {
-      showSizeTooltip(sizeButton);
-    }
-  });
-
-  document.addEventListener('mouseout', (event) => {
-    const sizeButton =
-      event.target.closest('.product-size-info-btn');
-
-    if (!sizeButton) return;
-
-    const isMobile =
-      window.matchMedia('(max-width: 768px), (hover: none), (pointer: coarse)').matches;
-
-    if (!isMobile) {
-      hideSizeTooltip();
     }
   });
 
