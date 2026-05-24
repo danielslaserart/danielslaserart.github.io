@@ -25,6 +25,88 @@ document.addEventListener('DOMContentLoaded', () => {
   const save = () =>
     localStorage.setItem('dlaCart', JSON.stringify(cart));
 
+  let sizePopup = null;
+  let activeSizeButton = null;
+
+  function createSizePopup() {
+
+    if (sizePopup) return sizePopup;
+
+    sizePopup = document.createElement('div');
+    sizePopup.className = 'size-info-popover';
+    sizePopup.setAttribute('role', 'tooltip');
+
+    document.body.appendChild(sizePopup);
+
+    return sizePopup;
+  }
+
+  function positionSizePopup(button) {
+
+    if (!button || !sizePopup) return;
+
+    const buttonRect = button.getBoundingClientRect();
+    const popupRect = sizePopup.getBoundingClientRect();
+    const gap = 10;
+
+    let left =
+      buttonRect.left + buttonRect.width / 2 - popupRect.width / 2;
+
+    left = Math.max(
+      10,
+      Math.min(left, window.innerWidth - popupRect.width - 10)
+    );
+
+    let top =
+      buttonRect.top - popupRect.height - gap;
+
+    if (top < 10) {
+      top = buttonRect.bottom + gap;
+    }
+
+    sizePopup.style.left = `${left}px`;
+    sizePopup.style.top = `${top}px`;
+  }
+
+  function showSizePopup(button) {
+
+    if (!button) return;
+
+    const popup = createSizePopup();
+    const text = button.dataset.size || 'Größe folgt.';
+
+    popup.textContent = text;
+    popup.classList.add('open');
+
+    activeSizeButton = button;
+
+    requestAnimationFrame(() => {
+      positionSizePopup(button);
+    });
+  }
+
+  function hideSizePopup() {
+
+    if (!sizePopup) return;
+
+    sizePopup.classList.remove('open');
+    activeSizeButton = null;
+  }
+
+  function toggleSizePopup(button) {
+
+    if (
+      activeSizeButton === button &&
+      sizePopup &&
+      sizePopup.classList.contains('open')
+    ) {
+      hideSizePopup();
+      return;
+    }
+
+    showSizePopup(button);
+  }
+
   function createColorModal() {
     if (document.getElementById('colorPreviewModal')) return;
 
@@ -111,75 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeColorModal() {
 
     const modal = document.getElementById('colorPreviewModal');
-
-    if (!modal) return;
-
-    modal.classList.remove('open');
-
-    document.body.style.overflow = '';
-  }
-
-
-  function createSizeInfoModal() {
-
-    if (document.getElementById('sizeInfoModal')) return;
-
-    const modal = document.createElement('div');
-
-    modal.className = 'size-info-modal';
-    modal.id = 'sizeInfoModal';
-
-    modal.innerHTML = `
-      <div class="size-info-dialog">
-
-        <button
-          class="size-info-close"
-          type="button"
-          aria-label="Größeninfo schließen"
-        >
-          ×
-        </button>
-
-        <div class="size-info-head">
-          <p class="badge" id="sizeInfoCategory"></p>
-          <h2 id="sizeInfoTitle"></h2>
-        </div>
-
-        <div class="size-info-content">
-          <p id="sizeInfoText"></p>
-        </div>
-
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-  }
-
-  function openSizeInfoModal(product) {
-
-    if (!product) return;
-
-    createSizeInfoModal();
-
-    const modal = document.getElementById('sizeInfoModal');
-
-    document.getElementById('sizeInfoCategory').textContent =
-      product.category || '';
-
-    document.getElementById('sizeInfoTitle').textContent =
-      product.name || '';
-
-    document.getElementById('sizeInfoText').textContent =
-      product.sizeInfo || 'Größe folgt.';
-
-    modal.classList.add('open');
-
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeSizeInfoModal() {
-
-    const modal = document.getElementById('sizeInfoModal');
 
     if (!modal) return;
 
@@ -479,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
               class="product-size-info-btn"
               type="button"
               aria-label="Größe anzeigen"
-              data-size-info="${product.id}"
+              data-size="${product.sizeInfo || 'Größe folgt.'}"
             >
               i
             </button>
@@ -528,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   class="product-size-info-btn"
                   type="button"
                   aria-label="Größe anzeigen"
-                  data-size-info="${product.id}"
+                  data-size="${product.sizeInfo || 'Größe folgt.'}"
                 >
                   i
                 </button>
@@ -610,35 +623,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', (event) => {
 
-    const sizeInfoBtn =
-      event.target.closest('[data-size-info]');
+    const sizeButton =
+      event.target.closest('.product-size-info-btn');
 
-    if (sizeInfoBtn) {
+    if (sizeButton) {
 
       event.preventDefault();
       event.stopPropagation();
 
-      const product =
-        products.find(p => p.id === sizeInfoBtn.dataset.sizeInfo);
-
-      openSizeInfoModal(product);
+      toggleSizePopup(sizeButton);
 
       return;
     }
 
-    const closeSizeInfoBtn =
-      event.target.closest('.size-info-close');
-
-    const sizeInfoModal =
-      event.target.closest('#sizeInfoModal');
-
-    if (
-      closeSizeInfoBtn ||
-      (sizeInfoModal && event.target.id === 'sizeInfoModal')
-    ) {
-      closeSizeInfoModal();
-      return;
-    }
+    hideSizePopup();
 
     const closeZoomBtn =
       event.target.closest('.close-lightbox');
@@ -802,7 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.key === 'Escape') {
       closeImageLightbox();
       closeColorModal();
-      closeSizeInfoModal();
+      hideSizePopup();
     }
 
     if (isLightboxOpen && event.key === 'ArrowRight') {
@@ -835,6 +833,39 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  document.addEventListener('mouseover', (event) => {
+
+    const sizeButton =
+      event.target.closest('.product-size-info-btn');
+
+    if (!sizeButton) return;
+
+    const isTouch =
+      window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+    if (!isTouch) {
+      showSizePopup(sizeButton);
+    }
+  });
+
+  document.addEventListener('mouseout', (event) => {
+
+    const sizeButton =
+      event.target.closest('.product-size-info-btn');
+
+    if (!sizeButton) return;
+
+    const isTouch =
+      window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+    if (!isTouch) {
+      hideSizePopup();
+    }
+  });
+
+  window.addEventListener('scroll', hideSizePopup, { passive: true });
+  window.addEventListener('resize', hideSizePopup);
 
   filterButtons.forEach(button => {
 
