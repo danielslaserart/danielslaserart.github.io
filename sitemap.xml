@@ -60,6 +60,15 @@
     <priority>0.7</priority>
   </url>
 
+
+  <!-- Shop -->
+  <url>
+    <loc>https://danielslaserart.de/shop.html</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Rechtliches -->
   <url>
     <loc>https://danielslaserart.de/impressum.html</loc>

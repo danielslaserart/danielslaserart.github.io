@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="shop-lightbox-image-wrap">
 
         <img
-          id="lightboxImage"
+          id="shopZoomImage"
           src=""
           alt="Großansicht"
           draggable="false"
@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const img = currentPreviewImages[currentPreviewIndex];
     const lightbox = document.getElementById('imageLightbox');
-    const lightboxImage = document.getElementById('lightboxImage');
+    const lightboxImage = document.getElementById('shopZoomImage');
 
     if (!img || !lightbox || !lightboxImage) return;
 

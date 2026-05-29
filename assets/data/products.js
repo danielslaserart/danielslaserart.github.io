@@ -53,6 +53,11 @@ window.SHOP_PRODUCTS = [
           name: 'Beispiel 1',
           image: 'assets/images/shop/brettchen2.webp',
           description: 'Personalisiertes Frühstücksbrettchen.'
+        },
+        {
+          name: 'Beispiel 2',
+          image: 'assets/images/shop/brettchen.webp',
+          description: 'Personalisiertes Frühstücksbrettchen.'
         }
       ]
     }
@@ -70,17 +75,17 @@ window.SHOP_PRODUCTS = [
     options: ['Motivbeschreibung', 'Name', 'Besonderheiten', 'mit oder ohne Licht']
   },
 
-  {
-    id: 'portrait-leinwand',
-    name: 'Modernes Wandbild / Portrait',
-    category: 'Wandbild',
-    price: 34.90,
-    image: 'assets/images/leinwand/portrait.webp',
-    badge: 'Unikat',
-    description: 'Künstlerisches Wandbild nach Motivwunsch für Zuhause oder als Geschenk.',
-    sizeInfo: 'Größe bitte hier eintragen, z. B. 30 × 40 cm.',
-    options: ['Motividee', 'Formatwunsch', 'Farbstil']
-  },
+  // {
+  //   id: 'portrait-leinwand',
+  //   name: 'Modernes Wandbild / Portrait',
+  //   category: 'Wandbild',
+  //   price: 34.90,
+  //   image: 'assets/images/leinwand/portrait.webp',
+  //   badge: 'Unikat',
+  //   description: 'Künstlerisches Wandbild nach Motivwunsch für Zuhause oder als Geschenk.',
+  //   sizeInfo: 'Größe bitte hier eintragen, z. B. 30 × 40 cm.',
+  //   options: ['Motividee', 'Formatwunsch', 'Farbstil']
+  // },
 
   {
     id: 'Lederlabel',
