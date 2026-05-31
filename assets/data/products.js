@@ -53,6 +53,11 @@ window.SHOP_PRODUCTS = [
           name: 'Beispiel 1',
           image: 'assets/images/shop/brettchen2.webp',
           description: 'Personalisiertes Frühstücksbrettchen.'
+        },
+        {
+          name: 'Beispiel 2',
+          image: 'assets/images/shop/brettchen.webp',
+          description: 'Personalisiertes Frühstücksbrettchen.'
         }
       ]
     }
@@ -66,7 +71,7 @@ window.SHOP_PRODUCTS = [
     image: 'assets/images/gravuren/schwibbogen-bosti.webp',
     badge: 'Individuell',
     description: 'Personalisierter Schwibbogen, z. B. mit Tiermotiv oder Familienmotiv. ca. 17cm Breite',
-    sizeInfo: 'ca. 17 cm breit',
+    sizeInfo: 'ca. 17 cm breit, ohne licht',
     options: ['Motivbeschreibung', 'Name', 'Besonderheiten', 'mit oder ohne Licht']
   },
 
@@ -102,7 +107,7 @@ window.SHOP_PRODUCTS = [
       items: [
         {
           name: 'Mamor',
-          image: 'assets/images/shop/farbe-mamor.webp',
+          image: 'assets/images/shop/mamor.webp',
           description: 'Marmorierter Lederlook mit moderner Gravuroptik.'
         },
         {

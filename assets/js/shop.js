@@ -46,6 +46,88 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1600);
   }
 
+  let sizePopup = null;
+  let activeSizeButton = null;
+
+  function createSizePopup() {
+
+    if (sizePopup) return sizePopup;
+
+    sizePopup = document.createElement('div');
+    sizePopup.className = 'size-info-popover';
+    sizePopup.setAttribute('role', 'tooltip');
+
+    document.body.appendChild(sizePopup);
+
+    return sizePopup;
+  }
+
+  function positionSizePopup(button) {
+
+    if (!button || !sizePopup) return;
+
+    const buttonRect = button.getBoundingClientRect();
+    const popupRect = sizePopup.getBoundingClientRect();
+    const gap = 10;
+
+    let left =
+      buttonRect.left + buttonRect.width / 2 - popupRect.width / 2;
+
+    left = Math.max(
+      10,
+      Math.min(left, window.innerWidth - popupRect.width - 10)
+    );
+
+    let top =
+      buttonRect.top - popupRect.height - gap;
+
+    if (top < 10) {
+      top = buttonRect.bottom + gap;
+    }
+
+    sizePopup.style.left = `${left}px`;
+    sizePopup.style.top = `${top}px`;
+  }
+
+  function showSizePopup(button) {
+
+    if (!button) return;
+
+    const popup = createSizePopup();
+    const text = button.dataset.size || 'Größe folgt.';
+
+    popup.textContent = text;
+    popup.classList.add('open');
+
+    activeSizeButton = button;
+
+    requestAnimationFrame(() => {
+      positionSizePopup(button);
+    });
+  }
+
+  function hideSizePopup() {
+
+    if (!sizePopup) return;
+
+    sizePopup.classList.remove('open');
+    activeSizeButton = null;
+  }
+
+  function toggleSizePopup(button) {
+
+    if (
+      activeSizeButton === button &&
+      sizePopup &&
+      sizePopup.classList.contains('open')
+    ) {
+      hideSizePopup();
+      return;
+    }
+
+    showSizePopup(button);
+  }
+
   function createColorModal() {
     if (document.getElementById('colorPreviewModal')) return;
 
@@ -431,14 +513,10 @@ document.addEventListener('DOMContentLoaded', () => {
               class="product-size-info-btn"
               type="button"
               aria-label="Größe anzeigen"
+              data-size="${product.sizeInfo || 'Größe folgt.'}"
             >
               i
             </button>
-
-            <div class="product-size-tooltip">
-             
-              <p>${product.sizeInfo || 'Größe bitte in products.js bei sizeInfo eintragen.'}</p>
-            </div>
 
           </div>
 
@@ -484,14 +562,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   class="product-size-info-btn"
                   type="button"
                   aria-label="Größe anzeigen"
+                  data-size="${product.sizeInfo || 'Größe folgt.'}"
                 >
                   i
                 </button>
-
-                <div class="product-size-tooltip">
-                  
-                  <p>${product.sizeInfo || 'Größe bitte in products.js bei sizeInfo eintragen.'}</p>
-                </div>
 
               </div>
 
@@ -569,6 +643,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.addEventListener('click', (event) => {
+
+    const sizeButton =
+      event.target.closest('.product-size-info-btn');
+
+    if (sizeButton) {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      toggleSizePopup(sizeButton);
+
+      return;
+    }
+
+    hideSizePopup();
 
     const closeZoomBtn =
       event.target.closest('.close-lightbox');
@@ -734,6 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.key === 'Escape') {
       closeImageLightbox();
       closeColorModal();
+      hideSizePopup();
     }
 
     if (isLightboxOpen && event.key === 'ArrowRight') {
@@ -766,6 +856,39 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  document.addEventListener('mouseover', (event) => {
+
+    const sizeButton =
+      event.target.closest('.product-size-info-btn');
+
+    if (!sizeButton) return;
+
+    const isTouch =
+      window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+    if (!isTouch) {
+      showSizePopup(sizeButton);
+    }
+  });
+
+  document.addEventListener('mouseout', (event) => {
+
+    const sizeButton =
+      event.target.closest('.product-size-info-btn');
+
+    if (!sizeButton) return;
+
+    const isTouch =
+      window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+    if (!isTouch) {
+      hideSizePopup();
+    }
+  });
+
+  window.addEventListener('scroll', hideSizePopup, { passive: true });
+  window.addEventListener('resize', hideSizePopup);
 
   filterButtons.forEach(button => {
 

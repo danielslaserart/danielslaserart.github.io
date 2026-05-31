@@ -1386,6 +1386,112 @@ line-height: 1.45 !important;
 
 
 /* =========================================
+FINAL: KLEINES GRÖSSEN-POPUP
+- keine neue Seite
+- keine große Lightbox
+- nicht abgeschnitten
+- Desktop Hover, Mobile Antippen
+========================================= */
+
+.product-size-hover {
+display: inline-flex !important;
+align-items: center !important;
+justify-content: center !important;
+}
+
+.product-size-hover-image {
+position: absolute !important;
+top: 8px !important;
+right: 8px !important;
+z-index: 30 !important;
+pointer-events: auto !important;
+}
+
+.price-size-row {
+display: flex !important;
+align-items: center !important;
+gap: 10px !important;
+}
+
+.product-size-info-btn {
+width: 30px !important;
+height: 30px !important;
+border-radius: 50% !important;
+border: 1px solid rgba(255, 190, 120, 0.38) !important;
+background: rgba(9, 3, 13, 0.78) !important;
+color: var(--text) !important;
+font-size: 0.95rem !important;
+font-weight: 800 !important;
+line-height: 1 !important;
+display: inline-flex !important;
+align-items: center !important;
+justify-content: center !important;
+cursor: pointer !important;
+box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28) !important;
+backdrop-filter: blur(8px) !important;
+-webkit-tap-highlight-color: transparent !important;
+touch-action: manipulation !important;
+}
+
+.product-size-info-btn:hover,
+.product-size-info-btn:focus-visible {
+background: rgba(255, 122, 24, 0.18) !important;
+border-color: rgba(255, 179, 71, 0.75) !important;
+outline: none !important;
+}
+
+.size-info-popover {
+position: fixed;
+z-index: 2147483647;
+max-width: min(230px, calc(100vw - 24px));
+padding: 10px 12px;
+border-radius: 14px;
+background: rgba(12, 6, 14, 0.97);
+border: 1px solid rgba(255, 190, 120, 0.34);
+box-shadow: 0 18px 44px rgba(0, 0, 0, 0.58);
+color: rgba(255, 255, 255, 0.9);
+font-size: 0.82rem;
+line-height: 1.4;
+text-align: left;
+opacity: 0;
+visibility: hidden;
+pointer-events: none;
+transform: translateY(4px);
+transition:
+opacity 0.18s ease,
+visibility 0.18s ease,
+transform 0.18s ease;
+}
+
+.size-info-popover.open {
+opacity: 1;
+visibility: visible;
+transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+
+#shopGrid .product-size-info-btn {
+width: 25px !important;
+height: 25px !important;
+font-size: 0.78rem !important;
+}
+
+#shopGrid .price-size-row {
+gap: 8px !important;
+}
+
+.size-info-popover {
+max-width: min(210px, calc(100vw - 24px));
+font-size: 0.78rem;
+padding: 9px 11px;
+}
+
+}
+
+
+
+/* =========================================
 WARENKORB ERFOLG-POPUP
 ========================================= */
 
