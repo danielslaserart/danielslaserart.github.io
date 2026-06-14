@@ -144,3 +144,59 @@
   padding: 0 18px 18px;
   color: var(--muted);
 }
+
+/* =========================================
+   GEHEIMER ADMIN-BESUCHERZÄHLER OBEN
+========================================= */
+.admin-counter {
+  position: sticky;
+  top: 78px;
+  z-index: 99;
+
+  width: min(var(--container), calc(100% - 32px));
+  margin: 12px auto 0;
+  padding: 10px;
+
+  border-radius: 20px;
+  border: 1px solid rgba(255, 190, 120, 0.22);
+  background: linear-gradient(180deg, rgba(32, 12, 20, 0.9), rgba(18, 7, 14, 0.96));
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(14px);
+}
+
+.admin-counter .admin-stats {
+  margin-top: 0;
+}
+
+.admin-counter .admin-stat {
+  min-width: 86px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 190, 120, 0.18);
+}
+
+.admin-counter .admin-stat span {
+  color: #ffd4ad;
+}
+
+.admin-counter .admin-stat strong {
+  color: var(--accent-gold);
+}
+
+@media (max-width: 700px) {
+  .admin-counter {
+    top: 68px;
+    width: calc(100% - 20px);
+    margin-top: 8px;
+    padding: 8px;
+  }
+
+  .admin-counter .admin-stats {
+    gap: 6px;
+  }
+
+  .admin-counter .admin-stat {
+    min-width: calc(50% - 6px);
+    padding: 7px 8px;
+  }
+}
