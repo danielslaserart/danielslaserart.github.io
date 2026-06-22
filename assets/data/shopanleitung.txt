@@ -25,7 +25,7 @@ Beispiel:
   name: 'Neues Produkt',
   category: 'Gravur',
   price: 19.90,
-  image: 'assets/images/shop/bild.webp',
+  image: 'assets/images/personalisierte-geschenke/zippo-papa-alex.webp',
   badge: 'Neu',
   description: 'Kurze Beschreibung des Produkts.',
   options: ['Name', 'Datum', 'Wunschtext']
@@ -44,7 +44,7 @@ preview: {
   items: [
     {
       name: 'Beispiel 1',
-      image: 'assets/images/shop/beispiel.webp',
+      image: 'assets/images/personalisierte-geschenke/zippo-papa-alex.webp',
       description: 'Beschreibung, die beim Vergrößern angezeigt wird.'
     }
   ]
@@ -61,7 +61,7 @@ Diese Beschreibung erscheint unten beim vergrößerten Bild.
 5. Bildpfade beachten
 
 Richtig:
-assets/images/shop/mein-bild.webp
+assets/images/personalisierte-geschenke/zippo-papa-alex.webp
 
 Nicht verwenden:
 Leerzeichen
@@ -79,8 +79,8 @@ geldkarte-herz.webp
 Bild in passenden Ordner legen, z. B.:
 
 assets/images/shop/
-assets/images/gravuren/
-assets/images/leinwand/
+assets/images/holzgravuren/
+assets/images/wandbilder-dekoration/
 
 Dann in products.js den Pfad anpassen.
 

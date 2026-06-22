@@ -38,11 +38,11 @@ BEISPIEL:
   colorExamples: [
     {
       name: 'Marmor',
-      image: 'assets/images/shop/farbe-marmor.webp'
+      image: 'assets/images/lederlabels/marmor.webp'
     },
     {
       name: 'Rustikal',
-      image: 'assets/images/shop/farbe-rustikal.webp'
+      image: 'assets/images/lederlabels/rustikal-gold.webp'
     }
   ]
 }
@@ -55,8 +55,8 @@ Die Bilder müssen wirklich existieren.
 
 Beispiel:
 
-assets/images/shop/farbe-marmor.webp
-assets/images/shop/farbe-rustikal.webp
+assets/images/lederlabels/marmor.webp
+assets/images/lederlabels/rustikal-gold.webp
 
 Wichtig:
 - Groß-/Kleinschreibung beachten
@@ -83,14 +83,14 @@ Du kannst jederzeit neue Varianten ergänzen:
 
 {
   name: 'Schwarz',
-  image: 'assets/images/shop/farbe-schwarz.webp'
+  image: 'assets/images/lederlabels/rohleder.webp'
 }
 
 ODER:
 
 {
   name: 'Mit Beleuchtung',
-  image: 'assets/images/shop/led.webp'
+  image: 'assets/images/wandbilder-dekoration/portrait.webp'
 }
 
 -----------------------------------

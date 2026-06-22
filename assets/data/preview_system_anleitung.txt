@@ -37,12 +37,12 @@ preview: {
   items: [
     {
       name: 'Marmor',
-      image: 'assets/images/shop/farbe-marmor.webp'
+      image: 'assets/images/lederlabels/marmor.webp'
     },
 
     {
       name: 'Rustikal',
-      image: 'assets/images/shop/farbe-rustikal.webp'
+      image: 'assets/images/lederlabels/rustikal-gold.webp'
     }
   ]
 }
@@ -74,14 +74,14 @@ Neue Varianten einfach ergänzen:
 
 {
   name: 'Schwarz',
-  image: 'assets/images/shop/farbe-schwarz.webp'
+  image: 'assets/images/lederlabels/rohleder.webp'
 }
 
 ODER:
 
 {
   name: 'Mit Beleuchtung',
-  image: 'assets/images/shop/led.webp'
+  image: 'assets/images/wandbilder-dekoration/portrait.webp'
 }
 
 ========================================
@@ -112,7 +112,7 @@ Die Bilder müssen wirklich existieren.
 
 Beispiel:
 
-assets/images/shop/farbe-marmor.webp
+assets/images/lederlabels/marmor.webp
 
 Groß-/Kleinschreibung beachten.
 

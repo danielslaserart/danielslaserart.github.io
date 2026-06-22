@@ -1,172 +1,172 @@
 window.GALLERIES = {
   gravur: {
-    title: "Lasergravur auf Holz",
+    title: "Holzgravuren",
     description: "Hier findest du detailreiche Gravuren auf Holz.",
     images: [
       {
-        src: "assets/images/gravuren/ygdrasil1.webp",
+        src: "assets/images/holzgravuren/ygdrasil1.webp",
         text: "Yggdrasil-Gravur auf Holz mit starker Detailwirkung."
       },
       {
-        src: "assets/images/gravuren/ygdrasil2.webp",
+        src: "assets/images/holzgravuren/ygdrasil2.webp",
         text: "Präzise Lasergravur auf Holz als dekoratives Einzelstück."
       },
       {
-        src: "assets/images/gravuren/ygdrasil3.webp",
+        src: "assets/images/holzgravuren/ygdrasil3.webp",
         text: "Individuelle Holzgravur mit markantem Motiv und indirekter Beleuchtung"
       },
       {
-        src: "assets/images/gravuren/geldkarte1.webp",
+        src: "assets/images/personalisierte-geschenke/geldkarte1.webp",
         text: "Personalisierte Geldkarte aus Holz als besondere Geschenkidee."
       },
       {
-        src: "assets/images/gravuren/geldkarte2.webp",
+        src: "assets/images/personalisierte-geschenke/geldkarte2.webp",
         text: "Kreative Geschenkverpackung mit graviertem Holzdesign."
       },
       {
-        src: "assets/images/gravuren/geldkarte3.webp",
+        src: "assets/images/personalisierte-geschenke/geldkarte3.webp",
         text: "Individuell gestaltete Geldkarte für besondere Anlässe."
       },
       {
-        src: "assets/images/gravuren/flatlays1.webp",
+        src: "assets/images/holzgravuren/flatlays1.webp",
         text: "Saubere Lasergravur mit hochwertiger Holzoptik."
       },
       {
-        src: "assets/images/gravuren/flatlays2.webp",
+        src: "assets/images/holzgravuren/flatlays2.webp",
         text: "Detailreiche Gravur als persönliches Unikat."
       },
       {
-        src: "assets/images/gravuren/kamera.webp",
+        src: "assets/images/holzgravuren/kamera.webp",
         text: "Gravur mit kreativem Motiv als besondere Erinnerung."
       },
       {
-        src: "assets/images/gravuren/rammstein-uhr.webp",
+        src: "assets/images/holzgravuren/rammstein-uhr.webp",
         text: "Individuell gravierte Uhr mit markantem Design."
       },
       {
-        src: "assets/images/gravuren/schwibbogen1.webp",
+        src: "assets/images/holzgravuren/schwibbogen1.webp",
         text: "Personalisierter Schwibbogen aus Holz mit feiner Gravur."
       },
       {
-        src: "assets/images/gravuren/schwibbogen2.webp",
+        src: "assets/images/holzgravuren/schwibbogen2.webp",
         text: "Dekorative Holzarbeit mit individueller Gestaltung."
       },
       {
-        src: "assets/images/gravuren/schwibbogen-westi.webp",
+        src: "assets/images/holzgravuren/schwibbogen-westi.webp",
         text: "Liebevoll gestalteter Schwibbogen mit persönlichem Motiv."
       },
       {
-        src: "assets/images/gravuren/schwibbogen-bosti.webp",
+        src: "assets/images/holzgravuren/schwibbogen-bosti.webp",
         text: "Einzigartiger Schwibbogen als kreatives Geschenk oder Dekoidee."
       },
       {
-        src: "assets/images/gravuren/herz.webp",
+        src: "assets/images/holzgravuren/herz.webp",
         text: "Verziertes Herz mit Name Ein liebevolles Detail – personalisiert und einzigartig."
       },
       {
-        src: "assets/images/gravuren/lederlabel.webp",
-        text: "Lederlabels Rustikaler Look für deine Handmade-Unikate – mit Charakter."
-      },
-      {
-        src: "assets/images/gravuren/polaroidhandmade.webp",
+        src: "assets/images/holzgravuren/polaroidhandmade.webp",
         text: "Polaroid „Handmade“ mit Nadel & Garn Detailverliebt und authentisch – für echte Kreativköpfe."
       },
       {
-        src: "assets/images/gravuren/smilieys.webp",
+        src: "assets/images/holzgravuren/smilieys.webp",
         text: "Smiley-Set Kleine Hingucker mit großer Wirkung – bring Freude in jedes Projekt."
       }
     ]
   },
 
   personalisiert: {
-    title: "Personalisierte Gravur",
-    description: "Individuelle Geschenkideen mit Namen, Datum oder Botschaft.",
+    title: "Personalisierte Geschenke",
+    description: "Persönliche Geschenkideen mit Namen, Datum, Botschaft oder besonderem Anlass.",
     images: [
       {
-        src: "assets/images/personalisiert/brettchen-Anna.webp",
+        src: "assets/images/personalisierte-geschenke/brettchen-Anna.webp",
         text: "Personalisiertes Brettchen mit Namen als schöne Geschenkidee."
       },
       {
-        src: "assets/images/personalisiert/brettchen-tattoogirl.webp",
+        src: "assets/images/personalisierte-geschenke/brettchen-tattoogirl.webp",
         text: "Individuell graviertes Brettchen mit persönlichem Wunschmotiv."
       },
       {
-        src: "assets/images/personalisiert/kleiderb#U00fcgel.webp",
+        src: "assets/images/personalisierte-geschenke/kleiderbuegel.webp",
         text: "Kleiderbügel mit Namen Praktisch & dekorativ – dein Name elegant verewigt."
       },{
-        src: "assets/images/personalisiert/logopaedie.webp",
+        src: "assets/images/personalisierte-geschenke/logopaedie.webp",
         text: "Logopädie-Schild Kreativ & individuell – perfekt für Praxis oder Geschenk."
       },{
-        src: "assets/images/personalisiert/nikilina.webp",
+        src: "assets/images/personalisierte-geschenke/nikilina.webp",
         text: "Rundes Namensschild „Nikilina“ Natürlich schön – dein Name im modernen Holzdesign."
       },{
-        src: "assets/images/personalisiert/herz.webp",
+        src: "assets/images/personalisierte-geschenke/herz.webp",
         text: "Blumenherz „Nähzauber“ Zartes Design für echte Handarbeitsliebe."
       },{
-        src: "assets/images/personalisiert/polaroid-nikilina.webp",
+        src: "assets/images/personalisierte-geschenke/polaroid-nikilina.webp",
         text: "Polaroid „Made by Nikilina“ Individuell gefertigt – dein Name stilvoll in Szene gesetzt."
       },{
-        src: "assets/images/personalisiert/polaroid-wundernaht.webp",
+        src: "assets/images/personalisierte-geschenke/polaroid-wundernaht.webp",
         text: "Polaroid „Handmade by … / #NÄHLIEBE“ Perfekt für Handmade-Liebhaber – persönlich & mit Herz gestaltet."
       },{
-        src: "assets/images/personalisiert/oscar2.webp",
+        src: "assets/images/personalisierte-geschenke/oscar2.webp",
         text: "Personalisierter Holzname mit Wunschmotiv – einzigartig, individuell und perfekt als Geschenk."
       },{
-        src: "assets/images/personalisiert/oscar1.webp",
+        src: "assets/images/personalisierte-geschenke/oscar1.webp",
         text: "Detailreiche Lasergravur auf Holz – präzise umgesetzt und individuell nach Wunsch gestaltet."
+      },
+      {
+        src: "assets/images/personalisierte-geschenke/zippo-papa-alex.webp",
+        text: "Personalisiertes Zippo mit Namen und Datum als besonderes Geschenk zur Geburt."
       }
     ]
   },
 
   leinwand: {
-    title: "Modernes Wandbild",
+    title: "Wandbilder & Dekoration",
     description: "Kreative Arbeiten für Dekoration, Zuhause oder besondere Räume.",
     images: [
       {
-        src: "assets/images/leinwand/portrait.webp",
-        text: "Modernes Wandbild mit ausdrucksstarkem Portrait."
+        src: "assets/images/wandbilder-dekoration/portrait.webp",
+        text: "Wandbilder & Dekoration mit ausdrucksstarkem Portrait."
       },
       {
-        src: "assets/images/leinwand/portrait2.webp",
+        src: "assets/images/wandbilder-dekoration/portrait2.webp",
         text: "Künstlerisch umgesetztes Portrait für stilvolle Räume."
       },
       {
-        src: "assets/images/leinwand/portrait3.webp",
+        src: "assets/images/wandbilder-dekoration/portrait3.webp",
         text: "Dekoratives Wandbild mit individueller Ausstrahlung."
       },
       {
-        src: "assets/images/leinwand/natsu.webp",
+        src: "assets/images/wandbilder-dekoration/natsu.webp",
         text: "Kreatives Motiv als modernes Einzelstück für Zuhause."
       },
       {
-        src: "assets/images/leinwand/natsu2.webp",
+        src: "assets/images/wandbilder-dekoration/natsu2.webp",
         text: "Ausdrucksstarkes Wandbild mit sauberer Linienführung."
       },
       {
-        src: "assets/images/leinwand/tanchiro.webp",
+        src: "assets/images/wandbilder-dekoration/tanchiro.webp",
         text: "Modernes Kunstmotiv als dekorativer Blickfang."
       },
       {
-        src: "assets/images/leinwand/tanchiro2.webp",
+        src: "assets/images/wandbilder-dekoration/tanchiro2.webp",
         text: "Starkes Motiv für individuelle Wohnraumgestaltung."
       },
       {
-        src: "assets/images/leinwand/tanchiro3.webp",
+        src: "assets/images/wandbilder-dekoration/tanchiro3.webp",
         text: "Kreativ gestaltetes Wandbild mit persönlichem Stil."
       }
     ]
   },
 
   plott: {
-    title: "Plotterarbeiten",
-    description: "Saubere Linien und starke Motive mit persönlichem Stil.",
+    title: "Folien & Textildesign",
+    description: "Folienplots, Aufkleber, Beschriftungen und Textildesigns nach Wunsch.",
     images: [
       {
-        src: "assets/images/plott/tier-1.jpg",
-        text: "Plotterarbeit mit sauber umgesetztem Tiermotiv."
+        src: "assets/images/folien-textildesign/tier-1.jpg",
+        text: "Folien- oder Textildesign mit sauber umgesetztem Tiermotiv."
       },
       {
-        src: "assets/images/plott/tier-2.jpg",
+        src: "assets/images/folien-textildesign/tier-2.jpg",
         text: "Feine Linien und individuelles Design für kreative Projekte."
       }
     ]
@@ -192,16 +192,20 @@ window.GALLERIES = {
     description: "Einzigartige Arbeiten nach deinen eigenen Vorstellungen.",
     images: [
       {
-        src: "assets/images/einzelstuecke/einzelst#U00fcck1.webp",
+        src: "assets/images/kreative-einzelstuecke/einzelstueck1.webp",
         text: "Kreatives Einzelstück mit individueller Gestaltung."
       },
       {
-        src: "assets/images/einzelstuecke/einzelst#U00fcck2.webp",
+        src: "assets/images/kreative-einzelstuecke/einzelstueck2.webp",
         text: "Persönlich angefertigtes Unikat für besondere Anlässe."
       },
       {
-        src: "assets/images/einzelstuecke/einzelst#U00fcck3.webp",
+        src: "assets/images/kreative-einzelstuecke/einzelstueck3.webp",
         text: "Einzigartige Umsetzung nach Wunsch und Idee."
+      },
+      {
+        src: "assets/images/kreative-einzelstuecke/trainer-pfeife-msv.webp",
+        text: "Individuelle Gravur auf einer Pfeife als besonderes Vereinsgeschenk."
       }
     ]
   }

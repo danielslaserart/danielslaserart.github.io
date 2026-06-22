@@ -1,0 +1,38 @@
+Daniels Laser Art - Galerie/Kategorie-Umbau
+
+Geändert:
+- Neue Kategorie-Seiten:
+  - lederlabels.html
+  - wandbilder-dekoration.html
+  - folien-textildesign.html
+  - kreative-einzelstuecke.html
+- Umbenannte/neu sortierte Bildordner:
+  - assets/images/holzgravuren
+  - assets/images/personalisierte-geschenke
+  - assets/images/lederlabels
+  - assets/images/wandbilder-dekoration
+  - assets/images/folien-textildesign
+  - assets/images/kreative-einzelstuecke
+- Zippo ergänzt unter Personalisierte Geschenke.
+- Pfeife ergänzt unter Kreative Einzelstücke.
+- Startseiten-Kategorien angepasst.
+- sitemap.xml aktualisiert.
+- Alte URLs bleiben als Weiterleitung erhalten:
+  - lasergravur-leder.html -> lederlabels.html
+  - wandbilder.html -> wandbilder-dekoration.html
+  - plotterarbeiten.html -> folien-textildesign.html
+  - einzelstuecke.html -> kreative-einzelstuecke.html
+
+Nach Upload:
+1. Alles aus dieser ZIP in dein GitHub-Projekt kopieren/ersetzen.
+2. Prüfen, ob die neuen Ordner unter assets/images vorhanden sind.
+3. In GitHub Desktop committen und pushen.
+4. Google Search Console: sitemap.xml neu einreichen.
+
+
+FINALER BILDER-SORTIER-CHECK:
+- Shop-Bilder wurden aus assets/images/shop entfernt und in die passenden Kategorien verschoben.
+- Produktpfade in assets/data/products.js wurden angepasst.
+- Galeriepfade in assets/data/galleries.js wurden angepasst.
+- assets/images/shop wird nicht mehr benötigt.
+- Technische Ordner wie branding, hero und cover bleiben bewusst separat.

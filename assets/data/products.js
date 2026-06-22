@@ -4,7 +4,7 @@ window.SHOP_PRODUCTS = [
     name: 'Personalisierte Geldgeschenk-Karte',
     category: 'Geschenk',
     price: 9.50,
-    image: 'assets/images/shop/geldkarte1.webp',
+    image: 'assets/images/personalisierte-geschenke/geldkarte1.webp',
     badge: 'Beliebt',
     description: 'Holzkarte für Geldgeschenke mit Wunschtext, Namen oder Datum.',
     sizeInfo: 'z. B. 10 × 15 cm.',
@@ -19,12 +19,12 @@ window.SHOP_PRODUCTS = [
       items: [
         {
           name: 'Rückseite',
-          image: 'assets/images/shop/geldkarte3.webp',
+          image: 'assets/images/personalisierte-geschenke/geldkarte3.webp',
           description: 'Die Rückseite der Karte mit Zettel als Botschaft.'
         },
         {
           name: 'Vordere und Hintere Seite',
-          image: 'assets/images/shop/geldkarte2.webp',
+          image: 'assets/images/personalisierte-geschenke/geldkarte2.webp',
           description: 'Vordere und Hintere Seite.'
         }
       ]
@@ -36,7 +36,7 @@ window.SHOP_PRODUCTS = [
     name: 'Personalisierte Frühstücksbrettchen',
     category: 'Holzdeko',
     price: 15.50,
-    image: 'assets/images/shop/brettchen.webp',
+    image: 'assets/images/personalisierte-geschenke/brettchen-tattoogirl.webp',
     badge: 'Geschenkidee',
     description: 'Dekoratives Frühstücksbrettchen als persönliches Geschenk oder Erinnerungsstück.',
     sizeInfo: 'z. B. 22,5 × 12,5 x 1,5 cm.',
@@ -51,12 +51,12 @@ window.SHOP_PRODUCTS = [
       items: [
         {
           name: 'Beispiel 1',
-          image: 'assets/images/shop/brettchen2.webp',
+          image: 'assets/images/personalisierte-geschenke/brettchen-Anna.webp',
           description: 'Personalisiertes Frühstücksbrettchen.'
         },
         {
           name: 'Beispiel 2',
-          image: 'assets/images/shop/brettchen.webp',
+          image: 'assets/images/personalisierte-geschenke/brettchen-tattoogirl.webp',
           description: 'Personalisiertes Frühstücksbrettchen.'
         }
       ]
@@ -68,7 +68,7 @@ window.SHOP_PRODUCTS = [
     name: 'Mini Schwibbogen mit Wunschmotiv',
     category: 'Holzdeko',
     price: 13.50,
-    image: 'assets/images/gravuren/schwibbogen-bosti.webp',
+    image: 'assets/images/holzgravuren/schwibbogen-bosti.webp',
     badge: 'Individuell',
     description: 'Personalisierter Schwibbogen, z. B. mit Tiermotiv oder Familienmotiv. ca. 17cm Breite',
     sizeInfo: 'ca. 17 cm breit, ohne licht',
@@ -77,10 +77,10 @@ window.SHOP_PRODUCTS = [
 
   // {
   //   id: 'portrait-leinwand',
-  //   name: 'Modernes Wandbild / Portrait',
+  //   name: 'Wandbilder & Dekoration / Portrait',
   //   category: 'Wandbild',
   //   price: 34.90,
-  //   image: 'assets/images/leinwand/portrait.webp',
+  //   image: 'assets/images/wandbilder-dekoration/portrait.webp',
   //   badge: 'Unikat',
   //   description: 'Künstlerisches Wandbild nach Motivwunsch für Zuhause oder als Geschenk.',
   //   sizeInfo: 'Größe bitte hier eintragen, z. B. 30 × 40 cm.',
@@ -92,7 +92,7 @@ window.SHOP_PRODUCTS = [
     name: 'Lederlabel mit Logo oder Name',
     category: 'Lederlabel',
     price: 1.50,
-    image: 'assets/images/shop/shopcollage.webp',
+    image: 'assets/images/lederlabels/shopcollage.webp',
     badge: 'Für Handmade',
     description: 'Individuelle Labels für Handarbeiten, Branding oder kleine Serien.',
     sizeInfo: 'z. B. 5 × 3 cm.',
@@ -107,17 +107,17 @@ window.SHOP_PRODUCTS = [
       items: [
         {
           name: 'Mamor',
-          image: 'assets/images/shop/mamor.webp',
+          image: 'assets/images/lederlabels/marmor.webp',
           description: 'Marmorierter Lederlook mit moderner Gravuroptik.'
         },
         {
           name: 'Rustikal/Gold',
-          image: 'assets/images/shop/rustikal.webp',
+          image: 'assets/images/lederlabels/rustikal-gold.webp',
           description: 'Rustikale Oberfläche mit goldener Gravurwirkung.'
         },
         {
           name: 'Rohleder',
-          image: 'assets/images/shop/rohleder.webp',
+          image: 'assets/images/lederlabels/rohleder.webp',
           description: 'Natürliche Lederoptik mit besonders warmer Ausstrahlung.'
         }
       ]
@@ -129,7 +129,7 @@ window.SHOP_PRODUCTS = [
     name: 'Polaroid Holzgravur',
     category: 'Gravur',
     price: 6.90,
-    image: 'assets/images/gravuren/polaroidhandmade.webp',
+    image: 'assets/images/holzgravuren/polaroidhandmade.webp',
     badge: 'Persönlich',
     description: 'Persönliches Erinnerungsstück mit Foto-Optik und individueller Gravur.',
     sizeInfo: 'z. B. 9 × 10 cm.',
@@ -144,7 +144,7 @@ window.SHOP_PRODUCTS = [
       items: [
         {
           name: 'Beispiel 1',
-          image: 'assets/images/gravuren/polaroidhandmade.webp',
+          image: 'assets/images/holzgravuren/polaroidhandmade.webp',
           description: 'Personalisierte Polaroid-Holzgravur mit individuellem Text, Datum oder Wunschmotiv.'
         }
       ]
