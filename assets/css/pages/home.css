@@ -330,3 +330,68 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   BESONDERE PROJEKTE
+========================================= */
+
+.section-kicker {
+  margin: 0 0 8px;
+  color: #ffd8bc;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.special-projects-section {
+  padding-top: 12px;
+}
+
+.special-project-grid {
+  align-items: stretch;
+}
+
+.special-project-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.special-project-card .card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.special-project-card p {
+  margin-bottom: 18px;
+}
+
+.project-btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.project-detail-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.before-after-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.before-after-grid .gallery-thumb {
+  aspect-ratio: 4 / 3;
+}
+
+@media (max-width: 860px) {
+  .project-detail-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .before-after-grid {
+    grid-template-columns: 1fr;
+  }
+}

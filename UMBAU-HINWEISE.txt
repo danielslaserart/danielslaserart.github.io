@@ -36,3 +36,10 @@ FINALER BILDER-SORTIER-CHECK:
 - Galeriepfade in assets/data/galleries.js wurden angepasst.
 - assets/images/shop wird nicht mehr benötigt.
 - Technische Ordner wie branding, hero und cover bleiben bewusst separat.
+
+
+Besondere Projekte ergänzt:
+- Neuer Startseiten-Abschnitt „Besondere Projekte“ mit Trainerpfeife, Zippo Gravur und Deine Idee.
+- Neue Seite besondere-projekte.html mit Projekt-ansehen-Funktion und Vorher/Nachher-Bildpaaren.
+- Neue Bilder unter assets/images/besondere-projekte/.
+- sitemap.xml um besondere-projekte.html ergänzt.
