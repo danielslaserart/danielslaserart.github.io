@@ -395,3 +395,93 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   MOBILE FIX: Besondere Projekte kompakt
+========================================= */
+@media (max-width: 860px) {
+  .special-projects-section {
+    padding-top: 22px;
+    padding-bottom: 24px;
+  }
+
+  .special-projects-section .section-head {
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .special-projects-section .section-head h2 {
+    font-size: clamp(1.35rem, 6vw, 1.75rem);
+    margin-bottom: 8px;
+  }
+
+  .special-projects-section .section-head p:not(.section-kicker) {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-bottom: 0;
+  }
+
+  .special-projects-section .section-head > .btn {
+    min-height: 40px;
+    padding: 9px 13px;
+    border-radius: 12px;
+    font-size: 0.86rem;
+  }
+
+  .special-project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .special-project-card .gallery-thumb {
+    aspect-ratio: 1 / 0.78;
+    height: auto;
+  }
+
+  .special-project-card .card-body {
+    padding: 10px;
+  }
+
+  .special-project-card h3 {
+    font-size: 0.98rem;
+    margin-bottom: 5px;
+  }
+
+  .special-project-card p {
+    font-size: 0.8rem;
+    line-height: 1.35;
+    margin-bottom: 9px;
+  }
+
+  .special-project-card .project-btn {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 8px;
+    border-radius: 11px;
+    font-size: 0.76rem;
+    line-height: 1.15;
+  }
+}
+
+@media (max-width: 390px) {
+  .special-project-grid {
+    gap: 10px;
+  }
+
+  .special-project-card .card-body {
+    padding: 9px;
+  }
+
+  .special-project-card h3 {
+    font-size: 0.9rem;
+  }
+
+  .special-project-card p {
+    font-size: 0.74rem;
+  }
+
+  .special-project-card .project-btn {
+    min-height: 34px;
+    font-size: 0.7rem;
+  }
+}
