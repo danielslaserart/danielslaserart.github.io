@@ -69,9 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
-  const h = String(date.getHours()).padStart(2, "0");
-
-  return `${y}-${m}-${d}T${h}:00:00`;
+  return `${y}-${m}-${d}`;
 };
 
     const startOfToday = new Date(
@@ -122,9 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     Promise.all([
-  fetchCount(formatDate(startOfToday), formatDate(now)),
-  fetchCount(formatDate(startOfWeek), formatDate(now)),
-  fetchCount(formatDate(startOfMonth), formatDate(now)),
+  fetchCount(formatDate(startOfToday), formatDate(tomorrow)),
+  fetchCount(formatDate(startOfWeek), formatDate(tomorrow)),
+  fetchCount(formatDate(startOfMonth), formatDate(tomorrow)),
   fetchCount()
 ])
       .then(([today, week, month, total]) => {
