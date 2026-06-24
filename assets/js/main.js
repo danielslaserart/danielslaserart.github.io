@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Admin-Modus
+  // Admin-Modus für Besucherzähler
   const params = new URLSearchParams(window.location.search);
 
   if (params.get("dlart") === "hide") {
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(script);
   }
 
-  // Footer-Stats nur im Admin-Modus anzeigen
+  // Besucherzahlen nur im Admin-Modus anzeigen
   if (exclude) {
     const box = document.getElementById("visitorCounter");
     const todayEl = document.getElementById("statToday");
@@ -66,11 +66,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
 
     const formatDate = (date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
 
     const startOfToday = new Date(
       now.getFullYear(),
@@ -91,18 +91,11 @@ document.addEventListener("DOMContentLoaded", () => {
       1
     );
 
-    // Wichtig: Enddatum auf morgen setzen,
-    // damit der aktuelle Tag vollständig im Zeitraum enthalten ist
-    const endOfRange = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1
-    );
-
     const fetchCount = async (start = null, end = null) => {
       let url = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
 
       const query = new URLSearchParams();
+
       if (start) query.set("start", start);
       if (end) query.set("end", end);
 
@@ -111,20 +104,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const res = await fetch(url, { cache: "no-store" });
+
       if (!res.ok) {
         throw new Error(`Fehler beim Laden: ${res.status}`);
       }
 
       const data = await res.json();
-      return data.count ?? "–";
+      return data.count ?? "0";
     };
 
     Promise.all([
-  fetchCount(formatDate(startOfToday), formatDate(endOfRange)),
-  fetchCount(formatDate(startOfWeek), formatDate(endOfRange)),
-  fetchCount(formatDate(startOfMonth), formatDate(endOfRange)),
-  fetchCount()
-])
+      fetchCount(formatDate(startOfToday), formatDate(now)),
+      fetchCount(formatDate(startOfWeek), formatDate(now)),
+      fetchCount(formatDate(startOfMonth), formatDate(now)),
+      fetchCount()
+    ])
       .then(([today, week, month, total]) => {
         todayEl.textContent = today;
         weekEl.textContent = week;
