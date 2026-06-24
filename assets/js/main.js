@@ -120,9 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     Promise.all([
-  fetchCount(formatDate(startOfToday), formatDate(tomorrow)),
-  fetchCount(formatDate(startOfWeek), formatDate(tomorrow)),
-  fetchCount(formatDate(startOfMonth), formatDate(tomorrow)),
+  fetchCount(formatDate(startOfToday), formatDate(endOfRange)),
+  fetchCount(formatDate(startOfWeek), formatDate(endOfRange)),
+  fetchCount(formatDate(startOfMonth), formatDate(endOfRange)),
   fetchCount()
 ])
       .then(([today, week, month, total]) => {
