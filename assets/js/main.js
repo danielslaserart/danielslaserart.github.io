@@ -66,11 +66,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
 
     const formatDate = (date) => {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
-    };
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  const h = String(date.getHours()).padStart(2, "0");
+
+  return `${y}-${m}-${d}T${h}:00:00`;
+};
 
     const startOfToday = new Date(
       now.getFullYear(),
@@ -120,11 +122,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     Promise.all([
-      fetchCount(formatDate(startOfToday), formatDate(endOfRange)),
-      fetchCount(formatDate(startOfWeek), formatDate(endOfRange)),
-      fetchCount(formatDate(startOfMonth), formatDate(endOfRange)),
-      fetchCount()
-    ])
+  fetchCount(formatDate(startOfToday), formatDate(now)),
+  fetchCount(formatDate(startOfWeek), formatDate(now)),
+  fetchCount(formatDate(startOfMonth), formatDate(now)),
+  fetchCount()
+])
       .then(([today, week, month, total]) => {
         todayEl.textContent = today;
         weekEl.textContent = week;
