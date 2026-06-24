@@ -113,12 +113,18 @@ document.addEventListener("DOMContentLoaded", () => {
       return data.count ?? "0";
     };
 
-    Promise.all([
-      fetchCount(formatDate(startOfToday), formatDate(now)),
-      fetchCount(formatDate(startOfWeek), formatDate(now)),
-      fetchCount(formatDate(startOfMonth), formatDate(now)),
-      fetchCount()
-    ])
+    const tomorrow = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate() + 1
+);
+
+Promise.all([
+  fetchCount(formatDate(startOfToday), formatDate(tomorrow)),
+  fetchCount(formatDate(startOfWeek), formatDate(tomorrow)),
+  fetchCount(formatDate(startOfMonth), formatDate(tomorrow)),
+  fetchCount()
+])
       .then(([today, week, month, total]) => {
         todayEl.textContent = today;
         weekEl.textContent = week;
