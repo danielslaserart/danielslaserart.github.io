@@ -1,0 +1,9 @@
+Geändert:
+- besondere-projekte.html
+  - Lightbox-Bild wie in der Galerie in .lightbox-image-wrap gesetzt
+  - Schutz-Layer ergänzt
+
+- assets/css/pages/gallery.css
+  - Mobile Lightbox-Fix ergänzt
+  - Bild wird auf Handy sauber zentriert
+  - max-height nutzt 100dvh, damit Browserleisten auf Mobilgeräten besser berücksichtigt werden

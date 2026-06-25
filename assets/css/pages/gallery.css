@@ -515,3 +515,61 @@
 .lightbox img {
   touch-action: none;
 }
+
+/* =========================================
+   MOBILE LIGHTBOX FIX
+   Korrigiert die Großansicht auf besondere-projekte.html
+========================================= */
+@media (max-width: 768px) {
+  .lightbox {
+    align-items: center;
+    justify-content: center;
+    padding: 72px 14px 96px;
+  }
+
+  .lightbox-image-wrap {
+    width: auto;
+    max-width: 92vw;
+    max-height: calc(100dvh - 190px);
+    margin: 0 auto;
+  }
+
+  .lightbox-image-wrap img,
+  .lightbox img {
+    width: auto;
+    height: auto;
+    max-width: 92vw;
+    max-height: calc(100dvh - 190px);
+    object-fit: contain;
+  }
+
+  .lightbox-prev {
+    left: 10px;
+  }
+
+  .lightbox-next {
+    right: 10px;
+  }
+
+  .lightbox-counter {
+    bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 420px) {
+  .lightbox {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .lightbox-nav {
+    width: 46px;
+    height: 46px;
+    font-size: 1.8rem;
+  }
+
+  .lightbox-image-wrap img,
+  .lightbox img {
+    max-width: 94vw;
+  }
+}
