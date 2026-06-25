@@ -521,55 +521,130 @@
    Korrigiert die Großansicht auf besondere-projekte.html
 ========================================= */
 @media (max-width: 768px) {
+  
   .lightbox {
-    align-items: center;
-    justify-content: center;
-    padding: 72px 14px 96px;
-  }
+  position: fixed;
+  inset: 0;
 
-  .lightbox-image-wrap {
-    width: auto;
-    max-width: 92vw;
-    max-height: calc(100dvh - 190px);
-    margin: 0 auto;
-  }
+  background: rgba(0,0,0,0.92);
 
-  .lightbox-image-wrap img,
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+}
+
+
+.lightbox.open {
+  display: flex;
+}
+
+
+.lightbox img {
+  max-width: 90vw;
+  max-height: 82vh;
+
+  object-fit: contain;
+
+  border-radius: 18px;
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.6);
+}
+
+
+.lightbox-close {
+  position: absolute;
+
+  top: 20px;
+  right: 25px;
+
+  background: none;
+  border: none;
+
+  color: white;
+
+  font-size: 3rem;
+
+  cursor: pointer;
+
+  z-index: 2;
+}
+
+
+.lightbox-nav {
+  position: absolute;
+
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 55px;
+  height: 55px;
+
+  border-radius: 50%;
+
+  border: none;
+
+  background: rgba(255,255,255,0.15);
+
+  color: white;
+
+  font-size: 2.5rem;
+
+  cursor: pointer;
+
+  z-index: 2;
+}
+
+
+.lightbox-prev {
+  left: 25px;
+}
+
+
+.lightbox-next {
+  right: 25px;
+}
+
+
+.lightbox-counter {
+  position: absolute;
+
+  bottom: 25px;
+
+  color: white;
+
+  font-size: 0.95rem;
+}
+
+
+/* Handy */
+@media (max-width: 768px) {
+
   .lightbox img {
-    width: auto;
-    height: auto;
-    max-width: 92vw;
-    max-height: calc(100dvh - 190px);
-    object-fit: contain;
+    max-width: 94vw;
+    max-height: 78vh;
   }
+
+
+  .lightbox-nav {
+    width: 45px;
+    height: 45px;
+
+    font-size: 2rem;
+  }
+
 
   .lightbox-prev {
     left: 10px;
   }
 
+
   .lightbox-next {
     right: 10px;
   }
 
-  .lightbox-counter {
-    bottom: calc(18px + env(safe-area-inset-bottom));
-  }
-}
-
-@media (max-width: 420px) {
-  .lightbox {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  .lightbox-nav {
-    width: 46px;
-    height: 46px;
-    font-size: 1.8rem;
-  }
-
-  .lightbox-image-wrap img,
-  .lightbox img {
-    max-width: 94vw;
-  }
 }
