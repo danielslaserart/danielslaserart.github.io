@@ -1,0 +1,6 @@
+Geändert:
+- index.html: Im Abschnitt „Besondere Projekte“ steht „Deine Idee“ jetzt an erster Stelle und ist mit Stern/Highlight hervorgehoben.
+- besondere-projekte.html: Reihenfolge der Projektbereiche geändert auf „Deine Idee“ → „Trainerpfeife“ → „Zippo Gravur“.
+- assets/css/pages/home.css: Highlight-Optik für „Deine Idee“ ergänzt.
+
+Keine neuen Unterseiten wurden erstellt.

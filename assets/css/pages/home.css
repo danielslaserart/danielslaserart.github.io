@@ -485,3 +485,61 @@
     font-size: 0.7rem;
   }
 }
+
+
+/* =========================================
+   HIGHLIGHT: Deine Idee
+========================================= */
+.idea-highlight-card {
+  position: relative;
+  border-color: rgba(255, 179, 71, 0.72);
+  box-shadow:
+    0 0 24px rgba(255, 122, 24, 0.28),
+    var(--shadow);
+}
+
+.idea-highlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at top right, rgba(255, 179, 71, 0.22), transparent 38%),
+    linear-gradient(180deg, rgba(255, 122, 24, 0.06), transparent 42%);
+}
+
+.idea-highlight-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+.idea-star-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(18, 7, 14, 0.88);
+  border: 1px solid rgba(255, 190, 120, 0.42);
+  box-shadow: 0 0 18px rgba(255, 179, 71, 0.36);
+  font-size: 1.35rem;
+}
+
+.project-label {
+  margin: 0 0 6px;
+  color: var(--accent-gold);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.idea-highlight-card .btn-primary {
+  box-shadow: 0 12px 28px rgba(255, 122, 24, 0.28);
+}
