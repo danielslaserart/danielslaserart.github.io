@@ -555,3 +555,29 @@
     z-index: 10002;
   }
 }
+/* Besondere Projekte: Lightbox auf Mobil sauber zentrieren */
+@media (max-width: 768px) {
+  body:has(.project-detail) .lightbox {
+    left: 0;
+    right: 0;
+    width: 100vw;
+    max-width: 100vw;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  body:has(.project-detail) .lightbox img {
+    max-width: 92vw;
+    max-height: 78vh;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  body:has(.project-detail) .lightbox-prev {
+    left: 12px;
+  }
+
+  body:has(.project-detail) .lightbox-next {
+    right: 12px;
+  }
+}
