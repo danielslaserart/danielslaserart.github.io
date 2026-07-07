@@ -26,7 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Admin-Modus
+  // Admin-Modus / Eigenbesuche ausschließen
+  // Aufruf:
+  //   ?dlart=hide  = Adminmodus an + eigene Besuche NICHT zählen
+  //   ?dlart=show  = Adminmodus aus + wieder normal zählen
   const params = new URLSearchParams(window.location.search);
 
   if (params.get("dlart") === "hide") {
@@ -51,92 +54,82 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(script);
   }
 
-  // Footer-Stats nur im Admin-Modus anzeigen
-  if (exclude) {
-    const box = document.getElementById("visitorCounter");
-    const todayEl = document.getElementById("statToday");
-    const weekEl = document.getElementById("statWeek");
-    const monthEl = document.getElementById("statMonth");
-    const totalEl = document.getElementById("statTotal");
+  // Besucherzahlen nur im Admin-Modus anzeigen
+  if (!exclude) return;
 
-    if (!box || !todayEl || !weekEl || !monthEl || !totalEl) return;
+  const box = document.getElementById("visitorCounter");
+  const todayEl = document.getElementById("statToday");
+  const weekEl = document.getElementById("statWeek");
+  const monthEl = document.getElementById("statMonth");
+  const totalEl = document.getElementById("statTotal");
 
-    box.style.display = "block";
+  if (!box || !todayEl || !weekEl || !monthEl || !totalEl) return;
 
-    const now = new Date();
+  box.style.display = "block";
 
-    const formatDate = (date) => {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
-    };
+  const now = new Date();
 
-    const startOfToday = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
+  const formatDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
 
-    const day = (now.getDay() + 6) % 7; // Montag = 0
-    const startOfWeek = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() - day
-    );
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const startOfMonth = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      1
-    );
+  const day = (now.getDay() + 6) % 7; // Montag = 0
+  const startOfWeek = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() - day
+  );
 
-    // Wichtig: Enddatum auf morgen setzen,
-    // damit der aktuelle Tag vollständig im Zeitraum enthalten ist
-    const endOfRange = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1
-    );
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const fetchCount = async (start = null, end = null) => {
-      let url = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
+  // Ende immer morgen, damit der heutige Tag vollständig enthalten ist.
+  const endOfRange = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1
+  );
 
-      const query = new URLSearchParams();
-      if (start) query.set("start", start);
-      if (end) query.set("end", end);
+  const counterBaseUrl = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
 
-      if (query.toString()) {
-        url += `?${query.toString()}`;
-      }
+  const cleanCount = (value) => {
+    if (value === null || value === undefined || value === "") return "0";
+    return String(value);
+  };
 
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) {
-        throw new Error(`Fehler beim Laden: ${res.status}`);
-      }
+  const fetchCount = async (start = null, end = null) => {
+    const url = new URL(counterBaseUrl);
 
-      const data = await res.json();
-      return data.count ?? "–";
-    };
+    if (start) url.searchParams.set("start", start);
+    if (end) url.searchParams.set("end", end);
 
-    Promise.all([
-      fetchCount(formatDate(startOfToday), formatDate(endOfRange)),
-      fetchCount(formatDate(startOfWeek), formatDate(endOfRange)),
-      fetchCount(formatDate(startOfMonth), formatDate(endOfRange)),
-      fetchCount()
-    ])
-      .then(([today, week, month, total]) => {
-        todayEl.textContent = today;
-        weekEl.textContent = week;
-        monthEl.textContent = month;
-        totalEl.textContent = total;
-      })
-      .catch((err) => {
-        console.error("Besucherzähler konnte nicht geladen werden:", err);
-        todayEl.textContent = "–";
-        weekEl.textContent = "–";
-        monthEl.textContent = "–";
-        totalEl.textContent = "–";
-      });
-  }
+    const res = await fetch(url.toString(), { cache: "no-store" });
+
+    if (!res.ok) {
+      throw new Error(`GoatCounter ${res.status}: ${url.toString()}`);
+    }
+
+    const data = await res.json();
+    return cleanCount(data.count);
+  };
+
+  const setStat = async (element, promise) => {
+    try {
+      element.textContent = await promise;
+    } catch (error) {
+      console.error("Besucherzähler konnte einen Wert nicht laden:", error);
+      element.textContent = "–";
+    }
+  };
+
+  // Wichtig: nicht mehr alles mit Promise.all abbrechen lassen.
+  // Wenn z.B. nur „Heute“ spinnt, bleiben Woche/Monat/Gesamt trotzdem sichtbar.
+  setStat(todayEl, fetchCount(formatDate(startOfToday), formatDate(endOfRange)));
+  setStat(weekEl, fetchCount(formatDate(startOfWeek), formatDate(endOfRange)));
+  setStat(monthEl, fetchCount(formatDate(startOfMonth), formatDate(endOfRange)));
+  setStat(totalEl, fetchCount());
 });
