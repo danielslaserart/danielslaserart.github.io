@@ -1,24 +1,13 @@
-Daniels Laser Art – Kalkulator V6
+Daniels Laser Art – Kalkulator V7 Cache-Fix
 
-NEU EINGEBAUT:
-- Preisvergleich:
-  Selbstkosten + Kunden-Maximalpreis → Gewinn/Verlust, Marge und Mindestpreis
-- Gewinnrechner:
-  Einkauf/Selbstkosten + Gewinnaufschlag → Verkaufspreis
-- Rabattrechner:
-  gewünschter Endpreis + Rabatt → erforderlicher Preis vor Rabatt
-- Schnellrechner:
-  Material + Verbrauch + Arbeitszeit + Zusatzkosten → sofortiger Verkaufspreis
-- Kein Projekt muss dafür gespeichert werden.
+Warum V6 nicht funktionierte:
+Die neue HTML-Seite wurde geladen, Chrome verwendete aber weiterhin alte Versionen von style.css und app.js.
+Darum wurden alle Rechner gleichzeitig angezeigt und keine Berechnung ausgeführt.
 
-WEITERHIN ENTHALTEN:
-- Supabase-Login und automatische Cloudspeicherung
-- Materialdatenbank
-- 3D-Druck, Laser, Vinyl und Textil
-- Einstellungen
-- Projektverlauf mit Suche
-- keine Fotos
-- kein Lagerbestand
+V7 behebt das:
+- CSS, JavaScript und Manifest tragen direkt ?v=7.
+- Alte App-Caches und Service Worker werden einmalig entfernt.
+- Die Schnellwerkzeuge werden sofort initialisiert.
 
 UPLOAD:
 Im GitHub-Ordner „Intern“ ersetzen:
@@ -28,5 +17,7 @@ Im GitHub-Ordner „Intern“ ersetzen:
 - manifest.json
 - sw.js
 
-Danach öffnen:
-https://danielslaserart.de/Intern/?v=6
+Danach 1–3 Minuten warten und exakt öffnen:
+https://danielslaserart.de/Intern/?v=7
+
+Beim ersten Öffnen kann die Seite einmal kurz neu geladen werden müssen.
