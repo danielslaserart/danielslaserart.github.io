@@ -1,23 +1,28 @@
-Daniels Laser Art – Kalkulator V2
+Daniels Laser Art – Kalkulator V3
 
-DATEIEN:
-- index.html
-- style.css
-- app.js
-- manifest.json
-- sw.js
+Enthalten:
+- Materialdatenbank
+- 3D-Druck mit Druckzeit in Minuten
+- Laser mit Gravur, Schnitt, Zubehör, Verpackung und Reserve
+- Vinyl mit separater Übertragungsfolie
+- Textil mit Textilpreis, Farben, Pressen und Stückzahl
+- Zentrale Einstellungen wie in deiner Tabelle
+- Projekte, Gewinn, Preis je Stück und Backup
 
-INSTALLATION AUF DEINER WEBSITE:
-1. Öffne in GitHub den Ordner „Intern“.
-2. Ersetze dort die bisherigen fünf App-Dateien durch diese neuen Dateien.
-3. Warte nach dem Commit ungefähr 1–3 Minuten.
-4. Öffne anschließend:
-   https://danielslaserart.de/Intern/
+UPLOAD:
+1. ZIP entpacken.
+2. Im GitHub-Ordner „Intern“ alle bisherigen App-Dateien ersetzen:
+   index.html
+   style.css
+   app.js
+   manifest.json
+   sw.js
+3. Commit speichern.
+4. Etwa 1–3 Minuten warten.
+5. Diese Adresse öffnen:
+   https://danielslaserart.de/Intern/?v=3
 
 WICHTIG:
 - Der Ordner heißt bei dir „Intern“ mit großem I.
-- Alte Dateien möglichst wirklich ersetzen und nicht zusätzlich umbenennen.
-- Falls die alte Version angezeigt wird: Browser aktualisieren oder Website-Daten/Cache löschen.
-- Daten werden lokal auf dem jeweiligen Handy/Browser gespeichert.
-- Regelmäßig unter System → Sicherung ein Backup herunterladen.
-- Die unbekannte Adresse ist noch kein echter Passwortschutz.
+- README.txt muss nicht hochgeladen werden.
+- Durch ?v=3 und den neuen Service-Worker-Namen wird die alte App-Version umgangen.

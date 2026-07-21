@@ -3,215 +3,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0f17">
-  <meta name="description" content="Interner Kalkulator für Daniels Laser Art">
+  <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">DANIELS LASER ART</p>
-      <h1>Kalkulator</h1>
+<header class="app-header">
+  <div>
+    <div class="eyebrow">DANIELS LASER ART</div>
+    <h1>Kalkulator</h1>
+  </div>
+  <button id="installBtn" class="icon-btn hidden" type="button">＋</button>
+</header>
+
+<main>
+  <section id="home" class="screen active">
+    <div class="hero card">
+      <span class="pill">Interner Business-Kalkulator</span>
+      <h2>Was möchtest du berechnen?</h2>
+      <p>Alle Werte aus deiner bisherigen Tabelle – jetzt appgerecht auf dem Handy.</p>
     </div>
-    <button id="installBtn" class="icon-btn hidden" type="button" aria-label="App installieren">＋</button>
-  </header>
 
-  <main>
-    <section id="dashboard" class="view active">
-      <div class="hero card">
-        <span class="badge">Business Tool</span>
-        <h2>Was möchtest du kalkulieren?</h2>
-        <p>Material auswählen, Werte eingeben und Verkaufspreis automatisch berechnen.</p>
+    <div class="module-grid">
+      <button class="module-card" data-open="3d"><span>🧵</span><b>3D-Druck</b><small>Filament, Druckzeit, Arbeit</small></button>
+      <button class="module-card" data-open="laser"><span>⚡</span><b>Laser</b><small>Gravur, Schnitt, Zubehör</small></button>
+      <button class="module-card" data-open="vinyl"><span>✂️</span><b>Vinylfolie</b><small>Folie, Entgittern, Montage</small></button>
+      <button class="module-card" data-open="textil"><span>👕</span><b>Textilfolie</b><small>Textil, Farben, Pressen</small></button>
+    </div>
+
+    <div class="stats">
+      <div class="card stat"><span>Materialien</span><strong id="homeMaterialCount">0</strong></div>
+      <div class="card stat"><span>Projekte</span><strong id="homeProjectCount">0</strong></div>
+      <div class="card stat"><span>Letzter Preis</span><strong id="homeLastPrice">–</strong></div>
+    </div>
+  </section>
+
+  <section id="materials" class="screen">
+    <div class="section-head">
+      <div><div class="eyebrow">DATENBANK</div><h2>Materialien</h2></div>
+      <button id="newMaterialBtn" class="primary small">＋ Neu</button>
+    </div>
+    <div class="filter-grid">
+      <input id="materialSearch" type="search" placeholder="Material suchen …">
+      <select id="materialAreaFilter">
+        <option value="">Alle Bereiche</option>
+        <option>3D-Druck</option>
+        <option>Laser</option>
+        <option>Vinylfolie</option>
+        <option>Übertragungsfolie</option>
+        <option>Textilfolie</option>
+        <option>Sonstiges</option>
+      </select>
+    </div>
+    <div id="materialList" class="stack"></div>
+  </section>
+
+  <section id="calculator" class="screen">
+    <div class="section-head">
+      <div><div class="eyebrow">KALKULATION</div><h2 id="calcTitle">3D-Druck</h2></div>
+      <button id="resetCalcBtn" class="ghost small">Leeren</button>
+    </div>
+
+    <div class="tabs">
+      <button data-tab="3d">3D</button>
+      <button data-tab="laser">Laser</button>
+      <button data-tab="vinyl">Vinyl</button>
+      <button data-tab="textil">Textil</button>
+    </div>
+
+    <form id="calcForm" class="card form-card">
+      <div class="project-grid">
+        <label>Projektname<input id="projectName" placeholder="z. B. Schild Familie Müller"></label>
+        <label>Kundenname<input id="customerName" placeholder="optional"></label>
       </div>
 
-      <div class="quick-grid">
-        <button class="quick-card" data-open="calc3d"><span>🧵</span><b>3D-Druck</b><small>Filament, Zeit, Strom</small></button>
-        <button class="quick-card" data-open="calcLaser"><span>⚡</span><b>Laser</b><small>Material, Laufzeit, Aufwand</small></button>
-        <button class="quick-card" data-open="calcVinyl"><span>✂️</span><b>Vinylfolie</b><small>Fläche, Entgittern, Montage</small></button>
-        <button class="quick-card" data-open="calcTextil"><span>👕</span><b>Textilfolie</b><small>Textil, Folie, Pressen</small></button>
+      <div id="moduleFields"></div>
+
+      <div class="result-card">
+        <div><span>Materialkosten</span><strong id="resMaterial">0,00 €</strong></div>
+        <div><span>Maschinenkosten</span><strong id="resMachine">0,00 €</strong></div>
+        <div><span>Arbeitskosten</span><strong id="resWork">0,00 €</strong></div>
+        <div><span>Zusatzkosten</span><strong id="resExtra">0,00 €</strong></div>
+        <div><span>Fehlerreserve</span><strong id="resReserve">0,00 €</strong></div>
+        <div><span>Selbstkosten</span><strong id="resCost">0,00 €</strong></div>
+        <div><span>Gewinn</span><strong id="resProfit">0,00 €</strong></div>
+        <div class="final"><span>Verkaufspreis</span><strong id="resSale">0,00 €</strong></div>
+        <small id="resPerPiece"></small>
       </div>
 
-      <div class="stats-grid">
-        <div class="stat card"><span>Materialien</span><strong id="statMaterials">0</strong></div>
-        <div class="stat card"><span>Projekte</span><strong id="statProjects">0</strong></div>
-        <div class="stat card"><span>Letzter Preis</span><strong id="statLastPrice">–</strong></div>
-      </div>
-    </section>
-
-    <section id="materials" class="view">
-      <div class="section-head">
-        <div><p class="eyebrow">DATENBANK</p><h2>Materialien</h2></div>
-        <button id="addMaterialBtn" class="primary small" type="button">＋ Neu</button>
-      </div>
-      <div class="filter-row">
-        <input id="materialSearch" type="search" placeholder="Material suchen …">
-        <select id="materialFilter">
-          <option value="">Alle Bereiche</option>
-          <option>3D-Druck</option>
-          <option>Laser</option>
-          <option>Vinylfolie</option>
-          <option>Textilfolie</option>
-          <option>Sonstiges</option>
-        </select>
-      </div>
-      <div id="materialList" class="stack"></div>
-    </section>
-
-    <section id="calculator" class="view">
-      <div class="section-head">
-        <div><p class="eyebrow">KALKULATION</p><h2 id="calculatorTitle">Rechner</h2></div>
-        <button id="resetCalcBtn" class="ghost small" type="button">Leeren</button>
-      </div>
-
-      <div class="segmented" id="calcTabs">
-        <button data-calc="calc3d">3D</button>
-        <button data-calc="calcLaser">Laser</button>
-        <button data-calc="calcVinyl">Vinyl</button>
-        <button data-calc="calcTextil">Textil</button>
-      </div>
-
-      <form id="calcForm" class="card form-card" novalidate>
-        <div id="dynamicFields"></div>
-
-        <div class="form-grid">
-          <label>Arbeitszeit (Minuten)
-            <input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value="10">
-          </label>
-          <label>Zusatzkosten (€)
-            <input id="extraCosts" type="number" min="0" step="any" inputmode="decimal" value="0">
-          </label>
-          <label>Gewinnaufschlag (%)
-            <input id="profitPercent" type="number" min="0" step="any" inputmode="decimal" value="30">
-          </label>
-          <label>Rabatt (%)
-            <input id="discountPercent" type="number" min="0" max="100" step="any" inputmode="decimal" value="0">
-          </label>
-        </div>
-
-        <div class="result-box">
-          <div><span>Selbstkosten</span><strong id="costPrice">0,00 €</strong></div>
-          <div><span>Gewinn</span><strong id="profitAmount">0,00 €</strong></div>
-          <div class="result-main"><span>Verkaufspreis</span><strong id="salePrice">0,00 €</strong></div>
-          <small id="resultHint">Alle Werte werden automatisch berechnet.</small>
-        </div>
-
-        <button class="primary wide" type="submit">Projekt speichern</button>
-      </form>
-    </section>
-
-    <section id="projects" class="view">
-      <div class="section-head">
-        <div><p class="eyebrow">VERLAUF</p><h2>Gespeicherte Projekte</h2></div>
-        <button id="clearProjectsBtn" class="danger ghost small" type="button">Alle löschen</button>
-      </div>
-      <div id="projectList" class="stack"></div>
-    </section>
-
-    <section id="settings" class="view">
-      <div class="section-head"><div><p class="eyebrow">SYSTEM</p><h2>Einstellungen</h2></div></div>
-
-      <form id="settingsForm" class="card form-card">
-        <div class="form-grid">
-          <label>Stundenlohn (€)
-            <input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal">
-          </label>
-          <label>Strompreis (€/kWh)
-            <input id="powerPrice" type="number" min="0" step="any" inputmode="decimal">
-          </label>
-          <label>Standard-Gewinn (%)
-            <input id="defaultProfit" type="number" min="0" step="any" inputmode="decimal">
-          </label>
-          <label>Preisrundung
-            <select id="rounding">
-              <option value="0.01">Centgenau</option>
-              <option value="0.1">Auf 10 Cent</option>
-              <option value="0.5">Auf 50 Cent</option>
-              <option value="1">Auf volle Euro</option>
-            </select>
-          </label>
-        </div>
-        <button class="primary wide" type="submit">Einstellungen speichern</button>
-      </form>
-
-      <div class="card backup-card">
-        <h3>Sicherung</h3>
-        <p>Materialien, Projekte und Einstellungen als JSON-Datei sichern oder wiederherstellen.</p>
-        <div class="button-row">
-          <button id="exportBtn" class="secondary" type="button">Backup herunterladen</button>
-          <label class="secondary file-label">Backup einlesen<input id="importInput" type="file" accept=".json,application/json"></label>
-        </div>
-      </div>
-
-      <div class="card warning-card">
-        <h3>Zugriffsschutz</h3>
-        <p>Der Ordner ist aktuell nur durch die unbekannte Adresse verborgen. Ein echter Login muss separat eingerichtet werden.</p>
-      </div>
-    </section>
-  </main>
-
-  <nav class="bottom-nav">
-    <button data-view="dashboard" class="active"><span>⌂</span><small>Start</small></button>
-    <button data-view="materials"><span>▦</span><small>Material</small></button>
-    <button data-view="calculator"><span>€</span><small>Rechner</small></button>
-    <button data-view="projects"><span>☷</span><small>Projekte</small></button>
-    <button data-view="settings"><span>⚙</span><small>System</small></button>
-  </nav>
-
-  <dialog id="materialDialog">
-    <form id="materialForm" method="dialog" class="modal-card">
-      <div class="section-head">
-        <h2 id="materialDialogTitle">Material hinzufügen</h2>
-        <button type="button" class="icon-btn" id="closeMaterialDialog">×</button>
-      </div>
-      <input type="hidden" id="materialId">
-      <label>Materialname
-        <input id="materialName" required placeholder="z. B. PLA+ Schwarz">
-      </label>
-      <label>Bereich
-        <select id="materialArea" required>
-          <option>3D-Druck</option>
-          <option>Laser</option>
-          <option>Vinylfolie</option>
-          <option>Textilfolie</option>
-          <option>Sonstiges</option>
-        </select>
-      </label>
-      <div class="form-grid">
-        <label>Einkaufspreis (€)
-          <input id="purchasePrice" type="number" min="0" step="any" inputmode="decimal" required>
-        </label>
-        <label>Gekaufte Menge
-          <input id="purchaseQuantity" type="number" min="0.000001" step="any" inputmode="decimal" required>
-        </label>
-      </div>
-      <label>Einheit
-        <select id="materialUnit">
-          <option value="g">g</option>
-          <option value="kg">kg</option>
-          <option value="mm">mm</option>
-          <option value="cm">cm</option>
-          <option value="m">m</option>
-          <option value="cm²">cm²</option>
-          <option value="m²">m²</option>
-          <option value="Stück">Stück</option>
-          <option value="ml">ml</option>
-          <option value="l">l</option>
-        </select>
-      </label>
-      <label>Notiz
-        <input id="materialNote" placeholder="optional">
-      </label>
-      <div class="price-preview">Preis je Einheit: <strong id="unitPricePreview">0,00 €</strong></div>
-      <button class="primary wide" value="default" type="submit">Speichern</button>
+      <button class="primary wide" type="submit">Projekt speichern</button>
     </form>
-  </dialog>
+  </section>
 
-  <template id="emptyTemplate">
-    <div class="empty card"><strong>Noch nichts vorhanden</strong><p>Lege den ersten Eintrag an.</p></div>
-  </template>
+  <section id="projects" class="screen">
+    <div class="section-head">
+      <div><div class="eyebrow">VERLAUF</div><h2>Projekte</h2></div>
+      <button id="clearProjectsBtn" class="ghost danger small">Alle löschen</button>
+    </div>
+    <div id="projectList" class="stack"></div>
+  </section>
 
-  <script src="app.js"></script>
+  <section id="settings" class="screen">
+    <div class="section-head">
+      <div><div class="eyebrow">ZENTRALE WERTE</div><h2>Einstellungen</h2></div>
+    </div>
+
+    <form id="settingsForm" class="card form-card">
+      <div class="field-grid">
+        <label>Gewinnaufschlag (%)<input id="setProfit" type="number" step="any" inputmode="decimal"></label>
+        <label>Eigener Stundenlohn (€/h)<input id="setHourly" type="number" step="any" inputmode="decimal"></label>
+        <label>3D-Druck Maschinenkosten (€/h)<input id="set3dMachine" type="number" step="any" inputmode="decimal"></label>
+        <label>Laser Gravur (€/Min.)<input id="setLaserGravur" type="number" step="any" inputmode="decimal"></label>
+        <label>Laser Schnitt (€/Min.)<input id="setLaserSchnitt" type="number" step="any" inputmode="decimal"></label>
+        <label>Plotter Maschinenkosten (€/Min.)<input id="setPlotter" type="number" step="any" inputmode="decimal"></label>
+        <label>Transferpresse (€/Min.)<input id="setPresse" type="number" step="any" inputmode="decimal"></label>
+        <label>Fehler-/Ausschussreserve (%)<input id="setReserve" type="number" step="any" inputmode="decimal"></label>
+        <label>Standard-Verpackung (€)<input id="setPackaging" type="number" step="any" inputmode="decimal"></label>
+        <label>Preisrundung
+          <select id="setRounding">
+            <option value="0.01">Centgenau</option>
+            <option value="0.1">Auf 10 Cent</option>
+            <option value="0.5">Auf 50 Cent</option>
+            <option value="1">Auf volle Euro</option>
+          </select>
+        </label>
+      </div>
+      <button class="primary wide" type="submit">Einstellungen speichern</button>
+    </form>
+
+    <div class="card backup">
+      <h3>Sicherung</h3>
+      <p>Materialien, Einstellungen und Projekte sichern oder wiederherstellen.</p>
+      <div class="button-row">
+        <button id="exportBtn" class="secondary" type="button">Backup herunterladen</button>
+        <label class="secondary file-button">Backup einlesen<input id="importInput" type="file" accept=".json,application/json"></label>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="bottom-nav">
+  <button data-screen="home" class="active"><span>⌂</span><small>Start</small></button>
+  <button data-screen="materials"><span>▦</span><small>Material</small></button>
+  <button data-screen="calculator"><span>€</span><small>Rechner</small></button>
+  <button data-screen="projects"><span>☷</span><small>Projekte</small></button>
+  <button data-screen="settings"><span>⚙</span><small>System</small></button>
+</nav>
+
+<dialog id="materialDialog">
+  <form id="materialForm" class="dialog-card">
+    <div class="section-head">
+      <h2 id="materialDialogTitle">Material hinzufügen</h2>
+      <button type="button" class="icon-btn" id="closeMaterialBtn">×</button>
+    </div>
+    <input id="materialId" type="hidden">
+    <label>Materialname<input id="materialName" required placeholder="z. B. Sperrholz 3 mm"></label>
+    <label>Bereich
+      <select id="materialArea">
+        <option>3D-Druck</option>
+        <option>Laser</option>
+        <option>Vinylfolie</option>
+        <option>Übertragungsfolie</option>
+        <option>Textilfolie</option>
+        <option>Sonstiges</option>
+      </select>
+    </label>
+    <div class="field-grid">
+      <label>Einkaufspreis (€)<input id="materialPrice" type="number" min="0" step="any" inputmode="decimal" required></label>
+      <label>Gekaufte Menge<input id="materialQuantity" type="number" min="0.000001" step="any" inputmode="decimal" required></label>
+    </div>
+    <label>Einheit
+      <select id="materialUnit">
+        <option>g</option><option>kg</option><option>cm²</option><option>m²</option>
+        <option>cm</option><option>m</option><option>Stück</option><option>ml</option><option>l</option>
+      </select>
+    </label>
+    <label>Notiz<input id="materialNote" placeholder="optional"></label>
+    <div class="preview">Preis je Einheit: <strong id="unitPreview">0,00 €</strong></div>
+    <button class="primary wide" type="submit">Speichern</button>
+  </form>
+</dialog>
+
+<template id="emptyState">
+  <div class="card empty"><strong>Noch nichts vorhanden</strong><p>Lege den ersten Eintrag an.</p></div>
+</template>
+
+<script src="app.js"></script>
 </body>
 </html>
