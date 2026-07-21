@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=7">
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="manifest" href="manifest.json?v=8">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -110,9 +110,16 @@
       </div>
 
       <div id="moduleFields"></div>
-
+      <div class="consumables-section">
+        <div class="section-head compact">
+          <div><div class="eyebrow">ZUSÄTZLICH</div><h3>Verbrauchsmaterial</h3></div>
+          <button id="addConsumableBtn" class="secondary small" type="button">＋ Hinzufügen</button>
+        </div>
+        <div id="consumableRows" class="consumable-list"></div>
+      </div>
       <div class="result-card">
-        <div><span>Materialkosten</span><strong id="resMaterial">0,00 €</strong></div>
+        <div><span>Hauptmaterial</span><strong id="resMaterial">0,00 €</strong></div>
+        <div><span>Verbrauchsmaterial</span><strong id="resConsumables">0,00 €</strong></div>
         <div><span>Maschinenkosten</span><strong id="resMachine">0,00 €</strong></div>
         <div><span>Arbeitskosten</span><strong id="resWork">0,00 €</strong></div>
         <div><span>Zusatzkosten</span><strong id="resExtra">0,00 €</strong></div>
@@ -295,6 +302,11 @@
       </select>
     </label>
     <label>Notiz<input id="materialNote" placeholder="optional"></label>
+    <div class="role-box">
+      <div class="group-title">VERWENDUNG</div>
+      <label class="check-row"><input id="materialMainRole" type="checkbox" checked><span>Als Hauptmaterial verwendbar</span></label>
+      <label class="check-row"><input id="materialConsumableRole" type="checkbox"><span>Als Verbrauchsmaterial verwendbar</span></label>
+    </div>
     <div class="preview">Preis je Einheit: <strong id="unitPreview">0,00 €</strong></div>
     <button class="primary wide" type="submit">Speichern</button>
   </form>
@@ -305,6 +317,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

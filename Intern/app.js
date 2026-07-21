@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "7";
+const APP_VERSION = "8";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -45,8 +45,10 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",
 
 function load(){
   try{
-    const saved = JSON.parse(localStorage.getItem(KEY));
-    return {...defaults,...saved,settings:{...defaults.settings,...(saved?.settings||{})}};
+    const saved=JSON.parse(localStorage.getItem(KEY));
+    const merged={...defaults,...saved,settings:{...defaults.settings,...(saved?.settings||{})}};
+    merged.materials=(merged.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges")}));
+    return merged;
   }catch{return structuredClone(defaults)}
 }
 function save(){
@@ -141,6 +143,8 @@ function openMaterial(m=null){
   $("materialQuantity").value=m?.quantity??"";
   $("materialUnit").value=m?.unit||"g";
   $("materialNote").value=m?.note||"";
+  $("materialMainRole").checked=m?m.mainRole!==false:true;
+  $("materialConsumableRole").checked=m?Boolean(m.consumableRole):false;
   previewUnit();
   dialog.showModal();
 }
@@ -152,7 +156,7 @@ $("materialForm").onsubmit=e=>{
   e.preventDefault();
   const name=$("materialName").value.trim(),price=num($("materialPrice").value),quantity=num($("materialQuantity").value);
   if(!name||quantity<=0){alert("Bitte Materialname und eine gültige Menge eingeben.");return}
-  const item={id:$("materialId").value||uid(),name,area:$("materialArea").value,price,quantity,unit:$("materialUnit").value,note:$("materialNote").value.trim(),unitPrice:price/quantity};
+  const item={id:$("materialId").value||uid(),name,area:$("materialArea").value,price,quantity,unit:$("materialUnit").value,note:$("materialNote").value.trim(),unitPrice:price/quantity,mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked};
   const i=state.materials.findIndex(x=>x.id===item.id); if(i>=0) state.materials[i]=item; else state.materials.push(item);
   save();dialog.close();renderMaterials();
 };
@@ -162,7 +166,7 @@ function renderMaterials(){
   $("materialList").innerHTML=list.length?list.map(m=>`
     <article class="card material-item">
       <div class="item-top">
-        <div><div class="item-title">${esc(m.name)}</div><div class="item-meta">${esc(m.area)} · ${m.quantity} ${esc(m.unit)}${m.note?" · "+esc(m.note):""}</div></div>
+        <div><div class="item-title">${esc(m.name)}</div><div class="item-meta">${esc(m.area)} · ${m.quantity} ${esc(m.unit)}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauchsmaterial</span>':''}</div></div>
         <div class="item-price">${euro(m.unitPrice)}<small> / ${esc(m.unit)}</small></div>
       </div>
       <div class="item-actions"><button data-edit="${m.id}">Bearbeiten</button><button data-delete="${m.id}" class="danger">Löschen</button></div>
@@ -173,14 +177,32 @@ function renderMaterials(){
 
 const titles={ "3d":"3D-Druck","laser":"Laser","vinyl":"Vinylfolie","textil":"Textilfolie" };
 function options(area){
-  return `<option value="">Material auswählen</option>`+state.materials.filter(m=>m.area===area).map(m=>`<option value="${m.id}">${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
+  return `<option value="">Material auswählen</option>`+state.materials.filter(m=>m.area===area&&m.mainRole!==false).map(m=>`<option value="${m.id}">${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
 }
 function infoRow(label,id,unit){
   return `<div class="info-line">${label}: <strong id="${id}">0,00 €</strong> ${unit||""}</div>`;
 }
 
+
+let consumableSelections=[];
+function consumableOptions(selectedId=""){
+  const items=state.materials.filter(m=>m.consumableRole).sort((a,b)=>a.name.localeCompare(b.name));
+  return `<option value="">Verbrauchsmaterial auswählen</option>`+items.map(m=>`<option value="${m.id}" ${m.id===selectedId?"selected":""}>${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
+}
+function renderConsumables(){
+  const box=$("consumableRows"); if(!box)return;
+  if(!consumableSelections.length){box.innerHTML='<div class="consumable-empty">Noch kein Verbrauchsmaterial hinzugefügt.</div>';return;}
+  box.innerHTML=consumableSelections.map((row,index)=>`<div class="consumable-row"><label>Material<select data-consumable-select="${index}">${consumableOptions(row.materialId)}</select></label><label>Menge<input data-consumable-qty="${index}" type="number" min="0" step="any" inputmode="decimal" value="${row.quantity}"></label><button type="button" class="remove-consumable" data-consumable-remove="${index}">×</button></div>`).join("");
+  document.querySelectorAll("[data-consumable-select]").forEach(el=>el.oninput=()=>{consumableSelections[+el.dataset.consumableSelect].materialId=el.value;calculate();});
+  document.querySelectorAll("[data-consumable-qty]").forEach(el=>el.oninput=()=>{consumableSelections[+el.dataset.consumableQty].quantity=num(el.value);calculate();});
+  document.querySelectorAll("[data-consumable-remove]").forEach(btn=>btn.onclick=()=>{consumableSelections.splice(+btn.dataset.consumableRemove,1);renderConsumables();calculate();});
+}
+function consumablesCost(){return consumableSelections.reduce((sum,row)=>{const mat=state.materials.find(m=>m.id===row.materialId);return sum+(mat?.unitPrice||0)*num(row.quantity);},0);}
+$("addConsumableBtn").onclick=()=>{consumableSelections.push({materialId:"",quantity:1});renderConsumables();};
+
 function renderCalculator(clear=false){
   const type=state.activeModule||"3d";
+  if(clear)consumableSelections=[];
   $("calcTitle").textContent=titles[type];
   document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===type));
   $("projectName").value=clear?"":$("projectName").value;
@@ -270,6 +292,7 @@ function renderCalculator(clear=false){
     </div>`;
 
   $("moduleFields").innerHTML=html;
+  renderConsumables();
   document.querySelectorAll("#calcForm input,#calcForm select").forEach(el=>el.oninput=calculate);
   calculate();
 }
@@ -291,6 +314,7 @@ function calculate(){
   if($("priceTransfer")) $("priceTransfer").textContent=transfer?`${euro(unitTransfer)} / ${transfer.unit}`:"0,00 €";
 
   let material=0,machine=0,work=0,extra=0,qty=1;
+  const consumables=consumablesCost();
 
   if(type==="3d"){
     material=unitMain*num($("usageMain")?.value);
@@ -320,13 +344,14 @@ function calculate(){
     extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
 
-  const base=material+machine+work+extra;
+  const base=material+consumables+machine+work+extra;
   const reserve=base*num($("reserve")?.value)/100;
   const cost=base+reserve;
   const profit=cost*num($("profit")?.value)/100;
   const sale=rounded(cost+profit);
 
   $("resMaterial").textContent=euro(material);
+  $("resConsumables").textContent=euro(consumables);
   $("resMachine").textContent=euro(machine);
   $("resWork").textContent=euro(work);
   $("resExtra").textContent=euro(extra);
@@ -342,7 +367,7 @@ function calculate(){
 $("calcForm").onsubmit=e=>{
   e.preventDefault();calculate();
   const title=$("projectName").value.trim()||`${titles[state.activeModule]} ${new Date().toLocaleDateString("de-DE")}`;
-  const p={id:uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,created:new Date().toISOString()};
+  const p={id:uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),created:new Date().toISOString()};
   state.projects.unshift(p);state.lastPrice=p.sale;save();alert("Projekt gespeichert.");
 };
 
@@ -466,7 +491,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=7").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=8").catch(()=>{}));
 
 
 async function initializeAuth(){
