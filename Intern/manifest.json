@@ -1,10 +1,10 @@
 {
   "name": "Daniels Laser Art Kalkulator",
   "short_name": "DLA Kalkulator",
-  "start_url": "./?v=8",
+  "start_url": "./?v=9",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#070a10",
-  "theme_color": "#090d14",
-  "description": "Cloud-Kalkulator mit Verbrauchsmaterialien für Daniels Laser Art"
+  "background_color": "#0b0705",
+  "theme_color": "#160e09",
+  "description": "Daniels Laser Art Kalkulator im Website-Design"
 }
