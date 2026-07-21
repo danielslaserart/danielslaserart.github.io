@@ -9,12 +9,33 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="authGate" class="auth-gate">
+  <div class="auth-card card">
+    <div class="eyebrow">DANIELS LASER ART</div>
+    <h2>Interner Kalkulator</h2>
+    <p id="authText">Melde dich an, damit deine Daten sicher in Supabase gespeichert werden.</p>
+    <form id="loginForm">
+      <label>E-Mail-Adresse
+        <input id="loginEmail" type="email" autocomplete="username" required>
+      </label>
+      <label>Passwort
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="primary wide" type="submit">Anmelden</button>
+    </form>
+    <div id="authError" class="auth-error"></div>
+  </div>
+</div>
 <header class="app-header">
   <div>
     <div class="eyebrow">DANIELS LASER ART</div>
     <h1>Kalkulator</h1>
   </div>
-  <button id="installBtn" class="icon-btn hidden" type="button">＋</button>
+  <div class="header-actions">
+    <span id="syncStatus" class="sync-status">Offline</span>
+    <button id="logoutBtn" class="icon-btn hidden" type="button" title="Abmelden">↪</button>
+    <button id="installBtn" class="icon-btn hidden" type="button">＋</button>
+  </div>
 </header>
 
 <main>
@@ -101,6 +122,7 @@
       <div><div class="eyebrow">VERLAUF</div><h2>Projekte</h2></div>
       <button id="clearProjectsBtn" class="ghost danger small">Alle löschen</button>
     </div>
+    <input id="projectSearch" class="project-search" type="search" placeholder="Projekt oder Kunde suchen …">
     <div id="projectList" class="stack"></div>
   </section>
 
@@ -132,9 +154,14 @@
       <button class="primary wide" type="submit">Einstellungen speichern</button>
     </form>
 
+    <div class="card cloud-card">
+      <h3>☁ Cloud-Speicherung</h3>
+      <p>Materialien, Einstellungen und Projekte werden nach jeder Änderung automatisch in deinem Supabase-Konto gespeichert.</p>
+    </div>
+
     <div class="card backup">
-      <h3>Sicherung</h3>
-      <p>Materialien, Einstellungen und Projekte sichern oder wiederherstellen.</p>
+      <h3>Zusätzliche Sicherung</h3>
+      <p>Die Daten werden automatisch in Supabase gespeichert. Zusätzlich kannst du eine lokale Sicherungsdatei herunterladen.</p>
       <div class="button-row">
         <button id="exportBtn" class="secondary" type="button">Backup herunterladen</button>
         <label class="secondary file-button">Backup einlesen<input id="importInput" type="file" accept=".json,application/json"></label>
@@ -189,6 +216,7 @@
   <div class="card empty"><strong>Noch nichts vorhanden</strong><p>Lege den ersten Eintrag an.</p></div>
 </template>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 </body>
 </html>

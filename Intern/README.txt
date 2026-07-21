@@ -1,28 +1,37 @@
-Daniels Laser Art – Kalkulator V3
+Daniels Laser Art – Kalkulator V5
 
-Enthalten:
-- Materialdatenbank
-- 3D-Druck mit Druckzeit in Minuten
-- Laser mit Gravur, Schnitt, Zubehör, Verpackung und Reserve
-- Vinyl mit separater Übertragungsfolie
-- Textil mit Textilpreis, Farben, Pressen und Stückzahl
-- Zentrale Einstellungen wie in deiner Tabelle
-- Projekte, Gewinn, Preis je Stück und Backup
+Supabase ist bereits eingerichtet. Du musst keine SQL-Abfrage mehr ausführen.
 
-UPLOAD:
+HOCHLADEN:
 1. ZIP entpacken.
-2. Im GitHub-Ordner „Intern“ alle bisherigen App-Dateien ersetzen:
-   index.html
-   style.css
-   app.js
-   manifest.json
-   sw.js
+2. Im GitHub-Ordner „Intern“ diese fünf Dateien ersetzen:
+   - index.html
+   - style.css
+   - app.js
+   - manifest.json
+   - sw.js
 3. Commit speichern.
-4. Etwa 1–3 Minuten warten.
-5. Diese Adresse öffnen:
-   https://danielslaserart.de/Intern/?v=3
+4. 1–3 Minuten warten.
+5. Öffnen:
+   https://danielslaserart.de/Intern/?v=5
 
-WICHTIG:
-- Der Ordner heißt bei dir „Intern“ mit großem I.
-- README.txt muss nicht hochgeladen werden.
-- Durch ?v=3 und den neuen Service-Worker-Namen wird die alte App-Version umgangen.
+ANMELDUNG:
+Mit deinem in Supabase angelegten Benutzer anmelden.
+
+SPEICHERUNG:
+- Materialien, Einstellungen und Projekte werden automatisch in Supabase gespeichert.
+- Cache- oder Browserdaten-Löschen löscht die Cloud-Daten nicht.
+- Nach Anmeldung auf einem anderen Gerät werden dieselben Daten geladen.
+- Unter System kann zusätzlich eine JSON-Sicherung heruntergeladen werden.
+
+ENTHALTEN:
+- Materialdatenbank
+- 3D-Druck-Kalkulation
+- Laser-Kalkulation
+- Vinyl-Kalkulation
+- Textil-Kalkulation
+- zentrale Einstellungen
+- Projektverlauf mit Suche
+- automatische Cloud-Synchronisierung
+- keine Fotos
+- kein Lagerbestand

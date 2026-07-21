@@ -1,6 +1,15 @@
 (() => {
 "use strict";
 
+const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
+const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+let currentUser = null;
+let cloudReady = false;
+let saveTimer = null;
+
 const KEY = "dla_kalkulator_v3";
 const defaults = {
   settings:{
@@ -26,7 +35,59 @@ function load(){
     return {...defaults,...saved,settings:{...defaults.settings,...(saved?.settings||{})}};
   }catch{return structuredClone(defaults)}
 }
-function save(){ localStorage.setItem(KEY,JSON.stringify(state)); updateHome(); }
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(state));
+  updateHome();
+  scheduleCloudSave();
+}
+function setSyncStatus(text, kind=""){
+  const el=$("syncStatus");
+  if(!el)return;
+  el.textContent=text;
+  el.className="sync-status "+kind;
+}
+function scheduleCloudSave(){
+  if(!cloudReady || !currentUser)return;
+  clearTimeout(saveTimer);
+  setSyncStatus("Speichert …","busy");
+  saveTimer=setTimeout(saveCloudState,500);
+}
+async function saveCloudState(){
+  if(!currentUser)return;
+  const { error } = await db.from("app_state").upsert({
+    user_id: currentUser.id,
+    data: state,
+    updated_at: new Date().toISOString()
+  }, { onConflict: "user_id" });
+  if(error){
+    console.error(error);
+    setSyncStatus("Fehler","error");
+  }else{
+    setSyncStatus("Gespeichert","ok");
+  }
+}
+async function loadCloudState(){
+  setSyncStatus("Synchronisiert …","busy");
+  const { data, error } = await db.from("app_state").select("data").eq("user_id",currentUser.id).maybeSingle();
+  if(error){
+    console.error(error);
+    setSyncStatus("DB-Fehler","error");
+    return false;
+  }
+  if(data?.data){
+    state={...defaults,...data.data,settings:{...defaults.settings,...(data.data.settings||{})}};
+    localStorage.setItem(KEY,JSON.stringify(state));
+  }else{
+    await saveCloudState();
+  }
+  updateHome();
+  renderCalculator();
+  renderMaterials();
+  renderProjects();
+  fillSettings();
+  setSyncStatus("Gespeichert","ok");
+  return true;
+}
 
 function setScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
@@ -271,7 +332,9 @@ $("calcForm").onsubmit=e=>{
 };
 
 function renderProjects(){
-  $("projectList").innerHTML=state.projects.length?state.projects.map(p=>`
+  const term=($("projectSearch")?.value||"").trim().toLowerCase();
+  const list=state.projects.filter(p=>!term||`${p.title} ${p.customer||""} ${p.type||""}`.toLowerCase().includes(term));
+  $("projectList").innerHTML=list.length?list.map(p=>`
     <article class="card project-item">
       <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.customer?" · "+esc(p.customer):""} · ${new Date(p.created).toLocaleString("de-DE")}</div></div><div class="item-price">${euro(p.sale)}</div></div>
       <div class="item-meta">Selbstkosten: ${euro(p.cost)} · Gewinn: ${euro(p.sale-p.cost)}${p.qty>1?" · "+euro(p.sale/p.qty)+" je Stück":""}</div>
@@ -280,6 +343,7 @@ function renderProjects(){
   document.querySelectorAll("[data-del-project]").forEach(b=>b.onclick=()=>{if(confirm("Projekt löschen?")){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects()}});
 }
 $("clearProjectsBtn").onclick=()=>{if(state.projects.length&&confirm("Wirklich alle Projekte löschen?")){state.projects=[];save();renderProjects()}};
+$("projectSearch").oninput=renderProjects;
 
 function fillSettings(){
   $("setProfit").value=state.settings.profit;$("setHourly").value=state.settings.hourly;$("set3dMachine").value=state.settings.machine3d;
@@ -310,7 +374,52 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=5").catch(()=>{}));
+
+
+async function initializeAuth(){
+  const { data:{ session } } = await db.auth.getSession();
+  if(session?.user){
+    await enterApp(session.user);
+  }else{
+    $("authGate").classList.remove("hidden");
+    $("logoutBtn").classList.add("hidden");
+  }
+  db.auth.onAuthStateChange(async (event, session)=>{
+    if(event==="SIGNED_IN" && session?.user && session.user.id!==currentUser?.id){
+      await enterApp(session.user);
+    }
+    if(event==="SIGNED_OUT"){
+      currentUser=null;cloudReady=false;
+      $("authGate").classList.remove("hidden");
+      $("logoutBtn").classList.add("hidden");
+      setSyncStatus("Offline","");
+    }
+  });
+}
+async function enterApp(user){
+  currentUser=user;
+  $("authGate").classList.add("hidden");
+  $("logoutBtn").classList.remove("hidden");
+  cloudReady=false;
+  const ok=await loadCloudState();
+  cloudReady=ok;
+}
+$("loginForm").onsubmit=async e=>{
+  e.preventDefault();
+  $("authError").textContent="";
+  const email=$("loginEmail").value.trim();
+  const password=$("loginPassword").value;
+  const btn=e.submitter;
+  btn.disabled=true;btn.textContent="Anmeldung …";
+  const { error }=await db.auth.signInWithPassword({email,password});
+  if(error)$("authError").textContent="Anmeldung fehlgeschlagen. Prüfe E-Mail und Passwort.";
+  btn.disabled=false;btn.textContent="Anmelden";
+};
+$("logoutBtn").onclick=async()=>{
+  if(confirm("Wirklich abmelden?")) await db.auth.signOut();
+};
 
 renderCalculator();
+initializeAuth();
 })();
