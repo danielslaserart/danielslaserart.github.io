@@ -26,7 +26,7 @@ body{
   font-family:Georgia,"Times New Roman",serif;
   background:
     linear-gradient(rgba(10,6,4,.78),rgba(10,6,4,.88)),
-    url("../assets/background.webp") center/cover fixed,
+    url("/background.webp") center/cover fixed,
     radial-gradient(circle at top,#332116 0,#130c08 55%,#080503 100%);
 }
 body::before{
@@ -55,7 +55,7 @@ button{cursor:pointer}
   padding:14px 16px 12px;
   background:
     linear-gradient(180deg,rgba(18,11,7,.98),rgba(18,11,7,.91)),
-    url("../assets/banner2.webp") center/cover;
+    url("/banner2.webp") center/cover;
   backdrop-filter:blur(18px);
   border-bottom:1px solid var(--line-strong);
   box-shadow:0 8px 26px rgba(0,0,0,.34);
@@ -457,7 +457,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(5px)}
   padding:18px;
   background:
     linear-gradient(rgba(10,6,4,.78),rgba(10,6,4,.92)),
-    url("../assets/background.webp") center/cover;
+    url("/background.webp") center/cover;
 }
 .auth-gate.hidden{display:none!important}
 .auth-card{width:min(100%,430px);padding:25px}

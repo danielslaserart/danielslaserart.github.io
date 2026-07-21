@@ -1,25 +1,23 @@
-Daniels Laser Art – Kalkulator V9 Website-Design
+Daniels Laser Art – Kalkulator V10
 
-Neu:
-- Optik an Daniels Laser Art angepasst
-- rustikaler Holz-Hintergrund über ../assets/background.webp
-- Bannerstruktur über ../assets/banner2.webp
-- Schwarz-/Holz-/Gold-Farben
-- C’est-la-vie-Schriftzug im Kopfbereich
-- edlere Karten, Buttons, Formulare und Navigation
-- alle Funktionen aus V8 bleiben erhalten
+Behoben:
+- Hintergrundpfad auf /background.webp korrigiert
+- Bannerpfad auf /banner2.webp korrigiert
+- eigenes App-Icon in 192×192 und 512×512 eingebaut
+- Apple-Touch-Icon ergänzt
+- Manifest und Service Worker aktualisiert
 
-Upload:
-Im GitHub-Ordner „Intern“ ersetzen:
+Im GitHub-Ordner Intern hochladen/ersetzen:
 index.html
 style.css
 app.js
 manifest.json
 sw.js
+icon-192.png
+icon-512.png
 
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=9
+https://danielslaserart.de/Intern/?v=10
 
-Verwendete bestehende Website-Pfade:
-../assets/background.webp
-../assets/banner2.webp
+Wichtig für das neue App-Icon:
+Eine bereits installierte alte App zuerst vom Handy löschen und anschließend V10 neu installieren.

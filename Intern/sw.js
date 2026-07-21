@@ -1,6 +1,6 @@
-const CACHE="dla-kalkulator-v9-20260721";
-const FALLBACK="./index.html?v=9";
-const ASSETS=["./?v=9","./index.html?v=9","./style.css?v=9","./app.js?v=9","./manifest.json?v=9"];
+const CACHE="dla-kalkulator-v10-20260721";
+const FALLBACK="./index.html?v=10";
+const ASSETS=["./?v=10","./index.html?v=10","./style.css?v=10","./app.js?v=10","./manifest.json?v=10","./icon-192.png","./icon-512.png"];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{
