@@ -1,157 +1,356 @@
+(() => {
+  "use strict";
 
-const DEFAULTS = {
-  settings:{
-    profit:30, labor:15, printMachine:0.60, laserEngrave:0.10, laserCut:0.15,
-    plotter:0.10, press:0.15, waste:5, packaging:0.50, rounding:0.10, psychological:0.01
-  },
-  materials:[
-    {id:crypto.randomUUID(),name:'PLA+ Schwarz',area:'3D-Druck',price:20,amount:1000,unit:'g',note:'Beispiel'},
-    {id:crypto.randomUUID(),name:'PLA+ Weiß',area:'3D-Druck',price:20,amount:1000,unit:'g',note:'Beispiel'},
-    {id:crypto.randomUUID(),name:'PETG',area:'3D-Druck',price:24,amount:1000,unit:'g',note:'Beispiel'},
-    {id:crypto.randomUUID(),name:'Sperrholz 3 mm',area:'Laser',price:4.5,amount:1800,unit:'cm²',note:'30 × 60 cm'},
-    {id:crypto.randomUUID(),name:'Sperrholz 4 mm',area:'Laser',price:5.5,amount:1800,unit:'cm²',note:'30 × 60 cm'},
-    {id:crypto.randomUUID(),name:'Schiefer',area:'Laser',price:3,amount:540,unit:'cm²',note:'30 × 18 cm'},
-    {id:crypto.randomUUID(),name:'Vinylfolie Schwarz',area:'Vinyl',price:8,amount:3000,unit:'cm²',note:'30 cm × 1 m'},
-    {id:crypto.randomUUID(),name:'Vinylfolie Weiß',area:'Vinyl',price:8,amount:3000,unit:'cm²',note:'30 cm × 1 m'},
-    {id:crypto.randomUUID(),name:'Übertragungsfolie',area:'Übertragung',price:5,amount:3000,unit:'cm²',note:'30 cm × 1 m'},
-    {id:crypto.randomUUID(),name:'Textilfolie Schwarz',area:'Textil',price:12,amount:3000,unit:'cm²',note:'30 cm × 1 m'},
-    {id:crypto.randomUUID(),name:'Textilfolie Weiß',area:'Textil',price:12,amount:3000,unit:'cm²',note:'30 cm × 1 m'}
-  ]
-};
-let state = JSON.parse(localStorage.getItem('dlaKalkulator') || 'null') || structuredClone(DEFAULTS);
-const save=()=>localStorage.setItem('dlaKalkulator',JSON.stringify(state));
-const euro=n=>(Number(n)||0).toLocaleString('de-DE',{style:'currency',currency:'EUR'});
-const num=v=>Number(v)||0;
-const byArea=a=>state.materials.filter(m=>m.area===a);
-const unitPrice=m=>m?num(m.price)/Math.max(num(m.amount),.000001):0;
-function roundUp(v,step){return Math.ceil(v/step)*step}
-function finalPrice(cost,profit,waste,qty){
-  const total=cost*(1+waste/100)*(1+profit/100);
-  const per=total/Math.max(qty,1);
-  return Math.max(0,roundUp(per,state.settings.rounding)-state.settings.psychological);
-}
-function showView(id){
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));
-  document.getElementById('drawer').classList.remove('open');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-document.addEventListener('click',e=>{
-  const target=e.target.closest('[data-view]');
-  if(target) showView(target.dataset.view);
-});
-document.getElementById('menuBtn').onclick=()=>document.getElementById('drawer').classList.toggle('open');
+  const STORAGE_KEY = "dla_kalkulator_v2";
+  const defaultState = {
+    settings: { hourlyRate: 5, powerPrice: 0.35, defaultProfit: 30, rounding: 0.1 },
+    materials: [],
+    projects: [],
+    lastPrice: null,
+    activeCalc: "calc3d"
+  };
 
-function renderMaterials(){
-  const box=document.getElementById('materialList');
-  box.innerHTML='';
-  state.materials.sort((a,b)=>a.area.localeCompare(b.area)||a.name.localeCompare(b.name)).forEach(m=>{
-    const el=document.createElement('div');
-    el.className='material-card';
-    el.innerHTML=`<div class="material-top"><div><b>${m.name}</b><div class="material-meta">${m.area} · ${m.price.toFixed(2)} € / ${m.amount} ${m.unit}${m.note?' · '+m.note:''}</div><span class="price-badge">${unitPrice(m).toFixed(4)} € je ${m.unit}</span></div><div class="material-actions"><button class="small-btn edit">✏️</button><button class="small-btn del">🗑️</button></div></div>`;
-    el.querySelector('.edit').onclick=()=>openMaterial(m);
-    el.querySelector('.del').onclick=()=>{if(confirm(`„${m.name}“ löschen?`)){state.materials=state.materials.filter(x=>x.id!==m.id);save();renderAll();}};
-    box.appendChild(el);
+  let state = loadState();
+  let deferredPrompt = null;
+
+  const $ = (id) => document.getElementById(id);
+  const money = (n) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(Number(n || 0));
+  const number = (value) => {
+    if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+    return Number(String(value ?? "").replace(",", ".")) || 0;
+  };
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(16).slice(2));
+  const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      return { ...defaultState, ...saved, settings: { ...defaultState.settings, ...(saved?.settings || {}) } };
+    } catch {
+      return structuredClone(defaultState);
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    updateStats();
+  }
+
+  function setView(view) {
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === view));
+    document.querySelectorAll(".bottom-nav button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (view === "materials") renderMaterials();
+    if (view === "projects") renderProjects();
+    if (view === "calculator") renderCalculator();
+    if (view === "settings") fillSettings();
+  }
+
+  function updateStats() {
+    $("statMaterials").textContent = state.materials.length;
+    $("statProjects").textContent = state.projects.length;
+    $("statLastPrice").textContent = state.lastPrice == null ? "–" : money(state.lastPrice);
+  }
+
+  document.querySelectorAll("[data-view]").forEach(btn => btn.addEventListener("click", () => setView(btn.dataset.view)));
+  document.querySelectorAll("[data-open]").forEach(btn => btn.addEventListener("click", () => {
+    state.activeCalc = btn.dataset.open;
+    saveState();
+    setView("calculator");
+  }));
+
+  // MATERIALS
+  const materialDialog = $("materialDialog");
+  $("addMaterialBtn").addEventListener("click", () => openMaterialDialog());
+  $("closeMaterialDialog").addEventListener("click", () => materialDialog.close());
+  $("materialSearch").addEventListener("input", renderMaterials);
+  $("materialFilter").addEventListener("change", renderMaterials);
+  ["purchasePrice","purchaseQuantity"].forEach(id => $(id).addEventListener("input", updateUnitPreview));
+
+  function openMaterialDialog(material = null) {
+    $("materialDialogTitle").textContent = material ? "Material bearbeiten" : "Material hinzufügen";
+    $("materialId").value = material?.id || "";
+    $("materialName").value = material?.name || "";
+    $("materialArea").value = material?.area || "3D-Druck";
+    $("purchasePrice").value = material?.purchasePrice ?? "";
+    $("purchaseQuantity").value = material?.purchaseQuantity ?? "";
+    $("materialUnit").value = material?.unit || "g";
+    $("materialNote").value = material?.note || "";
+    updateUnitPreview();
+    materialDialog.showModal();
+  }
+
+  function updateUnitPreview() {
+    const q = number($("purchaseQuantity").value);
+    const p = number($("purchasePrice").value);
+    $("unitPricePreview").textContent = q > 0 ? `${money(p/q)} / ${$("materialUnit").value}` : "0,00 €";
+  }
+
+  $("materialUnit").addEventListener("change", updateUnitPreview);
+
+  $("materialForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("materialName").value.trim();
+    const purchasePrice = number($("purchasePrice").value);
+    const purchaseQuantity = number($("purchaseQuantity").value);
+    if (!name || purchasePrice < 0 || purchaseQuantity <= 0) {
+      alert("Bitte Materialname, Preis und eine gültige Menge eingeben.");
+      return;
+    }
+    const item = {
+      id: $("materialId").value || uid(),
+      name,
+      area: $("materialArea").value,
+      purchasePrice,
+      purchaseQuantity,
+      unit: $("materialUnit").value,
+      note: $("materialNote").value.trim(),
+      unitPrice: purchasePrice / purchaseQuantity
+    };
+    const idx = state.materials.findIndex(m => m.id === item.id);
+    if (idx >= 0) state.materials[idx] = item; else state.materials.push(item);
+    saveState();
+    materialDialog.close();
+    renderMaterials();
   });
-}
-const dialog=document.getElementById('materialDialog');
-document.getElementById('addMaterialBtn').onclick=()=>openMaterial();
-function openMaterial(m=null){
-  document.getElementById('materialDialogTitle').textContent=m?'Material bearbeiten':'Material hinzufügen';
-  document.getElementById('materialId').value=m?.id||'';
-  document.getElementById('materialName').value=m?.name||'';
-  document.getElementById('materialArea').value=m?.area||'3D-Druck';
-  document.getElementById('materialPrice').value=m?.price||'';
-  document.getElementById('materialAmount').value=m?.amount||'';
-  document.getElementById('materialUnit').value=m?.unit||'g';
-  document.getElementById('materialNote').value=m?.note||'';
-  dialog.showModal();
-}
-document.getElementById('materialForm').addEventListener('submit',e=>{
-  if(e.submitter?.value==='cancel') return;
-  e.preventDefault();
-  const id=document.getElementById('materialId').value||crypto.randomUUID();
-  const m={id,name:materialName.value.trim(),area:materialArea.value,price:num(materialPrice.value),amount:num(materialAmount.value),unit:materialUnit.value,note:materialNote.value.trim()};
-  const i=state.materials.findIndex(x=>x.id===id);
-  if(i>=0) state.materials[i]=m; else state.materials.push(m);
-  save();dialog.close();renderAll();
-});
 
-const calcDefs={
-  druck:{title:'3D-Druck',area:'3D-Druck',fields:[
-    ['material','Material','select'],['usage','Filamentverbrauch (g)','number',100],['duration','Druckdauer (Min.)','number',300],
-    ['laborMin','Arbeitszeit (Min.)','number',10],['other','Sonstige Kosten (€)','number',0],['qty','Stückzahl','number',1]
-  ],calc:v=>{
-    const m=state.materials.find(x=>x.id===v.material);
-    const mat=unitPrice(m)*v.usage, machine=v.duration/60*state.settings.printMachine, labor=v.laborMin/60*state.settings.labor;
-    const base=mat+machine+labor+state.settings.packaging+v.other;
-    return [['Materialkosten',mat],['Maschinenkosten',machine],['Arbeitskosten',labor],['Verpackung',state.settings.packaging],['Gesamtkosten',base*(1+state.settings.waste/100)],['Gewinn',base*(1+state.settings.waste/100)*state.settings.profit/100],['END',finalPrice(base,state.settings.profit,state.settings.waste,v.qty)]];
-  }},
-  laser:{title:'Laser',area:'Laser',fields:[
-    ['material','Material','select'],['areaUsed','Verbrauchte Fläche (cm²)','number',300],['engrave','Gravurdauer (Min.)','number',20],
-    ['cut','Schnittdauer (Min.)','number',10],['laborMin','Arbeitszeit (Min.)','number',10],['extras','Zubehör / Farbe / Kleber (€)','number',0],
-    ['other','Sonstige Kosten (€)','number',0],['qty','Stückzahl','number',1]
-  ],calc:v=>{
-    const m=state.materials.find(x=>x.id===v.material), mat=unitPrice(m)*v.areaUsed, eng=v.engrave*state.settings.laserEngrave, cut=v.cut*state.settings.laserCut, labor=v.laborMin/60*state.settings.labor;
-    const base=mat+eng+cut+labor+v.extras+state.settings.packaging+v.other;
-    return [['Materialkosten',mat],['Gravurkosten',eng],['Schnittkosten',cut],['Arbeitskosten',labor],['Verpackung',state.settings.packaging],['Gesamtkosten',base*(1+state.settings.waste/100)],['Gewinn',base*(1+state.settings.waste/100)*state.settings.profit/100],['END',finalPrice(base,state.settings.profit,state.settings.waste,v.qty)]];
-  }},
-  vinyl:{title:'Vinylfolie',area:'Vinyl',secondArea:'Übertragung',fields:[
-    ['material','Vinylfolie','select'],['areaUsed','Vinylfläche (cm²)','number',400],['transfer','Übertragungsfolie','select2'],['transferArea','Fläche Übertragungsfolie (cm²)','number',400],
-    ['plot','Plottdauer (Min.)','number',5],['weed','Entgitterzeit (Min.)','number',15],['mount','Montagezeit (Min.)','number',10],['other','Sonstige Kosten (€)','number',0],['qty','Stückzahl','number',1]
-  ],calc:v=>{
-    const m=state.materials.find(x=>x.id===v.material),t=state.materials.find(x=>x.id===v.transfer);
-    const mat=unitPrice(m)*v.areaUsed, trans=unitPrice(t)*v.transferArea, machine=v.plot*state.settings.plotter, labor=(v.weed+v.mount)/60*state.settings.labor;
-    const base=mat+trans+machine+labor+state.settings.packaging+v.other;
-    return [['Vinylkosten',mat],['Übertragungsfolie',trans],['Plotterkosten',machine],['Arbeitskosten',labor],['Verpackung',state.settings.packaging],['Gesamtkosten',base*(1+state.settings.waste/100)],['Gewinn',base*(1+state.settings.waste/100)*state.settings.profit/100],['END',finalPrice(base,state.settings.profit,state.settings.waste,v.qty)]];
-  }},
-  textil:{title:'Textilfolie',area:'Textil',fields:[
-    ['material','Textilfolie','select'],['textile','Textilpreis pro Stück (€)','number',5],['areaUsed','Folienfläche je Farbe/Stück (cm²)','number',400],
-    ['colors','Anzahl Farben','number',1],['plot','Plottdauer je Stück (Min.)','number',5],['weed','Entgitterzeit je Stück (Min.)','number',15],
-    ['pressMin','Presszeit je Stück (Min.)','number',3],['prep','Vor-/Nachbereitung je Stück (Min.)','number',10],['qty','Stückzahl','number',1]
-  ],calc:v=>{
-    const m=state.materials.find(x=>x.id===v.material),q=Math.max(v.qty,1);
-    const textile=v.textile*q, foil=unitPrice(m)*v.areaUsed*v.colors*q, plot=v.plot*state.settings.plotter*q, press=v.pressMin*state.settings.press*q, labor=(v.weed+v.prep)/60*state.settings.labor*q;
-    const base=textile+foil+plot+press+labor+state.settings.packaging;
-    return [['Textilien',textile],['Folienkosten',foil],['Plotterkosten',plot],['Pressenkosten',press],['Arbeitskosten',labor],['Verpackung',state.settings.packaging],['Gesamtkosten',base*(1+state.settings.waste/100)],['Gewinn',base*(1+state.settings.waste/100)*state.settings.profit/100],['END',finalPrice(base,state.settings.profit,state.settings.waste,q)]];
-  }}
-};
-const calcState={};
-function renderCalculator(id){
-  const d=calcDefs[id],el=document.getElementById(id);
-  calcState[id]=calcState[id]||{};
-  let html=`<div class="section-head"><div><div class="eyebrow">Kalkulation</div><h2>${d.title}</h2></div></div><div class="card calc-grid">`;
-  d.fields.forEach(([key,label,type,def])=>{
-    if(calcState[id][key]===undefined) calcState[id][key]=type.startsWith('select')?'':def;
-    if(type==='select'||type==='select2'){
-      const area=type==='select2'?d.secondArea:d.area, mats=byArea(area);
-      if(!calcState[id][key]&&mats[0]) calcState[id][key]=mats[0].id;
-      html+=`<div class="field"><label>${label}</label><select data-key="${key}">${mats.map(m=>`<option value="${m.id}" ${calcState[id][key]===m.id?'selected':''}>${m.name}</option>`).join('')}</select></div>`;
-    }else html+=`<div class="field"><label>${label}</label><input data-key="${key}" type="number" step="0.01" value="${calcState[id][key]??''}"></div>`;
+  function renderMaterials() {
+    const term = $("materialSearch").value.trim().toLowerCase();
+    const area = $("materialFilter").value;
+    const list = state.materials
+      .filter(m => (!term || `${m.name} ${m.note}`.toLowerCase().includes(term)) && (!area || m.area === area))
+      .sort((a,b) => a.area.localeCompare(b.area) || a.name.localeCompare(b.name));
+
+    $("materialList").innerHTML = list.length ? list.map(m => `
+      <article class="card material-item">
+        <div class="item-top">
+          <div><div class="item-title">${escapeHtml(m.name)}</div><div class="item-meta">${escapeHtml(m.area)} · ${escapeHtml(m.purchaseQuantity)} ${escapeHtml(m.unit)}${m.note ? " · " + escapeHtml(m.note) : ""}</div></div>
+          <div class="item-price">${money(m.unitPrice)}<small> / ${escapeHtml(m.unit)}</small></div>
+        </div>
+        <div class="item-actions">
+          <button data-edit-material="${m.id}">Bearbeiten</button>
+          <button data-delete-material="${m.id}" class="danger">Löschen</button>
+        </div>
+      </article>`).join("") : $("emptyTemplate").innerHTML;
+
+    document.querySelectorAll("[data-edit-material]").forEach(b => b.addEventListener("click", () => openMaterialDialog(state.materials.find(m => m.id === b.dataset.editMaterial))));
+    document.querySelectorAll("[data-delete-material]").forEach(b => b.addEventListener("click", () => {
+      if (confirm("Material wirklich löschen?")) {
+        state.materials = state.materials.filter(m => m.id !== b.dataset.deleteMaterial);
+        saveState(); renderMaterials();
+      }
+    }));
+  }
+
+  // CALCULATOR
+  const calcNames = {
+    calc3d: "3D-Druck",
+    calcLaser: "Laser",
+    calcVinyl: "Vinylfolie",
+    calcTextil: "Textilfolie"
+  };
+
+  document.querySelectorAll("#calcTabs button").forEach(btn => btn.addEventListener("click", () => {
+    state.activeCalc = btn.dataset.calc; saveState(); renderCalculator();
+  }));
+  $("resetCalcBtn").addEventListener("click", () => renderCalculator(true));
+
+  function materialsFor(area) {
+    return state.materials.filter(m => m.area === area);
+  }
+
+  function materialOptions(area) {
+    const items = materialsFor(area);
+    return `<option value="">Material auswählen</option>` + items.map(m => `<option value="${m.id}">${escapeHtml(m.name)} – ${money(m.unitPrice)}/${escapeHtml(m.unit)}</option>`).join("");
+  }
+
+  function renderCalculator(reset = false) {
+    const type = state.activeCalc || "calc3d";
+    $("calculatorTitle").textContent = calcNames[type];
+    document.querySelectorAll("#calcTabs button").forEach(b => b.classList.toggle("active", b.dataset.calc === type));
+    $("profitPercent").value = state.settings.defaultProfit;
+
+    let html = "";
+    if (type === "calc3d") html = `
+      <label>Filament<select id="calcMaterial">${materialOptions("3D-Druck")}</select></label>
+      <div class="form-grid">
+        <label>Verbrauch (g)<input id="materialUsage" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 10}"></label>
+        <label>Druckzeit (Stunden)<input id="machineHours" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 1}"></label>
+        <label>Druckerleistung (Watt)<input id="machineWatts" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 120}"></label>
+        <label>Verschleiß je Stunde (€)<input id="wearPerHour" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 0.30}"></label>
+      </div>`;
+    if (type === "calcLaser") html = `
+      <label>Material<select id="calcMaterial">${materialOptions("Laser")}</select></label>
+      <div class="form-grid">
+        <label>Materialverbrauch (Einheiten)<input id="materialUsage" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 1}"></label>
+        <label>Laserzeit (Minuten)<input id="machineMinutes" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 10}"></label>
+        <label>Laserleistung (Watt)<input id="machineWatts" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 80}"></label>
+        <label>Verschleiß je Stunde (€)<input id="wearPerHour" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 1.00}"></label>
+      </div>`;
+    if (type === "calcVinyl") html = `
+      <label>Vinylfolie<select id="calcMaterial">${materialOptions("Vinylfolie")}</select></label>
+      <div class="form-grid">
+        <label>Folienverbrauch (Einheiten)<input id="materialUsage" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 1}"></label>
+        <label>Entgittern (Minuten)<input id="weedingMinutes" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 10}"></label>
+        <label>Montage (Minuten)<input id="mountingMinutes" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 0}"></label>
+        <label>Transferfolie (€)<input id="transferCosts" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 0}"></label>
+      </div>`;
+    if (type === "calcTextil") html = `
+      <label>Textilfolie<select id="calcMaterial">${materialOptions("Textilfolie")}</select></label>
+      <div class="form-grid">
+        <label>Folienverbrauch (Einheiten)<input id="materialUsage" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 1}"></label>
+        <label>Textil-Rohling (€)<input id="blankCosts" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 5}"></label>
+        <label>Entgittern (Minuten)<input id="weedingMinutes" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 10}"></label>
+        <label>Pressen (Minuten)<input id="pressMinutes" type="number" min="0" step="any" inputmode="decimal" value="${reset ? "" : 3}"></label>
+      </div>`;
+
+    $("dynamicFields").innerHTML = html;
+    $("workMinutes").value = reset ? "" : 10;
+    $("extraCosts").value = reset ? "" : 0;
+    $("discountPercent").value = reset ? "" : 0;
+    document.querySelectorAll("#calcForm input,#calcForm select").forEach(el => el.addEventListener("input", calculate));
+    calculate();
+  }
+
+  function getSelectedMaterial() {
+    const id = $("calcMaterial")?.value;
+    return state.materials.find(m => m.id === id) || null;
+  }
+
+  function roundPrice(value) {
+    const step = number(state.settings.rounding) || 0.01;
+    return Math.ceil(value / step) * step;
+  }
+
+  function calculate() {
+    const type = state.activeCalc;
+    const mat = getSelectedMaterial();
+    const materialCost = (mat?.unitPrice || 0) * number($("materialUsage")?.value);
+    let machineCost = 0;
+    let specialCost = 0;
+    let additionalWorkMinutes = 0;
+
+    if (type === "calc3d") {
+      const hours = number($("machineHours")?.value);
+      machineCost = (number($("machineWatts")?.value) / 1000) * hours * state.settings.powerPrice + hours * number($("wearPerHour")?.value);
+    } else if (type === "calcLaser") {
+      const hours = number($("machineMinutes")?.value) / 60;
+      machineCost = (number($("machineWatts")?.value) / 1000) * hours * state.settings.powerPrice + hours * number($("wearPerHour")?.value);
+    } else if (type === "calcVinyl") {
+      additionalWorkMinutes = number($("weedingMinutes")?.value) + number($("mountingMinutes")?.value);
+      specialCost = number($("transferCosts")?.value);
+    } else if (type === "calcTextil") {
+      additionalWorkMinutes = number($("weedingMinutes")?.value) + number($("pressMinutes")?.value);
+      specialCost = number($("blankCosts")?.value);
+    }
+
+    const workCost = ((number($("workMinutes").value) + additionalWorkMinutes) / 60) * state.settings.hourlyRate;
+    const costs = materialCost + machineCost + specialCost + workCost + number($("extraCosts").value);
+    const profit = costs * number($("profitPercent").value) / 100;
+    const beforeDiscount = costs + profit;
+    const discounted = beforeDiscount * (1 - number($("discountPercent").value) / 100);
+    const sale = roundPrice(Math.max(0, discounted));
+
+    $("costPrice").textContent = money(costs);
+    $("profitAmount").textContent = money(Math.max(0, sale - costs));
+    $("salePrice").textContent = money(sale);
+    $("calcForm").dataset.costs = costs;
+    $("calcForm").dataset.sale = sale;
+  }
+
+  $("calcForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    calculate();
+    const title = prompt("Wie soll das Projekt heißen?", `${calcNames[state.activeCalc]} ${new Date().toLocaleDateString("de-DE")}`);
+    if (!title) return;
+    const project = {
+      id: uid(), title: title.trim(), type: calcNames[state.activeCalc],
+      material: getSelectedMaterial()?.name || "ohne Material",
+      costs: number($("calcForm").dataset.costs),
+      sale: number($("calcForm").dataset.sale),
+      createdAt: new Date().toISOString()
+    };
+    state.projects.unshift(project);
+    state.lastPrice = project.sale;
+    saveState();
+    alert("Projekt wurde gespeichert.");
   });
-  html+=`</div><div class="card"><h3>Ergebnis</h3><div class="result-grid" id="${id}Results"></div></div>`;
-  el.innerHTML=html;
-  el.querySelectorAll('[data-key]').forEach(inp=>inp.oninput=()=>{calcState[id][inp.dataset.key]=inp.tagName==='SELECT'?inp.value:num(inp.value);updateResults(id);});
-  updateResults(id);
-}
-function updateResults(id){
-  const box=document.getElementById(id+'Results'); if(!box)return;
-  const rows=calcDefs[id].calc(calcState[id]);
-  box.innerHTML=rows.map(([k,v])=>k==='END'?`<div class="final-price">Verkaufspreis je Stück<br>${euro(v)}</div>`:`<div>${k}</div><div>${euro(v)}</div>`).join('');
-}
-const settingLabels={profit:'Gewinnaufschlag (%)',labor:'Eigener Stundenlohn (€/Std.)',printMachine:'3D-Druck Maschine (€/Std.)',laserEngrave:'Laser Gravur (€/Min.)',laserCut:'Laser Schnitt (€/Min.)',plotter:'Plotter (€/Min.)',press:'Transferpresse (€/Min.)',waste:'Fehlerreserve (%)',packaging:'Standard-Verpackung (€)',rounding:'Preisrundung (€)',psychological:'Endpreis-Abzug (€)'};
-function renderSettings(){
-  const el=document.getElementById('settingsForm');
-  el.innerHTML=Object.entries(settingLabels).map(([k,l])=>`<div class="field"><label>${l}</label><input type="number" step="0.01" data-setting="${k}" value="${state.settings[k]}"></div>`).join('');
-  el.querySelectorAll('[data-setting]').forEach(i=>i.oninput=()=>{state.settings[i.dataset.setting]=num(i.value);save();Object.keys(calcDefs).forEach(updateResults);});
-}
-function renderAll(){renderMaterials();renderSettings();Object.keys(calcDefs).forEach(renderCalculator);}
-document.getElementById('exportBtn').onclick=()=>{
-  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='daniels-laser-art-kalkulation-sicherung.json';a.click();URL.revokeObjectURL(a.href);
-};
-document.getElementById('importFile').onchange=async e=>{
-  try{const data=JSON.parse(await e.target.files[0].text());state=data;save();renderAll();alert('Sicherung wurde geladen.');}catch{alert('Die Datei konnte nicht gelesen werden.');}
-};
-document.getElementById('resetBtn').onclick=()=>{if(confirm('Wirklich alles zurücksetzen?')){state=structuredClone(DEFAULTS);save();renderAll();}};
-renderAll();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+  // PROJECTS
+  function renderProjects() {
+    $("projectList").innerHTML = state.projects.length ? state.projects.map(p => `
+      <article class="card project-item">
+        <div class="item-top">
+          <div><div class="item-title">${escapeHtml(p.title)}</div><div class="item-meta">${escapeHtml(p.type)} · ${escapeHtml(p.material)} · ${new Date(p.createdAt).toLocaleString("de-DE")}</div></div>
+          <div class="item-price">${money(p.sale)}</div>
+        </div>
+        <div class="item-meta">Selbstkosten: ${money(p.costs)} · Gewinn: ${money(p.sale - p.costs)}</div>
+        <div class="item-actions"><button data-delete-project="${p.id}" class="danger">Löschen</button></div>
+      </article>`).join("") : $("emptyTemplate").innerHTML;
+    document.querySelectorAll("[data-delete-project]").forEach(b => b.addEventListener("click", () => {
+      if (confirm("Projekt löschen?")) { state.projects = state.projects.filter(p => p.id !== b.dataset.deleteProject); saveState(); renderProjects(); }
+    }));
+  }
+
+  $("clearProjectsBtn").addEventListener("click", () => {
+    if (state.projects.length && confirm("Wirklich alle Projekte löschen?")) { state.projects = []; saveState(); renderProjects(); }
+  });
+
+  // SETTINGS
+  function fillSettings() {
+    $("hourlyRate").value = state.settings.hourlyRate;
+    $("powerPrice").value = state.settings.powerPrice;
+    $("defaultProfit").value = state.settings.defaultProfit;
+    $("rounding").value = String(state.settings.rounding);
+  }
+
+  $("settingsForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    state.settings = {
+      hourlyRate: number($("hourlyRate").value),
+      powerPrice: number($("powerPrice").value),
+      defaultProfit: number($("defaultProfit").value),
+      rounding: number($("rounding").value)
+    };
+    saveState();
+    alert("Einstellungen gespeichert.");
+  });
+
+  // BACKUP
+  $("exportBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `DLA-Kalkulator-Backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  $("importInput").addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const imported = JSON.parse(await file.text());
+      if (!imported || !Array.isArray(imported.materials) || !Array.isArray(imported.projects)) throw new Error();
+      state = { ...defaultState, ...imported, settings: { ...defaultState.settings, ...(imported.settings || {}) } };
+      saveState(); renderMaterials(); renderProjects(); fillSettings(); alert("Backup erfolgreich eingelesen.");
+    } catch {
+      alert("Die Datei ist kein gültiges Kalkulator-Backup.");
+    }
+    e.target.value = "";
+  });
+
+  // PWA
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault(); deferredPrompt = e; $("installBtn").classList.remove("hidden");
+  });
+  $("installBtn").addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $("installBtn").classList.add("hidden");
+  });
+  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+
+  updateStats();
+  renderCalculator();
+})();
