@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>Daniels Laser Art – Kalkulator</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <div class="eyebrow">Daniels Laser Art</div>
+      <h1>Kalkulator</h1>
+    </div>
+    <button id="menuBtn" class="icon-btn" aria-label="Menü öffnen">☰</button>
+  </header>
+
+  <nav id="drawer" class="drawer">
+    <button data-view="home">Start</button>
+    <button data-view="materials">Materialdatenbank</button>
+    <button data-view="druck">3D-Druck</button>
+    <button data-view="laser">Laser</button>
+    <button data-view="vinyl">Vinylfolie</button>
+    <button data-view="textil">Textilfolie</button>
+    <button data-view="settings">Einstellungen</button>
+    <button data-view="backup">Sicherung</button>
+  </nav>
+
+  <main>
+    <section id="home" class="view active">
+      <div class="hero card">
+        <h2>Was möchtest du kalkulieren?</h2>
+        <p>Material auswählen, Mengen und Zeiten eintragen – der Verkaufspreis wird sofort berechnet.</p>
+      </div>
+      <div class="quick-grid">
+        <button class="quick-card" data-view="druck"><span>🧵</span><b>3D-Druck</b></button>
+        <button class="quick-card" data-view="laser"><span>🔥</span><b>Laser</b></button>
+        <button class="quick-card" data-view="vinyl"><span>✂️</span><b>Vinyl</b></button>
+        <button class="quick-card" data-view="textil"><span>👕</span><b>Textil</b></button>
+      </div>
+      <div class="card">
+        <h3>So funktioniert es</h3>
+        <p>Gelbe Felder sind Eingaben. Grüne Werte werden automatisch berechnet. Deine Daten bleiben auf diesem Gerät gespeichert.</p>
+      </div>
+    </section>
+
+    <section id="materials" class="view">
+      <div class="section-head">
+        <div><div class="eyebrow">Zentrale Datenbank</div><h2>Materialien</h2></div>
+        <button id="addMaterialBtn" class="primary">+ Material</button>
+      </div>
+      <div id="materialList" class="stack"></div>
+    </section>
+
+    <section id="druck" class="view calculator"></section>
+    <section id="laser" class="view calculator"></section>
+    <section id="vinyl" class="view calculator"></section>
+    <section id="textil" class="view calculator"></section>
+
+    <section id="settings" class="view">
+      <div class="section-head"><div><div class="eyebrow">Zentrale Werte</div><h2>Einstellungen</h2></div></div>
+      <div id="settingsForm" class="card form-grid"></div>
+    </section>
+
+    <section id="backup" class="view">
+      <div class="section-head"><div><div class="eyebrow">Daten sichern</div><h2>Sicherung</h2></div></div>
+      <div class="card stack">
+        <button id="exportBtn" class="primary">Sicherung herunterladen</button>
+        <label class="file-btn">Sicherung einlesen<input id="importFile" type="file" accept=".json,application/json" /></label>
+        <button id="resetBtn" class="danger">Alles zurücksetzen</button>
+        <p class="muted">Die Sicherungsdatei enthält Materialien und Einstellungen.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="materialDialog">
+    <form method="dialog" id="materialForm">
+      <h3 id="materialDialogTitle">Material hinzufügen</h3>
+      <input type="hidden" id="materialId" />
+      <label>Materialname<input id="materialName" required /></label>
+      <label>Bereich
+        <select id="materialArea" required>
+          <option>3D-Druck</option>
+          <option>Laser</option>
+          <option>Vinyl</option>
+          <option>Übertragung</option>
+          <option>Textil</option>
+        </select>
+      </label>
+      <label>Einkaufspreis (€)<input id="materialPrice" type="number" step="0.01" min="0" required /></label>
+      <label>Gekaufte Menge<input id="materialAmount" type="number" step="0.01" min="0.0001" required /></label>
+      <label>Einheit
+        <select id="materialUnit">
+          <option>g</option>
+          <option>cm²</option>
+        </select>
+      </label>
+      <label>Notiz<input id="materialNote" /></label>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Abbrechen</button>
+        <button id="saveMaterialBtn" value="default" class="primary">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

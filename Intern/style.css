@@ -1,0 +1,26 @@
+
+:root{
+  --bg:#0b0f17;--card:#151b26;--card2:#1d2635;--text:#f8fafc;--muted:#9ca3af;
+  --accent:#d9a441;--input:#3a2d08;--auto:#15351f;--line:#2c3544;--danger:#9f2d2d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,input,select{font:inherit}
+.app-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:18px 18px 12px;background:rgba(11,15,23,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:1.45rem;margin-bottom:0}.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:700}
+.icon-btn{background:var(--card2);color:#fff;border:0;border-radius:12px;width:44px;height:44px;font-size:1.3rem}
+.drawer{position:fixed;z-index:30;top:75px;right:12px;width:230px;padding:10px;background:var(--card2);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 50px #0008;display:none}
+.drawer.open{display:grid;gap:5px}.drawer button{padding:13px;border:0;border-radius:10px;text-align:left;background:transparent;color:#fff}.drawer button:hover{background:#ffffff10}
+main{padding:16px 14px 90px;max-width:900px;margin:auto}.view{display:none}.view.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 8px 25px #0003}
+.hero{background:linear-gradient(135deg,#1e293b,#111827)}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}.quick-card{min-height:110px;border:1px solid var(--line);border-radius:18px;background:var(--card);color:#fff;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding:16px}.quick-card span{font-size:2rem;margin-bottom:auto}.quick-card b{font-size:1.05rem}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.primary,.secondary,.danger,.file-btn{border:0;border-radius:12px;padding:12px 14px;font-weight:700}.primary{background:var(--accent);color:#1c1608}.secondary{background:#374151;color:#fff}.danger{background:var(--danger);color:#fff}.file-btn{display:block;text-align:center;background:#374151;color:#fff}.file-btn input{display:none}
+.stack{display:grid;gap:12px}.material-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}.material-top{display:flex;justify-content:space-between;gap:10px}.material-actions{display:flex;gap:8px}.small-btn{border:0;border-radius:9px;padding:8px 10px;background:#263244;color:#fff}.material-meta{color:var(--muted);font-size:.9rem;margin-top:8px}.price-badge{display:inline-block;margin-top:10px;background:var(--auto);padding:6px 9px;border-radius:8px;color:#b7f7c9;font-weight:700}
+.calc-grid{display:grid;gap:12px}.field{display:grid;grid-template-columns:1fr;gap:7px}.field label{font-size:.85rem;color:var(--muted)}.field input,.field select{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:#fff;font-weight:700}.field.auto input{background:var(--auto);color:#c6f6d5}
+.result-grid{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center}.result-grid div:nth-child(odd){color:var(--muted)}.result-grid div:nth-child(even){font-weight:700;text-align:right}.final-price{grid-column:1/-1;margin-top:8px;padding:16px;background:var(--accent);color:#1c1608;border-radius:14px;text-align:center;font-size:1.5rem;font-weight:900}
+.form-grid{display:grid;gap:12px}
+dialog{width:min(92vw,480px);border:1px solid var(--line);border-radius:18px;background:var(--card);color:#fff;padding:18px}dialog::backdrop{background:#000a}dialog form{display:grid;gap:12px}dialog label{display:grid;gap:6px;color:var(--muted)}dialog input,dialog select{padding:12px;border-radius:10px;border:1px solid var(--line);background:#111827;color:#fff}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}.muted{color:var(--muted);font-size:.9rem}
+@media(min-width:700px){.calc-grid{grid-template-columns:1fr 1fr}.quick-grid{grid-template-columns:repeat(4,1fr)}}
