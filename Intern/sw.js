@@ -1,13 +1,47 @@
-const CACHE="dla-kalkulator-v10-20260721";
-const FALLBACK="./index.html?v=10";
-const ASSETS=["./?v=10","./index.html?v=10","./style.css?v=10","./app.js?v=10","./manifest.json?v=10","./icon-192.png","./icon-512.png"];
-self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
-self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-self.addEventListener("fetch",e=>{
-  if(e.request.method!=="GET")return;
-  const u=new URL(e.request.url);
-  if(u.hostname.includes("supabase.co")||u.hostname.includes("jsdelivr.net"))return;
-  e.respondWith(fetch(e.request,{cache:"no-store"}).then(r=>{
-    const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r;
-  }).catch(()=>caches.match(e.request).then(r=>r||caches.match(FALLBACK))));
+const CACHE="dla-kalkulator-v13-20260721";
+const FALLBACK="./index.html?v=13";
+const ASSETS=[
+  "./?v=13",
+  "./index.html?v=13",
+  "./style.css?v=13",
+  "./app.js?v=13",
+  "./manifest.json?v=13",
+  "./icon-192.png?v=13",
+  "./icon-512.png?v=13",
+  "./icon-maskable-512.png?v=13",
+  "/assets/images/hero/background.webp"
+];
+
+self.addEventListener("install",event=>{
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE).then(cache =>
+      Promise.allSettled(ASSETS.map(asset => cache.add(asset)))
+    )
+  );
+});
+
+self.addEventListener("activate",event=>{
+  event.waitUntil(
+    caches.keys()
+      .then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))))
+      .then(()=>self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch",event=>{
+  if(event.request.method!=="GET") return;
+  const url=new URL(event.request.url);
+
+  if(url.hostname.includes("supabase.co") || url.hostname.includes("jsdelivr.net")) return;
+
+  event.respondWith(
+    fetch(event.request,{cache:"no-store"})
+      .then(response=>{
+        const copy=response.clone();
+        caches.open(CACHE).then(cache=>cache.put(event.request,copy));
+        return response;
+      })
+      .catch(()=>caches.match(event.request).then(cached=>cached||caches.match(FALLBACK)))
+  );
 });

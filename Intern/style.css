@@ -25,8 +25,8 @@ body{
   color:var(--text);
   font-family:Georgia,"Times New Roman",serif;
   background:
-    linear-gradient(rgba(10,6,4,.78),rgba(10,6,4,.88)),
-    url("/background.webp") center/cover fixed,
+    linear-gradient(rgba(10,6,4,.46),rgba(10,6,4,.70)),
+    url("/assets/images/hero/background.webp") center/cover fixed,
     radial-gradient(circle at top,#332116 0,#130c08 55%,#080503 100%);
 }
 body::before{
@@ -54,8 +54,8 @@ button{cursor:pointer}
   gap:12px;
   padding:14px 16px 12px;
   background:
-    linear-gradient(180deg,rgba(18,11,7,.98),rgba(18,11,7,.91)),
-    url("/banner2.webp") center/cover;
+    linear-gradient(180deg,rgba(18,11,7,.82),rgba(18,11,7,.70)),
+    url("/assets/images/hero/background.webp") center/cover;
   backdrop-filter:blur(18px);
   border-bottom:1px solid var(--line-strong);
   box-shadow:0 8px 26px rgba(0,0,0,.34);
@@ -456,8 +456,8 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(5px)}
   place-items:center;
   padding:18px;
   background:
-    linear-gradient(rgba(10,6,4,.78),rgba(10,6,4,.92)),
-    url("/background.webp") center/cover;
+    linear-gradient(rgba(10,6,4,.48),rgba(10,6,4,.76)),
+    url("/assets/images/hero/background.webp") center/cover;
 }
 .auth-gate.hidden{display:none!important}
 .auth-card{width:min(100%,430px);padding:25px}
@@ -477,4 +477,42 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(5px)}
   .tools-banner{align-items:flex-start;flex-direction:column}
   .tools-banner .primary{width:100%}
   .tool-tabs{grid-template-columns:repeat(2,1fr)}
+}
+
+/* V13 – echter Website-Hintergrund */
+html{
+  min-height:100%;
+  background:#0b0705;
+}
+body{
+  min-height:100vh;
+  background-color:#0b0705;
+  background-image:
+    linear-gradient(rgba(10,6,4,.38),rgba(10,6,4,.64)),
+    url("/assets/images/hero/background.webp");
+  background-position:center top;
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-attachment:fixed;
+}
+@media(max-width:900px){
+  body{
+    background-attachment:scroll;
+    background-position:center top;
+    background-size:auto 100vh;
+  }
+}
+.app-header{
+  background-image:
+    linear-gradient(180deg,rgba(18,11,7,.78),rgba(18,11,7,.64)),
+    url("/assets/images/hero/background.webp");
+  background-position:center 18%;
+  background-size:cover;
+}
+.auth-gate{
+  background-image:
+    linear-gradient(rgba(10,6,4,.42),rgba(10,6,4,.72)),
+    url("/assets/images/hero/background.webp");
+  background-position:center;
+  background-size:cover;
 }
