@@ -53,6 +53,16 @@
       <button class="module-card" data-open="textil"><span>👕</span><b>Textilfolie</b><small>Textil, Farben, Pressen</small></button>
     </div>
 
+
+    <div class="tools-banner card">
+      <div>
+        <div class="eyebrow">SCHNELLWERKZEUGE</div>
+        <h3>Preis prüfen oder schnell rechnen</h3>
+        <p>Preisvergleich, Gewinn, Rabatt und Schnellkalkulation ohne Projekt.</p>
+      </div>
+      <button class="primary" type="button" data-screen="tools">Öffnen</button>
+    </div>
+
     <div class="stats">
       <div class="card stat"><span>Materialien</span><strong id="homeMaterialCount">0</strong></div>
       <div class="card stat"><span>Projekte</span><strong id="homeProjectCount">0</strong></div>
@@ -115,6 +125,84 @@
 
       <button class="primary wide" type="submit">Projekt speichern</button>
     </form>
+  </section>
+
+
+  <section id="tools" class="screen">
+    <div class="section-head">
+      <div><div class="eyebrow">SCHNELLWERKZEUGE</div><h2>Preis & Gewinn</h2></div>
+    </div>
+
+    <div class="tool-tabs">
+      <button data-tool="priceCheck" class="active">Preisvergleich</button>
+      <button data-tool="profitCalc">Gewinn</button>
+      <button data-tool="discountCalc">Rabatt</button>
+      <button data-tool="quickCalc">Schnell</button>
+    </div>
+
+    <div id="priceCheck" class="tool-panel card active">
+      <h3>Preisvergleich</h3>
+      <p class="tool-intro">Prüfe sofort, ob der Wunschpreis des Kunden für dich rentabel ist.</p>
+      <div class="field-grid">
+        <label>Selbstkosten (€)<input id="pcCosts" type="number" min="0" step="any" inputmode="decimal" value="25"></label>
+        <label>Maximalpreis des Kunden (€)<input id="pcMaxPrice" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
+      </div>
+      <div class="mini-results">
+        <div><span>Gewinn / Verlust</span><strong id="pcProfit">0,00 €</strong></div>
+        <div><span>Marge</span><strong id="pcMargin">0,0 %</strong></div>
+        <div><span>Mindestpreis ohne Verlust</span><strong id="pcMinimum">0,00 €</strong></div>
+        <div class="status-row"><span>Bewertung</span><strong id="pcStatus">–</strong></div>
+      </div>
+    </div>
+
+    <div id="profitCalc" class="tool-panel card">
+      <h3>Gewinnrechner</h3>
+      <p class="tool-intro">Berechnet den Verkaufspreis anhand deines Gewinnaufschlags.</p>
+      <div class="field-grid">
+        <label>Einkauf / Selbstkosten (€)<input id="gcCosts" type="number" min="0" step="any" inputmode="decimal" value="4.27"></label>
+        <label>Gewinnaufschlag (%)<input id="gcPercent" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
+      </div>
+      <div class="mini-results">
+        <div><span>Gewinnbetrag</span><strong id="gcProfit">0,00 €</strong></div>
+        <div class="main-row"><span>Verkaufspreis</span><strong id="gcSale">0,00 €</strong></div>
+      </div>
+    </div>
+
+    <div id="discountCalc" class="tool-panel card">
+      <h3>Rabattrechner</h3>
+      <p class="tool-intro">Zeigt den ursprünglichen Preis, damit nach Rabatt dein Wunschbetrag übrig bleibt.</p>
+      <div class="field-grid">
+        <label>Gewünschter Preis nach Rabatt (€)<input id="dcTarget" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
+        <label>Rabatt (%)<input id="dcPercent" type="number" min="0" max="99.99" step="any" inputmode="decimal" value="20"></label>
+      </div>
+      <div class="mini-results">
+        <div><span>Rabattbetrag</span><strong id="dcAmount">0,00 €</strong></div>
+        <div class="main-row"><span>Preis vor Rabatt</span><strong id="dcOriginal">0,00 €</strong></div>
+      </div>
+    </div>
+
+    <div id="quickCalc" class="tool-panel card">
+      <h3>Schnellrechner</h3>
+      <p class="tool-intro">Material und Zeit eingeben – Preis sofort berechnen, ohne ein Projekt anzulegen.</p>
+      <label>Material auswählen
+        <select id="qcMaterial"></select>
+      </label>
+      <div class="field-grid">
+        <label>Materialverbrauch<input id="qcUsage" type="number" min="0" step="any" inputmode="decimal" value="1"></label>
+        <label>Arbeitszeit (Minuten)<input id="qcMinutes" type="number" min="0" step="any" inputmode="decimal" value="10"></label>
+        <label>Maschinen-/Zusatzkosten (€)<input id="qcExtra" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+        <label>Verpackung (€)<input id="qcPackaging" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+        <label>Stundenlohn (€/Stunde)<input id="qcHourly" type="number" min="0" step="any" inputmode="decimal"></label>
+        <label>Fehlerreserve (%)<input id="qcReserve" type="number" min="0" step="any" inputmode="decimal"></label>
+        <label>Gewinnaufschlag (%)<input id="qcProfitPercent" type="number" min="0" step="any" inputmode="decimal"></label>
+      </div>
+      <div class="mini-results">
+        <div><span>Materialkosten</span><strong id="qcMaterialCost">0,00 €</strong></div>
+        <div><span>Arbeitskosten</span><strong id="qcWorkCost">0,00 €</strong></div>
+        <div><span>Selbstkosten</span><strong id="qcCosts">0,00 €</strong></div>
+        <div class="main-row"><span>Verkaufspreis</span><strong id="qcSale">0,00 €</strong></div>
+      </div>
+    </div>
   </section>
 
   <section id="projects" class="screen">

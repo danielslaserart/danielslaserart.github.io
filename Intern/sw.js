@@ -1,5 +1,5 @@
-const CACHE="dla-kalkulator-v5-20260721";
-const ASSETS=["./?v=5","./index.html?v=5","./style.css?v=5","./app.js?v=5","./manifest.json?v=5"];
+const CACHE="dla-kalkulator-v6-20260721";
+const ASSETS=["./?v=6","./index.html?v=6","./style.css?v=6","./app.js?v=6","./manifest.json?v=6"];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{
@@ -9,5 +9,5 @@ self.addEventListener("fetch",e=>{
     const copy=r.clone();
     caches.open(CACHE).then(c=>c.put(e.request,copy));
     return r;
-  }).catch(()=>caches.match(e.request).then(r=>r||caches.match("./index.html?v=5"))));
+  }).catch(()=>caches.match(e.request).then(r=>r||caches.match("./index.html?v=6"))));
 });

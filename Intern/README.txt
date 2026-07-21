@@ -1,37 +1,32 @@
-Daniels Laser Art – Kalkulator V5
+Daniels Laser Art – Kalkulator V6
 
-Supabase ist bereits eingerichtet. Du musst keine SQL-Abfrage mehr ausführen.
+NEU EINGEBAUT:
+- Preisvergleich:
+  Selbstkosten + Kunden-Maximalpreis → Gewinn/Verlust, Marge und Mindestpreis
+- Gewinnrechner:
+  Einkauf/Selbstkosten + Gewinnaufschlag → Verkaufspreis
+- Rabattrechner:
+  gewünschter Endpreis + Rabatt → erforderlicher Preis vor Rabatt
+- Schnellrechner:
+  Material + Verbrauch + Arbeitszeit + Zusatzkosten → sofortiger Verkaufspreis
+- Kein Projekt muss dafür gespeichert werden.
 
-HOCHLADEN:
-1. ZIP entpacken.
-2. Im GitHub-Ordner „Intern“ diese fünf Dateien ersetzen:
-   - index.html
-   - style.css
-   - app.js
-   - manifest.json
-   - sw.js
-3. Commit speichern.
-4. 1–3 Minuten warten.
-5. Öffnen:
-   https://danielslaserart.de/Intern/?v=5
-
-ANMELDUNG:
-Mit deinem in Supabase angelegten Benutzer anmelden.
-
-SPEICHERUNG:
-- Materialien, Einstellungen und Projekte werden automatisch in Supabase gespeichert.
-- Cache- oder Browserdaten-Löschen löscht die Cloud-Daten nicht.
-- Nach Anmeldung auf einem anderen Gerät werden dieselben Daten geladen.
-- Unter System kann zusätzlich eine JSON-Sicherung heruntergeladen werden.
-
-ENTHALTEN:
+WEITERHIN ENTHALTEN:
+- Supabase-Login und automatische Cloudspeicherung
 - Materialdatenbank
-- 3D-Druck-Kalkulation
-- Laser-Kalkulation
-- Vinyl-Kalkulation
-- Textil-Kalkulation
-- zentrale Einstellungen
+- 3D-Druck, Laser, Vinyl und Textil
+- Einstellungen
 - Projektverlauf mit Suche
-- automatische Cloud-Synchronisierung
 - keine Fotos
 - kein Lagerbestand
+
+UPLOAD:
+Im GitHub-Ordner „Intern“ ersetzen:
+- index.html
+- style.css
+- app.js
+- manifest.json
+- sw.js
+
+Danach öffnen:
+https://danielslaserart.de/Intern/?v=6

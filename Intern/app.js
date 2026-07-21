@@ -96,6 +96,7 @@ function setScreen(id){
   if(id==="projects") renderProjects();
   if(id==="settings") fillSettings();
   if(id==="calculator") renderCalculator();
+  if(id==="tools") renderTools();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>setScreen(b.dataset.screen));
@@ -331,6 +332,83 @@ $("calcForm").onsubmit=e=>{
   state.projects.unshift(p);state.lastPrice=p.sale;save();alert("Projekt gespeichert.");
 };
 
+
+function allMaterialOptions(){
+  return `<option value="">Kein Material</option>`+
+    state.materials
+      .slice()
+      .sort((a,b)=>a.name.localeCompare(b.name))
+      .map(m=>`<option value="${m.id}">${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`)
+      .join("");
+}
+function renderTools(){
+  if($("qcMaterial")){
+    const old=$("qcMaterial").value;
+    $("qcMaterial").innerHTML=allMaterialOptions();
+    if([...$("qcMaterial").options].some(o=>o.value===old)) $("qcMaterial").value=old;
+    $("qcHourly").value=state.settings.hourly;
+    $("qcReserve").value=state.settings.reserve;
+    $("qcProfitPercent").value=state.settings.profit;
+    $("qcPackaging").value=state.settings.packaging;
+  }
+  calculatePriceCheck();
+  calculateProfitTool();
+  calculateDiscountTool();
+  calculateQuickTool();
+}
+document.querySelectorAll("[data-tool]").forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b===btn));
+  document.querySelectorAll(".tool-panel").forEach(p=>p.classList.toggle("active",p.id===btn.dataset.tool));
+});
+function calculatePriceCheck(){
+  if(!$("pcCosts"))return;
+  const costs=num($("pcCosts").value),price=num($("pcMaxPrice").value);
+  const profit=price-costs;
+  const margin=price>0?(profit/price)*100:0;
+  $("pcProfit").textContent=euro(profit);
+  $("pcMargin").textContent=`${margin.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %`;
+  $("pcMinimum").textContent=euro(rounded(costs));
+  const status=$("pcStatus");
+  status.className="";
+  if(profit>0){status.textContent="Gewinn";status.classList.add("status-good")}
+  else if(profit<0){status.textContent="Verlust";status.classList.add("status-bad")}
+  else{status.textContent="Kostendeckend";status.classList.add("status-neutral")}
+}
+function calculateProfitTool(){
+  if(!$("gcCosts"))return;
+  const costs=num($("gcCosts").value),percent=num($("gcPercent").value);
+  const profit=costs*percent/100;
+  $("gcProfit").textContent=euro(profit);
+  $("gcSale").textContent=euro(rounded(costs+profit));
+}
+function calculateDiscountTool(){
+  if(!$("dcTarget"))return;
+  const target=num($("dcTarget").value),percent=num($("dcPercent").value);
+  const factor=1-percent/100;
+  const original=factor>0?target/factor:0;
+  $("dcOriginal").textContent=euro(original);
+  $("dcAmount").textContent=euro(Math.max(0,original-target));
+}
+function calculateQuickTool(){
+  if(!$("qcMaterial"))return;
+  const mat=state.materials.find(m=>m.id===$("qcMaterial").value);
+  const material=(mat?.unitPrice||0)*num($("qcUsage").value);
+  const work=(num($("qcMinutes").value)/60)*num($("qcHourly").value);
+  const base=material+work+num($("qcExtra").value)+num($("qcPackaging").value);
+  const reserve=base*num($("qcReserve").value)/100;
+  const costs=base+reserve;
+  const sale=rounded(costs*(1+num($("qcProfitPercent").value)/100));
+  $("qcMaterialCost").textContent=euro(material);
+  $("qcWorkCost").textContent=euro(work);
+  $("qcCosts").textContent=euro(costs);
+  $("qcSale").textContent=euro(sale);
+}
+["pcCosts","pcMaxPrice"].forEach(id=>$(id)?.addEventListener("input",calculatePriceCheck));
+["gcCosts","gcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateProfitTool));
+["dcTarget","dcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateDiscountTool));
+["qcMaterial","qcUsage","qcMinutes","qcExtra","qcPackaging","qcHourly","qcReserve","qcProfitPercent"].forEach(id=>$(id)?.addEventListener("input",calculateQuickTool));
+
+
 function renderProjects(){
   const term=($("projectSearch")?.value||"").trim().toLowerCase();
   const list=state.projects.filter(p=>!term||`${p.title} ${p.customer||""} ${p.type||""}`.toLowerCase().includes(term));
@@ -374,7 +452,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=5").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6").catch(()=>{}));
 
 
 async function initializeAuth(){
