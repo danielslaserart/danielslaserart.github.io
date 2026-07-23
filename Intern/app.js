@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "13";
+const APP_VERSION = "14";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -47,7 +47,17 @@ function load(){
   try{
     const saved=JSON.parse(localStorage.getItem(KEY));
     const merged={...defaults,...saved,settings:{...defaults.settings,...(saved?.settings||{})}};
-    merged.materials=(merged.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges")}));
+    merged.materials=(merged.materials||[]).map(m=>({
+      ...m,
+      mainRole:m.mainRole!==false,
+      consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
+      consumableCategory:m.consumableCategory||"Sonstiges",
+      defaultConsumption:num(m.defaultConsumption),
+      autoAdd:Boolean(m.autoAdd),
+      favorite:Boolean(m.favorite),
+      consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
+      sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
+    }));
     return merged;
   }catch{return structuredClone(defaults)}
 }
@@ -92,6 +102,12 @@ async function loadCloudState(){
   }
   if(data?.data){
     state={...defaults,...data.data,settings:{...defaults.settings,...(data.data.settings||{})}};
+    state.materials=(state.materials||[]).map(m=>({
+      ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
+      consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
+      consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
+      sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
+    }));
     localStorage.setItem(KEY,JSON.stringify(state));
   }else{
     await saveCloudState();
@@ -133,6 +149,10 @@ $("closeMaterialBtn").onclick=()=>dialog.close();
 $("materialSearch").oninput=renderMaterials;
 $("materialAreaFilter").onchange=renderMaterials;
 ["materialPrice","materialQuantity","materialUnit"].forEach(id=>$(id).oninput=previewUnit);
+$("materialConsumableRole").onchange=toggleConsumableFields;
+function toggleConsumableFields(){
+  $("consumableSettings").classList.toggle("hidden",!$("materialConsumableRole").checked);
+}
 
 function openMaterial(m=null){
   $("materialDialogTitle").textContent=m?"Material bearbeiten":"Material hinzufügen";
@@ -145,6 +165,16 @@ function openMaterial(m=null){
   $("materialNote").value=m?.note||"";
   $("materialMainRole").checked=m?m.mainRole!==false:true;
   $("materialConsumableRole").checked=m?Boolean(m.consumableRole):false;
+  $("materialDefaultConsumption").value=m?.defaultConsumption??"";
+  $("materialAutoAdd").checked=m?Boolean(m.autoAdd):false;
+  $("materialFavorite").checked=m?Boolean(m.favorite):false;
+  $("materialConsumableCategory").value=m?.consumableCategory||"Sonstiges";
+  const modules=m?.consumableModules||["3d","laser","vinyl","textil"];
+  document.querySelectorAll("[data-consumable-module]").forEach(cb=>cb.checked=modules.includes(cb.value));
+  $("factorSmall").value=m?.sizeFactors?.small??0.5;
+  $("factorMedium").value=m?.sizeFactors?.medium??1;
+  $("factorLarge").value=m?.sizeFactors?.large??2;
+  toggleConsumableFields();
   previewUnit();
   dialog.showModal();
 }
@@ -156,7 +186,15 @@ $("materialForm").onsubmit=e=>{
   e.preventDefault();
   const name=$("materialName").value.trim(),price=num($("materialPrice").value),quantity=num($("materialQuantity").value);
   if(!name||quantity<=0){alert("Bitte Materialname und eine gültige Menge eingeben.");return}
-  const item={id:$("materialId").value||uid(),name,area:$("materialArea").value,price,quantity,unit:$("materialUnit").value,note:$("materialNote").value.trim(),unitPrice:price/quantity,mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked};
+  const modules=[...document.querySelectorAll("[data-consumable-module]:checked")].map(cb=>cb.value);
+  const item={
+    id:$("materialId").value||uid(),name,area:$("materialArea").value,price,quantity,unit:$("materialUnit").value,
+    note:$("materialNote").value.trim(),unitPrice:price/quantity,mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
+    consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("materialDefaultConsumption").value),
+    autoAdd:$("materialAutoAdd").checked,favorite:$("materialFavorite").checked,
+    consumableModules:modules.length?modules:["3d","laser","vinyl","textil"],
+    sizeFactors:{small:num($("factorSmall").value)||0.5,medium:num($("factorMedium").value)||1,large:num($("factorLarge").value)||2}
+  };
   const i=state.materials.findIndex(x=>x.id===item.id); if(i>=0) state.materials[i]=item; else state.materials.push(item);
   save();dialog.close();renderMaterials();
 };
@@ -166,7 +204,7 @@ function renderMaterials(){
   $("materialList").innerHTML=list.length?list.map(m=>`
     <article class="card material-item">
       <div class="item-top">
-        <div><div class="item-title">${esc(m.name)}</div><div class="item-meta">${esc(m.area)} · ${m.quantity} ${esc(m.unit)}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauchsmaterial</span>':''}</div></div>
+        <div><div class="item-title">${esc(m.name)}</div><div class="item-meta">${esc(m.area)} · ${m.quantity} ${esc(m.unit)}${m.note?" · "+esc(m.note):""}${m.consumableRole&&m.defaultConsumption?` · Standard ${m.defaultConsumption} ${esc(m.unit)}`:""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauchsmaterial</span>':''}${m.favorite?'<span>★ Favorit</span>':''}${m.autoAdd?'<span>Automatisch</span>':''}</div></div>
         <div class="item-price">${euro(m.unitPrice)}<small> / ${esc(m.unit)}</small></div>
       </div>
       <div class="item-actions"><button data-edit="${m.id}">Bearbeiten</button><button data-delete="${m.id}" class="danger">Löschen</button></div>
@@ -185,26 +223,65 @@ function infoRow(label,id,unit){
 
 
 let consumableSelections=[];
+let productSize="medium";
+function moduleApplies(mat,type=state.activeModule){return (mat.consumableModules||["3d","laser","vinyl","textil"]).includes(type);}
+function sizeFactor(mat,size=productSize){
+  if(size==="custom")return 1;
+  return num(mat.sizeFactors?.[size])||({small:0.5,medium:1,large:2}[size]||1);
+}
+function defaultQty(mat,size=productSize){return num(mat.defaultConsumption)*sizeFactor(mat,size);}
+function autoConsumables(type=state.activeModule){
+  return state.materials.filter(m=>m.consumableRole&&m.autoAdd&&moduleApplies(m,type)).sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name));
+}
+function initializeConsumables(force=false){
+  if(force)consumableSelections=[];
+  const existing=new Map(consumableSelections.map(r=>[r.materialId,r]));
+  autoConsumables().forEach(mat=>{
+    if(!existing.has(mat.id))consumableSelections.push({materialId:mat.id,quantity:defaultQty(mat),auto:true});
+  });
+  consumableSelections=consumableSelections.filter(r=>{
+    const mat=state.materials.find(m=>m.id===r.materialId);
+    return !r.auto || (mat&&mat.autoAdd&&moduleApplies(mat));
+  });
+}
 function consumableOptions(selectedId=""){
-  const items=state.materials.filter(m=>m.consumableRole).sort((a,b)=>a.name.localeCompare(b.name));
-  return `<option value="">Verbrauchsmaterial auswählen</option>`+items.map(m=>`<option value="${m.id}" ${m.id===selectedId?"selected":""}>${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
+  const items=state.materials.filter(m=>m.consumableRole&&moduleApplies(m)).sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name));
+  return `<option value="">Verbrauchsmaterial auswählen</option>`+items.map(m=>`<option value="${m.id}" ${m.id===selectedId?"selected":""}>${m.favorite?"★ ":""}${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
 }
 function renderConsumables(){
   const box=$("consumableRows"); if(!box)return;
   if(!consumableSelections.length){box.innerHTML='<div class="consumable-empty">Noch kein Verbrauchsmaterial hinzugefügt.</div>';return;}
-  box.innerHTML=consumableSelections.map((row,index)=>`<div class="consumable-row"><label>Material<select data-consumable-select="${index}">${consumableOptions(row.materialId)}</select></label><label>Menge<input data-consumable-qty="${index}" type="number" min="0" step="any" inputmode="decimal" value="${row.quantity}"></label><button type="button" class="remove-consumable" data-consumable-remove="${index}">×</button></div>`).join("");
-  document.querySelectorAll("[data-consumable-select]").forEach(el=>el.oninput=()=>{consumableSelections[+el.dataset.consumableSelect].materialId=el.value;calculate();});
-  document.querySelectorAll("[data-consumable-qty]").forEach(el=>el.oninput=()=>{consumableSelections[+el.dataset.consumableQty].quantity=num(el.value);calculate();});
+  box.innerHTML=consumableSelections.map((row,index)=>{
+    const mat=state.materials.find(m=>m.id===row.materialId);
+    return `<div class="consumable-row"><label>Material<select data-consumable-select="${index}">${consumableOptions(row.materialId)}</select>${mat?`<small>${esc(mat.consumableCategory||"Sonstiges")} · ${esc(mat.unit)}${row.auto?" · automatisch":""}</small>`:""}</label><label>Menge<input data-consumable-qty="${index}" type="number" min="0" step="any" inputmode="decimal" value="${row.quantity}"></label><button type="button" class="remove-consumable" data-consumable-remove="${index}">×</button></div>`;
+  }).join("");
+  document.querySelectorAll("[data-consumable-select]").forEach(el=>el.oninput=()=>{
+    const row=consumableSelections[+el.dataset.consumableSelect];row.materialId=el.value;row.auto=false;
+    const mat=state.materials.find(m=>m.id===el.value);if(mat&&num(row.quantity)<=0)row.quantity=defaultQty(mat);
+    renderConsumables();calculate();
+  });
+  document.querySelectorAll("[data-consumable-qty]").forEach(el=>el.oninput=()=>{const row=consumableSelections[+el.dataset.consumableQty];row.quantity=num(el.value);row.auto=false;calculate();});
   document.querySelectorAll("[data-consumable-remove]").forEach(btn=>btn.onclick=()=>{consumableSelections.splice(+btn.dataset.consumableRemove,1);renderConsumables();calculate();});
 }
 function consumablesCost(){return consumableSelections.reduce((sum,row)=>{const mat=state.materials.find(m=>m.id===row.materialId);return sum+(mat?.unitPrice||0)*num(row.quantity);},0);}
-$("addConsumableBtn").onclick=()=>{consumableSelections.push({materialId:"",quantity:1});renderConsumables();};
-
+$("addConsumableBtn").onclick=()=>{consumableSelections.push({materialId:"",quantity:1,auto:false});renderConsumables();};
+function setProductSize(size){
+  const previous=productSize;productSize=size;
+  document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===size));
+  if(size!=="custom")consumableSelections.forEach(row=>{
+    const mat=state.materials.find(m=>m.id===row.materialId);
+    if(mat&&row.auto)row.quantity=defaultQty(mat,size);
+  });
+  renderConsumables();calculate();
+}
+document.querySelectorAll("[data-product-size]").forEach(b=>b.onclick=()=>setProductSize(b.dataset.productSize));
 function renderCalculator(clear=false){
   const type=state.activeModule||"3d";
-  if(clear)consumableSelections=[];
+  if(clear){consumableSelections=[];productSize="medium";}
+  initializeConsumables(clear);
   $("calcTitle").textContent=titles[type];
   document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===type));
+  document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===productSize));
   $("projectName").value=clear?"":$("projectName").value;
   $("customerName").value=clear?"":$("customerName").value;
 
@@ -237,7 +314,6 @@ function renderCalculator(clear=false){
       <label>Schnittpreis (€/Minute)<input id="cutRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.laserSchnitt}"></label>
       <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":10}"></label>
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
-      <label>Zubehör / Farbe / Kleber (€)<input id="accessories" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":0}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":0}"></label>
       <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
@@ -326,7 +402,7 @@ function calculate(){
     material=unitMain*num($("usageMain")?.value);
     machine=num($("engraveMinutes")?.value)*num($("engraveRate")?.value)+num($("cutMinutes")?.value)*num($("cutRate")?.value);
     work=(num($("workMinutes")?.value)/60)*num($("hourlyRate")?.value);
-    extra=num($("accessories")?.value)+num($("packaging")?.value)+num($("otherCosts")?.value);
+    extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
   if(type==="vinyl"){
     qty=Math.max(1,num($("quantity")?.value));
@@ -367,7 +443,7 @@ function calculate(){
 $("calcForm").onsubmit=e=>{
   e.preventDefault();calculate();
   const title=$("projectName").value.trim()||`${titles[state.activeModule]} ${new Date().toLocaleDateString("de-DE")}`;
-  const p={id:uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),created:new Date().toISOString()};
+  const p={id:uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),created:new Date().toISOString()};
   state.projects.unshift(p);state.lastPrice=p.sale;save();alert("Projekt gespeichert.");
 };
 
@@ -482,7 +558,8 @@ $("importInput").onchange=async e=>{
   try{
     const d=JSON.parse(await f.text());
     if(!Array.isArray(d.materials)||!Array.isArray(d.projects))throw new Error();
-    state={...defaults,...d,settings:{...defaults.settings,...(d.settings||{})}};save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
+    state={...defaults,...d,settings:{...defaults.settings,...(d.settings||{})}};
+    state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
   }catch{alert("Ungültige Backup-Datei.");}
   e.target.value="";
 };
@@ -491,7 +568,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=13").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=14").catch(()=>{}));
 
 
 async function initializeAuth(){

@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=13">
-  <link rel="apple-touch-icon" href="icon-192.png?v=13">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=13">
-  <link rel="stylesheet" href="style.css?v=13">
+  <link rel="manifest" href="manifest.json?v=14">
+  <link rel="apple-touch-icon" href="icon-192.png?v=14">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=14">
+  <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -114,6 +114,16 @@
       </div>
 
       <div id="moduleFields"></div>
+      <div class="product-size-section">
+        <div class="group-title">PRODUKTGRÖSSE</div>
+        <div class="size-selector" role="group" aria-label="Produktgröße">
+          <button type="button" data-product-size="small">Klein</button>
+          <button type="button" data-product-size="medium" class="active">Mittel</button>
+          <button type="button" data-product-size="large">Groß</button>
+          <button type="button" data-product-size="custom">Benutzerdefiniert</button>
+        </div>
+        <p class="size-help">Automatische Standardmengen werden passend zur Größe eingesetzt. Bei „Benutzerdefiniert“ bleiben deine Eingaben unverändert.</p>
+      </div>
       <div class="consumables-section">
         <div class="section-head compact">
           <div><div class="eyebrow">ZUSÄTZLICH</div><h3>Verbrauchsmaterial</h3></div>
@@ -311,6 +321,32 @@
       <label class="check-row"><input id="materialMainRole" type="checkbox" checked><span>Als Hauptmaterial verwendbar</span></label>
       <label class="check-row"><input id="materialConsumableRole" type="checkbox"><span>Als Verbrauchsmaterial verwendbar</span></label>
     </div>
+    <div id="consumableSettings" class="consumable-settings hidden">
+      <div class="group-title">VERBRAUCHSMATERIAL</div>
+      <div class="field-grid">
+        <label>Standardverbrauch<input id="materialDefaultConsumption" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 5"></label>
+        <label>Kategorie
+          <select id="materialConsumableCategory">
+            <option>Kleber</option><option>Reinigung</option><option>Schleifen</option><option>Farbe & Finish</option><option>Abkleben</option><option>Wartung</option><option>Verpackung</option><option>Sonstiges</option>
+          </select>
+        </label>
+      </div>
+      <label class="check-row"><input id="materialAutoAdd" type="checkbox"><span>Automatisch zu passenden Kalkulationen hinzufügen</span></label>
+      <label class="check-row"><input id="materialFavorite" type="checkbox"><span>Als Favorit oben anzeigen</span></label>
+      <div class="subgroup-label">Passende Module</div>
+      <div class="module-checks">
+        <label class="check-row"><input data-consumable-module type="checkbox" value="3d"><span>3D-Druck</span></label>
+        <label class="check-row"><input data-consumable-module type="checkbox" value="laser"><span>Laser</span></label>
+        <label class="check-row"><input data-consumable-module type="checkbox" value="vinyl"><span>Vinyl</span></label>
+        <label class="check-row"><input data-consumable-module type="checkbox" value="textil"><span>Textil</span></label>
+      </div>
+      <div class="subgroup-label">Größenfaktoren</div>
+      <div class="factor-grid">
+        <label>Klein<input id="factorSmall" type="number" min="0" step="any" inputmode="decimal" value="0.5"></label>
+        <label>Mittel<input id="factorMedium" type="number" min="0" step="any" inputmode="decimal" value="1"></label>
+        <label>Groß<input id="factorLarge" type="number" min="0" step="any" inputmode="decimal" value="2"></label>
+      </div>
+    </div>
     <div class="preview">Preis je Einheit: <strong id="unitPreview">0,00 €</strong></div>
     <button class="primary wide" type="submit">Speichern</button>
   </form>
@@ -321,6 +357,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

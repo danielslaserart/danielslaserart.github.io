@@ -1,14 +1,14 @@
-const CACHE="dla-kalkulator-v13-20260721";
-const FALLBACK="./index.html?v=13";
+const CACHE="dla-kalkulator-v14-20260723";
+const FALLBACK="./index.html?v=14";
 const ASSETS=[
-  "./?v=13",
-  "./index.html?v=13",
-  "./style.css?v=13",
-  "./app.js?v=13",
-  "./manifest.json?v=13",
-  "./icon-192.png?v=13",
-  "./icon-512.png?v=13",
-  "./icon-maskable-512.png?v=13",
+  "./?v=14",
+  "./index.html?v=14",
+  "./style.css?v=14",
+  "./app.js?v=14",
+  "./manifest.json?v=14",
+  "./icon-192.png?v=14",
+  "./icon-512.png?v=14",
+  "./icon-maskable-512.png?v=14",
   "/assets/images/hero/background.webp"
 ];
 
