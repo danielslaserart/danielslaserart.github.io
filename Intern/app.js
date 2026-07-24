@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.0.3";
+const APP_VERSION = "3.0.4";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -340,8 +340,14 @@ $("materialSearch").oninput=renderMaterials;
 $("materialAreaFilter").onchange=()=>{renderMaterialCategoryFilter();renderMaterials()};
 $("materialCategoryFilter").onchange=renderMaterials;
 let materialListMode="all";
+let allMaterialGroupsOpen=false;
 $("showFavoritesBtn").onclick=()=>{materialListMode=materialListMode==="favorites"?"all":"favorites";updateMaterialModeButtons();renderMaterials()};
 $("showRecentMaterialsBtn").onclick=()=>{materialListMode=materialListMode==="recent"?"all":"recent";updateMaterialModeButtons();renderMaterials()};
+$("toggleMaterialGroupsBtn").onclick=()=>{
+  allMaterialGroupsOpen=!allMaterialGroupsOpen;
+  $("toggleMaterialGroupsBtn").textContent=allMaterialGroupsOpen?"Alle einklappen":"Alle ausklappen";
+  document.querySelectorAll(".material-category").forEach(group=>group.open=allMaterialGroupsOpen);
+};
 function updateMaterialModeButtons(){
   $("showFavoritesBtn").classList.toggle("active-filter",materialListMode==="favorites");
   $("showRecentMaterialsBtn").classList.toggle("active-filter",materialListMode==="recent");
@@ -436,7 +442,7 @@ function renderMaterials(){
   const groups=new Map();
   list.forEach(m=>{const c=inferMaterialCategory(m);if(!groups.has(c))groups.set(c,[]);groups.get(c).push(m)});
   $("materialList").innerHTML=list.length?[...groups.entries()].map(([cat,items],groupIndex)=>`
-    <details class="material-category card" ${groupIndex<3?"open":""}>
+    <details class="material-category card">
       <summary><span>${esc(cat)}</span><small>${items.length} ${items.length===1?"Material":"Materialien"}</small></summary>
       <div class="material-category-items">${items.map(m=>`
         <article class="material-item-compact">
@@ -448,6 +454,16 @@ function renderMaterials(){
     </details>`).join(""):`<div class="empty-state">Keine passenden Materialien gefunden.</div>`;
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openMaterial(state.materials.find(m=>m.id===b.dataset.edit)));
   document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{if(confirm("Material wirklich löschen?")){state.materials=state.materials.filter(m=>m.id!==b.dataset.delete);save();renderMaterials()}});
+  const categoryElements=[...document.querySelectorAll(".material-category")];
+  categoryElements.forEach(group=>{
+    group.open=allMaterialGroupsOpen;
+    group.addEventListener("toggle",()=>{
+      if(group.open&&!allMaterialGroupsOpen){
+        categoryElements.forEach(other=>{if(other!==group)other.open=false;});
+      }
+    });
+  });
+  if($("toggleMaterialGroupsBtn")) $("toggleMaterialGroupsBtn").textContent=allMaterialGroupsOpen?"Alle einklappen":"Alle ausklappen";
 }
 let editingProjectId=null;
 function machineOptions(type,selected=""){
@@ -1112,7 +1128,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.0.3").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.0.4").catch(()=>{}));
 
 
 async function initializeAuth(){

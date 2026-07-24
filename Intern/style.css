@@ -630,9 +630,9 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .material-category summary span{flex:1;font-size:1.05rem}
 .material-category summary small{color:var(--muted);font:700 .72rem system-ui,sans-serif}
 .material-category-items{border-top:1px solid var(--line)}
-.material-item-compact{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px 15px;border-bottom:1px solid rgba(202,158,80,.16)}
+.material-item-compact{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 13px;border-bottom:1px solid rgba(202,158,80,.16)}
 .material-item-compact:last-child{border-bottom:0}
-.material-thumb{width:64px;height:64px;object-fit:cover;border-radius:13px;border:1px solid var(--line);background:#0b0705}
+.material-thumb{width:56px;height:56px;object-fit:cover;border-radius:13px;border:1px solid var(--line);background:#0b0705}
 .material-thumb-empty{display:grid;place-items:center;color:var(--gold2);font-size:1.25rem}
 .material-main{min-width:0}
 .material-main .item-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -668,3 +668,11 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .project-item[data-project-card]{position:relative}.project-item .item-title{font-size:1.04rem}
 @media(max-width:850px){.dashboard-actions{grid-template-columns:1fr 1fr}.dash-action-primary{grid-column:1/-1}.template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.project-toolbar{grid-template-columns:1fr 1fr!important}.project-toolbar .project-search,.project-toolbar .wide{grid-column:1/-1}}
 @media(max-width:520px){.dashboard-actions{grid-template-columns:1fr}.dash-action-primary{grid-column:auto}.dash-action{min-height:84px}.template-grid{grid-template-columns:1fr 1fr}.project-toolbar{grid-template-columns:1fr!important}.project-toolbar>*{grid-column:1!important}}
+
+
+/* V3.0.4 – kompakte Materialkategorien */
+.material-overview-actions #toggleMaterialGroupsBtn{margin-left:auto}
+.material-category summary{padding:14px 16px}
+.material-item-compact{min-height:82px}
+.material-compact-actions button{padding:7px 9px}
+@media(max-width:520px){.material-overview-actions #toggleMaterialGroupsBtn{margin-left:0;width:100%}}
