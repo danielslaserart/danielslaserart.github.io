@@ -297,13 +297,25 @@
       <div><div class="eyebrow">VERLAUF</div><h2>Projekte</h2></div>
       <button id="clearProjectsBtn" class="ghost danger small">Alle löschen</button>
     </div>
-    <div class="stats project-stats">
+    <div class="project-toolbar card">
+      <input id="projectSearch" class="project-search" type="search" placeholder="Projekt, Kunde, Tag, Maschine oder Notiz suchen …">
+      <label>Status
+        <select id="projectStatusFilter">
+          <option value="all">Alle Projekte</option>
+          <option value="open">Offen</option>
+          <option value="progress">In Arbeit</option>
+          <option value="payment">Wartet auf Zahlung</option>
+          <option value="done">Abgeschlossen</option>
+        </select>
+      </label>
+      <button class="primary wide" type="button" data-open-module="laser">＋ Neues Projekt kalkulieren</button>
+    </div>
+    <div id="projectList" class="stack"></div>
+    <div class="stats project-stats project-stats-bottom">
       <div class="card stat"><span>Projekte</span><strong id="projectStatCount">0</strong></div>
       <div class="card stat"><span>Gesamtgewinn</span><strong id="projectStatProfit">0,00 €</strong></div>
       <div class="card stat"><span>Ø Verkaufspreis</span><strong id="projectStatAverage">0,00 €</strong></div>
     </div>
-    <input id="projectSearch" class="project-search" type="search" placeholder="Projekt, Kunde, Tag, Maschine oder Notiz suchen …">
-    <div id="projectList" class="stack"></div>
   </section>
 
   <section id="settings" class="screen">
@@ -356,9 +368,9 @@
 
 <nav class="bottom-nav">
   <button data-screen="home" class="active"><span>⌂</span><small>Start</small></button>
-  <button data-screen="materials"><span>▦</span><small>Material</small></button>
   <button data-screen="calculator"><span>€</span><small>Rechner</small></button>
-  <button data-screen="projects"><span>☷</span><small>Projekte</small></button>
+  <button data-screen="projects" class="nav-projects"><span>☷</span><small>Projekte</small></button>
+  <button data-screen="materials"><span>▦</span><small>Material</small></button>
   <button data-screen="settings"><span>⚙</span><small>System</small></button>
 </nav>
 
@@ -434,15 +446,19 @@
   <div class="card empty"><strong>Noch nichts vorhanden</strong><p>Lege den ersten Eintrag an.</p></div>
 </template>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=16.0"></script>
-
 <dialog id="projectViewDialog">
-  <div class="dialog-card">
-    <div class="section-head"><h2 id="projectViewTitle">Projekt</h2><button type="button" class="icon-btn" onclick="document.getElementById('projectViewDialog').close()">×</button></div>
+  <div class="dialog-card project-dialog-card">
+    <div class="section-head project-dialog-head"><h2 id="projectViewTitle">Projekt</h2><button type="button" class="icon-btn" id="closeProjectViewBtn">×</button></div>
     <div id="projectViewContent"></div>
-    <button id="projectViewEditBtn" class="primary wide" type="button">Projekt bearbeiten</button>
+    <div class="project-dialog-footer">
+      <button id="offerPdfBtn" class="secondary" type="button">PDF-Angebot</button>
+      <button id="toggleProjectStatusBtn" class="secondary" type="button">Abschließen</button>
+      <button id="projectViewEditBtn" class="primary" type="button">Bearbeiten</button>
+    </div>
   </div>
 </dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js?v=17.0"></script>
 </body>
 </html>

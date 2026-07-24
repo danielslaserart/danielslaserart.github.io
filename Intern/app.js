@@ -40,7 +40,7 @@ const defaults = {
   ]
 };
 let state = load();
-state.projects=(state.projects||[]).map(p=>({...p,status:p.status||"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+state.projects=(state.projects||[]).map(p=>({...p,status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
 state.timer={...defaults.timer,...(state.timer||{})};
 
 const $ = id => document.getElementById(id);
@@ -120,7 +120,7 @@ async function loadCloudState(){
   }
   if(data?.data){
     state={...defaults,...data.data,settings:{...defaults.settings,...(data.data.settings||{})}};
-    state.projects=(state.projects||[]).map(p=>({...p,status:p.status||"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+    state.projects=(state.projects||[]).map(p=>({...p,status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
     state.timer={...defaults.timer,...(state.timer||{})};
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
@@ -717,25 +717,35 @@ function compressProjectImage(file){
   });
 }
 
+function projectStatusLabel(status){
+  return ({open:"Offen",progress:"In Arbeit",payment:"Wartet auf Zahlung",done:"Abgeschlossen"})[status]||"Offen";
+}
+function projectStatusClass(status){return `status-${["open","progress","payment","done"].includes(status)?status:"open"}`;}
 function renderProjects(){
-  const term=($("projectSearch")?.value||"").trim().toLowerCase();
-  const list=state.projects.filter(p=>!term||`${p.title} ${p.customer||""} ${p.type||""} ${p.machineName||""} ${p.notes||""} ${(p.tags||[]).join(" ")}`.toLowerCase().includes(term));
+  const term=($('projectSearch')?.value||'').trim().toLowerCase();
+  const filter=$('projectStatusFilter')?.value||'all';
+  const list=state.projects.filter(p=>{
+    const matchesText=!term||`${p.title} ${p.customer||''} ${p.type||''} ${p.machineName||''} ${p.notes||''} ${(p.tags||[]).join(' ')}`.toLowerCase().includes(term);
+    const matchesStatus=filter==='all'||(p.status||'open')===filter;
+    return matchesText&&matchesStatus;
+  }).sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
   const totalProfit=state.projects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
-  if($("projectStatCount"))$("projectStatCount").textContent=state.projects.length;
-  if($("projectStatProfit"))$("projectStatProfit").textContent=euro(totalProfit);
-  if($("projectStatAverage"))$("projectStatAverage").textContent=state.projects.length?euro(state.projects.reduce((sum,p)=>sum+num(p.sale),0)/state.projects.length):euro(0);
-  $("projectList").innerHTML=list.length?list.map(p=>`
-    <article class="card project-item">
-      ${(p.images||[])[0]?`<button class="project-thumb" data-view-project="${p.id}" aria-label="Projektbild ansehen"><img src="${p.images[0]}" alt=""></button>`:""}
-      <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?" · "+esc(p.machineName):""}${p.customer?" · "+esc(p.customer):""} · ${new Date(p.created).toLocaleString("de-DE")} · ${p.status==="done"?"Abgeschlossen":"Offen"}</div></div><div class="item-price">${euro(p.sale)}</div></div>
-      <div class="item-meta">Selbstkosten: ${euro(p.cost)} · Gewinn: ${euro(p.sale-p.cost)}${p.qty>1?" · "+euro(p.sale/p.qty)+" je Stück":""}</div>
-      ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:""}
-      <div class="item-actions project-actions"><button data-view-project="${p.id}">Ansehen</button><button data-edit-project="${p.id}">Bearbeiten</button><button data-duplicate-project="${p.id}">Duplizieren</button><button data-del-project="${p.id}" class="danger">Löschen</button></div>
-    </article>`).join(""):$("emptyState").innerHTML;
-  document.querySelectorAll("[data-view-project]").forEach(b=>b.onclick=()=>viewProject(b.dataset.viewProject));
-  document.querySelectorAll("[data-edit-project]").forEach(b=>b.onclick=()=>loadProject(b.dataset.editProject,false));
-  document.querySelectorAll("[data-duplicate-project]").forEach(b=>b.onclick=()=>loadProject(b.dataset.duplicateProject,true));
-  document.querySelectorAll("[data-del-project]").forEach(b=>b.onclick=()=>{if(confirm("Projekt löschen?")){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects()}});
+  if($('projectStatCount'))$('projectStatCount').textContent=state.projects.length;
+  if($('projectStatProfit'))$('projectStatProfit').textContent=euro(totalProfit);
+  if($('projectStatAverage'))$('projectStatAverage').textContent=state.projects.length?euro(state.projects.reduce((sum,p)=>sum+num(p.sale),0)/state.projects.length):euro(0);
+  $('projectList').innerHTML=list.length?list.map(p=>`
+    <article class="card project-item" data-project-card="${p.id}">
+      ${(p.images||[])[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${p.images[0]}" alt=""></button>`:''}
+      <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="item-price">${euro(p.sale)}</div></div>
+      <div class="project-status-row"><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
+      ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
+      <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
+    </article>`).join(''):`<div class="empty-state">Keine passenden Projekte gefunden.</div>`;
+  document.querySelectorAll('[data-view-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();viewProject(b.dataset.viewProject)});
+  document.querySelectorAll('[data-project-card]').forEach(card=>card.onclick=e=>{if(!e.target.closest('button'))viewProject(card.dataset.projectCard)});
+  document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.editProject,false)});
+  document.querySelectorAll('[data-duplicate-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.duplicateProject,true)});
+  document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm('Projekt löschen?')){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();renderDashboard()}});
 }
 function projectFieldLabel(id){
   return ({matMain:"Hauptmaterial",matTransfer:"Übertragungsfolie",usageMain:"Materialverbrauch",usageTransfer:"Verbrauch Übertragungsfolie",printMinutes:"Druckdauer",engraveMinutes:"Gravurdauer",cutMinutes:"Schnittdauer",workMinutes:"Arbeitszeit",hourlyRate:"Stundenlohn",packaging:"Verpackung",otherCosts:"Sonstige Kosten",reserve:"Fehlerreserve",profit:"Gewinnaufschlag",quantity:"Stückzahl",colors:"Farben",plotMinutes:"Plottdauer",weedMinutes:"Entgitterzeit",mountMinutes:"Montagezeit",pressMinutes:"Presszeit",prepMinutes:"Vor-/Nachbereitung",textilePrice:"Textilpreis"})[id]||id;
@@ -747,16 +757,21 @@ function projectFieldValue(id,value){
 }
 function viewProject(id){
   const p=state.projects.find(x=>x.id===id);if(!p)return;
-  const details=Object.entries(p.fields||{}).filter(([id])=>!["projectName","customerName","projectNotes","machineSelect","projectStatus","projectTags"].includes(id)).map(([id,value])=>`<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(projectFieldValue(id,value))}</strong></div>`).join("");
-  const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
-  $("projectViewTitle").textContent=p.title;
-  $("projectViewContent").innerHTML=`${(p.images||[]).length?`<div class="project-gallery">${p.images.map((img,i)=>`<figure><img class="project-view-image" src="${img}" alt="Projektbild ${i+1}"><button type="button" data-delete-image="${i}" class="image-delete">×</button></figure>`).join("")}</div>`:`<div class="project-image-empty">Noch kein Projektbild vorhanden.</div>`}<div class="project-image-actions"><label class="secondary file-button">Bilder hinzufügen<input id="projectImageInput" type="file" accept="image/*" multiple></label></div><div class="project-view-summary"><div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div><div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Status</span><strong>${p.status==="done"?"Abgeschlossen":"Offen"}</strong></div><div><span>Arbeitszeit</span><strong>${formatDuration(num(p.workSeconds))}</strong></div><div><span>Datum</span><strong>${new Date(p.created).toLocaleString("de-DE")}</strong></div><div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div><div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div></div>${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}<div class="project-view-actions"><button id="offerPdfBtn" class="primary" type="button">PDF-Angebot</button><button id="toggleProjectStatusBtn" class="secondary" type="button">${p.status==="done"?"Wieder öffnen":"Abschließen"}</button></div>${(p.priceHistory||[]).length?`<h3>Preishistorie</h3><div class="project-view-details">${p.priceHistory.map(h=>`<div><span>${new Date(h.date).toLocaleString("de-DE")}</span><strong>${euro(h.sale)} · Kosten ${euro(h.cost)}</strong></div>`).join("")}</div>`:""}${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}`;
-  $("projectViewEditBtn").onclick=()=>{$("projectViewDialog").close();loadProject(id,false)};
-  $("projectImageInput")?.addEventListener("change",async e=>{const files=[...(e.target.files||[])];if(!files.length)return;try{for(const file of files.slice(0,6-(p.images||[]).length))(p.images||(p.images=[])).push(await compressProjectImage(file));save();renderProjects();viewProject(id)}catch(err){console.error(err);alert("Mindestens ein Bild konnte nicht verarbeitet werden.")}});
-  document.querySelectorAll("[data-delete-image]").forEach(btn=>btn.onclick=()=>{if(confirm("Dieses Projektbild löschen?")){p.images.splice(Number(btn.dataset.deleteImage),1);save();renderProjects();viewProject(id)}});
-  $("toggleProjectStatusBtn")?.addEventListener("click",()=>{p.status=p.status==="done"?"open":"done";p.updated=new Date().toISOString();save();renderProjects();viewProject(id)});
-  $("offerPdfBtn")?.addEventListener("click",()=>printOffer(p));
-  $("projectViewDialog").showModal();
+  const dialog=$('projectViewDialog');
+  const details=Object.entries(p.fields||{}).filter(([id])=>!["projectName","customerName","projectNotes","machineSelect","projectStatus","projectTags"].includes(id)).map(([id,value])=>`<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(projectFieldValue(id,value))}</strong></div>`).join('');
+  const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:''}).join('');
+  $('projectViewTitle').textContent=p.title;
+  $('projectViewContent').innerHTML=`${(p.images||[]).length?`<div class="project-gallery">${p.images.map((img,i)=>`<figure><img class="project-view-image" src="${img}" alt="Projektbild ${i+1}"><button type="button" data-delete-image="${i}" class="image-delete">×</button></figure>`).join('')}</div>`:`<div class="project-image-empty">Noch kein Projektbild vorhanden.</div>`}<div class="project-image-actions"><label class="secondary file-button">Bilder hinzufügen<input id="projectImageInput" type="file" accept="image/*" multiple></label></div><div class="project-view-summary"><div><span>Kunde</span><strong>${esc(p.customer||'–')}</strong></div><div><span>Bereich</span><strong>${esc(p.type||'–')}</strong></div><div><span>Maschine</span><strong>${esc(p.machineName||'–')}</strong></div><div><span>Status</span><strong class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</strong></div><div><span>Arbeitszeit</span><strong>${formatDuration(num(p.workSeconds))}</strong></div><div><span>Datum</span><strong>${new Date(p.created).toLocaleString('de-DE')}</strong></div><div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div><div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div></div>${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:''}${(p.priceHistory||[]).length?`<h3>Preishistorie</h3><div class="project-view-details">${p.priceHistory.map(h=>`<div><span>${new Date(h.date).toLocaleString('de-DE')}</span><strong>${euro(h.sale)} · Kosten ${euro(h.cost)}</strong></div>`).join('')}</div>`:''}${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:''}${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:''}`;
+  $('projectViewEditBtn').onclick=()=>{dialog.close();loadProject(id,false)};
+  $('offerPdfBtn').onclick=()=>printOffer(p);
+  $('toggleProjectStatusBtn').textContent=p.status==='done'?'Wieder öffnen':'Status ändern';
+  $('toggleProjectStatusBtn').onclick=()=>{
+    const choices={open:'progress',progress:'payment',payment:'done',done:'open'};
+    p.status=choices[p.status||'open'];p.updated=new Date().toISOString();save();renderProjects();renderDashboard();viewProject(id);
+  };
+  $('projectImageInput')?.addEventListener('change',async e=>{const files=[...(e.target.files||[])];if(!files.length)return;try{for(const file of files.slice(0,6-(p.images||[]).length))(p.images||(p.images=[])).push(await compressProjectImage(file));save();renderProjects();if(dialog.open)dialog.close();viewProject(id)}catch(err){console.error(err);alert('Mindestens ein Bild konnte nicht verarbeitet werden.')}});
+  document.querySelectorAll('[data-delete-image]').forEach(btn=>btn.onclick=()=>{if(confirm('Dieses Projektbild löschen?')){p.images.splice(Number(btn.dataset.deleteImage),1);save();renderProjects();if(dialog.open)dialog.close();viewProject(id)}});
+  if(!dialog.open)dialog.showModal();
 }
 function loadProject(id,duplicate=false){
   const p=state.projects.find(x=>x.id===id);if(!p)return;
