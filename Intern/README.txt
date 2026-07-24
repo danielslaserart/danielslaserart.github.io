@@ -1,13 +1,14 @@
-Daniels Laser Art Kalkulator V2.4.0
+Daniels Laser Art Kalkulator V2.5.0
 
 Neu:
-- Originales Briefkopf-Logo oben im Kundenangebot
-- Im Kopf stehen keine Firmen-, Kontakt- oder Bankdaten mehr
-- Alle Firmendaten befinden sich ausschließlich in der Fußzeile
-- Keine Projektbilder und keine internen Kalkulationsdaten im Angebot
-- Postalische Kundenanschrift bleibt frei eingebbar
-- Keine Kundennummer
-- Angebots-PDF wartet vor dem Drucken auf das geladene Briefkopf-Logo
+- Materialverwaltung mit aufklappbaren Kategorien
+- Kategorien wie Holz, Filament PLA/PETG/TPU, Schiefer & Stein, Metall, Acryl, Glas, Leder und Verbrauchsmaterial
+- Favoriten- und „Zuletzt verwendet“-Ansicht
+- Lieferant und optionales Materialbild
+- Plattengröße kann automatisch in cm² oder m² übernommen werden
+- Preisvergleich durch verständlichen Zielpreis-Rechner ersetzt
+- Zielpreis zeigt Gewinn, Aufschlag, Marge und erforderlichen Preis für die Mindestmarge
+- Kundenangebot mit Briefkopf-Logo bleibt enthalten
 
 Installation:
-Alle Dateien in /Intern vollständig ersetzen. Danach Browser/App vollständig schließen und mit ?v=2.4.0 neu öffnen.
+Alle Dateien in /Intern vollständig ersetzen. Danach Browser/App vollständig schließen und mit ?v=2.5.0 neu öffnen.

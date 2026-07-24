@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=2.4.0">
-  <link rel="apple-touch-icon" href="icon-192.png?v=2.4.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2.4.0">
-  <link rel="stylesheet" href="style.css?v=2.4.0">
+  <link rel="manifest" href="manifest.json?v=2.5.0">
+  <link rel="apple-touch-icon" href="icon-192.png?v=2.5.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2.5.0">
+  <link rel="stylesheet" href="style.css?v=2.5.0">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,13 +45,13 @@
   <section id="home" class="screen active">
     <div class="dashboard-head compact-dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Guten Morgen, Daniel</h2><p class="dashboard-subtitle">Welches Werkzeug brauchst du?</p></div>
-      <span class="version-badge">V2.4.0</span>
+      <span class="version-badge">V2.5.0</span>
     </div>
 
     <div class="section-head compact home-section-head"><div><div class="eyebrow">WERKZEUGE</div><h3>Schnell berechnen</h3></div></div>
     <div class="home-tool-grid">
       <button class="home-tool-featured" data-open-tool="areaCalc"><span>📐</span><div><b>Flächenrechner</b><small>Materialbedarf aus Maßen berechnen</small></div></button>
-      <button data-open-tool="priceCheck"><span>€</span><b>Preisvergleich</b><small>Kundenpreis prüfen</small></button>
+      <button data-open-tool="priceCheck"><span>🎯</span><b>Zielpreis</b><small>Gewinn und Marge prüfen</small></button>
       <button data-open-tool="profitCalc"><span>↗</span><b>Gewinnrechner</b><small>Verkaufspreis berechnen</small></button>
       <button data-open-tool="discountCalc"><span>%</span><b>Rabattrechner</b><small>Ursprungspreis ermitteln</small></button>
       <button data-open-tool="quickCalc"><span>⚡</span><b>Schnellrechner</b><small>Preis ohne Projekt</small></button>
@@ -84,8 +84,12 @@
       <div><div class="eyebrow">DATENBANK</div><h2>Materialien</h2></div>
       <button id="newMaterialBtn" class="primary small">＋ Neu</button>
     </div>
-    <div class="filter-grid">
-      <input id="materialSearch" type="search" placeholder="Material suchen …">
+    <div class="material-overview-actions">
+      <button id="showFavoritesBtn" class="ghost small" type="button">★ Favoriten</button>
+      <button id="showRecentMaterialsBtn" class="ghost small" type="button">↻ Zuletzt verwendet</button>
+    </div>
+    <div class="filter-grid material-filter-grid">
+      <input id="materialSearch" type="search" placeholder="Material, Kategorie oder Lieferant suchen …">
       <select id="materialAreaFilter">
         <option value="">Alle Bereiche</option>
         <option>3D-Druck</option>
@@ -95,8 +99,9 @@
         <option>Textilfolie</option>
         <option>Sonstiges</option>
       </select>
+      <select id="materialCategoryFilter"><option value="">Alle Kategorien</option></select>
     </div>
-    <div id="materialList" class="stack"></div>
+    <div id="materialList" class="material-category-list"></div>
   </section>
 
   <section id="calculator" class="screen">
@@ -170,7 +175,7 @@
     </div>
 
     <div class="tool-tabs">
-      <button data-tool="priceCheck" class="active">Preisvergleich</button>
+      <button data-tool="priceCheck" class="active">Zielpreis</button>
       <button data-tool="profitCalc">Gewinn</button>
       <button data-tool="discountCalc">Rabatt</button>
       <button data-tool="quickCalc">Schnell</button>
@@ -178,16 +183,18 @@
     </div>
 
     <div id="priceCheck" class="tool-panel card active">
-      <h3>Preisvergleich</h3>
-      <p class="tool-intro">Prüfe sofort, ob der Wunschpreis des Kunden für dich rentabel ist.</p>
+      <h3>Zielpreis-Rechner</h3>
+      <p class="tool-intro">Zeigt dir, wie viel Gewinn, Aufschlag und Marge bei deinem gewünschten Verkaufspreis übrig bleiben.</p>
       <div class="field-grid">
-        <label>Selbstkosten (€)<input id="pcCosts" type="number" min="0" step="any" inputmode="decimal" value="25"></label>
-        <label>Maximalpreis des Kunden (€)<input id="pcMaxPrice" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
+        <label>Selbstkosten (€)<input id="pcCosts" type="number" min="0" step="any" inputmode="decimal" value="30"></label>
+        <label>Gewünschter Verkaufspreis (€)<input id="pcMaxPrice" type="number" min="0" step="any" inputmode="decimal" value="45"></label>
+        <label>Gewünschte Mindestmarge (%)<input id="pcTargetMargin" type="number" min="0" max="100" step="any" inputmode="decimal" value="25"></label>
       </div>
       <div class="mini-results">
         <div><span>Gewinn / Verlust</span><strong id="pcProfit">0,00 €</strong></div>
-        <div><span>Marge</span><strong id="pcMargin">0,0 %</strong></div>
-        <div><span>Mindestpreis ohne Verlust</span><strong id="pcMinimum">0,00 €</strong></div>
+        <div><span>Aufschlag auf Selbstkosten</span><strong id="pcMarkup">0,0 %</strong></div>
+        <div><span>Gewinnmarge</span><strong id="pcMargin">0,0 %</strong></div>
+        <div><span>Preis für Mindestmarge</span><strong id="pcMinimum">0,00 €</strong></div>
         <div class="status-row"><span>Bewertung</span><strong id="pcStatus">–</strong></div>
       </div>
     </div>
@@ -391,8 +398,27 @@
       </select>
     </label>
     <div class="field-grid">
+      <label>Kategorie
+        <select id="materialCategory"></select>
+      </label>
+      <label>Lieferant<input id="materialSupplier" placeholder="optional, z. B. Hornbach"></label>
+    </div>
+    <label class="secondary file-button material-image-button">Materialbild hinzufügen / ändern<input id="materialImageInput" type="file" accept="image/*"></label>
+    <div id="materialImagePreview" class="material-image-preview hidden"></div>
+    <div class="field-grid">
       <label>Einkaufspreis (€)<input id="materialPrice" type="number" min="0" step="any" inputmode="decimal" required></label>
       <label>Gekaufte Menge<input id="materialQuantity" type="number" min="0.000001" step="any" inputmode="decimal" required></label>
+    </div>
+    <div id="materialAreaDimensions" class="area-dimension-box">
+      <div class="subgroup-label">Plattengröße automatisch berechnen</div>
+      <div class="field-grid">
+        <label>Breite<input id="materialWidth" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 60"></label>
+        <label>Höhe<input id="materialHeight" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 30"></label>
+        <label>Maßeinheit<select id="materialDimensionUnit"><option value="cm">cm</option><option value="mm">mm</option><option value="m">m</option></select></label>
+        <label>Anzahl Platten<input id="materialSheetCount" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
+      </div>
+      <button id="calculateMaterialAreaBtn" class="ghost small" type="button">Fläche als gekaufte Menge übernehmen</button>
+      <small id="materialAreaHint" class="field-help"></small>
     </div>
     <label>Einheit
       <select id="materialUnit">
@@ -466,6 +492,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=2.4.0"></script>
+<script src="app.js?v=2.5.0"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "2.4.0";
+const APP_VERSION = "2.5.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -39,10 +39,6 @@ const defaults = {
     {id:"anycubic-kobra2plus",name:"Anycubic Kobra 2 Plus",type:"3d",hourlyRate:0.50,active:true}
   ]
 };
-let state = load();
-state.projects=(state.projects||[]).map(p=>({...p,status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
-state.timer={...defaults.timer,...(state.timer||{})};
-
 const $ = id => document.getElementById(id);
 const num = v => {
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
@@ -51,6 +47,34 @@ const num = v => {
 const euro = v => new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(num(v));
 const uid = () => crypto.randomUUID ? crypto.randomUUID() : Date.now()+"-"+Math.random().toString(16).slice(2);
 const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+
+const MATERIAL_CATEGORIES={
+  "Laser":["Holz","Schiefer & Stein","Metall","Acryl & Kunststoff","Glas","Leder","Rohlinge","Sonstiges"],
+  "3D-Druck":["Filament PLA","Filament PETG","Filament TPU","Filament ASA / ABS","Spezialfilament","Harz","Sonstiges"],
+  "Vinylfolie":["Vinylfolie","Spezialfolie","Reflexfolie","Sonstiges"],
+  "Übertragungsfolie":["Übertragungsfolie","Sonstiges"],
+  "Textilfolie":["Textilfolie","Spezialfolie","Textilien","Rohlinge","Sonstiges"],
+  "Sonstiges":["Kleber","Reinigung","Schleifen","Farbe & Finish","Abkleben","Wartung","Verpackung","Sonstiges"]
+};
+function inferMaterialCategory(m){
+  if(m.category)return m.category;
+  if(m.consumableRole)return m.consumableCategory||"Sonstiges";
+  const n=String(m.name||"").toLowerCase();
+  if(m.area==="3D-Druck"){
+    if(n.includes("petg"))return "Filament PETG";if(n.includes("tpu"))return "Filament TPU";if(n.includes("asa")||n.includes("abs"))return "Filament ASA / ABS";if(n.includes("harz")||n.includes("resin"))return "Harz";if(n.includes("pla"))return "Filament PLA";return "Spezialfilament";
+  }
+  if(m.area==="Laser"){
+    if(/holz|mdf|sperr|multiplex|pappel|birke|buche/.test(n))return "Holz";if(/schiefer|stein|marmor/.test(n))return "Schiefer & Stein";if(/acryl|kunststoff/.test(n))return "Acryl & Kunststoff";if(/metall|alu|edelstahl|messing|zippo/.test(n))return "Metall";if(n.includes("glas"))return "Glas";if(/leder|kork/.test(n))return "Leder";return "Sonstiges";
+  }
+  return (MATERIAL_CATEGORIES[m.area]||["Sonstiges"])[0];
+}
+function categoryOptions(area,selected=""){
+  const cats=MATERIAL_CATEGORIES[area]||["Sonstiges"];
+  return cats.map(c=>`<option ${c===selected?"selected":""}>${esc(c)}</option>`).join("");
+}
+let state = load();
+state.projects=(state.projects||[]).map(p=>({...p,status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+state.timer={...defaults.timer,...(state.timer||{})};
 
 function load(){
   try{
@@ -64,6 +88,8 @@ function load(){
       defaultConsumption:num(m.defaultConsumption),
       autoAdd:Boolean(m.autoAdd),
       favorite:Boolean(m.favorite),
+      category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,
+      width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
       scaleWithSize:Boolean(m.scaleWithSize),
       workshopUnit:m.workshopUnit||m.unit||"Einheit",
@@ -125,6 +151,7 @@ async function loadCloudState(){
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
+      category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
       scaleWithSize:Boolean(m.scaleWithSize),
       workshopUnit:m.workshopUnit||m.unit||"Einheit",
@@ -207,9 +234,35 @@ const dialog=$("materialDialog");
 $("newMaterialBtn").onclick=()=>openMaterial();
 $("closeMaterialBtn").onclick=()=>dialog.close();
 $("materialSearch").oninput=renderMaterials;
-$("materialAreaFilter").onchange=renderMaterials;
-["materialPrice","materialQuantity","materialUnit"].forEach(id=>$(id).oninput=previewUnit);
+$("materialAreaFilter").onchange=()=>{renderMaterialCategoryFilter();renderMaterials()};
+$("materialCategoryFilter").onchange=renderMaterials;
+let materialListMode="all";
+$("showFavoritesBtn").onclick=()=>{materialListMode=materialListMode==="favorites"?"all":"favorites";updateMaterialModeButtons();renderMaterials()};
+$("showRecentMaterialsBtn").onclick=()=>{materialListMode=materialListMode==="recent"?"all":"recent";updateMaterialModeButtons();renderMaterials()};
+function updateMaterialModeButtons(){
+  $("showFavoritesBtn").classList.toggle("active-filter",materialListMode==="favorites");
+  $("showRecentMaterialsBtn").classList.toggle("active-filter",materialListMode==="recent");
+}
+function renderMaterialCategoryFilter(){
+  const area=$("materialAreaFilter").value,old=$("materialCategoryFilter").value;
+  const cats=[...new Set(state.materials.filter(m=>!area||m.area===area).map(m=>inferMaterialCategory(m)))].sort((a,b)=>a.localeCompare(b,"de"));
+  $("materialCategoryFilter").innerHTML='<option value="">Alle Kategorien</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");
+  if(cats.includes(old))$("materialCategoryFilter").value=old;
+}
+["materialPrice","materialQuantity"].forEach(id=>$(id).oninput=previewUnit);
+$("materialUnit").oninput=()=>{previewUnit();toggleMaterialAreaBox()};
 $("materialConsumableRole").onchange=toggleConsumableFields;
+$("materialArea").onchange=()=>{renderMaterialCategorySelect();toggleMaterialAreaBox()};
+let materialImageData="";
+$("materialImageInput").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;materialImageData=await compressProjectImage(f);renderMaterialImagePreview()};
+$("calculateMaterialAreaBtn").onclick=calculateMaterialPurchasedArea;
+["materialWidth","materialHeight","materialDimensionUnit","materialSheetCount"].forEach(id=>$(id).oninput=updateMaterialAreaHint);
+function renderMaterialCategorySelect(selected=""){$("materialCategory").innerHTML=categoryOptions($("materialArea").value,selected)}
+function toggleMaterialAreaBox(){$("materialAreaDimensions").classList.toggle("hidden",!["cm²","m²"].includes($("materialUnit").value))}
+function renderMaterialImagePreview(){const box=$("materialImagePreview");box.classList.toggle("hidden",!materialImageData);box.innerHTML=materialImageData?`<img src="${materialImageData}" alt="Materialbild"><button id="removeMaterialImageBtn" type="button">×</button>`:"";if(materialImageData)$("removeMaterialImageBtn").onclick=()=>{materialImageData="";renderMaterialImagePreview()}}
+function dimensionToCm(v,u){return num(v)*(u==="mm"?.1:u==="m"?100:1)}
+function updateMaterialAreaHint(){const area=dimensionToCm($("materialWidth").value,$("materialDimensionUnit").value)*dimensionToCm($("materialHeight").value,$("materialDimensionUnit").value)*Math.max(1,num($("materialSheetCount").value));$("materialAreaHint").textContent=area?`Gesamtfläche: ${area.toLocaleString("de-DE",{maximumFractionDigits:2})} cm² = ${(area/10000).toLocaleString("de-DE",{maximumFractionDigits:4})} m²`:""}
+function calculateMaterialPurchasedArea(){const area=dimensionToCm($("materialWidth").value,$("materialDimensionUnit").value)*dimensionToCm($("materialHeight").value,$("materialDimensionUnit").value)*Math.max(1,num($("materialSheetCount").value));if(!area){alert("Bitte Breite und Höhe eingeben.");return}$("materialUnit").value=$("materialUnit").value==="m²"?"m²":"cm²";$("materialQuantity").value=$("materialUnit").value==="m²"?Number((area/10000).toFixed(6)):Number(area.toFixed(2));previewUnit();updateMaterialAreaHint()}
 function toggleConsumableFields(){
   $("consumableSettings").classList.toggle("hidden",!$("materialConsumableRole").checked);
 }
@@ -219,6 +272,10 @@ function openMaterial(m=null){
   $("materialId").value=m?.id||"";
   $("materialName").value=m?.name||"";
   $("materialArea").value=m?.area||"3D-Druck";
+  renderMaterialCategorySelect(m?.category||inferMaterialCategory(m||{area:"3D-Druck",name:""}));
+  $("materialSupplier").value=m?.supplier||"";
+  materialImageData=m?.image||"";renderMaterialImagePreview();
+  $("materialWidth").value=m?.width||"";$("materialHeight").value=m?.height||"";$("materialDimensionUnit").value=m?.dimensionUnit||"cm";$("materialSheetCount").value=m?.sheetCount||1;
   $("materialPrice").value=m?.price??"";
   $("materialQuantity").value=m?.quantity??"";
   $("materialUnit").value=m?.unit||"g";
@@ -235,7 +292,7 @@ function openMaterial(m=null){
   $("materialConsumableCategory").value=m?.consumableCategory||"Sonstiges";
   const modules=m?.consumableModules||["3d","laser","vinyl","textil"];
   document.querySelectorAll("[data-consumable-module]").forEach(cb=>cb.checked=modules.includes(cb.value));
-  toggleConsumableFields();
+  toggleConsumableFields();toggleMaterialAreaBox();updateMaterialAreaHint();
   previewUnit();
   dialog.showModal();
 }
@@ -249,7 +306,9 @@ $("materialForm").onsubmit=e=>{
   if(!name||quantity<=0){alert("Bitte Materialname und eine gültige Menge eingeben.");return}
   const modules=[...document.querySelectorAll("[data-consumable-module]:checked")].map(cb=>cb.value);
   const item={
-    id:$("materialId").value||uid(),name,area:$("materialArea").value,price,quantity,unit:$("materialUnit").value,
+    id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",supplier:$("materialSupplier").value.trim(),image:materialImageData,
+    width:num($("materialWidth").value),height:num($("materialHeight").value),dimensionUnit:$("materialDimensionUnit").value,sheetCount:Math.max(1,num($("materialSheetCount").value)),
+    price,quantity,unit:$("materialUnit").value,
     note:$("materialNote").value.trim(),unitPrice:price/quantity,mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
     consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("consumptionMedium").value),
     workshopUnit:$("materialWorkshopUnit").value.trim()||$("materialUnit").value,workshopUnitAmount:num($("materialWorkshopUnitAmount").value)||1,
@@ -262,20 +321,31 @@ $("materialForm").onsubmit=e=>{
   save();dialog.close();renderMaterials();
 };
 function renderMaterials(){
-  const term=$("materialSearch").value.toLowerCase().trim(),area=$("materialAreaFilter").value;
-  const list=state.materials.filter(m=>(!term||`${m.name} ${m.note}`.toLowerCase().includes(term))&&(!area||m.area===area)).sort((a,b)=>a.area.localeCompare(b.area)||a.name.localeCompare(b.name));
-  $("materialList").innerHTML=list.length?list.map(m=>`
-    <article class="card material-item">
-      <div class="item-top">
-        <div><div class="item-title">${esc(m.name)}</div><div class="item-meta">${esc(m.area)} · ${m.quantity} ${esc(m.unit)}${m.note?" · "+esc(m.note):""}${m.consumableRole?` · Klein ${num(m.consumptionLevels?.small)} / Mittel ${num(m.consumptionLevels?.medium)} / Groß ${num(m.consumptionLevels?.large)} ${esc(m.workshopUnit||m.unit)}`:""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauchsmaterial</span>':''}${m.favorite?'<span>★ Favorit</span>':''}${m.autoAdd?'<span>Automatisch</span>':''}</div></div>
-        <div class="item-price">${euro(m.unitPrice)}<small> / ${esc(m.unit)}</small></div>
-      </div>
-      <div class="item-actions"><button data-edit="${m.id}">Bearbeiten</button><button data-delete="${m.id}" class="danger">Löschen</button></div>
-    </article>`).join(""):$("emptyState").innerHTML;
+  renderMaterialCategoryFilter();
+  const term=$("materialSearch").value.toLowerCase().trim(),area=$("materialAreaFilter").value,category=$("materialCategoryFilter").value;
+  let list=state.materials.filter(m=>{
+    const hay=`${m.name} ${m.note||""} ${m.supplier||""} ${inferMaterialCategory(m)}`.toLowerCase();
+    return (!term||hay.includes(term))&&(!area||m.area===area)&&(!category||inferMaterialCategory(m)===category);
+  });
+  if(materialListMode==="favorites")list=list.filter(m=>m.favorite);
+  if(materialListMode==="recent")list=list.filter(m=>m.lastUsed).sort((a,b)=>new Date(b.lastUsed)-new Date(a.lastUsed));
+  else list.sort((a,b)=>(b.favorite-a.favorite)||inferMaterialCategory(a).localeCompare(inferMaterialCategory(b),"de")||a.name.localeCompare(b.name,"de"));
+  const groups=new Map();
+  list.forEach(m=>{const c=inferMaterialCategory(m);if(!groups.has(c))groups.set(c,[]);groups.get(c).push(m)});
+  $("materialList").innerHTML=list.length?[...groups.entries()].map(([cat,items],groupIndex)=>`
+    <details class="material-category card" ${groupIndex<3?"open":""}>
+      <summary><span>${esc(cat)}</span><small>${items.length} ${items.length===1?"Material":"Materialien"}</small></summary>
+      <div class="material-category-items">${items.map(m=>`
+        <article class="material-item-compact">
+          ${m.image?`<img class="material-thumb" src="${m.image}" alt="">`:`<div class="material-thumb material-thumb-empty">${m.favorite?"★":"▦"}</div>`}
+          <div class="material-main"><div class="item-title">${m.favorite?"★ ":""}${esc(m.name)}</div><div class="item-meta">${esc(m.area)}${m.supplier?" · "+esc(m.supplier):""}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauch</span>':''}${m.lastUsed?`<span>Zuletzt ${new Date(m.lastUsed).toLocaleDateString("de-DE")}</span>`:""}</div></div>
+          <div class="material-price-block"><strong>${euro(m.unitPrice)}</strong><small>/${esc(m.unit)}</small></div>
+          <div class="material-compact-actions"><button data-edit="${m.id}">Bearbeiten</button><button data-delete="${m.id}" class="danger">Löschen</button></div>
+        </article>`).join("")}</div>
+    </details>`).join(""):`<div class="empty-state">Keine passenden Materialien gefunden.</div>`;
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openMaterial(state.materials.find(m=>m.id===b.dataset.edit)));
   document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{if(confirm("Material wirklich löschen?")){state.materials=state.materials.filter(m=>m.id!==b.dataset.delete);save();renderMaterials()}});
 }
-
 let editingProjectId=null;
 function machineOptions(type,selected=""){
   const list=(state.machines||[]).filter(m=>m.type===type&&m.active!==false);
@@ -549,6 +619,8 @@ $("calcForm").onsubmit=e=>{
   const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),customerAddress:$("customerAddress")?.value.trim()||"",type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"open",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
+  const usedIds=[project.fields?.matMain,project.fields?.matTransfer,...project.consumables.map(r=>r.materialId)].filter(Boolean);
+  state.materials.forEach(m=>{if(usedIds.includes(m.id))m.lastUsed=new Date().toISOString()});
   state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();alert(idx>=0?"Projekt aktualisiert.":"Projekt gespeichert.");
 };
 
@@ -584,17 +656,19 @@ document.querySelectorAll("[data-tool]").forEach(btn=>btn.onclick=()=>{
 });
 function calculatePriceCheck(){
   if(!$("pcCosts"))return;
-  const costs=num($("pcCosts").value),price=num($("pcMaxPrice").value);
+  const costs=num($("pcCosts").value),price=num($("pcMaxPrice").value),target=num($("pcTargetMargin")?.value);
   const profit=price-costs;
   const margin=price>0?(profit/price)*100:0;
+  const markup=costs>0?(profit/costs)*100:0;
+  const minimum=target<100?costs/(1-target/100):0;
   $("pcProfit").textContent=euro(profit);
+  $("pcMarkup").textContent=`${markup.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %`;
   $("pcMargin").textContent=`${margin.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %`;
-  $("pcMinimum").textContent=euro(rounded(costs));
-  const status=$("pcStatus");
-  status.className="";
-  if(profit>0){status.textContent="Gewinn";status.classList.add("status-good")}
-  else if(profit<0){status.textContent="Verlust";status.classList.add("status-bad")}
-  else{status.textContent="Kostendeckend";status.classList.add("status-neutral")}
+  $("pcMinimum").textContent=euro(rounded(minimum));
+  const status=$("pcStatus");status.className="";
+  if(profit<0){status.textContent="Verlust";status.classList.add("status-bad")}
+  else if(margin+0.0001>=target){status.textContent="Zielmarge erreicht";status.classList.add("status-good")}
+  else{status.textContent="Unter deiner Zielmarge";status.classList.add("status-neutral")}
 }
 function calculateProfitTool(){
   if(!$("gcCosts"))return;
@@ -625,7 +699,7 @@ function calculateQuickTool(){
   $("qcCosts").textContent=euro(costs);
   $("qcSale").textContent=euro(sale);
 }
-["pcCosts","pcMaxPrice"].forEach(id=>$(id)?.addEventListener("input",calculatePriceCheck));
+["pcCosts","pcMaxPrice","pcTargetMargin"].forEach(id=>$(id)?.addEventListener("input",calculatePriceCheck));
 ["gcCosts","gcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateProfitTool));
 ["dcTarget","dcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateDiscountTool));
 ["qcMaterial","qcUsage","qcMinutes","qcExtra","qcPackaging","qcHourly","qcReserve","qcProfitPercent"].forEach(id=>$(id)?.addEventListener("input",calculateQuickTool));
@@ -916,7 +990,7 @@ $("importInput").onchange=async e=>{
     if(!Array.isArray(d.materials)||!Array.isArray(d.projects))throw new Error();
     state={...defaults,...d,settings:{...defaults.settings,...(d.settings||{})}};
     state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
-    state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),scaleWithSize:true,workshopUnit:m.workshopUnit||m.unit||"Einheit",workshopUnitAmount:num(m.workshopUnitAmount)||1,consumptionLevels:{small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))},consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
+    state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,scaleWithSize:true,workshopUnit:m.workshopUnit||m.unit||"Einheit",workshopUnitAmount:num(m.workshopUnitAmount)||1,consumptionLevels:{small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))},consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
   }catch{alert("Ungültige Backup-Datei.");}
   e.target.value="";
 };
@@ -925,7 +999,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=2.4.0").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=2.5.0").catch(()=>{}));
 
 
 async function initializeAuth(){
@@ -973,5 +1047,7 @@ $("logoutBtn").onclick=async()=>{
 
 renderCalculator();
 renderTools();
+renderMaterialCategoryFilter();
+updateMaterialModeButtons();
 initializeAuth();
 })();
