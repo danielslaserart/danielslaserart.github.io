@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=15.2">
-  <link rel="apple-touch-icon" href="icon-192.png?v=15.2">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=15.2">
-  <link rel="stylesheet" href="style.css?v=15.2">
+  <link rel="manifest" href="manifest.json?v=15.3">
+  <link rel="apple-touch-icon" href="icon-192.png?v=15.3">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=15.3">
+  <link rel="stylesheet" href="style.css?v=15.3">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -160,6 +160,7 @@
       <button data-tool="profitCalc">Gewinn</button>
       <button data-tool="discountCalc">Rabatt</button>
       <button data-tool="quickCalc">Schnell</button>
+      <button data-tool="areaCalc">Fläche</button>
     </div>
 
     <div id="priceCheck" class="tool-panel card active">
@@ -223,6 +224,54 @@
         <div><span>Arbeitskosten</span><strong id="qcWorkCost">0,00 €</strong></div>
         <div><span>Selbstkosten</span><strong id="qcCosts">0,00 €</strong></div>
         <div class="main-row"><span>Verkaufspreis</span><strong id="qcSale">0,00 €</strong></div>
+      </div>
+    </div>
+    <div id="areaCalc" class="tool-panel card">
+      <h3>Flächenrechner</h3>
+      <p class="tool-intro">Berechnet deinen Materialverbrauch aus Form, Maßen, Stückzahl und Verschnitt.</p>
+      <div class="field-grid">
+        <label>Form
+          <select id="acShape">
+            <option value="rectangle">Rechteck</option>
+            <option value="square">Quadrat</option>
+            <option value="circle">Kreis</option>
+          </select>
+        </label>
+        <label>Maßeinheit
+          <select id="acUnit">
+            <option value="mm">Millimeter</option>
+            <option value="cm" selected>Zentimeter</option>
+            <option value="m">Meter</option>
+          </select>
+        </label>
+      </div>
+      <div id="acRectangleFields" class="field-grid">
+        <label>Breite<input id="acWidth" type="number" min="0" step="any" inputmode="decimal" value="30"></label>
+        <label>Höhe<input id="acHeight" type="number" min="0" step="any" inputmode="decimal" value="18"></label>
+      </div>
+      <div id="acSquareFields" class="field-grid hidden">
+        <label>Seitenlänge<input id="acSide" type="number" min="0" step="any" inputmode="decimal" value="10"></label>
+      </div>
+      <div id="acCircleFields" class="field-grid hidden">
+        <label>Durchmesser<input id="acDiameter" type="number" min="0" step="any" inputmode="decimal" value="10"></label>
+      </div>
+      <div class="field-grid">
+        <label>Stückzahl<input id="acQuantity" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
+        <label>Verschnitt / Reserve (%)<input id="acWaste" type="number" min="0" step="any" inputmode="decimal" value="5"></label>
+      </div>
+      <div class="mini-results">
+        <div><span>Fläche je Teil</span><strong id="acPerPiece">0 cm²</strong></div>
+        <div><span>Gesamtfläche</span><strong id="acNetTotal">0 cm²</strong></div>
+        <div><span>Verschnitt / Reserve</span><strong id="acWasteArea">0 cm²</strong></div>
+        <div class="main-row"><span>Materialverbrauch gesamt</span><strong id="acGrossTotal">0 cm²</strong></div>
+        <small id="acGrossMeters" class="area-secondary">0 m²</small>
+      </div>
+      <div class="area-transfer">
+        <label>In Kalkulation übernehmen
+          <select id="acMaterial"></select>
+        </label>
+        <button id="acTransferBtn" class="primary wide" type="button">Fläche als Materialverbrauch übernehmen</button>
+        <p id="acTransferInfo" class="size-help">Es werden nur Materialien mit der Einheit cm² oder m² angezeigt.</p>
       </div>
     </div>
   </section>
@@ -369,7 +418,7 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=15.2"></script>
+<script src="app.js?v=15.3"></script>
 
 <dialog id="projectViewDialog">
   <div class="dialog-card">

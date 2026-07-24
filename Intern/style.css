@@ -567,3 +567,10 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .project-image-actions{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0 16px}
 .project-image-actions .file-button,.project-image-actions button{margin:0;flex:1;text-align:center}
 @media(max-width:420px){.project-image-actions{display:grid;grid-template-columns:1fr}.project-thumb{height:150px}}
+
+/* V15.3 – Flächenrechner */
+.area-secondary{display:block;margin-top:8px;text-align:right;color:var(--gold2);font-family:system-ui,sans-serif;font-weight:800}
+.area-transfer{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.area-transfer .wide{margin-top:0}
+.tool-tabs{grid-template-columns:repeat(5,1fr)}
+@media(max-width:540px){.tool-tabs{grid-template-columns:repeat(3,1fr)}}

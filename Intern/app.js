@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "15.2";
+const APP_VERSION = "15.3";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -539,6 +539,8 @@ function renderTools(){
   calculateProfitTool();
   calculateDiscountTool();
   calculateQuickTool();
+  renderAreaMaterials();
+  calculateAreaTool();
 }
 document.querySelectorAll("[data-tool]").forEach(btn=>btn.onclick=()=>{
   document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b===btn));
@@ -591,6 +593,80 @@ function calculateQuickTool(){
 ["gcCosts","gcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateProfitTool));
 ["dcTarget","dcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateDiscountTool));
 ["qcMaterial","qcUsage","qcMinutes","qcExtra","qcPackaging","qcHourly","qcReserve","qcProfitPercent"].forEach(id=>$(id)?.addEventListener("input",calculateQuickTool));
+
+let lastAreaResult={netCm2:0,grossCm2:0};
+function areaNumber(value,digits=2){
+  return num(value).toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:digits});
+}
+function areaUnitToCm(value,unit){
+  const factor=unit==="mm"?0.1:unit==="m"?100:1;
+  return num(value)*factor;
+}
+function toggleAreaShapeFields(){
+  const shape=$("acShape")?.value||"rectangle";
+  $("acRectangleFields")?.classList.toggle("hidden",shape!=="rectangle");
+  $("acSquareFields")?.classList.toggle("hidden",shape!=="square");
+  $("acCircleFields")?.classList.toggle("hidden",shape!=="circle");
+}
+function calculateAreaTool(){
+  if(!$("acShape"))return;
+  toggleAreaShapeFields();
+  const shape=$("acShape").value,unit=$("acUnit").value;
+  let perPiece=0;
+  if(shape==="rectangle"){
+    perPiece=areaUnitToCm($("acWidth").value,unit)*areaUnitToCm($("acHeight").value,unit);
+  }else if(shape==="square"){
+    const side=areaUnitToCm($("acSide").value,unit);perPiece=side*side;
+  }else{
+    const radius=areaUnitToCm($("acDiameter").value,unit)/2;perPiece=Math.PI*radius*radius;
+  }
+  const quantity=Math.max(1,Math.floor(num($("acQuantity").value)||1));
+  const net=perPiece*quantity;
+  const waste=net*Math.max(0,num($("acWaste").value))/100;
+  const gross=net+waste;
+  lastAreaResult={netCm2:net,grossCm2:gross};
+  $("acPerPiece").textContent=`${areaNumber(perPiece)} cm²`;
+  $("acNetTotal").textContent=`${areaNumber(net)} cm²`;
+  $("acWasteArea").textContent=`${areaNumber(waste)} cm²`;
+  $("acGrossTotal").textContent=`${areaNumber(gross)} cm²`;
+  $("acGrossMeters").textContent=`${areaNumber(gross/10000,4)} m²`;
+}
+function areaMaterials(){
+  return state.materials.filter(m=>m.mainRole!==false&&["cm²","m²"].includes(m.unit));
+}
+function renderAreaMaterials(){
+  if(!$("acMaterial"))return;
+  const old=$("acMaterial").value;
+  const mats=areaMaterials().sort((a,b)=>a.name.localeCompare(b.name));
+  $("acMaterial").innerHTML=mats.length
+    ? `<option value="">Material auswählen</option>`+mats.map(m=>`<option value="${m.id}">${esc(m.name)} – ${esc(m.unit)}</option>`).join("")
+    : `<option value="">Kein Flächenmaterial vorhanden</option>`;
+  if(mats.some(m=>m.id===old))$("acMaterial").value=old;
+  $("acTransferBtn").disabled=!mats.length;
+}
+function moduleFromMaterialArea(area){
+  if(area==="3D-Druck")return "3d";
+  if(area==="Laser")return "laser";
+  if(area==="Vinylfolie"||area==="Übertragungsfolie")return "vinyl";
+  if(area==="Textilfolie")return "textil";
+  return state.activeModule||"laser";
+}
+function transferAreaToCalculator(){
+  calculateAreaTool();
+  const mat=state.materials.find(m=>m.id===$("acMaterial")?.value);
+  if(!mat){alert("Bitte zuerst ein Flächenmaterial auswählen.");return;}
+  state.activeModule=moduleFromMaterialArea(mat.area);
+  save();setScreen("calculator");renderCalculator();
+  requestAnimationFrame(()=>{
+    if($("matMain"))$("matMain").value=mat.id;
+    const usage=mat.unit==="m²"?lastAreaResult.grossCm2/10000:lastAreaResult.grossCm2;
+    if($("usageMain"))$("usageMain").value=Number(usage.toFixed(mat.unit==="m²"?6:2));
+    calculate();
+    $("usageMain")?.scrollIntoView({behavior:"smooth",block:"center"});
+  });
+}
+["acShape","acUnit","acWidth","acHeight","acSide","acDiameter","acQuantity","acWaste"].forEach(id=>$(id)?.addEventListener("input",calculateAreaTool));
+$("acTransferBtn")?.addEventListener("click",transferAreaToCalculator);
 
 
 function compressProjectImage(file){

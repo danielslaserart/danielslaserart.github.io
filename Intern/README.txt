@@ -1,4 +1,4 @@
-Daniels Laser Art – Kalkulator V15.2
+Daniels Laser Art – Kalkulator V15.3
 
 Neu:
 - Freie Werkstatt-Einheiten für Verbrauchsmaterialien (z. B. Sprühstoß, Klecks, Streifen, Einsatz)
@@ -10,4 +10,11 @@ Neu:
 
 In GitHub /Intern alle enthaltenen Dateien ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=15.2
+https://danielslaserart.de/Intern/?v=15.3
+
+Neu in V15.3:
+- Flächenrechner für Rechteck, Quadrat und Kreis
+- mm, cm und m als Eingabeeinheiten
+- Stückzahl und Verschnitt/Reserve
+- Ausgabe in cm² und m²
+- Direkte Übernahme in passende cm²-/m²-Materialien der Kalkulation
