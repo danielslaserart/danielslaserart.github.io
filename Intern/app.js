@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "15.3";
+const APP_VERSION = "16.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -30,7 +30,7 @@ const defaults = {
     profit:30,hourly:0,machine3d:0.5,laserGravur:0.1,laserSchnitt:0.15,
     plotter:0.1,presse:0.15,reserve:5,packaging:0,rounding:0.1
   },
-  materials:[],projects:[],activeModule:"3d",lastPrice:null,
+  materials:[],projects:[],activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[
     {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
     {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
@@ -40,6 +40,8 @@ const defaults = {
   ]
 };
 let state = load();
+state.projects=(state.projects||[]).map(p=>({...p,status:p.status||"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+state.timer={...defaults.timer,...(state.timer||{})};
 
 const $ = id => document.getElementById(id);
 const num = v => {
@@ -118,6 +120,8 @@ async function loadCloudState(){
   }
   if(data?.data){
     state={...defaults,...data.data,settings:{...defaults.settings,...(data.data.settings||{})}};
+    state.projects=(state.projects||[]).map(p=>({...p,status:p.status||"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+    state.timer={...defaults.timer,...(state.timer||{})};
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
@@ -154,18 +158,42 @@ function setScreen(id){
   if(id==="settings") fillSettings();
   if(id==="calculator") renderCalculator();
   if(id==="tools") renderTools();
+  if(id==="home") updateHome();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>setScreen(b.dataset.screen));
 document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.open;save();setScreen("calculator")});
+document.querySelectorAll("[data-open-tool]").forEach(b=>b.onclick=()=>{setScreen("tools");setTimeout(()=>document.querySelector(`[data-tool="${b.dataset.openTool}"]`)?.click(),0)});
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.tab;save();renderCalculator()});
 
 function updateHome(){
+  const now=new Date(),month=now.getMonth(),year=now.getFullYear();
+  const monthProjects=state.projects.filter(p=>{const d=new Date(p.created||p.updated);return d.getMonth()===month&&d.getFullYear()===year});
+  const monthProfit=monthProjects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   $("homeMaterialCount").textContent=state.materials.length;
-  $("homeProjectCount").textContent=state.projects.length;
+  $("homeOpenCount").textContent=state.projects.filter(p=>(p.status||"open")==="open").length;
+  $("homeMonthProfit").textContent=euro(monthProfit);
+  $("homeMonthOrders").textContent=`${monthProjects.length} ${monthProjects.length===1?"Auftrag":"Aufträge"}`;
+  $("homeFavoriteCount").textContent=`${state.materials.filter(m=>m.favorite).length} Favoriten`;
   $("homeLastPrice").textContent=state.lastPrice==null?"–":euro(state.lastPrice);
+  const greeting=now.getHours()<11?"Guten Morgen":now.getHours()<18?"Guten Tag":"Guten Abend";
+  if($("dashboardGreeting")) $("dashboardGreeting").textContent=`${greeting}, Daniel`;
+  renderRecentProjects();
+}
+function renderRecentProjects(){
+  const box=$("homeRecentProjects");if(!box)return;
+  const items=state.projects.slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created)).slice(0,3);
+  box.innerHTML=items.length?items.map(p=>`<button class="recent-project" type="button" data-recent-id="${p.id}"><div><b>${esc(p.title)}</b><small>${esc(p.customer||p.type||"")} · ${new Date(p.updated||p.created).toLocaleDateString("de-DE")}</small></div><strong>${euro(p.sale)}</strong></button>`).join(""):`<div class="empty-state">Noch keine Projekte gespeichert.</div>`;
+  box.querySelectorAll("[data-recent-id]").forEach(btn=>btn.onclick=()=>viewProject(btn.dataset.recentId));
 }
 updateHome();
+if($("dashboardSearch")) $("dashboardSearch").oninput=e=>{
+  const q=e.target.value.trim().toLowerCase(),box=$("dashboardSearchResults");
+  if(!q){box.classList.add("hidden");box.innerHTML="";return}
+  const found=state.projects.filter(p=>[p.title,p.customer,p.machineName,p.notes,...(p.tags||[])].join(" ").toLowerCase().includes(q)).slice(0,6);
+  box.innerHTML=found.length?found.map(p=>`<button type="button" data-dash-project="${p.id}"><span><b>${esc(p.title)}</b><small>${esc(p.customer||p.type||"")}</small></span><strong>${euro(p.sale)}</strong></button>`).join(""):`<div class="empty-state">Kein passendes Projekt.</div>`;
+  box.classList.remove("hidden");box.querySelectorAll("[data-dash-project]").forEach(btn=>btn.onclick=()=>{box.classList.add("hidden");viewProject(btn.dataset.dashProject)});
+};
 
 // MATERIALS
 const dialog=$("materialDialog");
@@ -510,7 +538,8 @@ $("calcForm").onsubmit=e=>{
   const title=$("projectName").value.trim()||`${titles[state.activeModule]} ${new Date().toLocaleDateString("de-DE")}`;
   const machine=getMachine();
   const existingProject=editingProjectId?state.projects.find(p=>p.id===editingProjectId):null;
-  const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",image:existingProject?.image||null,sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const saleNow=num($("calcForm").dataset.sale),costNow=num($("calcForm").dataset.cost);const history=[...(existingProject?.priceHistory||[])];if(!existingProject||num(existingProject.sale)!==saleNow||num(existingProject.cost)!==costNow)history.unshift({date:new Date().toISOString(),sale:saleNow,cost:costNow});
+  const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"open",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
   state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();alert(idx>=0?"Projekt aktualisiert.":"Projekt gespeichert.");
@@ -690,17 +719,17 @@ function compressProjectImage(file){
 
 function renderProjects(){
   const term=($("projectSearch")?.value||"").trim().toLowerCase();
-  const list=state.projects.filter(p=>!term||`${p.title} ${p.customer||""} ${p.type||""} ${p.machineName||""} ${p.notes||""}`.toLowerCase().includes(term));
+  const list=state.projects.filter(p=>!term||`${p.title} ${p.customer||""} ${p.type||""} ${p.machineName||""} ${p.notes||""} ${(p.tags||[]).join(" ")}`.toLowerCase().includes(term));
   const totalProfit=state.projects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   if($("projectStatCount"))$("projectStatCount").textContent=state.projects.length;
   if($("projectStatProfit"))$("projectStatProfit").textContent=euro(totalProfit);
   if($("projectStatAverage"))$("projectStatAverage").textContent=state.projects.length?euro(state.projects.reduce((sum,p)=>sum+num(p.sale),0)/state.projects.length):euro(0);
   $("projectList").innerHTML=list.length?list.map(p=>`
     <article class="card project-item">
-      ${p.image?`<button class="project-thumb" data-view-project="${p.id}" aria-label="Projektbild ansehen"><img src="${p.image}" alt=""></button>`:""}
-      <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?" · "+esc(p.machineName):""}${p.customer?" · "+esc(p.customer):""} · ${new Date(p.created).toLocaleString("de-DE")}</div></div><div class="item-price">${euro(p.sale)}</div></div>
+      ${(p.images||[])[0]?`<button class="project-thumb" data-view-project="${p.id}" aria-label="Projektbild ansehen"><img src="${p.images[0]}" alt=""></button>`:""}
+      <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?" · "+esc(p.machineName):""}${p.customer?" · "+esc(p.customer):""} · ${new Date(p.created).toLocaleString("de-DE")} · ${p.status==="done"?"Abgeschlossen":"Offen"}</div></div><div class="item-price">${euro(p.sale)}</div></div>
       <div class="item-meta">Selbstkosten: ${euro(p.cost)} · Gewinn: ${euro(p.sale-p.cost)}${p.qty>1?" · "+euro(p.sale/p.qty)+" je Stück":""}</div>
-      ${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:""}
+      ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:""}
       <div class="item-actions project-actions"><button data-view-project="${p.id}">Ansehen</button><button data-edit-project="${p.id}">Bearbeiten</button><button data-duplicate-project="${p.id}">Duplizieren</button><button data-del-project="${p.id}" class="danger">Löschen</button></div>
     </article>`).join(""):$("emptyState").innerHTML;
   document.querySelectorAll("[data-view-project]").forEach(b=>b.onclick=()=>viewProject(b.dataset.viewProject));
@@ -718,16 +747,15 @@ function projectFieldValue(id,value){
 }
 function viewProject(id){
   const p=state.projects.find(x=>x.id===id);if(!p)return;
-  const details=Object.entries(p.fields||{}).filter(([id])=>!["projectName","customerName","projectNotes","machineSelect"].includes(id)).map(([id,value])=>`<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(projectFieldValue(id,value))}</strong></div>`).join("");
+  const details=Object.entries(p.fields||{}).filter(([id])=>!["projectName","customerName","projectNotes","machineSelect","projectStatus","projectTags"].includes(id)).map(([id,value])=>`<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(projectFieldValue(id,value))}</strong></div>`).join("");
   const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
   $("projectViewTitle").textContent=p.title;
-  $("projectViewContent").innerHTML=`${p.image?`<img class="project-view-image" src="${p.image}" alt="Projektbild">`:`<div class="project-image-empty">Noch kein Projektbild vorhanden.</div>`}<div class="project-image-actions"><label class="secondary file-button">${p.image?"Bild ändern":"Bild hinzufügen"}<input id="projectImageInput" type="file" accept="image/*"></label>${p.image?`<button id="projectImageDeleteBtn" class="ghost danger" type="button">Bild löschen</button>`:""}</div><div class="project-view-summary"><div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div><div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created).toLocaleString("de-DE")}</strong></div><div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div><div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div></div>${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}`;
+  $("projectViewContent").innerHTML=`${(p.images||[]).length?`<div class="project-gallery">${p.images.map((img,i)=>`<figure><img class="project-view-image" src="${img}" alt="Projektbild ${i+1}"><button type="button" data-delete-image="${i}" class="image-delete">×</button></figure>`).join("")}</div>`:`<div class="project-image-empty">Noch kein Projektbild vorhanden.</div>`}<div class="project-image-actions"><label class="secondary file-button">Bilder hinzufügen<input id="projectImageInput" type="file" accept="image/*" multiple></label></div><div class="project-view-summary"><div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div><div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Status</span><strong>${p.status==="done"?"Abgeschlossen":"Offen"}</strong></div><div><span>Arbeitszeit</span><strong>${formatDuration(num(p.workSeconds))}</strong></div><div><span>Datum</span><strong>${new Date(p.created).toLocaleString("de-DE")}</strong></div><div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div><div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div></div>${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}<div class="project-view-actions"><button id="offerPdfBtn" class="primary" type="button">PDF-Angebot</button><button id="toggleProjectStatusBtn" class="secondary" type="button">${p.status==="done"?"Wieder öffnen":"Abschließen"}</button></div>${(p.priceHistory||[]).length?`<h3>Preishistorie</h3><div class="project-view-details">${p.priceHistory.map(h=>`<div><span>${new Date(h.date).toLocaleString("de-DE")}</span><strong>${euro(h.sale)} · Kosten ${euro(h.cost)}</strong></div>`).join("")}</div>`:""}${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}`;
   $("projectViewEditBtn").onclick=()=>{$("projectViewDialog").close();loadProject(id,false)};
-  $("projectImageInput")?.addEventListener("change",async e=>{
-    const file=e.target.files?.[0];if(!file)return;
-    try{p.image=await compressProjectImage(file);save();renderProjects();viewProject(id);}catch(err){console.error(err);alert("Das Bild konnte nicht verarbeitet werden.");}
-  });
-  $("projectImageDeleteBtn")?.addEventListener("click",()=>{if(confirm("Projektbild löschen?")){p.image=null;save();renderProjects();viewProject(id);}});
+  $("projectImageInput")?.addEventListener("change",async e=>{const files=[...(e.target.files||[])];if(!files.length)return;try{for(const file of files.slice(0,6-(p.images||[]).length))(p.images||(p.images=[])).push(await compressProjectImage(file));save();renderProjects();viewProject(id)}catch(err){console.error(err);alert("Mindestens ein Bild konnte nicht verarbeitet werden.")}});
+  document.querySelectorAll("[data-delete-image]").forEach(btn=>btn.onclick=()=>{if(confirm("Dieses Projektbild löschen?")){p.images.splice(Number(btn.dataset.deleteImage),1);save();renderProjects();viewProject(id)}});
+  $("toggleProjectStatusBtn")?.addEventListener("click",()=>{p.status=p.status==="done"?"open":"done";p.updated=new Date().toISOString();save();renderProjects();viewProject(id)});
+  $("offerPdfBtn")?.addEventListener("click",()=>printOffer(p));
   $("projectViewDialog").showModal();
 }
 function loadProject(id,duplicate=false){
@@ -745,7 +773,7 @@ function loadProject(id,duplicate=false){
   $("projectName").value=duplicate?`${p.title} – Kopie`:p.title;
   $("customerName").value=p.customer||"";
   if(p.machineId&&$("machineSelect"))$("machineSelect").value=p.machineId;
-  if($("projectNotes"))$("projectNotes").value=p.notes||"";
+  if($("projectNotes"))$("projectNotes").value=p.notes||"";if($("projectStatus"))$("projectStatus").value=p.status||"open";if($("projectTags"))$("projectTags").value=(p.tags||[]).join(", ");setTimerSeconds(num(p.workSeconds));
   calculate();
 }
 $("clearProjectsBtn").onclick=()=>{if(state.projects.length&&confirm("Wirklich alle Projekte löschen?")){state.projects=[];save();renderProjects()}};
