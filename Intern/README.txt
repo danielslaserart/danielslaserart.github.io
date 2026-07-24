@@ -1,32 +1,14 @@
-Daniels Laser Art – Kalkulator V15
+Daniels Laser Art – Kalkulator V15.1
 
-Neu:
-- Maschinenprofile für xTool F2 Diode, xTool F2 IR und Atomstack X70 Pro
-- Druckerprofile für Anycubic K3 Combo und Anycubic Kobra 2 Plus
-- Maschine direkt in der Kalkulation auswählbar
-- Maschinenkosten werden automatisch aus dem gewählten Profil übernommen
-- Projekt-Notizen
-- Projektarchiv: Bearbeiten, Duplizieren, Löschen und erweiterte Suche
-- Projektstatistiken: Anzahl, Gesamtgewinn und durchschnittlicher Verkaufspreis
-- Kein Lager, keine Druckgeschwindigkeit und keine Anschaffungspreise
-- App-Icon aus der hochgeladenen Originalgrafik
-- Cache und App-Version auf V15 erhöht
+Fehlerkorrekturen:
+- Doppelte globale Laser-/3D-Maschinenpreise aus Einstellungen entfernt
+- Verbrauchsmaterial wird nicht mehr automatisch mit Produktgröße skaliert
+- Skalierung ist je Verbrauchsmaterial ausdrücklich aktivierbar
+- Manuell hinzugefügte Verbrauchsmaterialien starten mit Menge 0
+- Projektbearbeitung lädt alle gespeicherten Daten wieder korrekt
+- Neue Projektansicht mit Kalkulationsdetails
+- Projektbuttons auf Mobilgeräten ordentlich angeordnet
+- Cache-Version auf V15.1 erhöht
 
-In GitHub /Intern ersetzen:
-index.html
-style.css
-app.js
-manifest.json
-sw.js
-icon-192.png
-icon-512.png
-icon-maskable-512.png
-
-Danach öffnen:
-https://danielslaserart.de/Intern/?v=15
-
-Für ein aktualisiertes App-Icon bzw. eine saubere Aktualisierung:
-1. alte installierte App löschen
-2. Browser vollständig schließen
-3. V15 öffnen
-4. erneut installieren
+In GitHub /Intern alle enthaltenen Dateien ersetzen.
+Danach öffnen: https://danielslaserart.de/Intern/?v=15.1

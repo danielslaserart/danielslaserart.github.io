@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "15";
+const APP_VERSION = "15.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -63,6 +63,7 @@ function load(){
       autoAdd:Boolean(m.autoAdd),
       favorite:Boolean(m.favorite),
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
+      scaleWithSize:Boolean(m.scaleWithSize),
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
     merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
@@ -114,6 +115,7 @@ async function loadCloudState(){
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
+      scaleWithSize:Boolean(m.scaleWithSize),
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
     state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
@@ -177,6 +179,7 @@ function openMaterial(m=null){
   $("materialDefaultConsumption").value=m?.defaultConsumption??"";
   $("materialAutoAdd").checked=m?Boolean(m.autoAdd):false;
   $("materialFavorite").checked=m?Boolean(m.favorite):false;
+  $("materialScaleWithSize").checked=m?Boolean(m.scaleWithSize):false;
   $("materialConsumableCategory").value=m?.consumableCategory||"Sonstiges";
   const modules=m?.consumableModules||["3d","laser","vinyl","textil"];
   document.querySelectorAll("[data-consumable-module]").forEach(cb=>cb.checked=modules.includes(cb.value));
@@ -200,7 +203,7 @@ $("materialForm").onsubmit=e=>{
     id:$("materialId").value||uid(),name,area:$("materialArea").value,price,quantity,unit:$("materialUnit").value,
     note:$("materialNote").value.trim(),unitPrice:price/quantity,mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
     consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("materialDefaultConsumption").value),
-    autoAdd:$("materialAutoAdd").checked,favorite:$("materialFavorite").checked,
+    autoAdd:$("materialAutoAdd").checked,favorite:$("materialFavorite").checked,scaleWithSize:$("materialScaleWithSize").checked,
     consumableModules:modules.length?modules:["3d","laser","vinyl","textil"],
     sizeFactors:{small:num($("factorSmall").value)||0.5,medium:num($("factorMedium").value)||1,large:num($("factorLarge").value)||2}
   };
@@ -261,7 +264,10 @@ function sizeFactor(mat,size=productSize){
   if(size==="custom")return 1;
   return num(mat.sizeFactors?.[size])||({small:0.5,medium:1,large:2}[size]||1);
 }
-function defaultQty(mat,size=productSize){return num(mat.defaultConsumption)*sizeFactor(mat,size);}
+function defaultQty(mat,size=productSize){
+  const base=num(mat.defaultConsumption);
+  return mat.scaleWithSize ? base*sizeFactor(mat,size) : base;
+}
 function autoConsumables(type=state.activeModule){
   return state.materials.filter(m=>m.consumableRole&&m.autoAdd&&moduleApplies(m,type)).sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name));
 }
@@ -296,7 +302,7 @@ function renderConsumables(){
   document.querySelectorAll("[data-consumable-remove]").forEach(btn=>btn.onclick=()=>{consumableSelections.splice(+btn.dataset.consumableRemove,1);renderConsumables();calculate();});
 }
 function consumablesCost(){return consumableSelections.reduce((sum,row)=>{const mat=state.materials.find(m=>m.id===row.materialId);return sum+(mat?.unitPrice||0)*num(row.quantity);},0);}
-$("addConsumableBtn").onclick=()=>{consumableSelections.push({materialId:"",quantity:1,auto:false});renderConsumables();};
+$("addConsumableBtn").onclick=()=>{consumableSelections.push({materialId:"",quantity:0,auto:false});renderConsumables();};
 function setProductSize(size){
   const previous=productSize;productSize=size;
   document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===size));
@@ -580,18 +586,39 @@ function renderProjects(){
       <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?" · "+esc(p.machineName):""}${p.customer?" · "+esc(p.customer):""} · ${new Date(p.created).toLocaleString("de-DE")}</div></div><div class="item-price">${euro(p.sale)}</div></div>
       <div class="item-meta">Selbstkosten: ${euro(p.cost)} · Gewinn: ${euro(p.sale-p.cost)}${p.qty>1?" · "+euro(p.sale/p.qty)+" je Stück":""}</div>
       ${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:""}
-      <div class="item-actions"><button data-edit-project="${p.id}">Bearbeiten</button><button data-duplicate-project="${p.id}">Duplizieren</button><button data-del-project="${p.id}" class="danger">Löschen</button></div>
+      <div class="item-actions project-actions"><button data-view-project="${p.id}">Ansehen</button><button data-edit-project="${p.id}">Bearbeiten</button><button data-duplicate-project="${p.id}">Duplizieren</button><button data-del-project="${p.id}" class="danger">Löschen</button></div>
     </article>`).join(""):$("emptyState").innerHTML;
+  document.querySelectorAll("[data-view-project]").forEach(b=>b.onclick=()=>viewProject(b.dataset.viewProject));
   document.querySelectorAll("[data-edit-project]").forEach(b=>b.onclick=()=>loadProject(b.dataset.editProject,false));
   document.querySelectorAll("[data-duplicate-project]").forEach(b=>b.onclick=()=>loadProject(b.dataset.duplicateProject,true));
   document.querySelectorAll("[data-del-project]").forEach(b=>b.onclick=()=>{if(confirm("Projekt löschen?")){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects()}});
+}
+function projectFieldLabel(id){
+  return ({matMain:"Hauptmaterial",matTransfer:"Übertragungsfolie",usageMain:"Materialverbrauch",usageTransfer:"Verbrauch Übertragungsfolie",printMinutes:"Druckdauer",engraveMinutes:"Gravurdauer",cutMinutes:"Schnittdauer",workMinutes:"Arbeitszeit",hourlyRate:"Stundenlohn",packaging:"Verpackung",otherCosts:"Sonstige Kosten",reserve:"Fehlerreserve",profit:"Gewinnaufschlag",quantity:"Stückzahl",colors:"Farben",plotMinutes:"Plottdauer",weedMinutes:"Entgitterzeit",mountMinutes:"Montagezeit",pressMinutes:"Presszeit",prepMinutes:"Vor-/Nachbereitung",textilePrice:"Textilpreis"})[id]||id;
+}
+function projectFieldValue(id,value){
+  if(id==="matMain"||id==="matTransfer") return state.materials.find(m=>m.id===value)?.name||"–";
+  if(id==="machineSelect") return state.machines.find(m=>m.id===value)?.name||"–";
+  return value===""?"–":value;
+}
+function viewProject(id){
+  const p=state.projects.find(x=>x.id===id);if(!p)return;
+  const details=Object.entries(p.fields||{}).filter(([id])=>!["projectName","customerName","projectNotes","machineSelect"].includes(id)).map(([id,value])=>`<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(projectFieldValue(id,value))}</strong></div>`).join("");
+  const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(m.unit)}</strong></div>`:""}).join("");
+  $("projectViewTitle").textContent=p.title;
+  $("projectViewContent").innerHTML=`<div class="project-view-summary"><div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div><div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created).toLocaleString("de-DE")}</strong></div><div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div><div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div></div>${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}`;
+  $("projectViewEditBtn").onclick=()=>{$("projectViewDialog").close();loadProject(id,false)};
+  $("projectViewDialog").showModal();
 }
 function loadProject(id,duplicate=false){
   const p=state.projects.find(x=>x.id===id);if(!p)return;
   state.activeModule=p.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[p.type]||"3d");
   editingProjectId=duplicate?null:p.id;
+  setScreen("calculator");
   productSize=p.productSize||"medium";
   renderCalculator(true);
+  productSize=p.productSize||"medium";
+  document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===productSize));
   consumableSelections=(p.consumables||[]).map(r=>({...r,auto:false}));
   renderConsumables();
   applyCalculatorFields(p.fields||{});
@@ -599,20 +626,19 @@ function loadProject(id,duplicate=false){
   $("customerName").value=p.customer||"";
   if(p.machineId&&$("machineSelect"))$("machineSelect").value=p.machineId;
   if($("projectNotes"))$("projectNotes").value=p.notes||"";
-  calculate();setScreen("calculator");
+  calculate();
 }
 $("clearProjectsBtn").onclick=()=>{if(state.projects.length&&confirm("Wirklich alle Projekte löschen?")){state.projects=[];save();renderProjects()}};
 $("projectSearch").oninput=renderProjects;
 
 function fillSettings(){
   renderMachines();
-  $("setProfit").value=state.settings.profit;$("setHourly").value=state.settings.hourly;$("set3dMachine").value=state.settings.machine3d;
-  $("setLaserGravur").value=state.settings.laserGravur;$("setLaserSchnitt").value=state.settings.laserSchnitt;$("setPlotter").value=state.settings.plotter;
+  $("setProfit").value=state.settings.profit;$("setHourly").value=state.settings.hourly;$("setPlotter").value=state.settings.plotter;
   $("setPresse").value=state.settings.presse;$("setReserve").value=state.settings.reserve;$("setPackaging").value=state.settings.packaging;$("setRounding").value=String(state.settings.rounding);
 }
 $("settingsForm").onsubmit=e=>{
   e.preventDefault();
-  state.settings={profit:num($("setProfit").value),hourly:num($("setHourly").value),machine3d:num($("set3dMachine").value),laserGravur:num($("setLaserGravur").value),laserSchnitt:num($("setLaserSchnitt").value),plotter:num($("setPlotter").value),presse:num($("setPresse").value),reserve:num($("setReserve").value),packaging:num($("setPackaging").value),rounding:num($("setRounding").value)};
+  state.settings={...state.settings,profit:num($("setProfit").value),hourly:num($("setHourly").value),plotter:num($("setPlotter").value),presse:num($("setPresse").value),reserve:num($("setReserve").value),packaging:num($("setPackaging").value),rounding:num($("setRounding").value)};
   save();alert("Einstellungen gespeichert.");
 };
 
@@ -627,7 +653,7 @@ $("importInput").onchange=async e=>{
     if(!Array.isArray(d.materials)||!Array.isArray(d.projects))throw new Error();
     state={...defaults,...d,settings:{...defaults.settings,...(d.settings||{})}};
     state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
-    state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
+    state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),scaleWithSize:Boolean(m.scaleWithSize),consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
   }catch{alert("Ungültige Backup-Datei.");}
   e.target.value="";
 };

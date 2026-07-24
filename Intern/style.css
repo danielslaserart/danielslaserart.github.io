@@ -542,3 +542,17 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .machine-row>div strong,.machine-row>div small{display:block}.machine-row>div small{margin-top:5px;color:var(--muted);font-family:system-ui,sans-serif}.machine-row label{margin:0}
 .project-notes{margin-top:10px;padding:10px 12px;border-left:3px solid var(--gold);background:rgba(15,10,7,.55);color:var(--muted);font-family:system-ui,sans-serif;font-size:.82rem;white-space:pre-wrap}
 @media(max-width:650px){.machine-row{grid-template-columns:1fr 1fr}.machine-row>div{grid-column:1/-1}}
+
+
+/* V15.1 – Fehlerkorrekturen */
+.project-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.project-actions button{width:100%;min-width:0;white-space:nowrap}
+.project-view-summary,.project-view-details{display:grid;gap:8px}
+.project-view-summary>div,.project-view-details>div{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);font-family:system-ui,sans-serif;color:var(--muted)}
+.project-view-summary strong,.project-view-details strong{color:var(--text);text-align:right}
+.project-view-summary .project-view-final{margin-top:4px;padding-top:14px;font-size:1.08rem}
+.project-view-summary .project-view-final strong{color:var(--gold2);font-size:1.3rem}
+.project-view-notes{margin:14px 0;padding:13px;border-left:3px solid var(--gold);background:rgba(15,10,7,.55);color:var(--muted)}
+.project-view-notes p{margin:6px 0 0;white-space:pre-wrap}
+#projectViewContent h3{margin:18px 0 5px;color:var(--gold2)}
+@media(max-width:390px){.project-actions{grid-template-columns:1fr}.project-actions button{white-space:normal}}

@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=15">
-  <link rel="apple-touch-icon" href="icon-192.png?v=15">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=15">
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="manifest" href="manifest.json?v=15.1">
+  <link rel="apple-touch-icon" href="icon-192.png?v=15.1">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=15.1">
+  <link rel="stylesheet" href="style.css?v=15.1">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -250,9 +250,6 @@
       <div class="field-grid">
         <label>Gewinnaufschlag (%)<input id="setProfit" type="number" step="any" inputmode="decimal"></label>
         <label>Eigener Stundenlohn (€/h)<input id="setHourly" type="number" step="any" inputmode="decimal"></label>
-        <label>3D-Druck Maschinenkosten (€/h)<input id="set3dMachine" type="number" step="any" inputmode="decimal"></label>
-        <label>Laser Gravur (€/Min.)<input id="setLaserGravur" type="number" step="any" inputmode="decimal"></label>
-        <label>Laser Schnitt (€/Min.)<input id="setLaserSchnitt" type="number" step="any" inputmode="decimal"></label>
         <label>Plotter Maschinenkosten (€/Min.)<input id="setPlotter" type="number" step="any" inputmode="decimal"></label>
         <label>Transferpresse (€/Min.)<input id="setPresse" type="number" step="any" inputmode="decimal"></label>
         <label>Fehler-/Ausschussreserve (%)<input id="setReserve" type="number" step="any" inputmode="decimal"></label>
@@ -345,6 +342,8 @@
       </div>
       <label class="check-row"><input id="materialAutoAdd" type="checkbox"><span>Automatisch zu passenden Kalkulationen hinzufügen</span></label>
       <label class="check-row"><input id="materialFavorite" type="checkbox"><span>Als Favorit oben anzeigen</span></label>
+      <label class="check-row"><input id="materialScaleWithSize" type="checkbox"><span>Standardverbrauch mit Produktgröße skalieren</span></label>
+      <p class="size-help">Nur aktivieren, wenn der Verbrauch bei kleinen und großen Produkten wirklich entsprechend sinkt oder steigt. Flüssigkeiten wie Isopropanol bleiben normalerweise unverändert.</p>
       <div class="subgroup-label">Passende Module</div>
       <div class="module-checks">
         <label class="check-row"><input data-consumable-module type="checkbox" value="3d"><span>3D-Druck</span></label>
@@ -369,6 +368,14 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=15"></script>
+<script src="app.js?v=15.1"></script>
+
+<dialog id="projectViewDialog">
+  <div class="dialog-card">
+    <div class="section-head"><h2 id="projectViewTitle">Projekt</h2><button type="button" class="icon-btn" onclick="document.getElementById('projectViewDialog').close()">×</button></div>
+    <div id="projectViewContent"></div>
+    <button id="projectViewEditBtn" class="primary wide" type="button">Projekt bearbeiten</button>
+  </div>
+</dialog>
 </body>
 </html>
