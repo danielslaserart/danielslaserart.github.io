@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "14";
+const APP_VERSION = "15";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -30,7 +30,14 @@ const defaults = {
     profit:30,hourly:0,machine3d:0.5,laserGravur:0.1,laserSchnitt:0.15,
     plotter:0.1,presse:0.15,reserve:5,packaging:0,rounding:0.1
   },
-  materials:[],projects:[],activeModule:"3d",lastPrice:null
+  materials:[],projects:[],activeModule:"3d",lastPrice:null,
+  machines:[
+    {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
+    {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
+    {id:"atomstack-x70",name:"Atomstack X70 Pro",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
+    {id:"anycubic-k3",name:"Anycubic K3 Combo",type:"3d",hourlyRate:0.50,active:true},
+    {id:"anycubic-kobra2plus",name:"Anycubic Kobra 2 Plus",type:"3d",hourlyRate:0.50,active:true}
+  ]
 };
 let state = load();
 
@@ -58,6 +65,7 @@ function load(){
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
+    merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
     return merged;
   }catch{return structuredClone(defaults)}
 }
@@ -108,6 +116,7 @@ async function loadCloudState(){
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
+    state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
     localStorage.setItem(KEY,JSON.stringify(state));
   }else{
     await saveCloudState();
@@ -213,6 +222,29 @@ function renderMaterials(){
   document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{if(confirm("Material wirklich löschen?")){state.materials=state.materials.filter(m=>m.id!==b.dataset.delete);save();renderMaterials()}});
 }
 
+let editingProjectId=null;
+function machineOptions(type,selected=""){
+  const list=(state.machines||[]).filter(m=>m.type===type&&m.active!==false);
+  return list.map(m=>`<option value="${m.id}" ${m.id===selected?"selected":""}>${esc(m.name)}</option>`).join("");
+}
+function getMachine(){
+  const id=$("machineSelect")?.value;
+  return (state.machines||[]).find(m=>m.id===id)||null;
+}
+function renderMachines(){
+  const box=$("machineList");if(!box)return;
+  box.innerHTML=(state.machines||[]).map(m=>`<div class="machine-row card"><div><strong>${esc(m.name)}</strong><small>${m.type==="laser"?"Laser":"3D-Druck"}</small></div>${m.type==="laser"?`<label>Gravur €/Min.<input data-machine-rate="engraveRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.engraveRate)}"></label><label>Schnitt €/Min.<input data-machine-rate="cutRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.cutRate)}"></label>`:`<label>Kosten €/Std.<input data-machine-rate="hourlyRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.hourlyRate)}"></label>`}</div>`).join("");
+  document.querySelectorAll("[data-machine-rate]").forEach(el=>el.oninput=()=>{const m=state.machines.find(x=>x.id===el.dataset.machineId);if(m){m[el.dataset.machineRate]=num(el.value);save();}});
+}
+function captureCalculatorFields(){
+  const fields={};
+  document.querySelectorAll("#calcForm input,#calcForm select,#calcForm textarea").forEach(el=>{if(el.id)fields[el.id]=el.value;});
+  return fields;
+}
+function applyCalculatorFields(fields={}){
+  Object.entries(fields).forEach(([id,value])=>{const el=$(id);if(el)el.value=value;});
+  calculate();
+}
 const titles={ "3d":"3D-Druck","laser":"Laser","vinyl":"Vinylfolie","textil":"Textilfolie" };
 function options(area){
   return `<option value="">Material auswählen</option>`+state.materials.filter(m=>m.area===area&&m.mainRole!==false).map(m=>`<option value="${m.id}">${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
@@ -288,12 +320,13 @@ function renderCalculator(clear=false){
   let html="";
   if(type==="3d") html=`
     <div class="group-title">MATERIAL & MASCHINE</div>
+    <label>Drucker auswählen<select id="machineSelect">${machineOptions("3d")}</select></label>
     <label>Material auswählen<select id="matMain">${options("3D-Druck")}</select></label>
     ${infoRow("Preis aus Datenbank","priceMain")}
     <div class="field-grid">
       <label>Filamentverbrauch (g)<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":129}"></label>
       <label>Druckdauer (Minuten)<input id="printMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":400}"></label>
-      <label>Maschinenkosten (€/Stunde)<input id="machine3d" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.machine3d}"></label>
+      <div class="machine-rate-display">Maschinenkosten: <strong id="machineRateDisplay">0,00 € / Std.</strong></div>
       <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":0}"></label>
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
@@ -303,15 +336,16 @@ function renderCalculator(clear=false){
     </div>`;
 
   if(type==="laser") html=`
-    <div class="group-title">MATERIAL</div>
+    <div class="group-title">MATERIAL & MASCHINE</div>
+    <label>Laser auswählen<select id="machineSelect">${machineOptions("laser")}</select></label>
     <label>Material auswählen<select id="matMain">${options("Laser")}</select></label>
     ${infoRow("Preis aus Datenbank","priceMain")}
     <div class="field-grid">
       <label>Verbrauchte Fläche / Menge<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":300}"></label>
       <label>Gravurdauer (Minuten)<input id="engraveMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":20}"></label>
-      <label>Gravurpreis (€/Minute)<input id="engraveRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.laserGravur}"></label>
       <label>Schnittdauer (Minuten)<input id="cutMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":10}"></label>
-      <label>Schnittpreis (€/Minute)<input id="cutRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.laserSchnitt}"></label>
+      <div class="machine-rate-display">Gravur: <strong id="engraveRateDisplay">0,00 € / Min.</strong></div>
+      <div class="machine-rate-display">Schnitt: <strong id="cutRateDisplay">0,00 € / Min.</strong></div>
       <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":10}"></label>
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
@@ -393,14 +427,21 @@ function calculate(){
   const consumables=consumablesCost();
 
   if(type==="3d"){
+    const selectedMachine=getMachine();
+    const rate=num(selectedMachine?.hourlyRate);
+    if($("machineRateDisplay")) $("machineRateDisplay").textContent=`${euro(rate)} / Std.`;
     material=unitMain*num($("usageMain")?.value);
-    machine=(num($("printMinutes")?.value)/60)*num($("machine3d")?.value);
+    machine=(num($("printMinutes")?.value)/60)*rate;
     work=(num($("workMinutes")?.value)/60)*num($("hourlyRate")?.value);
     extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
   if(type==="laser"){
+    const selectedMachine=getMachine();
+    const engraveRate=num(selectedMachine?.engraveRate),cutRate=num(selectedMachine?.cutRate);
+    if($("engraveRateDisplay")) $("engraveRateDisplay").textContent=`${euro(engraveRate)} / Min.`;
+    if($("cutRateDisplay")) $("cutRateDisplay").textContent=`${euro(cutRate)} / Min.`;
     material=unitMain*num($("usageMain")?.value);
-    machine=num($("engraveMinutes")?.value)*num($("engraveRate")?.value)+num($("cutMinutes")?.value)*num($("cutRate")?.value);
+    machine=num($("engraveMinutes")?.value)*engraveRate+num($("cutMinutes")?.value)*cutRate;
     work=(num($("workMinutes")?.value)/60)*num($("hourlyRate")?.value);
     extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
@@ -443,8 +484,11 @@ function calculate(){
 $("calcForm").onsubmit=e=>{
   e.preventDefault();calculate();
   const title=$("projectName").value.trim()||`${titles[state.activeModule]} ${new Date().toLocaleDateString("de-DE")}`;
-  const p={id:uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),created:new Date().toISOString()};
-  state.projects.unshift(p);state.lastPrice=p.sale;save();alert("Projekt gespeichert.");
+  const machine=getMachine();
+  const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const idx=state.projects.findIndex(p=>p.id===project.id);
+  if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
+  state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();alert(idx>=0?"Projekt aktualisiert.":"Projekt gespeichert.");
 };
 
 
@@ -526,19 +570,42 @@ function calculateQuickTool(){
 
 function renderProjects(){
   const term=($("projectSearch")?.value||"").trim().toLowerCase();
-  const list=state.projects.filter(p=>!term||`${p.title} ${p.customer||""} ${p.type||""}`.toLowerCase().includes(term));
+  const list=state.projects.filter(p=>!term||`${p.title} ${p.customer||""} ${p.type||""} ${p.machineName||""} ${p.notes||""}`.toLowerCase().includes(term));
+  const totalProfit=state.projects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
+  if($("projectStatCount"))$("projectStatCount").textContent=state.projects.length;
+  if($("projectStatProfit"))$("projectStatProfit").textContent=euro(totalProfit);
+  if($("projectStatAverage"))$("projectStatAverage").textContent=state.projects.length?euro(state.projects.reduce((sum,p)=>sum+num(p.sale),0)/state.projects.length):euro(0);
   $("projectList").innerHTML=list.length?list.map(p=>`
     <article class="card project-item">
-      <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.customer?" · "+esc(p.customer):""} · ${new Date(p.created).toLocaleString("de-DE")}</div></div><div class="item-price">${euro(p.sale)}</div></div>
+      <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?" · "+esc(p.machineName):""}${p.customer?" · "+esc(p.customer):""} · ${new Date(p.created).toLocaleString("de-DE")}</div></div><div class="item-price">${euro(p.sale)}</div></div>
       <div class="item-meta">Selbstkosten: ${euro(p.cost)} · Gewinn: ${euro(p.sale-p.cost)}${p.qty>1?" · "+euro(p.sale/p.qty)+" je Stück":""}</div>
-      <div class="item-actions"><button data-del-project="${p.id}" class="danger">Löschen</button></div>
+      ${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:""}
+      <div class="item-actions"><button data-edit-project="${p.id}">Bearbeiten</button><button data-duplicate-project="${p.id}">Duplizieren</button><button data-del-project="${p.id}" class="danger">Löschen</button></div>
     </article>`).join(""):$("emptyState").innerHTML;
+  document.querySelectorAll("[data-edit-project]").forEach(b=>b.onclick=()=>loadProject(b.dataset.editProject,false));
+  document.querySelectorAll("[data-duplicate-project]").forEach(b=>b.onclick=()=>loadProject(b.dataset.duplicateProject,true));
   document.querySelectorAll("[data-del-project]").forEach(b=>b.onclick=()=>{if(confirm("Projekt löschen?")){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects()}});
+}
+function loadProject(id,duplicate=false){
+  const p=state.projects.find(x=>x.id===id);if(!p)return;
+  state.activeModule=p.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[p.type]||"3d");
+  editingProjectId=duplicate?null:p.id;
+  productSize=p.productSize||"medium";
+  renderCalculator(true);
+  consumableSelections=(p.consumables||[]).map(r=>({...r,auto:false}));
+  renderConsumables();
+  applyCalculatorFields(p.fields||{});
+  $("projectName").value=duplicate?`${p.title} – Kopie`:p.title;
+  $("customerName").value=p.customer||"";
+  if(p.machineId&&$("machineSelect"))$("machineSelect").value=p.machineId;
+  if($("projectNotes"))$("projectNotes").value=p.notes||"";
+  calculate();setScreen("calculator");
 }
 $("clearProjectsBtn").onclick=()=>{if(state.projects.length&&confirm("Wirklich alle Projekte löschen?")){state.projects=[];save();renderProjects()}};
 $("projectSearch").oninput=renderProjects;
 
 function fillSettings(){
+  renderMachines();
   $("setProfit").value=state.settings.profit;$("setHourly").value=state.settings.hourly;$("set3dMachine").value=state.settings.machine3d;
   $("setLaserGravur").value=state.settings.laserGravur;$("setLaserSchnitt").value=state.settings.laserSchnitt;$("setPlotter").value=state.settings.plotter;
   $("setPresse").value=state.settings.presse;$("setReserve").value=state.settings.reserve;$("setPackaging").value=state.settings.packaging;$("setRounding").value=String(state.settings.rounding);
@@ -559,6 +626,7 @@ $("importInput").onchange=async e=>{
     const d=JSON.parse(await f.text());
     if(!Array.isArray(d.materials)||!Array.isArray(d.projects))throw new Error();
     state={...defaults,...d,settings:{...defaults.settings,...(d.settings||{})}};
+    state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
     state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
   }catch{alert("Ungültige Backup-Datei.");}
   e.target.value="";
@@ -568,7 +636,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=14").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=15").catch(()=>{}));
 
 
 async function initializeAuth(){

@@ -530,3 +530,15 @@ body{
 .factor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .consumable-row label small{display:block;margin-top:5px;color:var(--gold2);font-size:.68rem;font-weight:600}
 @media(max-width:540px){.size-selector{grid-template-columns:repeat(2,1fr)}.factor-grid{grid-template-columns:1fr}.module-checks{grid-template-columns:1fr 1fr}}
+
+/* V15 – Maschinenprofile & Projektarchiv */
+textarea{width:100%;resize:vertical;color:var(--text);background:rgba(22,14,9,.9);border:1px solid rgba(202,158,80,.32);border-radius:14px;padding:14px 15px;outline:none;font:inherit}
+textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.14)}
+.machine-rate-display{align-self:end;margin-bottom:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(14,9,6,.65);color:var(--muted);font-family:system-ui,sans-serif;font-size:.84rem}
+.machine-rate-display strong{color:var(--gold2)}
+.machines-section{margin-top:16px;padding:18px;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(145deg,rgba(48,32,21,.96),rgba(20,13,9,.97));box-shadow:var(--shadow)}
+.machine-list{display:grid;gap:10px;margin-top:14px}
+.machine-row{display:grid;grid-template-columns:minmax(150px,1fr) repeat(2,minmax(120px,160px));gap:12px;align-items:end;padding:14px}
+.machine-row>div strong,.machine-row>div small{display:block}.machine-row>div small{margin-top:5px;color:var(--muted);font-family:system-ui,sans-serif}.machine-row label{margin:0}
+.project-notes{margin-top:10px;padding:10px 12px;border-left:3px solid var(--gold);background:rgba(15,10,7,.55);color:var(--muted);font-family:system-ui,sans-serif;font-size:.82rem;white-space:pre-wrap}
+@media(max-width:650px){.machine-row{grid-template-columns:1fr 1fr}.machine-row>div{grid-column:1/-1}}

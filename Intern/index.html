@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=14">
-  <link rel="apple-touch-icon" href="icon-192.png?v=14">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=14">
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="manifest" href="manifest.json?v=15">
+  <link rel="apple-touch-icon" href="icon-192.png?v=15">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=15">
+  <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -114,6 +114,7 @@
       </div>
 
       <div id="moduleFields"></div>
+      <label>Projekt-Notizen<textarea id="projectNotes" rows="3" placeholder="z. B. Materialfarbe, Kundenwunsch oder besondere Einstellungen"></textarea></label>
       <div class="product-size-section">
         <div class="group-title">PRODUKTGRÖSSE</div>
         <div class="size-selector" role="group" aria-label="Produktgröße">
@@ -231,7 +232,12 @@
       <div><div class="eyebrow">VERLAUF</div><h2>Projekte</h2></div>
       <button id="clearProjectsBtn" class="ghost danger small">Alle löschen</button>
     </div>
-    <input id="projectSearch" class="project-search" type="search" placeholder="Projekt oder Kunde suchen …">
+    <div class="stats project-stats">
+      <div class="card stat"><span>Projekte</span><strong id="projectStatCount">0</strong></div>
+      <div class="card stat"><span>Gesamtgewinn</span><strong id="projectStatProfit">0,00 €</strong></div>
+      <div class="card stat"><span>Ø Verkaufspreis</span><strong id="projectStatAverage">0,00 €</strong></div>
+    </div>
+    <input id="projectSearch" class="project-search" type="search" placeholder="Projekt, Kunde, Maschine oder Notiz suchen …">
     <div id="projectList" class="stack"></div>
   </section>
 
@@ -262,6 +268,12 @@
       </div>
       <button class="primary wide" type="submit">Einstellungen speichern</button>
     </form>
+
+    <div class="machines-section">
+      <div class="section-head compact"><div><div class="eyebrow">MASCHINEN</div><h3>Kostenprofile</h3></div></div>
+      <p class="tool-intro">Hier legst du nur die Kosten je Minute oder Stunde fest. Anschaffungspreis und Geschwindigkeit werden nicht benötigt.</p>
+      <div id="machineList" class="machine-list"></div>
+    </div>
 
     <div class="card cloud-card">
       <h3>☁ Cloud-Speicherung</h3>
@@ -357,6 +369,6 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=14"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>
