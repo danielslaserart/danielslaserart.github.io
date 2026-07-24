@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=16.0">
-  <link rel="apple-touch-icon" href="icon-192.png?v=16.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=16.0">
-  <link rel="stylesheet" href="style.css?v=16.0">
+  <link rel="manifest" href="manifest.json?v=2.0.0">
+  <link rel="apple-touch-icon" href="icon-192.png?v=2.0.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2.0.0">
+  <link rel="stylesheet" href="style.css?v=2.0.0">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -43,43 +43,35 @@
 
 <main>
   <section id="home" class="screen active">
-    <div class="dashboard-head">
-      <div><div class="eyebrow">BUSINESS-COCKPIT</div><h2 id="dashboardGreeting">Guten Morgen, Daniel</h2></div>
-      <span class="version-badge">V16</span>
+    <div class="dashboard-head compact-dashboard-head">
+      <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Guten Morgen, Daniel</h2><p class="dashboard-subtitle">Was möchtest du als Nächstes erledigen?</p></div>
+      <span class="version-badge">V2.0</span>
+    </div>
+
+    <div class="home-primary-actions">
+      <button class="home-hero-action" data-open="laser"><span>＋</span><div><b>Neuen Auftrag kalkulieren</b><small>Laser, 3D-Druck, Plotter oder Textil</small></div></button>
+      <button class="home-secondary-action" id="continueLastProjectBtn" type="button"><span>↻</span><div><b>Letztes Projekt fortsetzen</b><small id="continueLastProjectText">Noch kein Projekt vorhanden</small></div></button>
     </div>
 
     <label class="dashboard-search-label">Projekt oder Kunde suchen
-      <input id="dashboardSearch" type="search" placeholder="🔍  z. B. Zippo oder Müller …">
+      <input id="dashboardSearch" type="search" placeholder="🔍  Projektname oder Kunde …">
     </label>
     <div id="dashboardSearchResults" class="dashboard-search-results hidden"></div>
 
-    <div class="dashboard-metrics">
-      <div class="card metric"><span>Offene Projekte</span><strong id="homeOpenCount">0</strong><small>noch nicht abgeschlossen</small></div>
+    <div class="section-head compact dashboard-section"><div><div class="eyebrow">ZULETZT</div><h3>Letzte Projekte</h3></div><button class="ghost small" data-screen="projects">Alle Projekte</button></div>
+    <div id="homeRecentProjects" class="recent-projects"></div>
+
+    <div class="home-tools-row">
+      <button data-open-tool="areaCalc"><span>📐</span><b>Flächenrechner</b><small>Materialbedarf ausrechnen</small></button>
+      <button data-screen="materials"><span>▦</span><b>Materialien</b><small>Datenbank pflegen</small></button>
+    </div>
+
+    <div class="dashboard-metrics dashboard-metrics-bottom">
+      <div class="card metric"><span>Offene Projekte</span><strong id="homeOpenCount">0</strong></div>
       <div class="card metric"><span>Gewinn diesen Monat</span><strong id="homeMonthProfit">0,00 €</strong><small id="homeMonthOrders">0 Aufträge</small></div>
       <div class="card metric"><span>Materialien</span><strong id="homeMaterialCount">0</strong><small id="homeFavoriteCount">0 Favoriten</small></div>
-      <div class="card metric"><span>Letzter Preis</span><strong id="homeLastPrice">–</strong><small>zuletzt kalkuliert</small></div>
+      <div class="card metric"><span>Letzter Preis</span><strong id="homeLastPrice">–</strong></div>
     </div>
-
-    <div class="section-head compact dashboard-section"><div><div class="eyebrow">SCHNELLAKTIONEN</div><h3>Direkt loslegen</h3></div></div>
-    <div class="quick-action-grid">
-      <button class="quick-action primary-action" data-open="laser"><span>＋</span><b>Neuer Auftrag</b><small>Direkt kalkulieren</small></button>
-      <button class="quick-action" data-open-tool="areaCalc"><span>📐</span><b>Flächenrechner</b><small>Materialverbrauch</small></button>
-      <button class="quick-action" data-screen="projects"><span>📁</span><b>Projekte</b><small>Archiv öffnen</small></button>
-      <button class="quick-action" data-screen="materials"><span>📦</span><b>Materialien</b><small>Datenbank pflegen</small></button>
-    </div>
-
-    <div class="section-head compact dashboard-section"><div><div class="eyebrow">RECHNER</div><h3>Bereich auswählen</h3></div></div>
-    <div class="module-grid compact-modules">
-      <button class="module-card" data-open="3d"><span>🧵</span><b>3D-Druck</b><small>Filament & Zeit</small></button>
-      <button class="module-card" data-open="laser"><span>⚡</span><b>Laser</b><small>Gravur & Schnitt</small></button>
-      <button class="module-card" data-open="vinyl"><span>✂️</span><b>Vinylfolie</b><small>Folie & Montage</small></button>
-      <button class="module-card" data-open="textil"><span>👕</span><b>Textilfolie</b><small>Textil & Pressen</small></button>
-      <button class="module-card" data-open-tool="priceCheck"><span>💶</span><b>Preisvergleich</b><small>Kundenpreis prüfen</small></button>
-      <button class="module-card" data-open-tool="profitCalc"><span>📈</span><b>Gewinn</b><small>Preis berechnen</small></button>
-    </div>
-
-    <div class="section-head compact dashboard-section"><div><div class="eyebrow">ZULETZT</div><h3>Letzte Projekte</h3></div><button class="ghost small" data-screen="projects">Alle</button></div>
-    <div id="homeRecentProjects" class="recent-projects"></div>
   </section>
 
   <section id="materials" class="screen">
@@ -450,15 +442,24 @@
   <div class="dialog-card project-dialog-card">
     <div class="section-head project-dialog-head"><h2 id="projectViewTitle">Projekt</h2><button type="button" class="icon-btn" id="closeProjectViewBtn">×</button></div>
     <div id="projectViewContent"></div>
+    <div class="project-status-control">
+      <label>Status
+        <select id="projectViewStatusSelect">
+          <option value="open">Offen</option>
+          <option value="progress">In Arbeit</option>
+          <option value="payment">Wartet auf Zahlung</option>
+          <option value="done">Abgeschlossen</option>
+        </select>
+      </label>
+    </div>
     <div class="project-dialog-footer">
-      <button id="offerPdfBtn" class="secondary" type="button">PDF-Angebot</button>
-      <button id="toggleProjectStatusBtn" class="secondary" type="button">Abschließen</button>
-      <button id="projectViewEditBtn" class="primary" type="button">Bearbeiten</button>
+      <button id="offerPdfBtn" class="secondary pdf-action" type="button">📄 PDF-Angebot</button>
+      <button id="projectViewEditBtn" class="primary" type="button">✎ Kalkulation bearbeiten</button>
     </div>
   </div>
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=17.0"></script>
+<script src="app.js?v=2.0.0"></script>
 </body>
 </html>

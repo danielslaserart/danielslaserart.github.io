@@ -1,20 +1,12 @@
-Daniels Laser Art – Kalkulator V17.0
+DANIELS LASER ART KALKULATOR 2.0
 
 Neu:
-- Freie Werkstatt-Einheiten für Verbrauchsmaterialien (z. B. Sprühstoß, Klecks, Streifen, Einsatz)
-- Automatische Umrechnung der Werkstatt-Einheit in die Einkaufseinheit
-- Eigener Verbrauch für Klein / Mittel / Groß statt pauschaler Faktoren
-- Projektbilder nachträglich hinzufügen, ändern und löschen
-- Projektbilder werden komprimiert gespeichert und in Archiv sowie Detailansicht angezeigt
-- Bestehende Materialien und Projekte werden automatisch übernommen
+- entschlackte Startseite: Auftrag, letztes Projekt, Suche, letzte Projekte
+- Projektansicht repariert
+- Status direkt im Projekt auswählbar
+- PDF-Angebot sichtbar und funktionsfähig über die Druckansicht
+- Bilder, Bearbeiten und Projektöffnung korrigiert
+- Flächenrechner und bisherige Kalkulatorfunktionen bleiben erhalten
 
-In GitHub /Intern alle enthaltenen Dateien ersetzen.
-Danach öffnen:
-https://danielslaserart.de/Intern/?v=17.0
-
-Neu in V17.0:
-- Flächenrechner für Rechteck, Quadrat und Kreis
-- mm, cm und m als Eingabeeinheiten
-- Stückzahl und Verschnitt/Reserve
-- Ausgabe in cm² und m²
-- Direkte Übernahme in passende cm²-/m²-Materialien der Kalkulation
+Installation:
+Alle Dateien in /Intern vollständig ersetzen. Danach die App bzw. den Browser einmal komplett schließen und neu öffnen. Aufruf: /Intern/?v=2.0.0

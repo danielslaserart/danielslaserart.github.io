@@ -179,6 +179,13 @@ function updateHome(){
   const greeting=now.getHours()<11?"Guten Morgen":now.getHours()<18?"Guten Tag":"Guten Abend";
   if($("dashboardGreeting")) $("dashboardGreeting").textContent=`${greeting}, Daniel`;
   renderRecentProjects();
+  const latest=state.projects.slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created))[0];
+  const continueBtn=$("continueLastProjectBtn"),continueText=$("continueLastProjectText");
+  if(continueBtn&&continueText){
+    continueBtn.disabled=!latest;
+    continueText.textContent=latest?`${latest.title}${latest.customer?" · "+latest.customer:""}`:"Noch kein Projekt vorhanden";
+    continueBtn.onclick=latest?()=>viewProject(latest.id):null;
+  }
 }
 function renderRecentProjects(){
   const box=$("homeRecentProjects");if(!box)return;
@@ -745,7 +752,7 @@ function renderProjects(){
   document.querySelectorAll('[data-project-card]').forEach(card=>card.onclick=e=>{if(!e.target.closest('button'))viewProject(card.dataset.projectCard)});
   document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.editProject,false)});
   document.querySelectorAll('[data-duplicate-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.duplicateProject,true)});
-  document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm('Projekt löschen?')){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();renderDashboard()}});
+  document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm('Projekt löschen?')){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();updateHome()}});
 }
 function projectFieldLabel(id){
   return ({matMain:"Hauptmaterial",matTransfer:"Übertragungsfolie",usageMain:"Materialverbrauch",usageTransfer:"Verbrauch Übertragungsfolie",printMinutes:"Druckdauer",engraveMinutes:"Gravurdauer",cutMinutes:"Schnittdauer",workMinutes:"Arbeitszeit",hourlyRate:"Stundenlohn",packaging:"Verpackung",otherCosts:"Sonstige Kosten",reserve:"Fehlerreserve",profit:"Gewinnaufschlag",quantity:"Stückzahl",colors:"Farben",plotMinutes:"Plottdauer",weedMinutes:"Entgitterzeit",mountMinutes:"Montagezeit",pressMinutes:"Presszeit",prepMinutes:"Vor-/Nachbereitung",textilePrice:"Textilpreis"})[id]||id;
@@ -756,23 +763,73 @@ function projectFieldValue(id,value){
   return value===""?"–":value;
 }
 function viewProject(id){
-  const p=state.projects.find(x=>x.id===id);if(!p)return;
-  const dialog=$('projectViewDialog');
-  const details=Object.entries(p.fields||{}).filter(([id])=>!["projectName","customerName","projectNotes","machineSelect","projectStatus","projectTags"].includes(id)).map(([id,value])=>`<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(projectFieldValue(id,value))}</strong></div>`).join('');
-  const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:''}).join('');
-  $('projectViewTitle').textContent=p.title;
-  $('projectViewContent').innerHTML=`${(p.images||[]).length?`<div class="project-gallery">${p.images.map((img,i)=>`<figure><img class="project-view-image" src="${img}" alt="Projektbild ${i+1}"><button type="button" data-delete-image="${i}" class="image-delete">×</button></figure>`).join('')}</div>`:`<div class="project-image-empty">Noch kein Projektbild vorhanden.</div>`}<div class="project-image-actions"><label class="secondary file-button">Bilder hinzufügen<input id="projectImageInput" type="file" accept="image/*" multiple></label></div><div class="project-view-summary"><div><span>Kunde</span><strong>${esc(p.customer||'–')}</strong></div><div><span>Bereich</span><strong>${esc(p.type||'–')}</strong></div><div><span>Maschine</span><strong>${esc(p.machineName||'–')}</strong></div><div><span>Status</span><strong class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</strong></div><div><span>Arbeitszeit</span><strong>${formatDuration(num(p.workSeconds))}</strong></div><div><span>Datum</span><strong>${new Date(p.created).toLocaleString('de-DE')}</strong></div><div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div><div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div></div>${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:''}${(p.priceHistory||[]).length?`<h3>Preishistorie</h3><div class="project-view-details">${p.priceHistory.map(h=>`<div><span>${new Date(h.date).toLocaleString('de-DE')}</span><strong>${euro(h.sale)} · Kosten ${euro(h.cost)}</strong></div>`).join('')}</div>`:''}${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:''}${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:''}`;
-  $('projectViewEditBtn').onclick=()=>{dialog.close();loadProject(id,false)};
-  $('offerPdfBtn').onclick=()=>printOffer(p);
-  $('toggleProjectStatusBtn').textContent=p.status==='done'?'Wieder öffnen':'Status ändern';
-  $('toggleProjectStatusBtn').onclick=()=>{
-    const choices={open:'progress',progress:'payment',payment:'done',done:'open'};
-    p.status=choices[p.status||'open'];p.updated=new Date().toISOString();save();renderProjects();renderDashboard();viewProject(id);
+  const p=state.projects.find(x=>x.id===id);
+  if(!p){alert("Projekt wurde nicht gefunden.");return;}
+  const dialog=$("projectViewDialog");
+  const details=Object.entries(p.fields||{}).filter(([fieldId])=>!["projectName","customerName","projectNotes","machineSelect","projectStatus","projectTags"].includes(fieldId)).map(([fieldId,value])=>`<div><span>${esc(projectFieldLabel(fieldId))}</span><strong>${esc(projectFieldValue(fieldId,value))}</strong></div>`).join("");
+  const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
+  $("projectViewTitle").textContent=p.title||"Projekt";
+  $("projectViewContent").innerHTML=`
+    ${(p.images||[]).length?`<div class="project-gallery">${p.images.map((img,i)=>`<figure><img class="project-view-image" src="${img}" alt="Projektbild ${i+1}"><button type="button" data-delete-image="${i}" class="image-delete" aria-label="Bild löschen">×</button></figure>`).join("")}</div>`:`<div class="project-image-empty">Noch kein Projektbild vorhanden.</div>`}
+    <div class="project-image-actions"><label class="secondary file-button">＋ Bilder hinzufügen<input id="projectImageInput" type="file" accept="image/*" multiple></label></div>
+    <div class="project-view-summary">
+      <div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div>
+      <div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created||p.updated).toLocaleDateString("de-DE")}</strong></div>
+      <div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div>
+      <div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div>
+    </div>
+    ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}
+    ${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}
+    ${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}
+    ${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}`;
+
+  const statusSelect=$("projectViewStatusSelect");
+  statusSelect.value=p.status||"open";
+  statusSelect.onchange=()=>{
+    p.status=statusSelect.value;
+    p.updated=new Date().toISOString();
+    save();renderProjects();updateHome();
   };
-  $('projectImageInput')?.addEventListener('change',async e=>{const files=[...(e.target.files||[])];if(!files.length)return;try{for(const file of files.slice(0,6-(p.images||[]).length))(p.images||(p.images=[])).push(await compressProjectImage(file));save();renderProjects();if(dialog.open)dialog.close();viewProject(id)}catch(err){console.error(err);alert('Mindestens ein Bild konnte nicht verarbeitet werden.')}});
-  document.querySelectorAll('[data-delete-image]').forEach(btn=>btn.onclick=()=>{if(confirm('Dieses Projektbild löschen?')){p.images.splice(Number(btn.dataset.deleteImage),1);save();renderProjects();if(dialog.open)dialog.close();viewProject(id)}});
-  if(!dialog.open)dialog.showModal();
+  $("projectViewEditBtn").onclick=()=>{dialog.close();loadProject(id,false)};
+  $("offerPdfBtn").onclick=()=>printOffer(p);
+  $("closeProjectViewBtn").onclick=()=>dialog.close();
+  dialog.onclick=e=>{if(e.target===dialog)dialog.close()};
+  $("projectImageInput")?.addEventListener("change",async e=>{
+    const files=[...(e.target.files||[])];if(!files.length)return;
+    try{
+      p.images=p.images||[];
+      for(const file of files.slice(0,Math.max(0,6-p.images.length)))p.images.push(await compressProjectImage(file));
+      p.updated=new Date().toISOString();save();renderProjects();dialog.close();viewProject(id);
+    }catch(err){console.error(err);alert("Mindestens ein Bild konnte nicht verarbeitet werden.")}
+  });
+  dialog.querySelectorAll("[data-delete-image]").forEach(btn=>btn.onclick=()=>{
+    if(confirm("Dieses Projektbild löschen?")){p.images.splice(Number(btn.dataset.deleteImage),1);p.updated=new Date().toISOString();save();renderProjects();dialog.close();viewProject(id)}
+  });
+  try{if(!dialog.open)dialog.showModal()}catch(err){console.error(err);dialog.setAttribute("open","")}
 }
+
+function printOffer(p){
+  const area=$("offerPrint");
+  if(!area){alert("Die PDF-Ansicht konnte nicht geöffnet werden.");return;}
+  const date=new Date().toLocaleDateString("de-DE");
+  area.innerHTML=`<div class="offer-sheet">
+    <div class="offer-brand">DANIELS LASER ART</div>
+    <h1>Angebot</h1>
+    <p><strong>Datum:</strong> ${date}</p>
+    <p><strong>Kunde:</strong> ${esc(p.customer||"–")}</p>
+    <p><strong>Projekt:</strong> ${esc(p.title||"Projekt")}</p>
+    <p><strong>Leistung:</strong> ${esc(p.type||"")}${p.machineName?" · "+esc(p.machineName):""}</p>
+    ${p.notes?`<p><strong>Hinweis:</strong> ${esc(p.notes)}</p>`:""}
+    <div class="offer-total"><span>Gesamtpreis</span><strong>${euro(p.sale)}</strong></div>
+    <p>Gemäß § 19 UStG wird keine Umsatzsteuer ausgewiesen.</p>
+    <footer>Daniels Laser Art · danielslaserart.de</footer>
+  </div>`;
+  document.body.classList.add("printing-offer");
+  const cleanup=()=>{document.body.classList.remove("printing-offer");window.removeEventListener("afterprint",cleanup)};
+  window.addEventListener("afterprint",cleanup);
+  setTimeout(()=>window.print(),80);
+}
+
 function loadProject(id,duplicate=false){
   const p=state.projects.find(x=>x.id===id);if(!p)return;
   state.activeModule=p.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[p.type]||"3d");
@@ -825,7 +882,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=15").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=2.0.0").catch(()=>{}));
 
 
 async function initializeAuth(){
