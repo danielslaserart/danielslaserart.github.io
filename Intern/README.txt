@@ -1,4 +1,4 @@
-Daniels Laser Art Kalkulator V3.0.1
+Daniels Laser Art Kalkulator V3.0.2
 
 Neu:
 - Dashboard mit Neuer Auftrag, Fortsetzen, Tagesübersicht und Vorlagen
@@ -10,4 +10,4 @@ Neu:
 
 Installation:
 Alle Dateien im Ordner /Intern ersetzen. Danach die App vollständig schließen und neu öffnen.
-Aufruf: https://danielslaserart.de/Intern/?v=3.0.1
+Aufruf: https://danielslaserart.de/Intern/?v=3.0.2

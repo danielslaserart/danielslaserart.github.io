@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.0.1";
+const APP_VERSION = "3.0.2";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -185,7 +185,6 @@ function setScreen(id){
   if(id==="materials") renderMaterials();
   if(id==="projects") renderProjects();
   if(id==="settings") fillSettings();
-  if(id==="calculator") renderCalculator();
   if(id==="tools") renderTools();
   if(id==="home") updateHome();
   window.scrollTo({top:0,behavior:"smooth"});
@@ -197,31 +196,61 @@ document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>startNewOrder(
 document.querySelectorAll("[data-open-tool]").forEach(b=>b.onclick=()=>{setScreen("tools");setTimeout(()=>document.querySelector(`[data-tool="${b.dataset.openTool}"]`)?.click(),0)});
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.tab;save();renderCalculator()});
 
-function startNewOrder(module="3d"){
+function resetCalculator(module="3d"){
   state.activeModule=module||"3d";
   editingProjectId=null;
   consumableSelections=[];
   productSize="medium";
   state.timer={running:false,startedAt:null,elapsed:0};
+  renderCalculator(true);
+}
+function loadCalculatorData(source={},options={}){
+  const module=source.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[source.type])||"3d";
+  state.activeModule=module;
+  editingProjectId=options.editingProjectId??null;
+  productSize=source.productSize||"medium";
+  consumableSelections=[];
+  state.timer={running:false,startedAt:null,elapsed:0};
+  renderCalculator(true);
+  productSize=source.productSize||"medium";
+  document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===productSize));
+  consumableSelections=(source.consumables||[]).map(r=>({materialId:r.materialId||"",quantity:num(r.quantity),auto:false}));
+  renderConsumables();
+  applyCalculatorFields(source.fields||{});
+  if(source.machineId&&$("machineSelect"))$("machineSelect").value=source.machineId;
+  if(options.blankCustomer){
+    $("projectName").value="";
+    $("customerName").value="";
+    if($("customerAddress"))$("customerAddress").value="";
+    if($("projectStatus"))$("projectStatus").value="open";
+    if($("projectTags"))$("projectTags").value="";
+  }else{
+    $("projectName").value=options.duplicate?`${source.title||source.name||"Projekt"} – Kopie`:(source.title||"");
+    $("customerName").value=source.customer||"";
+    if($("customerAddress"))$("customerAddress").value=source.customerAddress||source.fields?.customerAddress||"";
+    if($("projectStatus"))$("projectStatus").value=source.status||"open";
+    if($("projectTags"))$("projectTags").value=(source.tags||[]).join(", ");
+  }
+  if($("projectNotes"))$("projectNotes").value=source.notes||"";
+  setTimerSeconds(options.blankCustomer?0:num(source.workSeconds));
+  calculate();
+  setScreen("calculator");
+}
+function startNewOrder(module="3d"){
+  resetCalculator(module);
   save();
   setScreen("calculator");
-  renderCalculator(true);
 }
 function createTemplateFromProject(id){
   const p=state.projects.find(x=>x.id===id);if(!p)return;
   const name=prompt("Name der Vorlage:",p.title);if(!name)return;
   state.templates=state.templates||[];
-  state.templates.unshift({id:uid(),name:name.trim(),module:p.module,type:p.type,machineId:p.machineId,productSize:p.productSize,consumables:p.consumables||[],fields:p.fields||{},notes:p.notes||"",created:new Date().toISOString()});
+  state.templates.unshift({id:uid(),name:name.trim(),module:p.module,type:p.type,machineId:p.machineId,productSize:p.productSize,consumables:structuredClone(p.consumables||[]),fields:structuredClone(p.fields||{}),notes:p.notes||"",created:new Date().toISOString()});
   save();updateHome();alert("Vorlage gespeichert.");
 }
 function useTemplate(id){
   const t=(state.templates||[]).find(x=>x.id===id);if(!t)return;
-  state.activeModule=t.module||"3d";editingProjectId=null;setScreen("calculator");renderCalculator(true);
-  productSize=t.productSize||"medium";
-  consumableSelections=(t.consumables||[]).map(r=>({...r,auto:false}));renderConsumables();applyCalculatorFields(t.fields||{});
-  $("projectName").value="";$("customerName").value="";if($("customerAddress"))$("customerAddress").value="";
-  if($("projectNotes"))$("projectNotes").value=t.notes||"";if(t.machineId&&$("machineSelect"))$("machineSelect").value=t.machineId;
-  calculate();
+  loadCalculatorData(t,{blankCustomer:true,editingProjectId:null});
 }
 function renderTemplates(){
   const box=$("homeTemplates");if(!box)return;
@@ -503,13 +532,13 @@ function renderCalculator(clear=false){
     <label>Material auswählen<select id="matMain">${options("3D-Druck")}</select></label>
     ${infoRow("Preis aus Datenbank","priceMain")}
     <div class="field-grid">
-      <label>Filamentverbrauch (g)<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":129}"></label>
-      <label>Druckdauer (Minuten)<input id="printMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":400}"></label>
+      <label>Filamentverbrauch (g)<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+      <label>Druckdauer (Minuten)<input id="printMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <div class="machine-rate-display">Maschinenkosten: <strong id="machineRateDisplay">0,00 € / Std.</strong></div>
-      <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":0}"></label>
+      <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
-      <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":0}"></label>
+      <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
     </div>`;
@@ -520,15 +549,15 @@ function renderCalculator(clear=false){
     <label>Material auswählen<select id="matMain">${options("Laser")}</select></label>
     ${infoRow("Preis aus Datenbank","priceMain")}
     <div class="field-grid">
-      <label>Verbrauchte Fläche / Menge<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":300}"></label>
-      <label>Gravurdauer (Minuten)<input id="engraveMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":20}"></label>
-      <label>Schnittdauer (Minuten)<input id="cutMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":10}"></label>
+      <label>Verbrauchte Fläche / Menge<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+      <label>Gravurdauer (Minuten)<input id="engraveMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+      <label>Schnittdauer (Minuten)<input id="cutMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <div class="machine-rate-display">Gravur: <strong id="engraveRateDisplay">0,00 € / Min.</strong></div>
       <div class="machine-rate-display">Schnitt: <strong id="cutRateDisplay">0,00 € / Min.</strong></div>
-      <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":10}"></label>
+      <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
-      <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":0}"></label>
+      <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
     </div>`;
@@ -538,44 +567,44 @@ function renderCalculator(clear=false){
     <label>Vinyl auswählen<select id="matMain">${options("Vinylfolie")}</select></label>
     ${infoRow("Vinylpreis","priceMain")}
     <div class="field-grid">
-      <label>Vinylfläche / Verbrauch<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":400}"></label>
+      <label>Vinylfläche / Verbrauch<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
     </div>
     <label>Übertragungsfolie auswählen<select id="matTransfer">${options("Übertragungsfolie")}</select></label>
     ${infoRow("Preis Übertragungsfolie","priceTransfer")}
     <div class="field-grid">
-      <label>Fläche Übertragungsfolie<input id="usageTransfer" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":400}"></label>
-      <label>Plottdauer (Minuten)<input id="plotMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":5}"></label>
+      <label>Fläche Übertragungsfolie<input id="usageTransfer" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+      <label>Plottdauer (Minuten)<input id="plotMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Plotterkosten (€/Minute)<input id="plotRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.plotter}"></label>
-      <label>Entgitterzeit (Minuten)<input id="weedMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":15}"></label>
-      <label>Montage-/Klebezeit (Minuten)<input id="mountMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":10}"></label>
+      <label>Entgitterzeit (Minuten)<input id="weedMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+      <label>Montage-/Klebezeit (Minuten)<input id="mountMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
-      <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":0}"></label>
+      <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
-      <label>Stückzahl<input id="quantity" type="number" min="1" step="1" inputmode="numeric" value="${clear?"":1}"></label>
+      <label>Stückzahl<input id="quantity" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
     </div>`;
 
   if(type==="textil") html=`
     <div class="group-title">TEXTIL & FOLIE</div>
     <div class="field-grid">
-      <label>Textilpreis pro Stück (€)<input id="textilePrice" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":5}"></label>
-      <label>Stückzahl<input id="quantity" type="number" min="1" step="1" inputmode="numeric" value="${clear?"":1}"></label>
+      <label>Textilpreis pro Stück (€)<input id="textilePrice" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+      <label>Stückzahl<input id="quantity" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
     </div>
     <label>Textilfolie auswählen<select id="matMain">${options("Textilfolie")}</select></label>
     ${infoRow("Folienpreis","priceMain")}
     <div class="field-grid">
-      <label>Folienfläche je Farbe/Stück<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":400}"></label>
-      <label>Anzahl Farben<input id="colors" type="number" min="1" step="1" inputmode="numeric" value="${clear?"":1}"></label>
-      <label>Plottdauer je Stück (Minuten)<input id="plotMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":5}"></label>
+      <label>Folienfläche je Farbe/Stück<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+      <label>Anzahl Farben<input id="colors" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
+      <label>Plottdauer je Stück (Minuten)<input id="plotMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Plotterkosten (€/Minute)<input id="plotRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.plotter}"></label>
-      <label>Entgitterzeit je Stück (Minuten)<input id="weedMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":15}"></label>
-      <label>Presszeit je Stück (Minuten)<input id="pressMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":3}"></label>
+      <label>Entgitterzeit je Stück (Minuten)<input id="weedMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+      <label>Presszeit je Stück (Minuten)<input id="pressMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Pressenkosten (€/Minute)<input id="pressRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.presse}"></label>
-      <label>Vor-/Nachbereitung je Stück (Minuten)<input id="prepMinutes" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":10}"></label>
+      <label>Vor-/Nachbereitung je Stück (Minuten)<input id="prepMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung gesamt (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
-      <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value="${clear?"":0}"></label>
+      <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
     </div>`;
@@ -1008,22 +1037,7 @@ function printOffer(p){
 
 function loadProject(id,duplicate=false){
   const p=state.projects.find(x=>x.id===id);if(!p)return;
-  state.activeModule=p.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[p.type]||"3d");
-  editingProjectId=duplicate?null:p.id;
-  setScreen("calculator");
-  productSize=p.productSize||"medium";
-  renderCalculator(true);
-  productSize=p.productSize||"medium";
-  document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===productSize));
-  consumableSelections=(p.consumables||[]).map(r=>({...r,auto:false}));
-  renderConsumables();
-  applyCalculatorFields(p.fields||{});
-  $("projectName").value=duplicate?`${p.title} – Kopie`:p.title;
-  $("customerName").value=p.customer||"";
-  if($("customerAddress"))$("customerAddress").value=p.customerAddress||p.fields?.customerAddress||"";
-  if(p.machineId&&$("machineSelect"))$("machineSelect").value=p.machineId;
-  if($("projectNotes"))$("projectNotes").value=p.notes||"";if($("projectStatus"))$("projectStatus").value=p.status||"open";if($("projectTags"))$("projectTags").value=(p.tags||[]).join(", ");setTimerSeconds(num(p.workSeconds));
-  calculate();
+  loadCalculatorData(p,{duplicate,editingProjectId:duplicate?null:p.id});
 }
 $("clearProjectsBtn").onclick=()=>{if(state.projects.length&&confirm("Wirklich alle Projekte löschen?")){state.projects=[];save();renderProjects()}};
 $("projectSearch").oninput=renderProjects;
@@ -1110,7 +1124,7 @@ $("logoutBtn").onclick=async()=>{
   if(confirm("Wirklich abmelden?")) await db.auth.signOut();
 };
 
-renderCalculator();
+renderCalculator(true);
 renderTools();
 renderMaterialCategoryFilter();
 updateMaterialModeButtons();
