@@ -1,4 +1,4 @@
-Daniels Laser Art Kalkulator V2.3.0
+Daniels Laser Art Kalkulator V2.3.1.0
 
 Neu:
 - Freies Feld für die postalische Kundenanschrift
@@ -8,4 +8,4 @@ Neu:
 - Keine Bilder, Gewinne, Margen, Maschinen- oder Materialkosten im Kunden-PDF
 
 Installation:
-Alle Dateien in /Intern vollständig ersetzen. Danach Browser/App vollständig schließen und mit ?v=2.3.0 neu öffnen.
+Alle Dateien in /Intern vollständig ersetzen. Danach Browser/App vollständig schließen und mit ?v=2.3.1 neu öffnen.

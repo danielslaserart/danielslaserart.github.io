@@ -1,4 +1,4 @@
-const CACHE="dla-kalkulator-v2-3-0-20260724";
+const CACHE="dla-kalkulator-v2-3-1-20260724";
 const FALLBACK="./index.html?v=2.2.0";
 const ASSETS=[
   "./?v=2.2.0",
