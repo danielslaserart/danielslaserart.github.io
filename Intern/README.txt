@@ -1,12 +1,11 @@
-DANIELS LASER ART KALKULATOR 2.1
+Daniels Laser Art Kalkulator V2.3.0
 
 Neu:
-- entschlackte Startseite: Auftrag, letztes Projekt, Suche, letzte Projekte
-- Projektansicht repariert
-- Status direkt im Projekt auswählbar
-- PDF-Angebot sichtbar und funktionsfähig über die Druckansicht
-- Bilder, Bearbeiten und Projektöffnung korrigiert
-- Flächenrechner und bisherige Kalkulatorfunktionen bleiben erhalten
+- Freies Feld für die postalische Kundenanschrift
+- Keine Kundennummer
+- Kundenangebot im Stil des vorhandenen Briefkopfs
+- Nur kundenrelevante Angaben im Angebot
+- Keine Bilder, Gewinne, Margen, Maschinen- oder Materialkosten im Kunden-PDF
 
 Installation:
-Alle Dateien in /Intern vollständig ersetzen. Danach die App bzw. den Browser einmal komplett schließen und neu öffnen. Aufruf: /Intern/?v=2.1.0
+Alle Dateien in /Intern vollständig ersetzen. Danach Browser/App vollständig schließen und mit ?v=2.3.0 neu öffnen.

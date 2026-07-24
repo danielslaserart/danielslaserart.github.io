@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "16.0";
+const APP_VERSION = "2.3.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -546,7 +546,7 @@ $("calcForm").onsubmit=e=>{
   const machine=getMachine();
   const existingProject=editingProjectId?state.projects.find(p=>p.id===editingProjectId):null;
   const saleNow=num($("calcForm").dataset.sale),costNow=num($("calcForm").dataset.cost);const history=[...(existingProject?.priceHistory||[])];if(!existingProject||num(existingProject.sale)!==saleNow||num(existingProject.cost)!==costNow)history.unshift({date:new Date().toISOString(),sale:saleNow,cost:costNow});
-  const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"open",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),customerAddress:$("customerAddress")?.value.trim()||"",type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"open",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
   state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();alert(idx>=0?"Projekt aktualisiert.":"Projekt gespeichert.");
@@ -812,17 +812,45 @@ function printOffer(p){
   const area=$("offerPrint");
   if(!area){alert("Die PDF-Ansicht konnte nicht geöffnet werden.");return;}
   const date=new Date().toLocaleDateString("de-DE");
+  const created=new Date(p.created||p.updated||Date.now());
+  const offerNo=`A-${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,"0")}${String(created.getDate()).padStart(2,"0")}-${String((p.id||"").replace(/\D/g,"").slice(-3)||"001").padStart(3,"0")}`;
+  const service=esc(p.title||p.type||"Individuelle Anfertigung");
+  const qty=Math.max(1,num(p.qty)||1);
+  const unitPrice=num(p.sale)/qty;
+  const address=(p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
+  const addressHtml=address?address.split(/\r?\n/).map(esc).join("<br>"):esc(p.customer||"Kundenanschrift");
   area.innerHTML=`<div class="offer-sheet">
-    <div class="offer-brand">DANIELS LASER ART</div>
-    <h1>Angebot</h1>
-    <p><strong>Datum:</strong> ${date}</p>
-    <p><strong>Kunde:</strong> ${esc(p.customer||"–")}</p>
-    <p><strong>Projekt:</strong> ${esc(p.title||"Projekt")}</p>
-    <p><strong>Leistung:</strong> ${esc(p.type||"")}${p.machineName?" · "+esc(p.machineName):""}</p>
-    ${p.notes?`<p><strong>Hinweis:</strong> ${esc(p.notes)}</p>`:""}
-    <div class="offer-total"><span>Gesamtpreis</span><strong>${euro(p.sale)}</strong></div>
-    <p>Gemäß § 19 UStG wird keine Umsatzsteuer ausgewiesen.</p>
-    <footer>Daniels Laser Art · danielslaserart.de</footer>
+    <header class="offer-business-head">
+      <div><strong>Daniel's Laser Art</strong><br>Augasse 12<br>08393 Meerane<br>Steuernummer: 227/227/03573<br>Inhaber: Daniel Häßler</div>
+      <div><strong>Kontakt</strong><br>Telefon: 015147906749<br>E-Mail: Daniels.laser.art@gmail.com<br>Web: danielslaserart.de</div>
+      <div><strong>Bankverbindung</strong><br>Bank: C24 Bank<br>IBAN: DE07 5002 4024 7016 9162 31<br>BIC: DEFF DEFF XXX<br>Kontoinhaber: Daniel Häßler</div>
+    </header>
+
+    <div class="offer-sender">Daniel's Laser Art | Augasse 12 | 08393 Meerane</div>
+    <div class="offer-address">${addressHtml}</div>
+
+    <div class="offer-document-meta">
+      <h1>Angebot</h1>
+      <div><span>Angebotsnummer</span><strong>${offerNo}</strong><span>Datum</span><strong>${date}</strong></div>
+    </div>
+
+    <p class="offer-subject"><strong>Betreff:</strong> Angebot zu Ihrem Auftrag</p>
+    <p class="offer-intro">Vielen Dank für Ihre Anfrage. Gern biete ich Ihnen folgende Leistung an:</p>
+
+    <table class="offer-table">
+      <thead><tr><th>Pos.</th><th>Beschreibung</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead>
+      <tbody><tr><td>1.</td><td>${service}</td><td>${qty.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:2})}</td><td>${euro(unitPrice)}</td><td>${euro(p.sale)}</td></tr></tbody>
+    </table>
+
+    <div class="offer-total"><span>Gesamt</span><strong>${euro(p.sale)}</strong></div>
+
+    <div class="offer-notes">
+      <p>Dieses Angebot ist 14 Tage ab dem Ausstellungsdatum gültig.</p>
+      <p>Gemäß § 19 UStG wird aufgrund der Kleinunternehmerregelung keine Umsatzsteuer erhoben.</p>
+    </div>
+
+    <p class="offer-closing">Vielen Dank für Ihr Interesse. Ich freue mich auf Ihren Auftrag.</p>
+    <footer><div><strong>Daniel's Laser Art</strong><br>Augasse 12 · 08393 Meerane</div><div><strong>Kontakt</strong><br>Daniels.laser.art@gmail.com · 015147906749</div><div><strong>Web</strong><br>danielslaserart.de</div></footer>
   </div>`;
   document.body.classList.add("printing-offer");
   const cleanup=()=>{document.body.classList.remove("printing-offer");window.removeEventListener("afterprint",cleanup)};
@@ -844,6 +872,7 @@ function loadProject(id,duplicate=false){
   applyCalculatorFields(p.fields||{});
   $("projectName").value=duplicate?`${p.title} – Kopie`:p.title;
   $("customerName").value=p.customer||"";
+  if($("customerAddress"))$("customerAddress").value=p.customerAddress||p.fields?.customerAddress||"";
   if(p.machineId&&$("machineSelect"))$("machineSelect").value=p.machineId;
   if($("projectNotes"))$("projectNotes").value=p.notes||"";if($("projectStatus"))$("projectStatus").value=p.status||"open";if($("projectTags"))$("projectTags").value=(p.tags||[]).join(", ");setTimerSeconds(num(p.workSeconds));
   calculate();
@@ -882,7 +911,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=2.1.0").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=2.2.0").catch(()=>{}));
 
 
 async function initializeAuth(){
