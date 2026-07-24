@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=15.1">
-  <link rel="apple-touch-icon" href="icon-192.png?v=15.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=15.1">
-  <link rel="stylesheet" href="style.css?v=15.1">
+  <link rel="manifest" href="manifest.json?v=15.2">
+  <link rel="apple-touch-icon" href="icon-192.png?v=15.2">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=15.2">
+  <link rel="stylesheet" href="style.css?v=15.2">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -333,7 +333,8 @@
     <div id="consumableSettings" class="consumable-settings hidden">
       <div class="group-title">VERBRAUCHSMATERIAL</div>
       <div class="field-grid">
-        <label>Standardverbrauch<input id="materialDefaultConsumption" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 5"></label>
+        <label>Werkstatt-Einheit<input id="materialWorkshopUnit" placeholder="z. B. Sprühstoß, Klecks, Streifen"></label>
+        <label>1 Werkstatt-Einheit entspricht<input id="materialWorkshopUnitAmount" type="number" min="0.000001" step="any" inputmode="decimal" value="1"><small class="field-help">In der oben gewählten Einkaufseinheit, z. B. 0,002 l je Sprühstoß.</small></label>
         <label>Kategorie
           <select id="materialConsumableCategory">
             <option>Kleber</option><option>Reinigung</option><option>Schleifen</option><option>Farbe & Finish</option><option>Abkleben</option><option>Wartung</option><option>Verpackung</option><option>Sonstiges</option>
@@ -342,8 +343,13 @@
       </div>
       <label class="check-row"><input id="materialAutoAdd" type="checkbox"><span>Automatisch zu passenden Kalkulationen hinzufügen</span></label>
       <label class="check-row"><input id="materialFavorite" type="checkbox"><span>Als Favorit oben anzeigen</span></label>
-      <label class="check-row"><input id="materialScaleWithSize" type="checkbox"><span>Standardverbrauch mit Produktgröße skalieren</span></label>
-      <p class="size-help">Nur aktivieren, wenn der Verbrauch bei kleinen und großen Produkten wirklich entsprechend sinkt oder steigt. Flüssigkeiten wie Isopropanol bleiben normalerweise unverändert.</p>
+      <div class="subgroup-label">Verbrauch je Produktgröße</div>
+      <div class="factor-grid">
+        <label>Klein<input id="consumptionSmall" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 2"></label>
+        <label>Mittel<input id="consumptionMedium" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 5"></label>
+        <label>Groß<input id="consumptionLarge" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 8"></label>
+      </div>
+      <p class="size-help">Beispiel: Isopropanol 2 / 5 / 8 Sprühstöße oder Holzleim 1 / 3 / 6 Kleckse.</p>
       <div class="subgroup-label">Passende Module</div>
       <div class="module-checks">
         <label class="check-row"><input data-consumable-module type="checkbox" value="3d"><span>3D-Druck</span></label>
@@ -351,12 +357,7 @@
         <label class="check-row"><input data-consumable-module type="checkbox" value="vinyl"><span>Vinyl</span></label>
         <label class="check-row"><input data-consumable-module type="checkbox" value="textil"><span>Textil</span></label>
       </div>
-      <div class="subgroup-label">Größenfaktoren</div>
-      <div class="factor-grid">
-        <label>Klein<input id="factorSmall" type="number" min="0" step="any" inputmode="decimal" value="0.5"></label>
-        <label>Mittel<input id="factorMedium" type="number" min="0" step="any" inputmode="decimal" value="1"></label>
-        <label>Groß<input id="factorLarge" type="number" min="0" step="any" inputmode="decimal" value="2"></label>
-      </div>
+
     </div>
     <div class="preview">Preis je Einheit: <strong id="unitPreview">0,00 €</strong></div>
     <button class="primary wide" type="submit">Speichern</button>
@@ -368,7 +369,7 @@
 </template>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=15.1"></script>
+<script src="app.js?v=15.2"></script>
 
 <dialog id="projectViewDialog">
   <div class="dialog-card">

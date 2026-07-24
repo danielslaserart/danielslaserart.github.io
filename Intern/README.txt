@@ -1,14 +1,13 @@
-Daniels Laser Art – Kalkulator V15.1
+Daniels Laser Art – Kalkulator V15.2
 
-Fehlerkorrekturen:
-- Doppelte globale Laser-/3D-Maschinenpreise aus Einstellungen entfernt
-- Verbrauchsmaterial wird nicht mehr automatisch mit Produktgröße skaliert
-- Skalierung ist je Verbrauchsmaterial ausdrücklich aktivierbar
-- Manuell hinzugefügte Verbrauchsmaterialien starten mit Menge 0
-- Projektbearbeitung lädt alle gespeicherten Daten wieder korrekt
-- Neue Projektansicht mit Kalkulationsdetails
-- Projektbuttons auf Mobilgeräten ordentlich angeordnet
-- Cache-Version auf V15.1 erhöht
+Neu:
+- Freie Werkstatt-Einheiten für Verbrauchsmaterialien (z. B. Sprühstoß, Klecks, Streifen, Einsatz)
+- Automatische Umrechnung der Werkstatt-Einheit in die Einkaufseinheit
+- Eigener Verbrauch für Klein / Mittel / Groß statt pauschaler Faktoren
+- Projektbilder nachträglich hinzufügen, ändern und löschen
+- Projektbilder werden komprimiert gespeichert und in Archiv sowie Detailansicht angezeigt
+- Bestehende Materialien und Projekte werden automatisch übernommen
 
 In GitHub /Intern alle enthaltenen Dateien ersetzen.
-Danach öffnen: https://danielslaserart.de/Intern/?v=15.1
+Danach öffnen:
+https://danielslaserart.de/Intern/?v=15.2

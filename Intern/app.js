@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "15.1";
+const APP_VERSION = "15.2";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -64,6 +64,13 @@ function load(){
       favorite:Boolean(m.favorite),
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
       scaleWithSize:Boolean(m.scaleWithSize),
+      workshopUnit:m.workshopUnit||m.unit||"Einheit",
+      workshopUnitAmount:num(m.workshopUnitAmount)||1,
+      consumptionLevels:{
+        small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),
+        medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),
+        large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))
+      },
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
     merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
@@ -116,6 +123,13 @@ async function loadCloudState(){
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
       scaleWithSize:Boolean(m.scaleWithSize),
+      workshopUnit:m.workshopUnit||m.unit||"Einheit",
+      workshopUnitAmount:num(m.workshopUnitAmount)||1,
+      consumptionLevels:{
+        small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),
+        medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),
+        large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))
+      },
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
     state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
@@ -176,16 +190,16 @@ function openMaterial(m=null){
   $("materialNote").value=m?.note||"";
   $("materialMainRole").checked=m?m.mainRole!==false:true;
   $("materialConsumableRole").checked=m?Boolean(m.consumableRole):false;
-  $("materialDefaultConsumption").value=m?.defaultConsumption??"";
+  $("materialWorkshopUnit").value=m?.workshopUnit||m?.unit||"";
+  $("materialWorkshopUnitAmount").value=m?.workshopUnitAmount??1;
+  $("consumptionSmall").value=m?.consumptionLevels?.small??(m?.scaleWithSize?num(m?.defaultConsumption)*(num(m?.sizeFactors?.small)||0.5):m?.defaultConsumption??"");
+  $("consumptionMedium").value=m?.consumptionLevels?.medium??m?.defaultConsumption??"";
+  $("consumptionLarge").value=m?.consumptionLevels?.large??(m?.scaleWithSize?num(m?.defaultConsumption)*(num(m?.sizeFactors?.large)||2):m?.defaultConsumption??"");
   $("materialAutoAdd").checked=m?Boolean(m.autoAdd):false;
   $("materialFavorite").checked=m?Boolean(m.favorite):false;
-  $("materialScaleWithSize").checked=m?Boolean(m.scaleWithSize):false;
   $("materialConsumableCategory").value=m?.consumableCategory||"Sonstiges";
   const modules=m?.consumableModules||["3d","laser","vinyl","textil"];
   document.querySelectorAll("[data-consumable-module]").forEach(cb=>cb.checked=modules.includes(cb.value));
-  $("factorSmall").value=m?.sizeFactors?.small??0.5;
-  $("factorMedium").value=m?.sizeFactors?.medium??1;
-  $("factorLarge").value=m?.sizeFactors?.large??2;
   toggleConsumableFields();
   previewUnit();
   dialog.showModal();
@@ -202,10 +216,12 @@ $("materialForm").onsubmit=e=>{
   const item={
     id:$("materialId").value||uid(),name,area:$("materialArea").value,price,quantity,unit:$("materialUnit").value,
     note:$("materialNote").value.trim(),unitPrice:price/quantity,mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
-    consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("materialDefaultConsumption").value),
-    autoAdd:$("materialAutoAdd").checked,favorite:$("materialFavorite").checked,scaleWithSize:$("materialScaleWithSize").checked,
+    consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("consumptionMedium").value),
+    workshopUnit:$("materialWorkshopUnit").value.trim()||$("materialUnit").value,workshopUnitAmount:num($("materialWorkshopUnitAmount").value)||1,
+    consumptionLevels:{small:num($("consumptionSmall").value),medium:num($("consumptionMedium").value),large:num($("consumptionLarge").value)},
+    autoAdd:$("materialAutoAdd").checked,favorite:$("materialFavorite").checked,scaleWithSize:true,
     consumableModules:modules.length?modules:["3d","laser","vinyl","textil"],
-    sizeFactors:{small:num($("factorSmall").value)||0.5,medium:num($("factorMedium").value)||1,large:num($("factorLarge").value)||2}
+    sizeFactors:{small:1,medium:1,large:1}
   };
   const i=state.materials.findIndex(x=>x.id===item.id); if(i>=0) state.materials[i]=item; else state.materials.push(item);
   save();dialog.close();renderMaterials();
@@ -216,7 +232,7 @@ function renderMaterials(){
   $("materialList").innerHTML=list.length?list.map(m=>`
     <article class="card material-item">
       <div class="item-top">
-        <div><div class="item-title">${esc(m.name)}</div><div class="item-meta">${esc(m.area)} · ${m.quantity} ${esc(m.unit)}${m.note?" · "+esc(m.note):""}${m.consumableRole&&m.defaultConsumption?` · Standard ${m.defaultConsumption} ${esc(m.unit)}`:""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauchsmaterial</span>':''}${m.favorite?'<span>★ Favorit</span>':''}${m.autoAdd?'<span>Automatisch</span>':''}</div></div>
+        <div><div class="item-title">${esc(m.name)}</div><div class="item-meta">${esc(m.area)} · ${m.quantity} ${esc(m.unit)}${m.note?" · "+esc(m.note):""}${m.consumableRole?` · Klein ${num(m.consumptionLevels?.small)} / Mittel ${num(m.consumptionLevels?.medium)} / Groß ${num(m.consumptionLevels?.large)} ${esc(m.workshopUnit||m.unit)}`:""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauchsmaterial</span>':''}${m.favorite?'<span>★ Favorit</span>':''}${m.autoAdd?'<span>Automatisch</span>':''}</div></div>
         <div class="item-price">${euro(m.unitPrice)}<small> / ${esc(m.unit)}</small></div>
       </div>
       <div class="item-actions"><button data-edit="${m.id}">Bearbeiten</button><button data-delete="${m.id}" class="danger">Löschen</button></div>
@@ -265,9 +281,11 @@ function sizeFactor(mat,size=productSize){
   return num(mat.sizeFactors?.[size])||({small:0.5,medium:1,large:2}[size]||1);
 }
 function defaultQty(mat,size=productSize){
-  const base=num(mat.defaultConsumption);
-  return mat.scaleWithSize ? base*sizeFactor(mat,size) : base;
+  if(size==="custom")return num(mat.consumptionLevels?.medium)||num(mat.defaultConsumption);
+  return num(mat.consumptionLevels?.[size])||num(mat.defaultConsumption);
 }
+function workshopUnit(mat){return mat?.workshopUnit||mat?.unit||"Einheit";}
+function workshopCost(mat,quantity){return (mat?.unitPrice||0)*(num(mat?.workshopUnitAmount)||1)*num(quantity);}
 function autoConsumables(type=state.activeModule){
   return state.materials.filter(m=>m.consumableRole&&m.autoAdd&&moduleApplies(m,type)).sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name));
 }
@@ -291,7 +309,7 @@ function renderConsumables(){
   if(!consumableSelections.length){box.innerHTML='<div class="consumable-empty">Noch kein Verbrauchsmaterial hinzugefügt.</div>';return;}
   box.innerHTML=consumableSelections.map((row,index)=>{
     const mat=state.materials.find(m=>m.id===row.materialId);
-    return `<div class="consumable-row"><label>Material<select data-consumable-select="${index}">${consumableOptions(row.materialId)}</select>${mat?`<small>${esc(mat.consumableCategory||"Sonstiges")} · ${esc(mat.unit)}${row.auto?" · automatisch":""}</small>`:""}</label><label>Menge<input data-consumable-qty="${index}" type="number" min="0" step="any" inputmode="decimal" value="${row.quantity}"></label><button type="button" class="remove-consumable" data-consumable-remove="${index}">×</button></div>`;
+    return `<div class="consumable-row"><label>Material<select data-consumable-select="${index}">${consumableOptions(row.materialId)}</select>${mat?`<small>${esc(mat.consumableCategory||"Sonstiges")} · ${euro(workshopCost(mat,1))} je ${esc(workshopUnit(mat))}${row.auto?" · automatisch":""}</small>`:""}</label><label>${mat?esc(workshopUnit(mat)):"Menge"}<input data-consumable-qty="${index}" type="number" min="0" step="any" inputmode="decimal" value="${row.quantity}"></label><button type="button" class="remove-consumable" data-consumable-remove="${index}">×</button></div>`;
   }).join("");
   document.querySelectorAll("[data-consumable-select]").forEach(el=>el.oninput=()=>{
     const row=consumableSelections[+el.dataset.consumableSelect];row.materialId=el.value;row.auto=false;
@@ -301,7 +319,7 @@ function renderConsumables(){
   document.querySelectorAll("[data-consumable-qty]").forEach(el=>el.oninput=()=>{const row=consumableSelections[+el.dataset.consumableQty];row.quantity=num(el.value);row.auto=false;calculate();});
   document.querySelectorAll("[data-consumable-remove]").forEach(btn=>btn.onclick=()=>{consumableSelections.splice(+btn.dataset.consumableRemove,1);renderConsumables();calculate();});
 }
-function consumablesCost(){return consumableSelections.reduce((sum,row)=>{const mat=state.materials.find(m=>m.id===row.materialId);return sum+(mat?.unitPrice||0)*num(row.quantity);},0);}
+function consumablesCost(){return consumableSelections.reduce((sum,row)=>{const mat=state.materials.find(m=>m.id===row.materialId);return sum+workshopCost(mat,row.quantity);},0);}
 $("addConsumableBtn").onclick=()=>{consumableSelections.push({materialId:"",quantity:0,auto:false});renderConsumables();};
 function setProductSize(size){
   const previous=productSize;productSize=size;
@@ -491,7 +509,8 @@ $("calcForm").onsubmit=e=>{
   e.preventDefault();calculate();
   const title=$("projectName").value.trim()||`${titles[state.activeModule]} ${new Date().toLocaleDateString("de-DE")}`;
   const machine=getMachine();
-  const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const existingProject=editingProjectId?state.projects.find(p=>p.id===editingProjectId):null;
+  const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",image:existingProject?.image||null,sale:num($("calcForm").dataset.sale),cost:num($("calcForm").dataset.cost),qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
   state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();alert(idx>=0?"Projekt aktualisiert.":"Projekt gespeichert.");
@@ -574,6 +593,25 @@ function calculateQuickTool(){
 ["qcMaterial","qcUsage","qcMinutes","qcExtra","qcPackaging","qcHourly","qcReserve","qcProfitPercent"].forEach(id=>$(id)?.addEventListener("input",calculateQuickTool));
 
 
+function compressProjectImage(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=reject;
+    reader.onload=()=>{
+      const img=new Image();
+      img.onerror=reject;
+      img.onload=()=>{
+        const max=1200,scale=Math.min(1,max/Math.max(img.width,img.height));
+        const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
+        const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL("image/jpeg",0.78));
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function renderProjects(){
   const term=($("projectSearch")?.value||"").trim().toLowerCase();
   const list=state.projects.filter(p=>!term||`${p.title} ${p.customer||""} ${p.type||""} ${p.machineName||""} ${p.notes||""}`.toLowerCase().includes(term));
@@ -583,6 +621,7 @@ function renderProjects(){
   if($("projectStatAverage"))$("projectStatAverage").textContent=state.projects.length?euro(state.projects.reduce((sum,p)=>sum+num(p.sale),0)/state.projects.length):euro(0);
   $("projectList").innerHTML=list.length?list.map(p=>`
     <article class="card project-item">
+      ${p.image?`<button class="project-thumb" data-view-project="${p.id}" aria-label="Projektbild ansehen"><img src="${p.image}" alt=""></button>`:""}
       <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?" · "+esc(p.machineName):""}${p.customer?" · "+esc(p.customer):""} · ${new Date(p.created).toLocaleString("de-DE")}</div></div><div class="item-price">${euro(p.sale)}</div></div>
       <div class="item-meta">Selbstkosten: ${euro(p.cost)} · Gewinn: ${euro(p.sale-p.cost)}${p.qty>1?" · "+euro(p.sale/p.qty)+" je Stück":""}</div>
       ${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:""}
@@ -604,10 +643,15 @@ function projectFieldValue(id,value){
 function viewProject(id){
   const p=state.projects.find(x=>x.id===id);if(!p)return;
   const details=Object.entries(p.fields||{}).filter(([id])=>!["projectName","customerName","projectNotes","machineSelect"].includes(id)).map(([id,value])=>`<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(projectFieldValue(id,value))}</strong></div>`).join("");
-  const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(m.unit)}</strong></div>`:""}).join("");
+  const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
   $("projectViewTitle").textContent=p.title;
-  $("projectViewContent").innerHTML=`<div class="project-view-summary"><div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div><div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created).toLocaleString("de-DE")}</strong></div><div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div><div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div></div>${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}`;
+  $("projectViewContent").innerHTML=`${p.image?`<img class="project-view-image" src="${p.image}" alt="Projektbild">`:`<div class="project-image-empty">Noch kein Projektbild vorhanden.</div>`}<div class="project-image-actions"><label class="secondary file-button">${p.image?"Bild ändern":"Bild hinzufügen"}<input id="projectImageInput" type="file" accept="image/*"></label>${p.image?`<button id="projectImageDeleteBtn" class="ghost danger" type="button">Bild löschen</button>`:""}</div><div class="project-view-summary"><div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div><div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created).toLocaleString("de-DE")}</strong></div><div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div><div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div></div>${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}`;
   $("projectViewEditBtn").onclick=()=>{$("projectViewDialog").close();loadProject(id,false)};
+  $("projectImageInput")?.addEventListener("change",async e=>{
+    const file=e.target.files?.[0];if(!file)return;
+    try{p.image=await compressProjectImage(file);save();renderProjects();viewProject(id);}catch(err){console.error(err);alert("Das Bild konnte nicht verarbeitet werden.");}
+  });
+  $("projectImageDeleteBtn")?.addEventListener("click",()=>{if(confirm("Projektbild löschen?")){p.image=null;save();renderProjects();viewProject(id);}});
   $("projectViewDialog").showModal();
 }
 function loadProject(id,duplicate=false){
@@ -653,7 +697,7 @@ $("importInput").onchange=async e=>{
     if(!Array.isArray(d.materials)||!Array.isArray(d.projects))throw new Error();
     state={...defaults,...d,settings:{...defaults.settings,...(d.settings||{})}};
     state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
-    state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),scaleWithSize:Boolean(m.scaleWithSize),consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
+    state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),scaleWithSize:true,workshopUnit:m.workshopUnit||m.unit||"Einheit",workshopUnitAmount:num(m.workshopUnitAmount)||1,consumptionLevels:{small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))},consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
   }catch{alert("Ungültige Backup-Datei.");}
   e.target.value="";
 };
