@@ -1,14 +1,13 @@
-Daniels Laser Art Kalkulator V2.5.0
+Daniels Laser Art Kalkulator V3.0.0
 
 Neu:
-- Materialverwaltung mit aufklappbaren Kategorien
-- Kategorien wie Holz, Filament PLA/PETG/TPU, Schiefer & Stein, Metall, Acryl, Glas, Leder und Verbrauchsmaterial
-- Favoriten- und „Zuletzt verwendet“-Ansicht
-- Lieferant und optionales Materialbild
-- Plattengröße kann automatisch in cm² oder m² übernommen werden
-- Preisvergleich durch verständlichen Zielpreis-Rechner ersetzt
-- Zielpreis zeigt Gewinn, Aufschlag, Marge und erforderlichen Preis für die Mindestmarge
-- Kundenangebot mit Briefkopf-Logo bleibt enthalten
+- Dashboard mit Neuer Auftrag, Fortsetzen, Tagesübersicht und Vorlagen
+- Neuer Auftrag startet immer mit leerer Maschine, leerem Material und leeren Größenangaben
+- Projektvorlagen aus gespeicherten Projekten
+- Projekte anheften, sortieren, suchen, filtern und duplizieren
+- modernes Schwarz-Gold-Design
+- bestehende Materialkategorien und Zielpreis-Rechner bleiben erhalten
 
 Installation:
-Alle Dateien in /Intern vollständig ersetzen. Danach Browser/App vollständig schließen und mit ?v=2.5.0 neu öffnen.
+Alle Dateien im Ordner /Intern ersetzen. Danach die App vollständig schließen und neu öffnen.
+Aufruf: https://danielslaserart.de/Intern/?v=3.0.0

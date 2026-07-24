@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "2.5.0";
+const APP_VERSION = "3.0.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -30,7 +30,7 @@ const defaults = {
     profit:30,hourly:0,machine3d:0.5,laserGravur:0.1,laserSchnitt:0.15,
     plotter:0.1,presse:0.15,reserve:5,packaging:0,rounding:0.1
   },
-  materials:[],projects:[],activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
+  materials:[],projects:[],templates:[],activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[
     {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
     {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
@@ -73,7 +73,8 @@ function categoryOptions(area,selected=""){
   return cats.map(c=>`<option ${c===selected?"selected":""}>${esc(c)}</option>`).join("");
 }
 let state = load();
-state.projects=(state.projects||[]).map(p=>({...p,status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+state.templates=Array.isArray(state.templates)?state.templates:[];
+state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
 state.timer={...defaults.timer,...(state.timer||{})};
 
 function load(){
@@ -146,7 +147,8 @@ async function loadCloudState(){
   }
   if(data?.data){
     state={...defaults,...data.data,settings:{...defaults.settings,...(data.data.settings||{})}};
-    state.projects=(state.projects||[]).map(p=>({...p,status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+    state.templates=Array.isArray(state.templates)?state.templates:[];
+    state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
     state.timer={...defaults.timer,...(state.timer||{})};
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
@@ -188,11 +190,45 @@ function setScreen(id){
   if(id==="home") updateHome();
   window.scrollTo({top:0,behavior:"smooth"});
 }
-document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>setScreen(b.dataset.screen));
-document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.open;save();setScreen("calculator")});
+document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>{
+  if(b.dataset.screen==="calculator") startNewOrder(); else setScreen(b.dataset.screen);
+});
+document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>startNewOrder(b.dataset.open));
 document.querySelectorAll("[data-open-tool]").forEach(b=>b.onclick=()=>{setScreen("tools");setTimeout(()=>document.querySelector(`[data-tool="${b.dataset.openTool}"]`)?.click(),0)});
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.tab;save();renderCalculator()});
 
+function startNewOrder(module="3d"){
+  state.activeModule=module||"3d";
+  editingProjectId=null;
+  consumableSelections=[];
+  productSize="medium";
+  state.timer={running:false,startedAt:null,elapsed:0};
+  save();
+  setScreen("calculator");
+  renderCalculator(true);
+}
+function createTemplateFromProject(id){
+  const p=state.projects.find(x=>x.id===id);if(!p)return;
+  const name=prompt("Name der Vorlage:",p.title);if(!name)return;
+  state.templates=state.templates||[];
+  state.templates.unshift({id:uid(),name:name.trim(),module:p.module,type:p.type,machineId:p.machineId,productSize:p.productSize,consumables:p.consumables||[],fields:p.fields||{},notes:p.notes||"",created:new Date().toISOString()});
+  save();updateHome();alert("Vorlage gespeichert.");
+}
+function useTemplate(id){
+  const t=(state.templates||[]).find(x=>x.id===id);if(!t)return;
+  state.activeModule=t.module||"3d";editingProjectId=null;setScreen("calculator");renderCalculator(true);
+  productSize=t.productSize||"medium";
+  consumableSelections=(t.consumables||[]).map(r=>({...r,auto:false}));renderConsumables();applyCalculatorFields(t.fields||{});
+  $("projectName").value="";$("customerName").value="";if($("customerAddress"))$("customerAddress").value="";
+  if($("projectNotes"))$("projectNotes").value=t.notes||"";if(t.machineId&&$("machineSelect"))$("machineSelect").value=t.machineId;
+  calculate();
+}
+function renderTemplates(){
+  const box=$("homeTemplates");if(!box)return;
+  const items=state.templates||[];
+  box.innerHTML=items.length?items.slice(0,8).map(t=>`<button class="template-card" type="button" data-use-template="${t.id}"><span>★</span><b>${esc(t.name)}</b><small>${esc(t.type||titles[t.module]||"")}</small></button>`).join(""):`<div class="empty-state template-empty">Noch keine Vorlagen. Öffne ein Projekt und wähle „Als Vorlage“.</div>`;
+  box.querySelectorAll("[data-use-template]").forEach(b=>b.onclick=()=>useTemplate(b.dataset.useTemplate));
+}
 function updateHome(){
   const now=new Date(),month=now.getMonth(),year=now.getFullYear();
   const monthProjects=state.projects.filter(p=>{const d=new Date(p.created||p.updated);return d.getMonth()===month&&d.getFullYear()===year});
@@ -205,6 +241,12 @@ function updateHome(){
   $("homeLastPrice").textContent=state.lastPrice==null?"–":euro(state.lastPrice);
   const greeting=now.getHours()<11?"Guten Morgen":now.getHours()<18?"Guten Tag":"Guten Abend";
   if($("dashboardGreeting")) $("dashboardGreeting").textContent=`${greeting}, Daniel`;
+  const todayKey=now.toLocaleDateString("de-DE");
+  const today=state.projects.filter(p=>new Date(p.created||p.updated).toLocaleDateString("de-DE")===todayKey);
+  if($("homeTodayOrders")) $("homeTodayOrders").textContent=today.length;
+  if($("homeTodayProfit")) $("homeTodayProfit").textContent=euro(today.reduce((a,p)=>a+num(p.sale)-num(p.cost),0));
+  if($("homeTodayWork")){const mins=Math.round(today.reduce((a,p)=>a+num(p.workSeconds),0)/60);$("homeTodayWork").textContent=mins<60?`${mins} Min.`:`${Math.floor(mins/60)} Std. ${mins%60} Min.`;}
+  renderTemplates();
   renderRecentProjects();
   const latest=state.projects.slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created))[0];
   const continueBtn=$("continueLastProjectBtn"),continueText=$("continueLastProjectText");
@@ -349,7 +391,7 @@ function renderMaterials(){
 let editingProjectId=null;
 function machineOptions(type,selected=""){
   const list=(state.machines||[]).filter(m=>m.type===type&&m.active!==false);
-  return list.map(m=>`<option value="${m.id}" ${m.id===selected?"selected":""}>${esc(m.name)}</option>`).join("");
+  return `<option value="">Keine Maschine ausgewählt</option>`+list.map(m=>`<option value="${m.id}" ${m.id===selected?"selected":""}>${esc(m.name)}</option>`).join("");
 }
 function getMachine(){
   const id=$("machineSelect")?.value;
@@ -445,6 +487,14 @@ function renderCalculator(clear=false){
   document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===productSize));
   $("projectName").value=clear?"":$("projectName").value;
   $("customerName").value=clear?"":$("customerName").value;
+  if(clear){
+    editingProjectId=null;
+    if($("customerAddress")) $("customerAddress").value="";
+    if($("projectNotes")) $("projectNotes").value="";
+    if($("projectStatus")) $("projectStatus").value="open";
+    if($("projectTags")) $("projectTags").value="";
+    setTimerSeconds(0);
+  }
 
   let html="";
   if(type==="3d") html=`
@@ -535,7 +585,7 @@ function renderCalculator(clear=false){
   document.querySelectorAll("#calcForm input,#calcForm select").forEach(el=>el.oninput=calculate);
   calculate();
 }
-$("resetCalcBtn").onclick=()=>renderCalculator(true);
+$("resetCalcBtn").onclick=()=>{if(confirm("Aktuelle Eingaben wirklich leeren?"))startNewOrder(state.activeModule)};
 
 function getMat(id){
   const el=$(id); if(!el) return null;
@@ -805,11 +855,19 @@ function projectStatusClass(status){return `status-${["open","progress","payment
 function renderProjects(){
   const term=($('projectSearch')?.value||'').trim().toLowerCase();
   const filter=$('projectStatusFilter')?.value||'all';
+  const sort=$('projectSort')?.value||'updated';
   const list=state.projects.filter(p=>{
     const matchesText=!term||`${p.title} ${p.customer||''} ${p.type||''} ${p.machineName||''} ${p.notes||''} ${(p.tags||[]).join(' ')}`.toLowerCase().includes(term);
     const matchesStatus=filter==='all'||(p.status||'open')===filter;
     return matchesText&&matchesStatus;
-  }).sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
+  }).sort((a,b)=>{
+    if(Boolean(a.pinned)!==Boolean(b.pinned))return a.pinned?-1:1;
+    if(sort==='name')return String(a.title||'').localeCompare(String(b.title||''),'de');
+    if(sort==='customer')return String(a.customer||'').localeCompare(String(b.customer||''),'de');
+    if(sort==='price')return num(b.sale)-num(a.sale);
+    if(sort==='created')return new Date(b.created)-new Date(a.created);
+    return new Date(b.updated||b.created)-new Date(a.updated||a.created);
+  });
   const totalProfit=state.projects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   if($('projectStatCount'))$('projectStatCount').textContent=state.projects.length;
   if($('projectStatProfit'))$('projectStatProfit').textContent=euro(totalProfit);
@@ -817,15 +875,17 @@ function renderProjects(){
   $('projectList').innerHTML=list.length?list.map(p=>`
     <article class="card project-item" data-project-card="${p.id}">
       ${(p.images||[])[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${p.images[0]}" alt=""></button>`:''}
-      <div class="item-top"><div><div class="item-title">${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="item-price">${euro(p.sale)}</div></div>
+      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="item-price">${euro(p.sale)}</div></div>
       <div class="project-status-row"><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
       ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
-      <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
+      <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button><button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
     </article>`).join(''):`<div class="empty-state">Keine passenden Projekte gefunden.</div>`;
   document.querySelectorAll('[data-view-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();viewProject(b.dataset.viewProject)});
   document.querySelectorAll('[data-project-card]').forEach(card=>card.onclick=e=>{if(!e.target.closest('button'))viewProject(card.dataset.projectCard)});
   document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.editProject,false)});
   document.querySelectorAll('[data-duplicate-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.duplicateProject,true)});
+  document.querySelectorAll('[data-pin-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=state.projects.find(x=>x.id===b.dataset.pinProject);if(p){p.pinned=!p.pinned;p.updated=new Date().toISOString();save();renderProjects();}});
+  document.querySelectorAll('[data-template-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();createTemplateFromProject(b.dataset.templateProject)});
   document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm('Projekt löschen?')){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();updateHome()}});
 }
 function projectFieldLabel(id){
@@ -967,6 +1027,11 @@ function loadProject(id,duplicate=false){
 }
 $("clearProjectsBtn").onclick=()=>{if(state.projects.length&&confirm("Wirklich alle Projekte löschen?")){state.projects=[];save();renderProjects()}};
 $("projectSearch").oninput=renderProjects;
+if($("projectStatusFilter"))$("projectStatusFilter").onchange=renderProjects;
+if($("projectSort"))$("projectSort").onchange=renderProjects;
+if($("newOrderBtn"))$("newOrderBtn").onclick=()=>startNewOrder("3d");
+if($("projectNewBtn"))$("projectNewBtn").onclick=()=>startNewOrder("3d");
+if($("manageTemplatesBtn"))$("manageTemplatesBtn").onclick=()=>{if(!(state.templates||[]).length){alert("Noch keine Vorlagen vorhanden. Erstelle eine Vorlage über ein gespeichertes Projekt.");return;} const names=state.templates.map((t,i)=>`${i+1}. ${t.name}`).join("\n");const n=prompt(`Vorlagen verwalten\n\n${names}\n\nNummer zum Löschen eingeben:`);const idx=Number(n)-1;if(Number.isInteger(idx)&&idx>=0&&idx<state.templates.length&&confirm(`Vorlage „${state.templates[idx].name}“ löschen?`)){state.templates.splice(idx,1);save();updateHome();}};
 
 function fillSettings(){
   renderMachines();
