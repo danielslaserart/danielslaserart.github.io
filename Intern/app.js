@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "2.3.1";
+const APP_VERSION = "2.4.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -809,7 +809,8 @@ function viewProject(id){
 }
 
 function printOffer(p){
-  const date=new Date().toLocaleDateString("de-DE");
+  const today=new Date();
+  const date=today.toLocaleDateString("de-DE");
   const created=new Date(p.created||p.updated||Date.now());
   const offerNo=`A-${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,"0")}${String(created.getDate()).padStart(2,"0")}-${String((p.id||"").replace(/\D/g,"").slice(-3)||"001").padStart(3,"0")}`;
   const service=esc(p.title||p.type||"Individuelle Anfertigung");
@@ -817,40 +818,54 @@ function printOffer(p){
   const unitPrice=num(p.sale)/qty;
   const address=(p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
   const addressHtml=address?address.split(/\r?\n/).map(esc).join("<br>"):"Kundenanschrift";
+  const logoUrl=new URL("briefkopf-logo.png",window.location.href).href;
 
   const doc=`<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Angebot ${offerNo}</title><style>
-    @page{size:A4;margin:15mm 17mm 16mm}
-    *{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#17120e;font-family:Arial,Helvetica,sans-serif}
-    .sheet{min-height:266mm;position:relative;font-size:11pt}
-    .head{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:24px;padding-bottom:14px;border-bottom:1px solid #bbb;font-size:8.5pt;line-height:1.4}
-    .sender{margin-top:24px;font-size:8pt;text-decoration:underline;color:#555}
-    .address{min-height:72px;margin-top:8px;font-size:10.5pt;line-height:1.45}
-    .meta{display:grid;grid-template-columns:1fr 210px;align-items:start;gap:28px;margin:18px 0 20px}
-    .meta h1{font-size:22pt;margin:0;font-family:Georgia,serif}.meta span,.meta strong{display:block}.meta span{font-size:8.5pt;color:#666;margin-top:5px}.meta strong{font-size:10.5pt;margin-top:2px}
-    .subject{margin:0 0 18px}.intro{margin:0 0 22px;line-height:1.55}
-    table{width:100%;border-collapse:collapse;margin:0 0 20px}th{background:#f2eee7;text-align:left;font-size:9pt;padding:10px;border-bottom:1px solid #bca77e}td{padding:14px 10px;border-bottom:1px solid #d8cdb9;vertical-align:top}
-    th:first-child,td:first-child{width:38px}th:nth-child(3),td:nth-child(3){width:65px;text-align:center}th:nth-child(4),td:nth-child(4),th:last-child,td:last-child{width:105px;text-align:right}
-    .total{display:flex;justify-content:flex-end;align-items:baseline;gap:28px;margin:0 0 26px;padding:14px 10px;border-top:2px solid #9b722f;font-size:13pt}.total strong{font-size:17pt;color:#6f4d18}
-    .notes{font-size:9.5pt;color:#444;line-height:1.45;margin-top:30px}.notes p{margin:4px 0}.closing{margin-top:34px}
-    footer{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:22px;padding-top:9px;border-top:1px solid #c8bda9;color:#555;font-size:8pt;line-height:1.35}
-    @media screen{body{padding:18px}.sheet{max-width:793px;margin:auto}}
+    @page{size:A4;margin:10mm 16mm 14mm}
+    *{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#17120e;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .sheet{width:100%;min-height:273mm;position:relative;padding-bottom:35mm;font-size:10.5pt}
+    .letterhead{width:100%;height:auto;display:block;margin:0 auto 5mm;object-fit:contain}
+    .gold-line{height:1.2px;background:#b8872f;margin:0 0 8mm}
+    .sender{font-size:7.5pt;text-decoration:underline;color:#555;margin-bottom:3mm}
+    .top-grid{display:grid;grid-template-columns:minmax(0,1fr) 58mm;gap:16mm;align-items:start;min-height:32mm;margin-bottom:7mm}
+    .address{font-size:10.5pt;line-height:1.45}
+    .meta{font-size:8.5pt}.meta-row{margin-bottom:3mm}.meta span,.meta strong{display:block}.meta span{color:#666;margin-bottom:1mm}.meta strong{font-size:10pt}
+    h1{font:700 21pt Georgia,"Times New Roman",serif;margin:0 0 7mm}
+    .subject{margin:0 0 5mm}.intro{margin:0 0 7mm;line-height:1.5}
+    table{width:100%;border-collapse:collapse;margin:0 0 5mm}th{background:#f4f0e8;text-align:left;font-size:8.5pt;padding:3mm 2.5mm;border-bottom:1px solid #b8872f}td{padding:4mm 2.5mm;border-bottom:1px solid #d9cfbd;vertical-align:top}
+    th:first-child,td:first-child{width:12mm}th:nth-child(3),td:nth-child(3){width:19mm;text-align:center}th:nth-child(4),td:nth-child(4),th:last-child,td:last-child{width:30mm;text-align:right}
+    .total{display:flex;justify-content:flex-end;align-items:baseline;gap:12mm;padding:4mm 2.5mm;border-top:1.5px solid #b8872f;margin-bottom:8mm}.total span{font-size:11pt}.total strong{font-size:16pt;color:#765018}
+    .notes{font-size:9pt;color:#333;line-height:1.5}.notes p{margin:1.5mm 0}.closing{margin-top:8mm;line-height:1.5}
+    footer{position:absolute;left:0;right:0;bottom:0;border-top:1px solid #b8872f;padding-top:3mm;display:grid;grid-template-columns:1.05fr .95fr 1.35fr .45fr;gap:5mm;color:#333;font-size:7.4pt;line-height:1.35}
+    footer strong{display:block;color:#17120e;margin-bottom:1mm}footer .page{text-align:right;white-space:nowrap}
+    @media screen{body{padding:16px;background:#e9e9e9}.sheet{max-width:210mm;margin:auto;background:#fff;padding:10mm 16mm 14mm;box-shadow:0 4px 24px rgba(0,0,0,.18)}footer{left:16mm;right:16mm;bottom:14mm}.letterhead{max-height:49mm}}
+    @media print{.sheet{min-height:273mm}.letterhead{max-height:49mm}}
   </style></head><body><main class="sheet">
-    <header class="head">
-      <div><strong>Daniel's Laser Art</strong><br>Augasse 12<br>08393 Meerane<br>Steuernummer: 227/227/03573<br>Inhaber: Daniel Häßler</div>
-      <div><strong>Kontakt</strong><br>Telefon: 015147906749<br>E-Mail: Daniels.laser.art@gmail.com<br>Web: danielslaserart.de</div>
-      <div><strong>Bankverbindung</strong><br>Bank: C24 Bank<br>IBAN: DE07 5002 4024 7016 9162 31<br>BIC: DEFF DEFF XXX<br>Kontoinhaber: Daniel Häßler</div>
-    </header>
+    <img id="letterheadLogo" class="letterhead" src="${logoUrl}" alt="Daniel's Laser Art">
+    <div class="gold-line"></div>
     <div class="sender">Daniel's Laser Art | Augasse 12 | 08393 Meerane</div>
-    <div class="address">${addressHtml}</div>
-    <section class="meta"><h1>Angebot</h1><div><span>Angebotsnummer</span><strong>${offerNo}</strong><span>Datum</span><strong>${date}</strong></div></section>
+    <section class="top-grid">
+      <div class="address">${addressHtml}</div>
+      <div class="meta"><div class="meta-row"><span>Angebotsnummer</span><strong>${offerNo}</strong></div><div class="meta-row"><span>Datum</span><strong>${date}</strong></div></div>
+    </section>
+    <h1>Angebot</h1>
     <p class="subject"><strong>Betreff:</strong> Angebot zu Ihrem Auftrag</p>
     <p class="intro">Vielen Dank für Ihre Anfrage. Gern biete ich Ihnen folgende Leistung an:</p>
     <table><thead><tr><th>Pos.</th><th>Beschreibung</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead><tbody><tr><td>1.</td><td>${service}</td><td>${qty.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:2})}</td><td>${euro(unitPrice)}</td><td>${euro(p.sale)}</td></tr></tbody></table>
     <div class="total"><span>Gesamt</span><strong>${euro(p.sale)}</strong></div>
     <div class="notes"><p>Dieses Angebot ist 14 Tage ab dem Ausstellungsdatum gültig.</p><p>Gemäß § 19 UStG wird aufgrund der Kleinunternehmerregelung keine Umsatzsteuer erhoben.</p></div>
     <p class="closing">Vielen Dank für Ihr Interesse. Ich freue mich auf Ihren Auftrag.</p>
-    <footer><div><strong>Daniel's Laser Art</strong><br>Augasse 12 · 08393 Meerane</div><div><strong>Kontakt</strong><br>Daniels.laser.art@gmail.com · 015147906749</div><div><strong>Web</strong><br>danielslaserart.de</div></footer>
-  </main><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),250));<\/script></body></html>`;
+    <footer>
+      <div><strong>Daniel's Laser Art</strong>Augasse 12<br>08393 Meerane<br>Steuernummer: 227/227/03573<br>Inhaber: Daniel Häßler</div>
+      <div><strong>Kontakt</strong>Telefon: 015147906749<br>E-Mail: Daniels.laser.art@gmail.com<br>Web: danielslaserart.de</div>
+      <div><strong>Bankverbindung</strong>Bank: C24 Bank<br>IBAN: DE07 5002 4024 7016 9162 31<br>BIC: DEFF DEFF XXX<br>Kontoinhaber: Daniel Häßler</div>
+      <div class="page"><strong>Seite</strong>1 von 1</div>
+    </footer>
+  </main><script>
+    const printNow=()=>setTimeout(()=>window.print(),180);
+    const logo=document.getElementById('letterheadLogo');
+    if(logo.complete) printNow(); else {logo.addEventListener('load',printNow,{once:true});logo.addEventListener('error',printNow,{once:true});}
+  <\/script></body></html>`;
 
   const popup=window.open("","_blank");
   if(!popup){alert("Die Druckansicht wurde blockiert. Bitte Pop-ups für diese Seite erlauben.");return;}
@@ -910,7 +925,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=2.2.0").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=2.4.0").catch(()=>{}));
 
 
 async function initializeAuth(){
