@@ -1,4 +1,4 @@
-DANIELS LASER ART KALKULATOR 2.0
+DANIELS LASER ART KALKULATOR 2.1
 
 Neu:
 - entschlackte Startseite: Auftrag, letztes Projekt, Suche, letzte Projekte
@@ -9,4 +9,4 @@ Neu:
 - Flächenrechner und bisherige Kalkulatorfunktionen bleiben erhalten
 
 Installation:
-Alle Dateien in /Intern vollständig ersetzen. Danach die App bzw. den Browser einmal komplett schließen und neu öffnen. Aufruf: /Intern/?v=2.0.0
+Alle Dateien in /Intern vollständig ersetzen. Danach die App bzw. den Browser einmal komplett schließen und neu öffnen. Aufruf: /Intern/?v=2.1.0

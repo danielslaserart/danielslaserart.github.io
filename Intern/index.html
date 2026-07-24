@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=2.0.0">
-  <link rel="apple-touch-icon" href="icon-192.png?v=2.0.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2.0.0">
-  <link rel="stylesheet" href="style.css?v=2.0.0">
+  <link rel="manifest" href="manifest.json?v=2.1.0">
+  <link rel="apple-touch-icon" href="icon-192.png?v=2.1.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2.1.0">
+  <link rel="stylesheet" href="style.css?v=2.1.0">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -44,10 +44,20 @@
 <main>
   <section id="home" class="screen active">
     <div class="dashboard-head compact-dashboard-head">
-      <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Guten Morgen, Daniel</h2><p class="dashboard-subtitle">Was möchtest du als Nächstes erledigen?</p></div>
-      <span class="version-badge">V2.0</span>
+      <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Guten Morgen, Daniel</h2><p class="dashboard-subtitle">Welches Werkzeug brauchst du?</p></div>
+      <span class="version-badge">V2.1</span>
     </div>
 
+    <div class="section-head compact home-section-head"><div><div class="eyebrow">WERKZEUGE</div><h3>Schnell berechnen</h3></div></div>
+    <div class="home-tool-grid">
+      <button class="home-tool-featured" data-open-tool="areaCalc"><span>📐</span><div><b>Flächenrechner</b><small>Materialbedarf aus Maßen berechnen</small></div></button>
+      <button data-open-tool="priceCheck"><span>€</span><b>Preisvergleich</b><small>Kundenpreis prüfen</small></button>
+      <button data-open-tool="profitCalc"><span>↗</span><b>Gewinnrechner</b><small>Verkaufspreis berechnen</small></button>
+      <button data-open-tool="discountCalc"><span>%</span><b>Rabattrechner</b><small>Ursprungspreis ermitteln</small></button>
+      <button data-open-tool="quickCalc"><span>⚡</span><b>Schnellrechner</b><small>Preis ohne Projekt</small></button>
+    </div>
+
+    <div class="section-head compact home-section-head project-home-head"><div><div class="eyebrow">PROJEKTE</div><h3>Weiterarbeiten</h3></div><button class="ghost small" data-screen="projects">Alle Projekte</button></div>
     <div class="home-primary-actions">
       <button class="home-hero-action" data-open="laser"><span>＋</span><div><b>Neuen Auftrag kalkulieren</b><small>Laser, 3D-Druck, Plotter oder Textil</small></div></button>
       <button class="home-secondary-action" id="continueLastProjectBtn" type="button"><span>↻</span><div><b>Letztes Projekt fortsetzen</b><small id="continueLastProjectText">Noch kein Projekt vorhanden</small></div></button>
@@ -58,13 +68,8 @@
     </label>
     <div id="dashboardSearchResults" class="dashboard-search-results hidden"></div>
 
-    <div class="section-head compact dashboard-section"><div><div class="eyebrow">ZULETZT</div><h3>Letzte Projekte</h3></div><button class="ghost small" data-screen="projects">Alle Projekte</button></div>
+    <div class="section-head compact dashboard-section"><div><div class="eyebrow">ZULETZT</div><h3>Letzte Projekte</h3></div></div>
     <div id="homeRecentProjects" class="recent-projects"></div>
-
-    <div class="home-tools-row">
-      <button data-open-tool="areaCalc"><span>📐</span><b>Flächenrechner</b><small>Materialbedarf ausrechnen</small></button>
-      <button data-screen="materials"><span>▦</span><b>Materialien</b><small>Datenbank pflegen</small></button>
-    </div>
 
     <div class="dashboard-metrics dashboard-metrics-bottom">
       <div class="card metric"><span>Offene Projekte</span><strong id="homeOpenCount">0</strong></div>
@@ -460,6 +465,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=2.0.0"></script>
+<script src="app.js?v=2.1.0"></script>
 </body>
 </html>
