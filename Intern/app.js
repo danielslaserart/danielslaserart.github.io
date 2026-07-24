@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.0.2";
+const APP_VERSION = "3.0.3";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -178,6 +178,38 @@ async function loadCloudState(){
   setSyncStatus("Gespeichert","ok");
   return true;
 }
+
+
+function getTimerSeconds(){
+  const timer=state.timer||defaults.timer;
+  const runningExtra=timer.running&&timer.startedAt?Math.max(0,Math.floor((Date.now()-new Date(timer.startedAt).getTime())/1000)):0;
+  return Math.max(0,Math.floor(num(timer.elapsed)+runningExtra));
+}
+function updateTimerDisplay(){
+  const total=getTimerSeconds();
+  const h=String(Math.floor(total/3600)).padStart(2,"0");
+  const m=String(Math.floor((total%3600)/60)).padStart(2,"0");
+  const sec=String(total%60).padStart(2,"0");
+  if($("workTimerDisplay")) $("workTimerDisplay").textContent=`${h}:${m}:${sec}`;
+  if($("timerToggleBtn")) $("timerToggleBtn").textContent=state.timer?.running?"⏸ Pause":"▶ Start";
+}
+function setTimerSeconds(seconds=0){
+  state.timer={running:false,startedAt:null,elapsed:Math.max(0,Math.floor(num(seconds)))};
+  updateTimerDisplay();
+}
+function toggleTimer(){
+  state.timer={...defaults.timer,...(state.timer||{})};
+  if(state.timer.running){
+    state.timer.elapsed=getTimerSeconds();
+    state.timer.running=false;
+    state.timer.startedAt=null;
+  }else{
+    state.timer.running=true;
+    state.timer.startedAt=new Date().toISOString();
+  }
+  updateTimerDisplay();
+}
+setInterval(()=>{if(state.timer?.running)updateTimerDisplay()},1000);
 
 function setScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
@@ -497,6 +529,8 @@ function renderConsumables(){
 }
 function consumablesCost(){return consumableSelections.reduce((sum,row)=>{const mat=state.materials.find(m=>m.id===row.materialId);return sum+workshopCost(mat,row.quantity);},0);}
 $("addConsumableBtn").onclick=()=>{consumableSelections.push({materialId:"",quantity:0,auto:false});renderConsumables();};
+if($("timerToggleBtn")) $("timerToggleBtn").onclick=toggleTimer;
+if($("timerResetBtn")) $("timerResetBtn").onclick=()=>{if(confirm("Arbeitszeit wirklich zurücksetzen?"))setTimerSeconds(0);};
 function setProductSize(size){
   const previous=productSize;productSize=size;
   document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===size));
@@ -1078,11 +1112,13 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=2.5.0").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.0.3").catch(()=>{}));
 
 
 async function initializeAuth(){
-  const { data:{ session } } = await db.auth.getSession();
+  try{
+  const { data:{ session }, error } = await db.auth.getSession();
+  if(error) throw error;
   if(session?.user){
     await enterApp(session.user);
   }else{
@@ -1100,6 +1136,11 @@ async function initializeAuth(){
       setSyncStatus("Offline","");
     }
   });
+  }catch(error){
+    console.error("Auth-Initialisierung fehlgeschlagen:",error);
+    $("authGate").classList.remove("hidden");
+    $("authError").textContent="Anmeldung konnte nicht initialisiert werden. Bitte Seite neu laden und Internetverbindung prüfen.";
+  }
 }
 async function enterApp(user){
   currentUser=user;
@@ -1114,11 +1155,18 @@ $("loginForm").onsubmit=async e=>{
   $("authError").textContent="";
   const email=$("loginEmail").value.trim();
   const password=$("loginPassword").value;
-  const btn=e.submitter;
-  btn.disabled=true;btn.textContent="Anmeldung …";
-  const { error }=await db.auth.signInWithPassword({email,password});
-  if(error)$("authError").textContent="Anmeldung fehlgeschlagen. Prüfe E-Mail und Passwort.";
-  btn.disabled=false;btn.textContent="Anmelden";
+  const btn=e.submitter||$("loginForm").querySelector('button[type="submit"]');
+  try{
+    if(btn){btn.disabled=true;btn.textContent="Anmeldung …";}
+    const { data, error }=await db.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    if(data?.user) await enterApp(data.user);
+  }catch(error){
+    console.error("Login fehlgeschlagen:",error);
+    $("authError").textContent="Anmeldung fehlgeschlagen. Prüfe E-Mail, Passwort und Internetverbindung.";
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent="Anmelden";}
+  }
 };
 $("logoutBtn").onclick=async()=>{
   if(confirm("Wirklich abmelden?")) await db.auth.signOut();
