@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=3.0.4">
-  <link rel="apple-touch-icon" href="icon-192.png?v=3.0.4">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3.0.4">
-  <link rel="stylesheet" href="style.css?v=3.0.4">
+  <link rel="manifest" href="manifest.json?v=3.0.5">
+  <link rel="apple-touch-icon" href="icon-192.png?v=3.0.5">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3.0.5">
+  <link rel="stylesheet" href="style.css?v=3.0.5">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,7 +45,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V3.0.4</span>
+      <span class="version-badge">V3.0.5</span>
     </div>
 
     <div class="dashboard-actions">
@@ -455,8 +455,11 @@
     <div id="consumableSettings" class="consumable-settings hidden">
       <div class="group-title">VERBRAUCHSMATERIAL</div>
       <div class="field-grid">
-        <label>Werkstatt-Einheit<input id="materialWorkshopUnit" placeholder="z. B. Sprühstoß, Klecks, Streifen"></label>
-        <label>1 Werkstatt-Einheit entspricht<input id="materialWorkshopUnitAmount" type="number" min="0.000001" step="any" inputmode="decimal" value="1"><small class="field-help">In der oben gewählten Einkaufseinheit, z. B. 0,002 l je Sprühstoß.</small></label>
+        <label>Werkstatt-Einheit<input id="materialWorkshopUnit" placeholder="z. B. Klecks, Sprühstoß, Schraube"></label>
+        <label id="materialWorkshopAmountLabel">1 Werkstatt-Einheit entspricht
+          <div class="input-with-unit"><input id="materialWorkshopUnitAmount" type="number" min="0.000001" step="any" inputmode="decimal" value="1"><span id="materialWorkshopUnitSuffix">g</span></div>
+          <small id="materialWorkshopUnitExample" class="field-help">1 Werkstatt-Einheit = 1 g</small>
+        </label>
         <label>Kategorie
           <select id="materialConsumableCategory">
             <option>Kleber</option><option>Reinigung</option><option>Schleifen</option><option>Farbe & Finish</option><option>Abkleben</option><option>Wartung</option><option>Verpackung</option><option>Sonstiges</option>
@@ -512,6 +515,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=3.0.4"></script>
+<script src="app.js?v=3.0.5"></script>
 </body>
 </html>

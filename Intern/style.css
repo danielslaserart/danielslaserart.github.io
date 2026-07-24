@@ -670,9 +670,14 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 @media(max-width:520px){.dashboard-actions{grid-template-columns:1fr}.dash-action-primary{grid-column:auto}.dash-action{min-height:84px}.template-grid{grid-template-columns:1fr 1fr}.project-toolbar{grid-template-columns:1fr!important}.project-toolbar>*{grid-column:1!important}}
 
 
-/* V3.0.4 – kompakte Materialkategorien */
+/* V3.0.5 – kompakte Materialkategorien */
 .material-overview-actions #toggleMaterialGroupsBtn{margin-left:auto}
 .material-category summary{padding:14px 16px}
 .material-item-compact{min-height:82px}
 .material-compact-actions button{padding:7px 9px}
 @media(max-width:520px){.material-overview-actions #toggleMaterialGroupsBtn{margin-left:0;width:100%}}
+
+/* V3.0.5 – verständliche Werkstatt-Einheit */
+.input-with-unit{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:stretch;margin-top:8px}
+.input-with-unit input{margin-top:0;border-radius:14px 0 0 14px;border-right:0}
+.input-with-unit span{display:grid;place-items:center;min-width:58px;padding:0 14px;border:1px solid rgba(202,158,80,.32);border-left:1px solid var(--line);border-radius:0 14px 14px 0;background:rgba(50,34,22,.95);color:var(--gold2);font-weight:900}
