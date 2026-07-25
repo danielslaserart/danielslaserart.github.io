@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.1.0";
+const APP_VERSION = "3.1.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -89,7 +89,7 @@ function load(){
       defaultConsumption:num(m.defaultConsumption),
       autoAdd:Boolean(m.autoAdd),
       favorite:Boolean(m.favorite),
-      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),image:v.image||"",note:v.note||"",location:v.location||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
       stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,
       width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
@@ -155,7 +155,7 @@ async function loadCloudState(){
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
-      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),image:v.image||"",note:v.note||"",location:v.location||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
       stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
@@ -399,15 +399,22 @@ function toggleConsumableFields(){
 let editingMaterialVariants=[];
 function normalizeVariant(v,m={}){
   const quantity=Math.max(0.000001,num(v?.quantity)||1),price=num(v?.price);
-  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
+  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),image:v?.image||"",note:v?.note||"",location:v?.location||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
 }
 function renderMaterialVariantRows(){
   const box=$("materialVariantRows");if(!box)return;
   box.innerHTML=editingMaterialVariants.length?editingMaterialVariants.map((v,i)=>`<div class="variant-row" data-variant-row="${i}">
+    <div class="variant-image-editor">
+      ${v.image?`<img class="variant-edit-thumb" src="${v.image}" alt="Vorschau ${esc(v.name||"Variante")}">`:`<div class="variant-edit-thumb variant-image-placeholder">🖼️</div>`}
+      <label class="secondary small file-button">${v.image?"Bild ändern":"Bild hinzufügen"}<input class="variant-image-input" data-v-image="${i}" type="file" accept="image/*" capture="environment"></label>
+      ${v.image?`<button class="ghost small remove-variant-image" data-remove-v-image="${i}" type="button">Bild entfernen</button>`:""}
+    </div>
     <label>Bezeichnung<input data-v-field="name" data-v-index="${i}" value="${esc(v.name)}" placeholder="z. B. 20×20 cm"></label>
     <label>Einkaufspreis (€)<input data-v-field="price" data-v-index="${i}" type="number" min="0" step="any" value="${num(v.price)}"></label>
     <label>Gekaufte Menge<input data-v-field="quantity" data-v-index="${i}" type="number" min="0.000001" step="any" value="${num(v.quantity)||1}"></label>
     <label>Einheit<select data-v-field="unit" data-v-index="${i}">${["Stück","g","kg","cm²","m²","cm","m","ml","l"].map(u=>`<option ${u===v.unit?"selected":""}>${u}</option>`).join("")}</select></label>
+    <label>Lagerplatz<input data-v-field="location" data-v-index="${i}" value="${esc(v.location||"")}" placeholder="optional, z. B. Regal B3"></label>
+    <label class="variant-note-field">Notiz<input data-v-field="note" data-v-index="${i}" value="${esc(v.note||"")}" placeholder="optional, z. B. matt / raue Kante"></label>
     <button class="danger remove-variant" data-remove-variant="${i}" type="button">Entfernen</button>
     <div class="variant-stock-box">
       <label class="check-row"><input data-v-field="trackStock" data-v-index="${i}" type="checkbox" ${v.trackStock?"checked":""}><span>Stückbestand verwalten</span></label>
@@ -416,6 +423,8 @@ function renderMaterialVariantRows(){
     </div>
   </div>`).join(""):'<div class="empty-state compact">Noch keine Varianten. Für Schiefergrößen einfach „+ Variante“ drücken.</div>';
   box.querySelectorAll("[data-v-field]").forEach(el=>el.oninput=()=>{const v=editingMaterialVariants[+el.dataset.vIndex];const f=el.dataset.vField;v[f]=el.type==="checkbox"?el.checked:(el.type==="number"?num(el.value):el.value);});
+  box.querySelectorAll("[data-v-image]").forEach(input=>input.onchange=async()=>{const file=input.files?.[0];if(!file)return;const index=+input.dataset.vImage;editingMaterialVariants[index].image=await compressProjectImage(file);renderMaterialVariantRows();});
+  box.querySelectorAll("[data-remove-v-image]").forEach(b=>b.onclick=()=>{editingMaterialVariants[+b.dataset.removeVImage].image="";renderMaterialVariantRows();});
   box.querySelectorAll("[data-remove-variant]").forEach(b=>b.onclick=()=>{editingMaterialVariants.splice(+b.dataset.removeVariant,1);renderMaterialVariantRows();});
 }
 function selectionKey(materialId,variantId=""){return variantId?`${materialId}::${variantId}`:materialId;}
@@ -512,7 +521,7 @@ function renderMaterials(){
         <article class="material-item-compact">
           ${m.image?`<img class="material-thumb" src="${m.image}" alt="">`:`<div class="material-thumb material-thumb-empty">${m.favorite?"★":"▦"}</div>`}
           <div class="material-main"><div class="item-title">${m.favorite?"★ ":""}${esc(m.name)}</div><div class="item-meta">${esc(m.area)}${m.supplier?" · "+esc(m.supplier):""}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauch</span>':''}${m.lastUsed?`<span>Zuletzt ${new Date(m.lastUsed).toLocaleDateString("de-DE")}</span>`:""}</div>
-          ${(m.variants||[]).length?`<div class="variant-list">${m.variants.map(v=>`<span class="variant-chip">${v.favorite?"★ ":""}${esc(v.name)} · ${euro(v.unitPrice)}/${esc(v.unit)}${v.trackStock?` · <b>${num(v.stock)} Stk.</b>${num(v.stock)<=num(v.minStock)?' ⚠️':''}`:""}</span>`).join("")}</div>`:""}</div>
+          ${(m.variants||[]).length?`<div class="variant-list">${m.variants.map(v=>`<div class="variant-card-mini">${v.image?`<img class="variant-mini-thumb" src="${v.image}" alt="">`:`<div class="variant-mini-thumb variant-image-placeholder">🖼️</div>`}<div><strong>${v.favorite?"★ ":""}${esc(v.name)}</strong><small>${euro(v.unitPrice)}/${esc(v.unit)}${v.trackStock?` · ${num(v.stock)} Stk.${num(v.stock)<=num(v.minStock)?' ⚠️':''}`:""}${v.location?` · ${esc(v.location)}`:""}</small></div></div>`).join("")}</div>`:""}</div>
           <div class="material-price-block"><strong>${(m.variants||[]).length?`${m.variants.length} Varianten`:euro(m.unitPrice)}</strong><small>${(m.variants||[]).length?"":`/${esc(m.unit)}`}</small></div>
           <div class="material-compact-actions"><button data-favorite-material="${m.id}" class="favorite-toggle" title="Favorit">${m.favorite?"★":"☆"}</button><button data-edit="${m.id}">Bearbeiten</button>${!(m.variants||[]).length&&m.trackStock?`<button data-stock-material="${m.id}">Bestand ${num(m.stock)}</button>`:""}<button data-delete="${m.id}" class="danger">Löschen</button></div>
           ${(m.variants||[]).length?`<div class="material-stock-actions">${m.variants.map(v=>`<button data-favorite-variant="${m.id}::${v.id}" class="ghost small">${v.favorite?"★":"☆"} ${esc(v.name)}</button>${v.trackStock?`<button data-stock-variant="${m.id}::${v.id}" class="ghost small">± Bestand (${num(v.stock)})</button>`:""}`).join("")}</div>`:""}
@@ -650,7 +659,7 @@ function renderCalculator(clear=false){
   if(type==="3d") html=`
     <div class="group-title">MATERIAL & MASCHINE</div>
     <label>Drucker auswählen<select id="machineSelect">${machineOptions("3d")}</select></label>
-    <label>Material auswählen<select id="matMain">${options("3D-Druck")}</select></label>
+    <label>Material auswählen<select id="matMain">${options("3D-Druck")}</select></label><div id="selectedMaterialPreview" class="selected-material-preview hidden"></div>
     ${infoRow("Preis aus Datenbank","priceMain")}
     <div class="field-grid">
       <label>Filamentverbrauch (g)<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
@@ -667,7 +676,7 @@ function renderCalculator(clear=false){
   if(type==="laser") html=`
     <div class="group-title">MATERIAL & MASCHINE</div>
     <label>Laser auswählen<select id="machineSelect">${machineOptions("laser")}</select></label>
-    <label>Material auswählen<select id="matMain">${options("Laser")}</select></label>
+    <label>Material auswählen<select id="matMain">${options("Laser")}</select></label><div id="selectedMaterialPreview" class="selected-material-preview hidden"></div>
     ${infoRow("Preis aus Datenbank","priceMain")}
     <div class="field-grid">
       <label>Verbrauchte Fläche / Menge<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
@@ -685,7 +694,7 @@ function renderCalculator(clear=false){
 
   if(type==="vinyl") html=`
     <div class="group-title">VINYL & ÜBERTRAGUNGSFOLIE</div>
-    <label>Vinyl auswählen<select id="matMain">${options("Vinylfolie")}</select></label>
+    <label>Vinyl auswählen<select id="matMain">${options("Vinylfolie")}</select></label><div id="selectedMaterialPreview" class="selected-material-preview hidden"></div>
     ${infoRow("Vinylpreis","priceMain")}
     <div class="field-grid">
       <label>Vinylfläche / Verbrauch<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
@@ -712,7 +721,7 @@ function renderCalculator(clear=false){
       <label>Textilpreis pro Stück (€)<input id="textilePrice" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Stückzahl<input id="quantity" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
     </div>
-    <label>Textilfolie auswählen<select id="matMain">${options("Textilfolie")}</select></label>
+    <label>Textilfolie auswählen<select id="matMain">${options("Textilfolie")}</select></label><div id="selectedMaterialPreview" class="selected-material-preview hidden"></div>
     ${infoRow("Folienpreis","priceMain")}
     <div class="field-grid">
       <label>Folienfläche je Farbe/Stück<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
@@ -745,7 +754,16 @@ function rounded(v){
   const step=num(state.settings.rounding)||0.01;
   return Math.ceil(v/step)*step;
 }
+function updateSelectedMaterialPreview(){
+  const box=$("selectedMaterialPreview"),mat=getMat("matMain");if(!box)return;
+  if(!mat){box.classList.add("hidden");box.innerHTML="";return;}
+  const image=mat.image||mat.baseMaterial?.image||"";
+  const stockText=mat.variantId&&mat.trackStock?`<span class="stock-badge ${num(mat.stock)<=num(mat.minStock)?"low":""}">Bestand: ${num(mat.stock)} Stück</span>`:"";
+  box.innerHTML=`${image?`<img src="${image}" alt="${esc(mat.name)}">`:`<div class="selected-material-placeholder">🖼️</div>`}<div><strong>${esc(mat.name)}</strong><small>${euro(mat.unitPrice)} / ${esc(mat.unit)}</small><div class="variant-badges">${stockText}${mat.location?`<span class="stock-badge">📍 ${esc(mat.location)}</span>`:""}</div>${mat.note?`<p>${esc(mat.note)}</p>`:""}</div>`;
+  box.classList.remove("hidden");
+}
 function calculate(){
+  updateSelectedMaterialPreview();
   const type=state.activeModule;
   const main=getMat("matMain"),transfer=getMat("matTransfer");
   const unitMain=main?.unitPrice||0,unitTransfer=transfer?.unitPrice||0;

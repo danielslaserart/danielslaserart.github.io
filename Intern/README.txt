@@ -1,14 +1,14 @@
-Daniels Laser Art Kalkulator – Version 3.1.0
+Daniels Laser Art Kalkulator – Version 3.1.1
 
 Neu:
-- Materialien können mehrere Varianten besitzen (z. B. Schiefer 10×10, 20×20, Herz, Rund).
-- Jede Variante hat eigenen Einkaufspreis und eigene Einkaufseinheit.
-- Optionaler Stückbestand und Mindestbestand pro Variante.
-- Bestand kann direkt in der Materialliste für Wareneingang, Ausschuss, Privatentnahme oder Inventur korrigiert werden.
-- Bei einem neu gespeicherten Projekt wird die im Rechner eingetragene Hauptmaterial-Menge automatisch vom Bestand abgezogen.
-- Materialien und einzelne Varianten können als Favorit markiert werden.
-- Varianten erscheinen im Rechner direkt unter dem Materialnamen und werden nach Favoriten sortiert.
+- Eigenes Vorschaubild pro Materialvariante
+- Foto direkt mit dem Handy aufnehmen oder aus der Galerie wählen
+- Variantenbilder in der Materialübersicht
+- Vorschaubild der gewählten Variante direkt im Rechner
+- Optionaler Lagerplatz und eine Notiz je Variante
+- Vorhandene Materialdaten bleiben erhalten
 
 Installation:
-Alle Dateien in den Ordner /Intern hochladen und vorhandene Dateien ersetzen.
-Danach einmal öffnen: https://danielslaserart.de/Intern/?v=3.1.0
+Alle Dateien in den Ordner /Intern auf dem Webspace kopieren und vorhandene Dateien ersetzen.
+Danach einmal öffnen:
+https://danielslaserart.de/Intern/?v=3.1.1
