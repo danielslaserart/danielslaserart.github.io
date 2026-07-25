@@ -728,3 +728,19 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 }
 .family-mode-hint strong{color:#e3bd6f;font-size:1rem}
 .family-mode-hint span{color:var(--muted);line-height:1.35}
+
+
+/* V3.2.1 – Materialfamilien ohne Platzhalterbild */
+.material-family-item{grid-template-columns:minmax(0,1fr) auto}
+.material-family-item .material-main{grid-column:1}
+.material-family-item .material-price-block{grid-column:2}
+.material-family-item .material-compact-actions,.material-family-item .material-stock-actions{grid-column:1/-1}
+@media(max-width:440px){.material-family-item{grid-template-columns:1fr}.material-family-item .material-main,.material-family-item .material-price-block{grid-column:1}}
+
+/* V3.2.1 – Rabattrechner mit zwei Modi */
+.discount-mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:14px 0;padding:6px;border:1px solid var(--line);border-radius:15px;background:rgba(19,12,8,.86)}
+.discount-mode-tabs button{border:0;border-radius:10px;padding:11px 8px;background:transparent;color:var(--muted);font:900 .78rem system-ui,sans-serif}
+.discount-mode-tabs button.active{color:#241503;background:linear-gradient(180deg,#efd18f,#c8943f)}
+.discount-mode-panel{display:none}.discount-mode-panel.active{display:block}
+.discount-mode-help{margin:0 0 12px;color:var(--muted);font:500 .8rem/1.45 system-ui,sans-serif}
+.discount-swap{width:100%;margin:0 0 10px}

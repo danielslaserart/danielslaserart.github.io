@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.2.0";
+const APP_VERSION = "3.2.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -562,8 +562,8 @@ function renderMaterials(){
     <details class="material-category card">
       <summary><span>${esc(cat)}</span><small>${items.length} ${items.length===1?"Material":"Materialien"}</small></summary>
       <div class="material-category-items">${items.map(m=>`
-        <article class="material-item-compact">
-          ${(m.variants||[]).length?`<div class="material-thumb material-thumb-empty">▦</div>`:(m.image?`<img class="material-thumb" src="${m.image}" alt="">`:`<div class="material-thumb material-thumb-empty">${m.favorite?"★":"▦"}</div>`)}
+        <article class="material-item-compact ${(m.variants||[]).length?"material-family-item":""}">
+          ${(m.variants||[]).length?"":(m.image?`<img class="material-thumb" src="${m.image}" alt="">`:`<div class="material-thumb material-thumb-empty">${m.favorite?"★":"▦"}</div>`)}
           <div class="material-main"><div class="item-title">${m.favorite?"★ ":""}${esc(m.name)}</div><div class="item-meta">${esc(m.area)}${m.supplier?" · "+esc(m.supplier):""}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${(m.variants||[]).length?'<span>Materialfamilie</span>':''}${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauch</span>':''}${m.lastUsed?`<span>Zuletzt ${new Date(m.lastUsed).toLocaleDateString("de-DE")}</span>`:""}</div>
           ${(m.variants||[]).length?`<div class="variant-list">${m.variants.map(v=>`<div class="variant-card-mini">${v.image?`<img class="variant-mini-thumb" src="${v.image}" alt="">`:`<div class="variant-mini-thumb variant-image-placeholder">🖼️</div>`}<div><strong>${v.favorite?"★ ":""}${esc(v.name)}</strong><small>${euro(v.unitPrice)}/${esc(v.unit)}${v.trackStock?` · ${num(v.stock)} Stk.${num(v.stock)<=num(v.minStock)?' ⚠️':''}`:""}${v.properties?` · ${esc(v.properties)}`:""}${v.location?` · ${esc(v.location)}`:""}</small></div></div>`).join("")}</div>`:""}</div>
           <div class="material-price-block"><strong>${(m.variants||[]).length?`${m.variants.length} Varianten`:euro(m.unitPrice)}</strong><small>${(m.variants||[]).length?"":`/${esc(m.unit)}`}</small></div>
@@ -943,12 +943,28 @@ function calculateProfitTool(){
   $("gcSale").textContent=euro(rounded(costs+profit));
 }
 function calculateDiscountTool(){
-  if(!$("dcTarget"))return;
-  const target=num($("dcTarget").value),percent=num($("dcPercent").value);
-  const factor=1-percent/100;
-  const original=factor>0?target/factor:0;
-  $("dcOriginal").textContent=euro(original);
-  $("dcAmount").textContent=euro(Math.max(0,original-target));
+  if($("dcTarget")){
+    const target=num($("dcTarget").value),percent=num($("dcPercent").value);
+    const factor=1-percent/100;
+    const original=factor>0?target/factor:0;
+    $("dcOriginal").textContent=euro(original);
+    $("dcAmount").textContent=euro(Math.max(0,original-target));
+  }
+  if($("dpOriginal")){
+    const original=num($("dpOriginal").value),sale=num($("dpSale").value);
+    const amount=original-sale;
+    const percent=original>0?(amount/original)*100:0;
+    $("dpAmount").textContent=euro(amount);
+    $("dpPercent").textContent=`${percent.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:2})} %`;
+    const status=$("dpStatus");
+    if(status){
+      status.className="";
+      if(original<=0){status.textContent="Bitte Normalpreis eingeben";status.classList.add("status-neutral");}
+      else if(amount<0){status.textContent="Der Verkaufspreis liegt über dem Normalpreis";status.classList.add("status-bad");}
+      else if(amount===0){status.textContent="Kein Rabatt";status.classList.add("status-neutral");}
+      else{status.textContent="Rabatt berechnet";status.classList.add("status-good");}
+    }
+  }
 }
 function calculateQuickTool(){
   if(!$("qcMaterial"))return;
@@ -966,7 +982,17 @@ function calculateQuickTool(){
 }
 ["pcCosts","pcMaxPrice","pcTargetMargin"].forEach(id=>$(id)?.addEventListener("input",calculatePriceCheck));
 ["gcCosts","gcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateProfitTool));
-["dcTarget","dcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateDiscountTool));
+["dcTarget","dcPercent","dpOriginal","dpSale"].forEach(id=>$(id)?.addEventListener("input",calculateDiscountTool));
+document.querySelectorAll("[data-discount-mode]").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll("[data-discount-mode]").forEach(b=>b.classList.toggle("active",b===btn));
+  document.querySelectorAll("[data-discount-panel]").forEach(panel=>panel.classList.toggle("active",panel.dataset.discountPanel===btn.dataset.discountMode));
+  calculateDiscountTool();
+}));
+$("dpSwapBtn")?.addEventListener("click",()=>{
+  const original=$("dpOriginal"),sale=$("dpSale");
+  const temp=original.value;original.value=sale.value;sale.value=temp;
+  calculateDiscountTool();
+});
 ["qcMaterial","qcUsage","qcMinutes","qcExtra","qcPackaging","qcHourly","qcReserve","qcProfitPercent"].forEach(id=>$(id)?.addEventListener("input",calculateQuickTool));
 
 let lastAreaResult={netCm2:0,grossCm2:0};
@@ -1264,7 +1290,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.2.0").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.2.1").catch(()=>{}));
 
 
 async function initializeAuth(){

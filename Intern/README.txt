@@ -1,14 +1,14 @@
-Daniels Laser Art Kalkulator – Version 3.2.0
+Daniels Laser Art Kalkulator – Version 3.2.1
 
-Neu in V3.2.0:
-- Materialfamilien: Sobald Varianten vorhanden sind, enthält das Hauptmaterial nur noch Stammdaten.
-- Kein doppeltes Hauptbild und kein unnötiger Hauptpreis bei Materialien mit Varianten.
-- Preis, gekaufte Menge, Einheit, Bilder und Bestand werden je Variante gepflegt.
-- Varianten können einen eigenen Lieferanten, Lagerplatz, Eigenschaften und Notizen besitzen.
-- Bestehende Einzelmaterialien ohne Varianten funktionieren weiterhin wie bisher.
-- Suche und Favoriten berücksichtigen jetzt auch Varianten.
+Neu in V3.2.1:
+- Materialfamilien zeigen oben kein leeres Platzhalterbild mehr.
+- Variantenbilder bleiben ausschließlich an den jeweiligen Varianten sichtbar.
+- Rabattrechner mit zwei Modi: Ursprungspreis berechnen oder Rabatt aus Normalpreis und Verkaufspreis ermitteln.
+- Ersparnis in Euro, Rabatt in Prozent und Bewertung.
+- Preise im neuen Rabattmodus mit einem Klick tauschen.
+- Cache, Manifest und App-Version auf V3.2.1 aktualisiert.
 
 Installation:
-Alle Dateien in den Ordner /Intern hochladen und bestehende Dateien ersetzen.
-Danach einmal öffnen:
-https://danielslaserart.de/Intern/?v=3.2.0
+Alle Dateien in /Intern ersetzen.
+Danach öffnen:
+https://danielslaserart.de/Intern/?v=3.2.1

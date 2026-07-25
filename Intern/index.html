@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=3.2.0">
-  <link rel="apple-touch-icon" href="icon-192.png?v=3.2.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3.2.0">
-  <link rel="stylesheet" href="style.css?v=3.2.0">
+  <link rel="manifest" href="manifest.json?v=3.2.1">
+  <link rel="apple-touch-icon" href="icon-192.png?v=3.2.1">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3.2.1">
+  <link rel="stylesheet" href="style.css?v=3.2.1">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,7 +45,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V3.2.0</span>
+      <span class="version-badge">V3.2.1</span>
     </div>
 
     <div class="dashboard-actions">
@@ -225,14 +225,34 @@
 
     <div id="discountCalc" class="tool-panel card">
       <h3>Rabattrechner</h3>
-      <p class="tool-intro">Zeigt den ursprünglichen Preis, damit nach Rabatt dein Wunschbetrag übrig bleibt.</p>
-      <div class="field-grid">
-        <label>Gewünschter Preis nach Rabatt (€)<input id="dcTarget" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
-        <label>Rabatt (%)<input id="dcPercent" type="number" min="0" max="99.99" step="any" inputmode="decimal" value="20"></label>
+      <p class="tool-intro">Berechnet entweder den nötigen Ursprungspreis oder den gewährten Rabatt.</p>
+      <div class="discount-mode-tabs">
+        <button type="button" class="active" data-discount-mode="target">Ursprungspreis</button>
+        <button type="button" data-discount-mode="percent">Rabatt ermitteln</button>
       </div>
-      <div class="mini-results">
-        <div><span>Rabattbetrag</span><strong id="dcAmount">0,00 €</strong></div>
-        <div class="main-row"><span>Preis vor Rabatt</span><strong id="dcOriginal">0,00 €</strong></div>
+      <div class="discount-mode-panel active" data-discount-panel="target">
+        <p class="discount-mode-help">Du kennst deinen gewünschten Endpreis und den Rabatt.</p>
+        <div class="field-grid">
+          <label>Gewünschter Preis nach Rabatt (€)<input id="dcTarget" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
+          <label>Rabatt (%)<input id="dcPercent" type="number" min="0" max="99.99" step="any" inputmode="decimal" value="20"></label>
+        </div>
+        <div class="mini-results">
+          <div><span>Rabattbetrag</span><strong id="dcAmount">0,00 €</strong></div>
+          <div class="main-row"><span>Preis vor Rabatt</span><strong id="dcOriginal">0,00 €</strong></div>
+        </div>
+      </div>
+      <div class="discount-mode-panel" data-discount-panel="percent">
+        <p class="discount-mode-help">Du kennst den normalen Preis und deinen tatsächlichen Verkaufspreis.</p>
+        <div class="field-grid">
+          <label>Normalpreis (€)<input id="dpOriginal" type="number" min="0" step="any" inputmode="decimal" value="50"></label>
+          <label>Verkaufspreis (€)<input id="dpSale" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
+        </div>
+        <button id="dpSwapBtn" class="ghost small discount-swap" type="button">⇄ Preise tauschen</button>
+        <div class="mini-results">
+          <div><span>Ersparnis</span><strong id="dpAmount">0,00 €</strong></div>
+          <div class="main-row"><span>Rabatt</span><strong id="dpPercent">0,0 %</strong></div>
+          <div class="status-row"><span>Bewertung</span><strong id="dpStatus">–</strong></div>
+        </div>
       </div>
     </div>
 
@@ -526,6 +546,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=3.2.0"></script>
+<script src="app.js?v=3.2.1"></script>
 </body>
 </html>
