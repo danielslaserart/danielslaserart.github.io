@@ -714,3 +714,17 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .variant-image-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .variant-image-help{color:var(--muted);line-height:1.3}
 @media(max-width:460px){.variant-image-actions{grid-template-columns:1fr}.variant-image-gallery{grid-template-columns:repeat(3,1fr)}}
+
+/* V3.2.0 – Materialfamilien */
+.family-mode-hint{
+  display:flex;
+  flex-direction:column;
+  gap:.25rem;
+  margin:.5rem 0 1rem;
+  padding:.9rem 1rem;
+  border:1px solid rgba(212,170,89,.45);
+  border-radius:16px;
+  background:rgba(212,170,89,.08);
+}
+.family-mode-hint strong{color:#e3bd6f;font-size:1rem}
+.family-mode-hint span{color:var(--muted);line-height:1.35}

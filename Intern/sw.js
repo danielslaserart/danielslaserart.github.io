@@ -1,15 +1,15 @@
-const CACHE="dla-kalkulator-v3-1-2-20260725";
-const FALLBACK="./index.html?v=3.1.2";
+const CACHE="dla-kalkulator-v3-2-0-20260725";
+const FALLBACK="./index.html?v=3.2.0";
 const ASSETS=[
-  "./?v=3.1.2",
-  "./index.html?v=3.1.2",
-  "./style.css?v=3.1.2",
-  "./app.js?v=3.1.2",
-  "./manifest.json?v=3.1.2",
-  "./icon-192.png?v=3.1.2",
-  "./icon-512.png?v=3.1.2",
-  "./icon-maskable-512.png?v=3.1.2",
-  "./briefkopf-logo.png?v=3.1.2",
+  "./?v=3.2.0",
+  "./index.html?v=3.2.0",
+  "./style.css?v=3.2.0",
+  "./app.js?v=3.2.0",
+  "./manifest.json?v=3.2.0",
+  "./icon-192.png?v=3.2.0",
+  "./icon-512.png?v=3.2.0",
+  "./icon-maskable-512.png?v=3.2.0",
+  "./briefkopf-logo.png?v=3.2.0",
   "/assets/images/hero/background.webp"
 ];
 

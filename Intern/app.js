@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.1.2";
+const APP_VERSION = "3.2.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -89,7 +89,7 @@ function load(){
       defaultConsumption:num(m.defaultConsumption),
       autoAdd:Boolean(m.autoAdd),
       favorite:Boolean(m.favorite),
-      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",supplier:v.supplier||"",properties:v.properties||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
       stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,
       width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
@@ -155,7 +155,7 @@ async function loadCloudState(){
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
-      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",supplier:v.supplier||"",properties:v.properties||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
       stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
@@ -371,7 +371,11 @@ $("materialArea").onchange=()=>{renderMaterialCategorySelect();toggleMaterialAre
 let materialImageData="";
 $("materialImageInput").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;materialImageData=await compressProjectImage(f);renderMaterialImagePreview()};
 $("calculateMaterialAreaBtn").onclick=calculateMaterialPurchasedArea;
-$("addMaterialVariantBtn").onclick=()=>{editingMaterialVariants.push(normalizeVariant({name:"",unit:$("materialUnit").value,quantity:1,trackStock:true,stock:0}));renderMaterialVariantRows();};
+$("addMaterialVariantBtn").onclick=()=>{
+  editingMaterialVariants.push(normalizeVariant({name:"",unit:$("materialUnit").value,quantity:1,trackStock:true,stock:0}));
+  renderMaterialVariantRows();
+  toggleMaterialFamilyMode();
+};
 ["materialWidth","materialHeight","materialDimensionUnit","materialSheetCount"].forEach(id=>$(id).oninput=updateMaterialAreaHint);
 function renderMaterialCategorySelect(selected=""){$("materialCategory").innerHTML=categoryOptions($("materialArea").value,selected)}
 function toggleMaterialAreaBox(){$("materialAreaDimensions").classList.toggle("hidden",!["cm²","m²"].includes($("materialUnit").value))}
@@ -394,13 +398,20 @@ function toggleConsumableFields(){
   $("consumableSettings").classList.toggle("hidden",!$("materialConsumableRole").checked);
   updateWorkshopUnitSentence();
 }
+function toggleMaterialFamilyMode(){
+  const hasVariants=editingMaterialVariants.length>0;
+  $("materialBasePurchaseFields")?.classList.toggle("hidden",hasVariants);
+  $("materialFamilyHint")?.classList.toggle("hidden",!hasVariants);
+  if($("materialPrice"))$("materialPrice").required=!hasVariants;
+  if($("materialQuantity"))$("materialQuantity").required=!hasVariants;
+}
 
 
 let editingMaterialVariants=[];
 function normalizeVariant(v,m={}){
   const quantity=Math.max(0.000001,num(v?.quantity)||1),price=num(v?.price);
   const images=Array.isArray(v?.images)?v.images.filter(Boolean):(v?.image?[v.image]:[]);
-  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),images,image:images[0]||"",note:v?.note||"",location:v?.location||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
+  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),images,image:images[0]||"",note:v?.note||"",location:v?.location||"",supplier:v?.supplier||"",properties:v?.properties||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
 }
 function syncVariantTitleImage(v){
   v.images=Array.isArray(v.images)?v.images.filter(Boolean):[];
@@ -424,7 +435,9 @@ function renderMaterialVariantRows(){
     <label>Einkaufspreis (€)<input data-v-field="price" data-v-index="${i}" type="number" min="0" step="any" value="${num(v.price)}"></label>
     <label>Gekaufte Menge<input data-v-field="quantity" data-v-index="${i}" type="number" min="0.000001" step="any" value="${num(v.quantity)||1}"></label>
     <label>Einheit<select data-v-field="unit" data-v-index="${i}">${["Stück","g","kg","cm²","m²","cm","m","ml","l"].map(u=>`<option ${u===v.unit?"selected":""}>${u}</option>`).join("")}</select></label>
+    <label>Lieferant der Variante<input data-v-field="supplier" data-v-index="${i}" value="${esc(v.supplier||"")}" placeholder="optional, sonst gilt der Lieferant oben"></label>
     <label>Lagerplatz<input data-v-field="location" data-v-index="${i}" value="${esc(v.location||"")}" placeholder="optional, z. B. Regal B3"></label>
+    <label class="variant-note-field">Eigenschaften<input data-v-field="properties" data-v-index="${i}" value="${esc(v.properties||"")}" placeholder="z. B. Farbe: Schwarz · Stärke: 3 mm"></label>
     <label class="variant-note-field">Notiz<input data-v-field="note" data-v-index="${i}" value="${esc(v.note||"")}" placeholder="optional, z. B. matt / raue Kante"></label>
     <button class="danger remove-variant" data-remove-variant="${i}" type="button">Entfernen</button>
     <div class="variant-stock-box">
@@ -444,7 +457,12 @@ function renderMaterialVariantRows(){
   box.querySelectorAll("[data-v-gallery]").forEach(input=>input.onchange=async()=>{if(input.files?.length)await addVariantImages(+input.dataset.vGallery,input.files);});
   box.querySelectorAll("[data-set-v-title]").forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.setVTitle.split(":").map(Number);const v=editingMaterialVariants[i];const [img]=v.images.splice(j,1);v.images.unshift(img);syncVariantTitleImage(v);renderMaterialVariantRows();});
   box.querySelectorAll("[data-remove-v-gallery]").forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.removeVGallery.split(":").map(Number);const v=editingMaterialVariants[i];v.images.splice(j,1);syncVariantTitleImage(v);renderMaterialVariantRows();});
-  box.querySelectorAll("[data-remove-variant]").forEach(b=>b.onclick=()=>{editingMaterialVariants.splice(+b.dataset.removeVariant,1);renderMaterialVariantRows();});
+  box.querySelectorAll("[data-remove-variant]").forEach(b=>b.onclick=()=>{
+    editingMaterialVariants.splice(+b.dataset.removeVariant,1);
+    renderMaterialVariantRows();
+    toggleMaterialFamilyMode();
+  });
+  toggleMaterialFamilyMode();
 }
 function selectionKey(materialId,variantId=""){return variantId?`${materialId}::${variantId}`:materialId;}
 function resolveMaterialSelection(value){
@@ -480,7 +498,7 @@ function openMaterial(m=null){
   $("materialQuantity").value=m?.quantity??"";
   $("materialUnit").value=m?.unit||"g";
   $("materialNote").value=m?.note||"";
-  editingMaterialVariants=(m?.variants||[]).map(v=>normalizeVariant(v,m));renderMaterialVariantRows();
+  editingMaterialVariants=(m?.variants||[]).map(v=>normalizeVariant(v,m));renderMaterialVariantRows();toggleMaterialFamilyMode();
   $("materialMainRole").checked=m?m.mainRole!==false:true;
   $("materialConsumableRole").checked=m?Boolean(m.consumableRole):false;
   $("materialWorkshopUnit").value=m?.workshopUnit||m?.unit||"";
@@ -504,13 +522,19 @@ function previewUnit(){
 $("materialForm").onsubmit=e=>{
   e.preventDefault();
   const name=$("materialName").value.trim(),price=num($("materialPrice").value),quantity=num($("materialQuantity").value);
-  if(!name||quantity<=0){alert("Bitte Materialname und eine gültige Menge eingeben.");return}
+  const hasVariants=editingMaterialVariants.some(v=>v.name.trim());
+  if(!name){alert("Bitte einen Materialnamen eingeben.");return}
+  if(!hasVariants&&quantity<=0){alert("Bitte eine gültige gekaufte Menge eingeben.");return}
+  if(hasVariants){
+    const invalid=editingMaterialVariants.filter(v=>v.name.trim()).some(v=>num(v.quantity)<=0);
+    if(invalid){alert("Bitte bei jeder Variante eine gültige gekaufte Menge eingeben.");return}
+  }
   const modules=[...document.querySelectorAll("[data-consumable-module]:checked")].map(cb=>cb.value);
   const item={
-    id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",supplier:$("materialSupplier").value.trim(),image:materialImageData,
-    width:num($("materialWidth").value),height:num($("materialHeight").value),dimensionUnit:$("materialDimensionUnit").value,sheetCount:Math.max(1,num($("materialSheetCount").value)),
-    price,quantity,unit:$("materialUnit").value,
-    note:$("materialNote").value.trim(),unitPrice:price/quantity,variants:editingMaterialVariants.filter(v=>v.name.trim()).map(v=>normalizeVariant(v,{unit:$("materialUnit").value})),stockHistory:[],mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
+    id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",supplier:$("materialSupplier").value.trim(),image:hasVariants?"":materialImageData,
+    width:hasVariants?0:num($("materialWidth").value),height:hasVariants?0:num($("materialHeight").value),dimensionUnit:$("materialDimensionUnit").value,sheetCount:hasVariants?1:Math.max(1,num($("materialSheetCount").value)),
+    price:hasVariants?0:price,quantity:hasVariants?1:quantity,unit:$("materialUnit").value,
+    note:$("materialNote").value.trim(),unitPrice:hasVariants?0:price/quantity,variants:editingMaterialVariants.filter(v=>v.name.trim()).map(v=>normalizeVariant(v,{unit:$("materialUnit").value})),stockHistory:[],mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
     consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("consumptionMedium").value),
     workshopUnit:$("materialWorkshopUnit").value.trim()||$("materialUnit").value,workshopUnitAmount:num($("materialWorkshopUnitAmount").value)||1,
     consumptionLevels:{small:num($("consumptionSmall").value),medium:num($("consumptionMedium").value),large:num($("consumptionLarge").value)},
@@ -525,10 +549,11 @@ function renderMaterials(){
   renderMaterialCategoryFilter();
   const term=$("materialSearch").value.toLowerCase().trim(),area=$("materialAreaFilter").value,category=$("materialCategoryFilter").value;
   let list=state.materials.filter(m=>{
-    const hay=`${m.name} ${m.note||""} ${m.supplier||""} ${inferMaterialCategory(m)}`.toLowerCase();
+    const variantText=(m.variants||[]).map(v=>`${v.name} ${v.note||""} ${v.location||""} ${v.supplier||""} ${v.properties||""}`).join(" ");
+    const hay=`${m.name} ${m.note||""} ${m.supplier||""} ${inferMaterialCategory(m)} ${variantText}`.toLowerCase();
     return (!term||hay.includes(term))&&(!area||m.area===area)&&(!category||inferMaterialCategory(m)===category);
   });
-  if(materialListMode==="favorites")list=list.filter(m=>m.favorite);
+  if(materialListMode==="favorites")list=list.filter(m=>m.favorite||(m.variants||[]).some(v=>v.favorite));
   if(materialListMode==="recent")list=list.filter(m=>m.lastUsed).sort((a,b)=>new Date(b.lastUsed)-new Date(a.lastUsed));
   else list.sort((a,b)=>(b.favorite-a.favorite)||inferMaterialCategory(a).localeCompare(inferMaterialCategory(b),"de")||a.name.localeCompare(b.name,"de"));
   const groups=new Map();
@@ -538,9 +563,9 @@ function renderMaterials(){
       <summary><span>${esc(cat)}</span><small>${items.length} ${items.length===1?"Material":"Materialien"}</small></summary>
       <div class="material-category-items">${items.map(m=>`
         <article class="material-item-compact">
-          ${m.image?`<img class="material-thumb" src="${m.image}" alt="">`:`<div class="material-thumb material-thumb-empty">${m.favorite?"★":"▦"}</div>`}
-          <div class="material-main"><div class="item-title">${m.favorite?"★ ":""}${esc(m.name)}</div><div class="item-meta">${esc(m.area)}${m.supplier?" · "+esc(m.supplier):""}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauch</span>':''}${m.lastUsed?`<span>Zuletzt ${new Date(m.lastUsed).toLocaleDateString("de-DE")}</span>`:""}</div>
-          ${(m.variants||[]).length?`<div class="variant-list">${m.variants.map(v=>`<div class="variant-card-mini">${v.image?`<img class="variant-mini-thumb" src="${v.image}" alt="">`:`<div class="variant-mini-thumb variant-image-placeholder">🖼️</div>`}<div><strong>${v.favorite?"★ ":""}${esc(v.name)}</strong><small>${euro(v.unitPrice)}/${esc(v.unit)}${v.trackStock?` · ${num(v.stock)} Stk.${num(v.stock)<=num(v.minStock)?' ⚠️':''}`:""}${v.location?` · ${esc(v.location)}`:""}</small></div></div>`).join("")}</div>`:""}</div>
+          ${(m.variants||[]).length?`<div class="material-thumb material-thumb-empty">▦</div>`:(m.image?`<img class="material-thumb" src="${m.image}" alt="">`:`<div class="material-thumb material-thumb-empty">${m.favorite?"★":"▦"}</div>`)}
+          <div class="material-main"><div class="item-title">${m.favorite?"★ ":""}${esc(m.name)}</div><div class="item-meta">${esc(m.area)}${m.supplier?" · "+esc(m.supplier):""}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${(m.variants||[]).length?'<span>Materialfamilie</span>':''}${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauch</span>':''}${m.lastUsed?`<span>Zuletzt ${new Date(m.lastUsed).toLocaleDateString("de-DE")}</span>`:""}</div>
+          ${(m.variants||[]).length?`<div class="variant-list">${m.variants.map(v=>`<div class="variant-card-mini">${v.image?`<img class="variant-mini-thumb" src="${v.image}" alt="">`:`<div class="variant-mini-thumb variant-image-placeholder">🖼️</div>`}<div><strong>${v.favorite?"★ ":""}${esc(v.name)}</strong><small>${euro(v.unitPrice)}/${esc(v.unit)}${v.trackStock?` · ${num(v.stock)} Stk.${num(v.stock)<=num(v.minStock)?' ⚠️':''}`:""}${v.properties?` · ${esc(v.properties)}`:""}${v.location?` · ${esc(v.location)}`:""}</small></div></div>`).join("")}</div>`:""}</div>
           <div class="material-price-block"><strong>${(m.variants||[]).length?`${m.variants.length} Varianten`:euro(m.unitPrice)}</strong><small>${(m.variants||[]).length?"":`/${esc(m.unit)}`}</small></div>
           <div class="material-compact-actions"><button data-favorite-material="${m.id}" class="favorite-toggle" title="Favorit">${m.favorite?"★":"☆"}</button><button data-edit="${m.id}">Bearbeiten</button>${!(m.variants||[]).length&&m.trackStock?`<button data-stock-material="${m.id}">Bestand ${num(m.stock)}</button>`:""}<button data-delete="${m.id}" class="danger">Löschen</button></div>
           ${(m.variants||[]).length?`<div class="material-stock-actions">${m.variants.map(v=>`<button data-favorite-variant="${m.id}::${v.id}" class="ghost small">${v.favorite?"★":"☆"} ${esc(v.name)}</button>${v.trackStock?`<button data-stock-variant="${m.id}::${v.id}" class="ghost small">± Bestand (${num(v.stock)})</button>`:""}`).join("")}</div>`:""}
@@ -1239,7 +1264,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.1.2").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.2.0").catch(()=>{}));
 
 
 async function initializeAuth(){
