@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.1.1";
+const APP_VERSION = "3.1.2";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -89,7 +89,7 @@ function load(){
       defaultConsumption:num(m.defaultConsumption),
       autoAdd:Boolean(m.autoAdd),
       favorite:Boolean(m.favorite),
-      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),image:v.image||"",note:v.note||"",location:v.location||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
       stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,
       width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
@@ -155,7 +155,7 @@ async function loadCloudState(){
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
-      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),image:v.image||"",note:v.note||"",location:v.location||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
       stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
@@ -399,15 +399,26 @@ function toggleConsumableFields(){
 let editingMaterialVariants=[];
 function normalizeVariant(v,m={}){
   const quantity=Math.max(0.000001,num(v?.quantity)||1),price=num(v?.price);
-  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),image:v?.image||"",note:v?.note||"",location:v?.location||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
+  const images=Array.isArray(v?.images)?v.images.filter(Boolean):(v?.image?[v.image]:[]);
+  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),images,image:images[0]||"",note:v?.note||"",location:v?.location||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
+}
+function syncVariantTitleImage(v){
+  v.images=Array.isArray(v.images)?v.images.filter(Boolean):[];
+  v.image=v.images[0]||"";
 }
 function renderMaterialVariantRows(){
   const box=$("materialVariantRows");if(!box)return;
-  box.innerHTML=editingMaterialVariants.length?editingMaterialVariants.map((v,i)=>`<div class="variant-row" data-variant-row="${i}">
+  box.innerHTML=editingMaterialVariants.length?editingMaterialVariants.map((v,i)=>{
+    syncVariantTitleImage(v);
+    const gallery=v.images.length?`<div class="variant-image-gallery">${v.images.map((img,j)=>`<div class="variant-gallery-item ${j===0?"is-title":""}"><img src="${img}" alt="Bild ${j+1} von ${esc(v.name||"Variante")}">${j===0?`<span class="title-image-badge">Titelbild</span>`:`<button class="ghost tiny set-variant-title" data-set-v-title="${i}:${j}" type="button">Als Titel</button>`}<button class="image-remove-mini" data-remove-v-gallery="${i}:${j}" type="button" aria-label="Bild entfernen">×</button></div>`).join("")}</div>`:`<div class="variant-edit-thumb variant-image-placeholder">🖼️</div>`;
+    return `<div class="variant-row" data-variant-row="${i}">
     <div class="variant-image-editor">
-      ${v.image?`<img class="variant-edit-thumb" src="${v.image}" alt="Vorschau ${esc(v.name||"Variante")}">`:`<div class="variant-edit-thumb variant-image-placeholder">🖼️</div>`}
-      <label class="secondary small file-button">${v.image?"Bild ändern":"Bild hinzufügen"}<input class="variant-image-input" data-v-image="${i}" type="file" accept="image/*" capture="environment"></label>
-      ${v.image?`<button class="ghost small remove-variant-image" data-remove-v-image="${i}" type="button">Bild entfernen</button>`:""}
+      ${gallery}
+      <div class="variant-image-actions">
+        <label class="secondary small file-button">📷 Foto aufnehmen<input data-v-camera="${i}" type="file" accept="image/*" capture="environment"></label>
+        <label class="secondary small file-button">🖼️ Aus Galerie<input data-v-gallery="${i}" type="file" accept="image/*" multiple></label>
+      </div>
+      <small class="variant-image-help">Bis zu 6 Bilder. Das erste Bild ist das Titelbild.</small>
     </div>
     <label>Bezeichnung<input data-v-field="name" data-v-index="${i}" value="${esc(v.name)}" placeholder="z. B. 20×20 cm"></label>
     <label>Einkaufspreis (€)<input data-v-field="price" data-v-index="${i}" type="number" min="0" step="any" value="${num(v.price)}"></label>
@@ -421,10 +432,18 @@ function renderMaterialVariantRows(){
       <label>Aktueller Bestand<input data-v-field="stock" data-v-index="${i}" type="number" step="1" value="${num(v.stock)}"></label>
       <label>Mindestbestand<input data-v-field="minStock" data-v-index="${i}" type="number" min="0" step="1" value="${num(v.minStock)}"></label>
     </div>
-  </div>`).join(""):'<div class="empty-state compact">Noch keine Varianten. Für Schiefergrößen einfach „+ Variante“ drücken.</div>';
+  </div>`}).join(""):'<div class="empty-state compact">Noch keine Varianten. Für Schiefergrößen einfach „+ Variante“ drücken.</div>';
   box.querySelectorAll("[data-v-field]").forEach(el=>el.oninput=()=>{const v=editingMaterialVariants[+el.dataset.vIndex];const f=el.dataset.vField;v[f]=el.type==="checkbox"?el.checked:(el.type==="number"?num(el.value):el.value);});
-  box.querySelectorAll("[data-v-image]").forEach(input=>input.onchange=async()=>{const file=input.files?.[0];if(!file)return;const index=+input.dataset.vImage;editingMaterialVariants[index].image=await compressProjectImage(file);renderMaterialVariantRows();});
-  box.querySelectorAll("[data-remove-v-image]").forEach(b=>b.onclick=()=>{editingMaterialVariants[+b.dataset.removeVImage].image="";renderMaterialVariantRows();});
+  async function addVariantImages(index,files){
+    const v=editingMaterialVariants[index];v.images=Array.isArray(v.images)?v.images:[];
+    const free=Math.max(0,6-v.images.length);
+    for(const file of Array.from(files).slice(0,free))v.images.push(await compressProjectImage(file));
+    syncVariantTitleImage(v);renderMaterialVariantRows();
+  }
+  box.querySelectorAll("[data-v-camera]").forEach(input=>input.onchange=async()=>{if(input.files?.length)await addVariantImages(+input.dataset.vCamera,input.files);});
+  box.querySelectorAll("[data-v-gallery]").forEach(input=>input.onchange=async()=>{if(input.files?.length)await addVariantImages(+input.dataset.vGallery,input.files);});
+  box.querySelectorAll("[data-set-v-title]").forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.setVTitle.split(":").map(Number);const v=editingMaterialVariants[i];const [img]=v.images.splice(j,1);v.images.unshift(img);syncVariantTitleImage(v);renderMaterialVariantRows();});
+  box.querySelectorAll("[data-remove-v-gallery]").forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.removeVGallery.split(":").map(Number);const v=editingMaterialVariants[i];v.images.splice(j,1);syncVariantTitleImage(v);renderMaterialVariantRows();});
   box.querySelectorAll("[data-remove-variant]").forEach(b=>b.onclick=()=>{editingMaterialVariants.splice(+b.dataset.removeVariant,1);renderMaterialVariantRows();});
 }
 function selectionKey(materialId,variantId=""){return variantId?`${materialId}::${variantId}`:materialId;}
@@ -1220,7 +1239,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.1.0").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.1.2").catch(()=>{}));
 
 
 async function initializeAuth(){

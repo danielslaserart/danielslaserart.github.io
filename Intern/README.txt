@@ -1,4 +1,4 @@
-Daniels Laser Art Kalkulator – Version 3.1.1
+Daniels Laser Art Kalkulator – Version 3.1.2
 
 Neu:
 - Eigenes Vorschaubild pro Materialvariante
@@ -11,4 +11,4 @@ Neu:
 Installation:
 Alle Dateien in den Ordner /Intern auf dem Webspace kopieren und vorhandene Dateien ersetzen.
 Danach einmal öffnen:
-https://danielslaserart.de/Intern/?v=3.1.1
+https://danielslaserart.de/Intern/?v=3.1.2
