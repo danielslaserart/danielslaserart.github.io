@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json?v=3.0.5">
   <link rel="apple-touch-icon" href="icon-192.png?v=3.0.5">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3.0.5">
-  <link rel="stylesheet" href="style.css?v=3.0.5">
+  <link rel="stylesheet" href="style.css?v=3.1.0">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -447,6 +447,11 @@
       </select>
     </label>
     <label>Notiz<input id="materialNote" placeholder="optional"></label>
+    <section class="variant-editor-box">
+      <div class="section-head compact"><div><div class="group-title">VARIANTEN</div><small>Zum Beispiel 10×10 cm, 20×20 cm, Herz oder Rund.</small></div><button id="addMaterialVariantBtn" class="ghost small" type="button">+ Variante</button></div>
+      <div id="materialVariantRows"></div>
+      <p class="size-help">Ohne Variante gelten Einkaufspreis und Menge oben. Mit Varianten bekommt jede Ausführung ihren eigenen Preis und optionalen Stückbestand.</p>
+    </section>
     <div class="role-box">
       <div class="group-title">VERWENDUNG</div>
       <label class="check-row"><input id="materialMainRole" type="checkbox" checked><span>Als Hauptmaterial verwendbar</span></label>
@@ -515,6 +520,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=3.0.5"></script>
+<script src="app.js?v=3.1.0"></script>
 </body>
 </html>

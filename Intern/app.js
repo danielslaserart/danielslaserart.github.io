@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.0.5";
+const APP_VERSION = "3.1.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -89,6 +89,8 @@ function load(){
       defaultConsumption:num(m.defaultConsumption),
       autoAdd:Boolean(m.autoAdd),
       favorite:Boolean(m.favorite),
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,
       width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
@@ -153,6 +155,8 @@ async function loadCloudState(){
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
       consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
       scaleWithSize:Boolean(m.scaleWithSize),
@@ -367,6 +371,7 @@ $("materialArea").onchange=()=>{renderMaterialCategorySelect();toggleMaterialAre
 let materialImageData="";
 $("materialImageInput").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;materialImageData=await compressProjectImage(f);renderMaterialImagePreview()};
 $("calculateMaterialAreaBtn").onclick=calculateMaterialPurchasedArea;
+$("addMaterialVariantBtn").onclick=()=>{editingMaterialVariants.push(normalizeVariant({name:"",unit:$("materialUnit").value,quantity:1,trackStock:true,stock:0}));renderMaterialVariantRows();};
 ["materialWidth","materialHeight","materialDimensionUnit","materialSheetCount"].forEach(id=>$(id).oninput=updateMaterialAreaHint);
 function renderMaterialCategorySelect(selected=""){$("materialCategory").innerHTML=categoryOptions($("materialArea").value,selected)}
 function toggleMaterialAreaBox(){$("materialAreaDimensions").classList.toggle("hidden",!["cm²","m²"].includes($("materialUnit").value))}
@@ -390,6 +395,50 @@ function toggleConsumableFields(){
   updateWorkshopUnitSentence();
 }
 
+
+let editingMaterialVariants=[];
+function normalizeVariant(v,m={}){
+  const quantity=Math.max(0.000001,num(v?.quantity)||1),price=num(v?.price);
+  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
+}
+function renderMaterialVariantRows(){
+  const box=$("materialVariantRows");if(!box)return;
+  box.innerHTML=editingMaterialVariants.length?editingMaterialVariants.map((v,i)=>`<div class="variant-row" data-variant-row="${i}">
+    <label>Bezeichnung<input data-v-field="name" data-v-index="${i}" value="${esc(v.name)}" placeholder="z. B. 20×20 cm"></label>
+    <label>Einkaufspreis (€)<input data-v-field="price" data-v-index="${i}" type="number" min="0" step="any" value="${num(v.price)}"></label>
+    <label>Gekaufte Menge<input data-v-field="quantity" data-v-index="${i}" type="number" min="0.000001" step="any" value="${num(v.quantity)||1}"></label>
+    <label>Einheit<select data-v-field="unit" data-v-index="${i}">${["Stück","g","kg","cm²","m²","cm","m","ml","l"].map(u=>`<option ${u===v.unit?"selected":""}>${u}</option>`).join("")}</select></label>
+    <button class="danger remove-variant" data-remove-variant="${i}" type="button">Entfernen</button>
+    <div class="variant-stock-box">
+      <label class="check-row"><input data-v-field="trackStock" data-v-index="${i}" type="checkbox" ${v.trackStock?"checked":""}><span>Stückbestand verwalten</span></label>
+      <label>Aktueller Bestand<input data-v-field="stock" data-v-index="${i}" type="number" step="1" value="${num(v.stock)}"></label>
+      <label>Mindestbestand<input data-v-field="minStock" data-v-index="${i}" type="number" min="0" step="1" value="${num(v.minStock)}"></label>
+    </div>
+  </div>`).join(""):'<div class="empty-state compact">Noch keine Varianten. Für Schiefergrößen einfach „+ Variante“ drücken.</div>';
+  box.querySelectorAll("[data-v-field]").forEach(el=>el.oninput=()=>{const v=editingMaterialVariants[+el.dataset.vIndex];const f=el.dataset.vField;v[f]=el.type==="checkbox"?el.checked:(el.type==="number"?num(el.value):el.value);});
+  box.querySelectorAll("[data-remove-variant]").forEach(b=>b.onclick=()=>{editingMaterialVariants.splice(+b.dataset.removeVariant,1);renderMaterialVariantRows();});
+}
+function selectionKey(materialId,variantId=""){return variantId?`${materialId}::${variantId}`:materialId;}
+function resolveMaterialSelection(value){
+  if(!value)return null;const [materialId,variantId]=String(value).split("::");const material=state.materials.find(m=>m.id===materialId);if(!material)return null;
+  const variant=variantId?(material.variants||[]).find(v=>v.id===variantId):null;
+  return variant?{...material,...variant,id:selectionKey(material.id,variant.id),materialId:material.id,variantId:variant.id,name:`${material.name} – ${variant.name}`,baseMaterial:material}:material;
+}
+function materialSelections(area=null,role="main"){
+  const out=[];state.materials.filter(m=>(!area||m.area===area)&&(role!=="main"||m.mainRole!==false)).forEach(m=>{
+    if((m.variants||[]).length)m.variants.forEach(v=>out.push(resolveMaterialSelection(selectionKey(m.id,v.id))));else out.push(m);
+  });return out.filter(Boolean).sort((a,b)=>(b.favorite-a.favorite)||(b.baseMaterial?.favorite-a.baseMaterial?.favorite)||a.name.localeCompare(b.name,"de"));
+}
+function adjustStock(materialId,variantId=""){
+  const m=state.materials.find(x=>x.id===materialId);if(!m)return;const target=variantId?(m.variants||[]).find(v=>v.id===variantId):m;if(!target)return;
+  const raw=prompt(`Bestand ändern: ${m.name}${variantId?" – "+target.name:""}\nPositive Zahl = Zugang, negative Zahl = Abgang`,"-1");if(raw===null)return;const change=num(raw);if(!change)return;
+  const reason=prompt("Grund (z. B. Ausschuss, Privat verschenkt, Wareneingang, Inventur)",change>0?"Wareneingang":"Ausschuss")||"Manuelle Korrektur";
+  target.trackStock=true;target.stock=num(target.stock)+change;target.stockHistory=Array.isArray(target.stockHistory)?target.stockHistory:[];target.stockHistory.unshift({date:new Date().toISOString(),change,reason});save();renderMaterials();
+}
+function toggleFavorite(materialId,variantId=""){
+  const m=state.materials.find(x=>x.id===materialId);if(!m)return;const target=variantId?(m.variants||[]).find(v=>v.id===variantId):m;if(!target)return;target.favorite=!target.favorite;save();renderMaterials();
+}
+
 function openMaterial(m=null){
   $("materialDialogTitle").textContent=m?"Material bearbeiten":"Material hinzufügen";
   $("materialId").value=m?.id||"";
@@ -403,6 +452,7 @@ function openMaterial(m=null){
   $("materialQuantity").value=m?.quantity??"";
   $("materialUnit").value=m?.unit||"g";
   $("materialNote").value=m?.note||"";
+  editingMaterialVariants=(m?.variants||[]).map(v=>normalizeVariant(v,m));renderMaterialVariantRows();
   $("materialMainRole").checked=m?m.mainRole!==false:true;
   $("materialConsumableRole").checked=m?Boolean(m.consumableRole):false;
   $("materialWorkshopUnit").value=m?.workshopUnit||m?.unit||"";
@@ -432,7 +482,7 @@ $("materialForm").onsubmit=e=>{
     id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",supplier:$("materialSupplier").value.trim(),image:materialImageData,
     width:num($("materialWidth").value),height:num($("materialHeight").value),dimensionUnit:$("materialDimensionUnit").value,sheetCount:Math.max(1,num($("materialSheetCount").value)),
     price,quantity,unit:$("materialUnit").value,
-    note:$("materialNote").value.trim(),unitPrice:price/quantity,mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
+    note:$("materialNote").value.trim(),unitPrice:price/quantity,variants:editingMaterialVariants.filter(v=>v.name.trim()).map(v=>normalizeVariant(v,{unit:$("materialUnit").value})),stockHistory:[],mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
     consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("consumptionMedium").value),
     workshopUnit:$("materialWorkshopUnit").value.trim()||$("materialUnit").value,workshopUnitAmount:num($("materialWorkshopUnitAmount").value)||1,
     consumptionLevels:{small:num($("consumptionSmall").value),medium:num($("consumptionMedium").value),large:num($("consumptionLarge").value)},
@@ -461,13 +511,19 @@ function renderMaterials(){
       <div class="material-category-items">${items.map(m=>`
         <article class="material-item-compact">
           ${m.image?`<img class="material-thumb" src="${m.image}" alt="">`:`<div class="material-thumb material-thumb-empty">${m.favorite?"★":"▦"}</div>`}
-          <div class="material-main"><div class="item-title">${m.favorite?"★ ":""}${esc(m.name)}</div><div class="item-meta">${esc(m.area)}${m.supplier?" · "+esc(m.supplier):""}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauch</span>':''}${m.lastUsed?`<span>Zuletzt ${new Date(m.lastUsed).toLocaleDateString("de-DE")}</span>`:""}</div></div>
-          <div class="material-price-block"><strong>${euro(m.unitPrice)}</strong><small>/${esc(m.unit)}</small></div>
-          <div class="material-compact-actions"><button data-edit="${m.id}">Bearbeiten</button><button data-delete="${m.id}" class="danger">Löschen</button></div>
+          <div class="material-main"><div class="item-title">${m.favorite?"★ ":""}${esc(m.name)}</div><div class="item-meta">${esc(m.area)}${m.supplier?" · "+esc(m.supplier):""}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauch</span>':''}${m.lastUsed?`<span>Zuletzt ${new Date(m.lastUsed).toLocaleDateString("de-DE")}</span>`:""}</div>
+          ${(m.variants||[]).length?`<div class="variant-list">${m.variants.map(v=>`<span class="variant-chip">${v.favorite?"★ ":""}${esc(v.name)} · ${euro(v.unitPrice)}/${esc(v.unit)}${v.trackStock?` · <b>${num(v.stock)} Stk.</b>${num(v.stock)<=num(v.minStock)?' ⚠️':''}`:""}</span>`).join("")}</div>`:""}</div>
+          <div class="material-price-block"><strong>${(m.variants||[]).length?`${m.variants.length} Varianten`:euro(m.unitPrice)}</strong><small>${(m.variants||[]).length?"":`/${esc(m.unit)}`}</small></div>
+          <div class="material-compact-actions"><button data-favorite-material="${m.id}" class="favorite-toggle" title="Favorit">${m.favorite?"★":"☆"}</button><button data-edit="${m.id}">Bearbeiten</button>${!(m.variants||[]).length&&m.trackStock?`<button data-stock-material="${m.id}">Bestand ${num(m.stock)}</button>`:""}<button data-delete="${m.id}" class="danger">Löschen</button></div>
+          ${(m.variants||[]).length?`<div class="material-stock-actions">${m.variants.map(v=>`<button data-favorite-variant="${m.id}::${v.id}" class="ghost small">${v.favorite?"★":"☆"} ${esc(v.name)}</button>${v.trackStock?`<button data-stock-variant="${m.id}::${v.id}" class="ghost small">± Bestand (${num(v.stock)})</button>`:""}`).join("")}</div>`:""}
         </article>`).join("")}</div>
     </details>`).join(""):`<div class="empty-state">Keine passenden Materialien gefunden.</div>`;
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openMaterial(state.materials.find(m=>m.id===b.dataset.edit)));
   document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{if(confirm("Material wirklich löschen?")){state.materials=state.materials.filter(m=>m.id!==b.dataset.delete);save();renderMaterials()}});
+  document.querySelectorAll("[data-favorite-material]").forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.favoriteMaterial));
+  document.querySelectorAll("[data-favorite-variant]").forEach(b=>b.onclick=()=>{const [m,v]=b.dataset.favoriteVariant.split("::");toggleFavorite(m,v)});
+  document.querySelectorAll("[data-stock-material]").forEach(b=>b.onclick=()=>adjustStock(b.dataset.stockMaterial));
+  document.querySelectorAll("[data-stock-variant]").forEach(b=>b.onclick=()=>{const [m,v]=b.dataset.stockVariant.split("::");adjustStock(m,v)});
   const categoryElements=[...document.querySelectorAll(".material-category")];
   categoryElements.forEach(group=>{
     group.open=allMaterialGroupsOpen;
@@ -504,7 +560,8 @@ function applyCalculatorFields(fields={}){
 }
 const titles={ "3d":"3D-Druck","laser":"Laser","vinyl":"Vinylfolie","textil":"Textilfolie" };
 function options(area){
-  return `<option value="">Material auswählen</option>`+state.materials.filter(m=>m.area===area&&m.mainRole!==false).map(m=>`<option value="${m.id}">${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
+  const items=materialSelections(area,"main");
+  return `<option value="">Material auswählen</option>`+items.map(m=>`<option value="${m.id}">${m.favorite||m.baseMaterial?.favorite?"★ ":""}${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
 }
 function infoRow(label,id,unit){
   return `<div class="info-line">${label}: <strong id="${id}">0,00 €</strong> ${unit||""}</div>`;
@@ -682,7 +739,7 @@ $("resetCalcBtn").onclick=()=>{if(confirm("Aktuelle Eingaben wirklich leeren?"))
 
 function getMat(id){
   const el=$(id); if(!el) return null;
-  return state.materials.find(m=>m.id===el.value)||null;
+  return resolveMaterialSelection(el.value);
 }
 function rounded(v){
   const step=num(state.settings.rounding)||0.01;
@@ -762,17 +819,20 @@ $("calcForm").onsubmit=e=>{
   const project={id:editingProjectId||uid(),title,customer:$("customerName").value.trim(),customerAddress:$("customerAddress")?.value.trim()||"",type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"open",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
-  const usedIds=[project.fields?.matMain,project.fields?.matTransfer,...project.consumables.map(r=>r.materialId)].filter(Boolean);
-  state.materials.forEach(m=>{if(usedIds.includes(m.id))m.lastUsed=new Date().toISOString()});
+  const usedKeys=[project.fields?.matMain,project.fields?.matTransfer,...project.consumables.map(r=>r.materialId)].filter(Boolean);
+  usedKeys.forEach(key=>{const sel=resolveMaterialSelection(key);const base=sel?.baseMaterial||sel;if(base)base.lastUsed=new Date().toISOString();});
+  if(idx<0){
+    const mainSel=resolveMaterialSelection(project.fields?.matMain);const used=num(project.fields?.usageMain);
+    const stockTarget=mainSel?.variantId?mainSel.baseMaterial.variants.find(v=>v.id===mainSel.variantId):mainSel;
+    if(stockTarget?.trackStock&&used>0){stockTarget.stock=num(stockTarget.stock)-used;stockTarget.stockHistory=Array.isArray(stockTarget.stockHistory)?stockTarget.stockHistory:[];stockTarget.stockHistory.unshift({date:new Date().toISOString(),change:-used,reason:`Projekt: ${title}`});}
+  }
   state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();alert(idx>=0?"Projekt aktualisiert.":"Projekt gespeichert.");
 };
 
 
 function allMaterialOptions(){
   return `<option value="">Kein Material</option>`+
-    state.materials
-      .slice()
-      .sort((a,b)=>a.name.localeCompare(b.name))
+    materialSelections(null,"main")
       .map(m=>`<option value="${m.id}">${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`)
       .join("");
 }
@@ -830,7 +890,7 @@ function calculateDiscountTool(){
 }
 function calculateQuickTool(){
   if(!$("qcMaterial"))return;
-  const mat=state.materials.find(m=>m.id===$("qcMaterial").value);
+  const mat=resolveMaterialSelection($("qcMaterial").value);
   const material=(mat?.unitPrice||0)*num($("qcUsage").value);
   const work=(num($("qcMinutes").value)/60)*num($("qcHourly").value);
   const base=material+work+num($("qcExtra").value)+num($("qcPackaging").value);
@@ -906,7 +966,7 @@ function moduleFromMaterialArea(area){
 }
 function transferAreaToCalculator(){
   calculateAreaTool();
-  const mat=state.materials.find(m=>m.id===$("acMaterial")?.value);
+  const mat=resolveMaterialSelection($("acMaterial")?.value);
   if(!mat){alert("Bitte zuerst ein Flächenmaterial auswählen.");return;}
   state.activeModule=moduleFromMaterialArea(mat.area);
   save();setScreen("calculator");renderCalculator();
@@ -985,7 +1045,7 @@ function projectFieldLabel(id){
   return ({matMain:"Hauptmaterial",matTransfer:"Übertragungsfolie",usageMain:"Materialverbrauch",usageTransfer:"Verbrauch Übertragungsfolie",printMinutes:"Druckdauer",engraveMinutes:"Gravurdauer",cutMinutes:"Schnittdauer",workMinutes:"Arbeitszeit",hourlyRate:"Stundenlohn",packaging:"Verpackung",otherCosts:"Sonstige Kosten",reserve:"Fehlerreserve",profit:"Gewinnaufschlag",quantity:"Stückzahl",colors:"Farben",plotMinutes:"Plottdauer",weedMinutes:"Entgitterzeit",mountMinutes:"Montagezeit",pressMinutes:"Presszeit",prepMinutes:"Vor-/Nachbereitung",textilePrice:"Textilpreis"})[id]||id;
 }
 function projectFieldValue(id,value){
-  if(id==="matMain"||id==="matTransfer") return state.materials.find(m=>m.id===value)?.name||"–";
+  if(id==="matMain"||id==="matTransfer") return resolveMaterialSelection(value)?.name||"–";
   if(id==="machineSelect") return state.machines.find(m=>m.id===value)?.name||"–";
   return value===""?"–":value;
 }
@@ -1142,7 +1202,7 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.0.5").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.1.0").catch(()=>{}));
 
 
 async function initializeAuth(){
