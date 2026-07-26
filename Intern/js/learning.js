@@ -1,10 +1,12 @@
 import { num, uid } from "./utils.js";
-import { state, save } from "./storage.js";
+import { state, save, getRealProjects } from "./storage.js";
 
 const detailRank={simple:1,medium:2,high:3,veryHigh:4};
 
 export function estimatorSnapshot(values={}){
-  const cost=num(values.cost),sale=num(values.sale);
+  const cost=num(values.cost);
+  const estimatedPrice=num(values.estimatedPrice??values.sale);
+  const actualPrice=values.actualPrice==null||values.actualPrice===""?null:num(values.actualPrice);
   return {
     id:values.id||uid(),
     projectId:values.projectId||"",
@@ -19,10 +21,16 @@ export function estimatorSnapshot(values={}){
     layers:Math.max(1,num(values.layers)||1),
     detail:values.detail||"high",
     process:values.process||"cut",
-    cutMinutes:num(values.cutMinutes),
-    engraveMinutes:num(values.engraveMinutes),
+    estimatedCutTime:num(values.estimatedCutTime??values.cutMinutes),
+    actualCutTime:values.actualCutTime==null?null:num(values.actualCutTime),
+    estimatedEngravingTime:num(values.estimatedEngravingTime??values.engraveMinutes),
+    actualEngravingTime:values.actualEngravingTime==null?null:num(values.actualEngravingTime),
+    cutMinutes:num(values.estimatedCutTime??values.cutMinutes),
+    engraveMinutes:num(values.estimatedEngravingTime??values.engraveMinutes),
     actualMinutes:num(values.actualMinutes),
-    sale,cost,profit:sale-cost,
+    estimatedPrice,actualPrice,
+    sale:actualPrice??0,cost,profit:actualPrice==null?null:actualPrice-cost,
+    recordType:"reference",isReference:true,
     reference:values.reference!==false
   };
 }
@@ -61,17 +69,25 @@ export function findSimilarProjects({materialId,machineId,area,detail,process},l
 }
 
 export function learnedTimeFactor(similar,predictedMinutes){
-  const usable=(similar||[]).filter(r=>num(r.actualMinutes)>0&&num(r.cutMinutes)+num(r.engraveMinutes)>0);
+  const actualTotal=r=>num(r.actualMinutes)||(num(r.actualCutTime)+num(r.actualEngravingTime));
+  const usable=(similar||[]).filter(r=>actualTotal(r)>0&&num(r.estimatedCutTime??r.cutMinutes)+num(r.estimatedEngravingTime??r.engraveMinutes)>0);
   if(!usable.length||predictedMinutes<=0)return 1;
-  const ratios=usable.map(r=>num(r.actualMinutes)/(num(r.cutMinutes)+num(r.engraveMinutes))).sort((a,b)=>a-b);
+  const ratios=usable.map(r=>actualTotal(r)/(num(r.estimatedCutTime??r.cutMinutes)+num(r.estimatedEngravingTime??r.engraveMinutes))).sort((a,b)=>a-b);
   const median=ratios[Math.floor(ratios.length/2)]||1;
   return Math.max(.55,Math.min(1.8,median));
 }
+export function learnedPriceSuggestion(similar,targetArea,fallbackPrice){
+  const usable=(similar||[]).filter(r=>r.actualPrice!=null&&num(r.actualPrice)>0&&num(r.area)>0);
+  if(!usable.length)return num(fallbackPrice);
+  const prices=usable.map(r=>num(r.actualPrice)/num(r.area)*Math.max(1,num(targetArea))).sort((a,b)=>a-b);
+  const median=prices[Math.floor(prices.length/2)]||num(fallbackPrice);
+  return num(fallbackPrice)*.6+median*.4;
+}
 
 export function syncReferenceProjects(){
-  state.projects.forEach(project=>{
-    if(!project.reference||!project.estimatorData)return;
+  getRealProjects().forEach(project=>{
+    if(!project.estimatorData||project.actualPrice==null)return;
     const existing=(state.learningRecords||[]).find(r=>r.projectId===project.id);
-    saveLearningRecord({...project.estimatorData,id:existing?.id,projectId:project.id,reference:true});
+    saveLearningRecord({...project.estimatorData,id:existing?.id,projectId:project.id,title:project.title,estimatedPrice:project.estimatedPrice,actualPrice:project.actualPrice,reference:true});
   });
 }

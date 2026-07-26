@@ -1,5 +1,5 @@
 import { $, num, euro, uid, esc } from "./utils.js";
-import { state, save, defaults } from "./storage.js";
+import { state, save, defaults, getRealProjects } from "./storage.js";
 import { renderMaterials } from "./materials.js";
 import { renderProjects, viewProject } from "./projects.js";
 import { fillSettings } from "./settings.js";
@@ -67,7 +67,7 @@ export function startNewOrder(module="3d"){
   setScreen("calculator");
 }
 export function createTemplateFromProject(id){
-  const p=state.projects.find(x=>x.id===id);if(!p)return;
+  const p=getRealProjects().find(x=>x.id===id);if(!p)return;
   const name=prompt("Name der Vorlage:",p.title);if(!name)return;
   state.templates=state.templates||[];
   state.templates.unshift({id:uid(),name:name.trim(),module:p.module,type:p.type,machineId:p.machineId,productSize:p.productSize,consumables:structuredClone(p.consumables||[]),fields:structuredClone(p.fields||{}),notes:p.notes||"",created:new Date().toISOString()});
@@ -84,11 +84,12 @@ function renderTemplates(){
   box.querySelectorAll("[data-use-template]").forEach(b=>b.onclick=()=>useTemplate(b.dataset.useTemplate));
 }
 export function updateHome(){
+  const realProjects=getRealProjects();
   const now=new Date(),month=now.getMonth(),year=now.getFullYear();
-  const monthProjects=state.projects.filter(p=>{const d=new Date(p.created||p.updated);return d.getMonth()===month&&d.getFullYear()===year});
+  const monthProjects=realProjects.filter(p=>{const d=new Date(p.created||p.updated);return d.getMonth()===month&&d.getFullYear()===year});
   const monthProfit=monthProjects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   $("homeMaterialCount").textContent=state.materials.length;
-  $("homeOpenCount").textContent=state.projects.filter(p=>!["done","billed"].includes(p.status||"offer")).length;
+  $("homeOpenCount").textContent=realProjects.filter(p=>!["done","billed"].includes(p.status||"offer")).length;
   $("homeMonthProfit").textContent=euro(monthProfit);
   $("homeMonthOrders").textContent=`${monthProjects.length} ${monthProjects.length===1?"Auftrag":"Aufträge"}`;
   $("homeFavoriteCount").textContent=`${state.materials.filter(m=>m.favorite).length} Favoriten`;
@@ -96,7 +97,7 @@ export function updateHome(){
   const greeting=now.getHours()<11?"Guten Morgen":now.getHours()<18?"Guten Tag":"Guten Abend";
   if($("dashboardGreeting")) $("dashboardGreeting").textContent=`${greeting}, Daniel`;
   const todayKey=now.toLocaleDateString("de-DE");
-  const today=state.projects.filter(p=>new Date(p.created||p.updated).toLocaleDateString("de-DE")===todayKey);
+  const today=realProjects.filter(p=>new Date(p.created||p.updated).toLocaleDateString("de-DE")===todayKey);
   if($("homeTodayOrders")) $("homeTodayOrders").textContent=today.length;
   if($("homeTodayRevenue")) $("homeTodayRevenue").textContent=euro(today.reduce((a,p)=>a+num(p.sale),0));
   if($("homeMonthRevenue")) $("homeMonthRevenue").textContent=euro(monthProjects.reduce((a,p)=>a+num(p.sale),0));
@@ -105,7 +106,7 @@ export function updateHome(){
   if($("homeTodayWork")){const mins=Math.round(today.reduce((a,p)=>a+num(p.workSeconds),0)/60);$("homeTodayWork").textContent=mins<60?`${mins} Min.`:`${Math.floor(mins/60)} Std. ${mins%60} Min.`;}
   renderTemplates();
   renderRecentProjects();
-  const latest=state.projects.slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created))[0];
+  const latest=realProjects.slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created))[0];
   const continueBtn=$("continueLastProjectBtn"),continueText=$("continueLastProjectText");
   if(continueBtn&&continueText){
     continueBtn.disabled=!latest;
@@ -115,14 +116,14 @@ export function updateHome(){
 }
 function renderRecentProjects(){
   const box=$("homeRecentProjects");if(!box)return;
-  const items=state.projects.slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created)).slice(0,3);
+  const items=getRealProjects().slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created)).slice(0,3);
   box.innerHTML=items.length?items.map(p=>`<button class="recent-project" type="button" data-recent-id="${p.id}"><div><b>${esc(p.title)}</b><small>${esc(p.customer||p.type||"")} · ${new Date(p.updated||p.created).toLocaleDateString("de-DE")}</small></div><strong>${euro(p.sale)}</strong></button>`).join(""):`<div class="empty-state">Noch keine Projekte gespeichert.</div>`;
   box.querySelectorAll("[data-recent-id]").forEach(btn=>btn.onclick=()=>viewProject(btn.dataset.recentId));
 }
 if($("dashboardSearch")) $("dashboardSearch").oninput=e=>{
   const q=e.target.value.trim().toLowerCase(),box=$("dashboardSearchResults");
   if(!q){box.classList.add("hidden");box.innerHTML="";return}
-  const found=state.projects.filter(p=>[p.title,p.customer,p.machineName,p.notes,...(p.tags||[])].join(" ").toLowerCase().includes(q)).slice(0,6);
+  const found=getRealProjects().filter(p=>[p.title,p.customer,p.machineName,p.notes,...(p.tags||[])].join(" ").toLowerCase().includes(q)).slice(0,6);
   box.innerHTML=found.length?found.map(p=>`<button type="button" data-dash-project="${p.id}"><span><b>${esc(p.title)}</b><small>${esc(p.customer||p.type||"")}</small></span><strong>${euro(p.sale)}</strong></button>`).join(""):`<div class="empty-state">Kein passendes Projekt.</div>`;
   box.classList.remove("hidden");box.querySelectorAll("[data-dash-project]").forEach(btn=>btn.onclick=()=>{box.classList.add("hidden");viewProject(btn.dataset.dashProject)});
 };

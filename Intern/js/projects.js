@@ -1,5 +1,5 @@
 import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js";
-import { state, save } from "./storage.js";
+import { state, save, getRealProjects, getReferenceProjects } from "./storage.js";
 import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js";
 import { resolveMaterialSelection } from "./materials.js";
 import { workshopUnit } from "./calculator.js";
@@ -9,10 +9,11 @@ function projectStatusLabel(status){
 }
 function projectStatusClass(status){return `status-${["offer","progress","waiting","done","billed"].includes(status)?status:"offer"}`;}
 export function renderProjects(){
+  const realProjects=getRealProjects();
   const term=($('projectSearch')?.value||'').trim().toLowerCase();
   const filter=$('projectStatusFilter')?.value||'all';
   const sort=$('projectSort')?.value||'updated';
-  const list=state.projects.filter(p=>{
+  const list=realProjects.filter(p=>{
     const matchesText=!term||`${p.title} ${p.customer||''} ${p.type||''} ${p.machineName||''} ${p.notes||''} ${(p.tags||[]).join(' ')}`.toLowerCase().includes(term);
     const matchesStatus=filter==='all'||(p.status||'offer')===filter;
     return matchesText&&matchesStatus;
@@ -24,41 +25,51 @@ export function renderProjects(){
     if(sort==='created')return new Date(b.created)-new Date(a.created);
     return new Date(b.updated||b.created)-new Date(a.updated||a.created);
   });
-  const totalProfit=state.projects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
-  if($('projectStatCount'))$('projectStatCount').textContent=state.projects.length;
+  const totalProfit=realProjects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
+  if($('projectStatCount'))$('projectStatCount').textContent=realProjects.length;
   if($('projectStatProfit'))$('projectStatProfit').textContent=euro(totalProfit);
-  if($('projectStatAverage'))$('projectStatAverage').textContent=state.projects.length?euro(state.projects.reduce((sum,p)=>sum+num(p.sale),0)/state.projects.length):euro(0);
+  if($('projectStatAverage'))$('projectStatAverage').textContent=realProjects.length?euro(realProjects.reduce((sum,p)=>sum+num(p.sale),0)/realProjects.length):euro(0);
   $('projectList').innerHTML=list.length?list.map(p=>`
     <article class="card project-item" data-project-card="${p.id}">
       ${(p.images||[])[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${p.images[0]}" alt=""></button>`:''}
       <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="item-price">${euro(p.sale)}</div></div>
       <div class="project-status-row"><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
       ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
-      <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button><button type="button" data-reference-project="${p.id}">${p.reference?"★ Referenz":"☆ Als Referenz"}</button><button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
+      <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button>${p.estimatorData?`<button type="button" data-reference-project="${p.id}">Als Lerndaten nutzen</button>`:""}<button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
     </article>`).join(''):`<div class="empty-state">Keine passenden Projekte gefunden.</div>`;
   document.querySelectorAll('[data-view-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();viewProject(b.dataset.viewProject)});
   document.querySelectorAll('[data-project-card]').forEach(card=>card.onclick=e=>{if(!e.target.closest('button'))viewProject(card.dataset.projectCard)});
   document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.editProject,false)});
   document.querySelectorAll('[data-duplicate-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.duplicateProject,true)});
-  document.querySelectorAll('[data-pin-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=state.projects.find(x=>x.id===b.dataset.pinProject);if(p){p.pinned=!p.pinned;p.updated=new Date().toISOString();save();renderProjects();}});
+  document.querySelectorAll('[data-pin-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.pinProject);if(p){p.pinned=!p.pinned;p.updated=new Date().toISOString();save();renderProjects();}});
   document.querySelectorAll('[data-template-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();createTemplateFromProject(b.dataset.templateProject)});
-  document.querySelectorAll('[data-reference-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=state.projects.find(x=>x.id===b.dataset.referenceProject);if(p){p.reference=!p.reference;p.updated=new Date().toISOString();if(p.estimatorData&&p.reference)saveLearningRecord({...p.estimatorData,projectId:p.id,reference:true});save();renderProjects();}});
+  document.querySelectorAll('[data-reference-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.referenceProject);if(p?.estimatorData){saveLearningRecord({...p.estimatorData,projectId:p.id,title:p.title,estimatedPrice:p.estimatedPrice,actualPrice:p.actualPrice,reference:true});alert('Das Kundenprojekt bleibt in der Projektübersicht. Eine getrennte Lernreferenz wurde aktualisiert.');renderProjects();}});
   document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm('Projekt löschen?')){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();updateHome()}});
   renderReferenceProjects();
   renderStatisticsCharts();
 }
 export function renderReferenceProjects(){
   const box=$('referenceProjectList');if(!box)return;
-  const refs=state.projects.filter(p=>p.reference);
-  box.innerHTML=refs.length?refs.map(p=>`<article class="card reference-item"><div><strong>${esc(p.title)}</strong><small>${esc(p.machineName||p.type||"")} · ${euro(p.sale)} · Gewinn ${euro(num(p.sale)-num(p.cost))}</small></div><div class="item-actions"><button data-view-reference="${p.id}">Ansehen</button><button data-edit-reference="${p.id}">Bearbeiten</button><button data-unmark-reference="${p.id}">Referenz entfernen</button><button class="danger" data-delete-reference="${p.id}">Löschen</button></div></article>`).join(""):'<div class="empty-state">Noch keine Referenzprojekte markiert.</div>';
-  box.querySelectorAll('[data-view-reference]').forEach(b=>b.onclick=()=>viewProject(b.dataset.viewReference));
-  box.querySelectorAll('[data-edit-reference]').forEach(b=>b.onclick=()=>loadProject(b.dataset.editReference,false));
-  box.querySelectorAll('[data-unmark-reference]').forEach(b=>b.onclick=()=>{const p=state.projects.find(x=>x.id===b.dataset.unmarkReference);if(p){p.reference=false;save();renderProjects();}});
-  box.querySelectorAll('[data-delete-reference]').forEach(b=>b.onclick=()=>{if(confirm('Referenzprojekt wirklich löschen?')){const id=b.dataset.deleteReference;state.projects=state.projects.filter(p=>p.id!==id);const rec=(state.learningRecords||[]).find(r=>r.projectId===id);if(rec)deleteLearningRecord(rec.id);save();renderProjects();}});
+  const embedded=getReferenceProjects();
+  const learning=(state.learningRecords||[]).filter(r=>!embedded.some(p=>p.id===r.projectId));
+  const refs=[...learning.map(r=>({...r,source:"learning"})),...embedded.map(p=>({...p,source:"legacy"}))];
+  box.innerHTML=refs.length?refs.map(r=>`<article class="card reference-item"><div><strong>${esc(r.title||r.materialName||"Referenzdatensatz")}</strong><small>${esc(r.machineName||"")} · Schätzung ${euro(r.estimatedPrice)} · Tatsächlich ${r.actualPrice==null?"noch nicht eingetragen":euro(r.actualPrice)}</small><small>${num(r.actualMinutes)>0?`Ist-Zeit ${num(r.actualMinutes).toLocaleString("de-DE")} Min.`:"Keine Ist-Zeit"} · zählt nicht zu Umsatz oder Gewinn</small></div><div class="item-actions"><button data-edit-reference="${r.source}:${r.id}">Bearbeiten</button><button class="danger" data-delete-reference="${r.source}:${r.id}">Löschen</button></div></article>`).join(""):'<div class="empty-state">Noch keine Referenzprojekte oder Lerndaten gespeichert.</div>';
+  box.querySelectorAll('[data-edit-reference]').forEach(b=>b.onclick=()=>{
+    const [source,id]=b.dataset.editReference.split(":");
+    const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(!r)return;
+    const price=prompt("Tatsächlich verwendeter Verkaufspreis (leer = unbekannt):",r.actualPrice??"");
+    if(price===null)return;
+    const time=prompt("Tatsächliche Gesamtzeit in Minuten (leer = unbekannt):",num(r.actualMinutes)||"");
+    if(time===null)return;
+    r.actualPrice=price===""?null:num(price);r.actualMinutes=time===""?0:num(time);r.profit=r.actualPrice==null?null:r.actualPrice-num(r.cost);r.updated=new Date().toISOString();
+    if(source==="legacy"){const linked=(state.learningRecords||[]).find(x=>x.projectId===r.id);if(linked){linked.actualPrice=r.actualPrice;linked.actualMinutes=r.actualMinutes;linked.profit=r.profit;linked.updated=r.updated;}}
+    save();renderProjects();
+  });
+  box.querySelectorAll('[data-delete-reference]').forEach(b=>b.onclick=()=>{if(!confirm('Referenzdatensatz wirklich löschen? Ein echtes Kundenprojekt bleibt unberührt.'))return;const [source,id]=b.dataset.deleteReference.split(":");if(source==="learning")deleteLearningRecord(id);else state.projects=state.projects.filter(p=>p.id!==id);save();renderProjects();});
 }
 export function renderStatisticsCharts(){
   const box=$('statisticsCharts');if(!box)return;
-  const projects=state.projects||[],max=Math.max(1,...projects.map(p=>num(p.sale)));
+  const projects=getRealProjects(),max=Math.max(1,...projects.map(p=>num(p.sale)));
   const materialUsage=new Map(),machineUsage=new Map();
   projects.forEach(p=>{if(p.fields?.matMain)materialUsage.set(p.fields.matMain,(materialUsage.get(p.fields.matMain)||0)+num(p.fields.usageMain));if(p.machineName)machineUsage.set(p.machineName,(machineUsage.get(p.machineName)||0)+num(p.workSeconds)/3600);});
   const totalSale=projects.reduce((s,p)=>s+num(p.sale),0),totalProfit=projects.reduce((s,p)=>s+num(p.sale)-num(p.cost),0);
@@ -76,7 +87,7 @@ function projectFieldValue(id,value){
   return value===""?"–":value;
 }
 export function viewProject(id){
-  const p=state.projects.find(x=>x.id===id);
+  const p=getRealProjects().find(x=>x.id===id);
   if(!p){alert("Projekt wurde nicht gefunden.");return;}
   const dialog=$("projectViewDialog");
   const details=Object.entries(p.fields||{}).filter(([fieldId])=>!["projectName","customerName","projectNotes","machineSelect","projectStatus","projectTags"].includes(fieldId)).map(([fieldId,value])=>`<div><span>${esc(projectFieldLabel(fieldId))}</span><strong>${esc(projectFieldValue(fieldId,value))}</strong></div>`).join("");
@@ -89,6 +100,7 @@ export function viewProject(id){
       <div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div>
       <div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created||p.updated).toLocaleDateString("de-DE")}</strong></div>
       <div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div>
+      ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}<div><span>Tatsächlicher Preis</span><strong>${euro(p.actualPrice??p.sale)}</strong></div>
       <div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div>
     </div>
     ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}
@@ -186,10 +198,10 @@ function printOffer(p){
 }
 
 function loadProject(id,duplicate=false){
-  const p=state.projects.find(x=>x.id===id);if(!p)return;
+  const p=getRealProjects().find(x=>x.id===id);if(!p)return;
   loadCalculatorData(p,{duplicate,editingProjectId:duplicate?null:p.id});
 }
-$("clearProjectsBtn").onclick=()=>{if(state.projects.length&&confirm("Wirklich alle Projekte löschen?")){state.projects=[];save();renderProjects()}};
+$("clearProjectsBtn").onclick=()=>{const real=getRealProjects();if(real.length&&confirm("Wirklich alle echten Kundenprojekte löschen? Referenz- und Lerndaten bleiben erhalten.")){const ids=new Set(real.map(p=>p.id));state.projects=state.projects.filter(p=>!ids.has(p.id));save();renderProjects()}};
 $("projectSearch").oninput=renderProjects;
 if($("projectStatusFilter"))$("projectStatusFilter").onchange=renderProjects;
 if($("projectSort"))$("projectSort").onchange=renderProjects;

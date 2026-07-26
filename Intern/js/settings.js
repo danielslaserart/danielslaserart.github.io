@@ -1,5 +1,5 @@
 import { $, num, esc, inferMaterialCategory } from "./utils.js";
-import { state, save, defaults, replaceState, normalizeProjectStatus } from "./storage.js";
+import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord } from "./storage.js";
 import { renderMachines } from "./machines.js";
 import { renderMaterials } from "./materials.js";
 import { renderProjects } from "./projects.js";
@@ -29,8 +29,8 @@ $("importInput").onchange=async e=>{
     if(!Array.isArray(d.materials)||!Array.isArray(d.projects))throw new Error();
     replaceState({...defaults,...d,settings:{...defaults.settings,...(d.settings||{})}});
     state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
-    state.learningRecords=Array.isArray(state.learningRecords)?state.learningRecords:[];
-    state.projects=(state.projects||[]).map(p=>({...p,status:normalizeProjectStatus(p.status),reference:Boolean(p.reference)}));
+    state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
+    state.projects=(state.projects||[]).map(normalizeProjectRecord);
     state.materials=(state.materials||[]).map(m=>({...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,scaleWithSize:true,workshopUnit:m.workshopUnit||m.unit||"Einheit",workshopUnitAmount:num(m.workshopUnitAmount)||1,consumptionLevels:{small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))},consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}}));save();renderMaterials();renderProjects();fillSettings();alert("Backup eingelesen.");
   }catch{alert("Ungültige Backup-Datei.");}
   e.target.value="";

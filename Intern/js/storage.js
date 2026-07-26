@@ -9,7 +9,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.10.0";
+const APP_VERSION = "4.10.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -40,8 +40,10 @@ export const defaults = {
 };
 export let state = load();
 state.templates=Array.isArray(state.templates)?state.templates:[];
-state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),reference:Boolean(p.reference),status:normalizeProjectStatus(p.status),tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
-state.learningRecords=Array.isArray(state.learningRecords)?state.learningRecords:[];
+state.projects=(state.projects||[]).map(normalizeProjectRecord);
+state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
+migrateEmbeddedReferences(state);
+localStorage.setItem(KEY,JSON.stringify(state));
 state.timer={...defaults.timer,...(state.timer||{})};
 state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
 state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.id===m.id)||{};return {...d,...m,engraveSpeed:num(m.engraveSpeed)||num(d.engraveSpeed),cutSpeed:num(m.cutSpeed)||num(d.cutSpeed)};});
@@ -50,7 +52,7 @@ export function load(){
   try{
     const saved=JSON.parse(localStorage.getItem(KEY));
     const merged={...defaults,...saved,settings:{...defaults.settings,...(saved?.settings||{})}};
-    merged.learningRecords=Array.isArray(merged.learningRecords)?merged.learningRecords:[];
+    merged.learningRecords=(Array.isArray(merged.learningRecords)?merged.learningRecords:[]).map(normalizeLearningRecord);
     merged.materials=(merged.materials||[]).map(m=>({
       ...m,
       mainRole:m.mainRole!==false,
@@ -75,12 +77,69 @@ export function load(){
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
     merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
-    merged.projects=(merged.projects||[]).map(p=>({...p,reference:Boolean(p.reference),status:normalizeProjectStatus(p.status)}));
+    merged.projects=(merged.projects||[]).map(normalizeProjectRecord);
+    migrateEmbeddedReferences(merged);
     return merged;
   }catch{return structuredClone(defaults)}
 }
 export function normalizeProjectStatus(status){
   return ({open:"offer",payment:"waiting"}[status])||(["offer","progress","waiting","done","billed"].includes(status)?status:"offer");
+}
+export function normalizeProjectRecord(project={}){
+  const clearlyGeneratedReference=project.reference===true&&project.estimatorData&&(
+    project.notes==="Aus Angebotsassistent erstellt"||
+    (project.tags||[]).includes("Schätzer")
+  );
+  const recordType=project.recordType==="reference"||clearlyGeneratedReference?"reference":"project";
+  const estimatedPrice=project.estimatedPrice??(recordType==="reference"?num(project.sale):null);
+  const actualPrice=project.actualPrice??(recordType==="project"?num(project.sale):null);
+  return {
+    ...project,
+    recordType,
+    isReference:recordType==="reference",
+    reference:recordType==="reference",
+    estimatedPrice,
+    actualPrice,
+    sale:recordType==="project"?num(actualPrice):num(project.sale),
+    pinned:Boolean(project.pinned),
+    status:recordType==="project"?normalizeProjectStatus(project.status):null,
+    tags:Array.isArray(project.tags)?project.tags:(project.tags?String(project.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),
+    images:Array.isArray(project.images)?project.images:(project.image?[project.image]:[]),
+    priceHistory:Array.isArray(project.priceHistory)?project.priceHistory:[],
+    workSeconds:num(project.workSeconds)
+  };
+}
+export function normalizeLearningRecord(record={}){
+  return {
+    ...record,
+    recordType:"reference",
+    isReference:true,
+    estimatedPrice:record.estimatedPrice??num(record.sale),
+    actualPrice:record.actualPrice==null?null:num(record.actualPrice),
+    sale:record.actualPrice==null?0:num(record.actualPrice),
+    cost:num(record.cost),
+    profit:record.actualPrice==null?null:num(record.actualPrice)-num(record.cost)
+  };
+}
+export function isRealProject(record){return record?.recordType!=="reference";}
+export function isReferenceRecord(record){return record?.recordType==="reference";}
+export function getRealProjects(){return state.projects.filter(isRealProject);}
+export function getReferenceProjects(){return state.projects.filter(isReferenceRecord);}
+function migrateEmbeddedReferences(container){
+  container.learningRecords=Array.isArray(container.learningRecords)?container.learningRecords:[];
+  container.projects.filter(isReferenceRecord).forEach(project=>{
+    if(!project.estimatorData||container.learningRecords.some(r=>r.projectId===project.id))return;
+    container.learningRecords.unshift(normalizeLearningRecord({
+      ...project.estimatorData,
+      id:uid(),
+      projectId:project.id,
+      title:project.title,
+      estimatedPrice:project.estimatedPrice??project.sale,
+      actualPrice:project.actualPrice??null,
+      created:project.created,
+      reference:true
+    }));
+  });
 }
 export function save(){
   localStorage.setItem(KEY,JSON.stringify(state));
@@ -124,8 +183,9 @@ export async function loadCloudState(){
   if(data?.data){
     replaceState({...defaults,...data.data,settings:{...defaults.settings,...(data.data.settings||{})}});
     state.templates=Array.isArray(state.templates)?state.templates:[];
-    state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),reference:Boolean(p.reference),status:normalizeProjectStatus(p.status),tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
-    state.learningRecords=Array.isArray(state.learningRecords)?state.learningRecords:[];
+    state.projects=(state.projects||[]).map(normalizeProjectRecord);
+    state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
+    migrateEmbeddedReferences(state);
     state.timer={...defaults.timer,...(state.timer||{})};
     state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
 state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.id===m.id)||{};return {...d,...m,engraveSpeed:num(m.engraveSpeed)||num(d.engraveSpeed),cutSpeed:num(m.cutSpeed)||num(d.cutSpeed)};});
