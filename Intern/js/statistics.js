@@ -1,0 +1,183 @@
+import { $, num, euro, esc } from "./utils.js";
+import { state, save } from "./storage.js";
+import { materialSelections, resolveMaterialSelection } from "./materials.js";
+import { rounded, renderCalculator, calculate } from "./calculator.js";
+import { setScreen } from "./ui.js";
+import { renderMotifEstimator } from "./estimator.js";
+function allMaterialOptions(){
+  return `<option value="">Kein Material</option>`+
+    materialSelections(null,"main")
+      .map(m=>`<option value="${m.id}">${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`)
+      .join("");
+}
+export function renderTools(){
+  if($("qcMaterial")){
+    const old=$("qcMaterial").value;
+    $("qcMaterial").innerHTML=allMaterialOptions();
+    if([...$("qcMaterial").options].some(o=>o.value===old)) $("qcMaterial").value=old;
+    $("qcHourly").value=state.settings.hourly;
+    $("qcReserve").value=state.settings.reserve;
+    $("qcProfitPercent").value=state.settings.profit;
+    $("qcPackaging").value=state.settings.packaging;
+  }
+  calculatePriceCheck();
+  calculateProfitTool();
+  calculateDiscountTool();
+  calculateQuickTool();
+  renderAreaMaterials();
+  calculateAreaTool();
+  renderMotifEstimator();
+}
+document.querySelectorAll("[data-tool]").forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b===btn));
+  document.querySelectorAll(".tool-panel").forEach(p=>p.classList.toggle("active",p.id===btn.dataset.tool));
+});
+function calculatePriceCheck(){
+  if(!$("pcCosts"))return;
+  const costs=num($("pcCosts").value),price=num($("pcMaxPrice").value),target=num($("pcTargetMargin")?.value);
+  const profit=price-costs;
+  const margin=price>0?(profit/price)*100:0;
+  const markup=costs>0?(profit/costs)*100:0;
+  const minimum=target<100?costs/(1-target/100):0;
+  $("pcProfit").textContent=euro(profit);
+  $("pcMarkup").textContent=`${markup.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %`;
+  $("pcMargin").textContent=`${margin.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %`;
+  $("pcMinimum").textContent=euro(rounded(minimum));
+  const status=$("pcStatus");status.className="";
+  if(profit<0){status.textContent="Verlust";status.classList.add("status-bad")}
+  else if(margin+0.0001>=target){status.textContent="Zielmarge erreicht";status.classList.add("status-good")}
+  else{status.textContent="Unter deiner Zielmarge";status.classList.add("status-neutral")}
+}
+function calculateProfitTool(){
+  if(!$("gcCosts"))return;
+  const costs=num($("gcCosts").value),percent=num($("gcPercent").value);
+  const profit=costs*percent/100;
+  $("gcProfit").textContent=euro(profit);
+  $("gcSale").textContent=euro(rounded(costs+profit));
+}
+function calculateDiscountTool(){
+  if($("dcTarget")){
+    const target=num($("dcTarget").value),percent=num($("dcPercent").value);
+    const factor=1-percent/100;
+    const original=factor>0?target/factor:0;
+    $("dcOriginal").textContent=euro(original);
+    $("dcAmount").textContent=euro(Math.max(0,original-target));
+  }
+  if($("dpOriginal")){
+    const original=num($("dpOriginal").value),sale=num($("dpSale").value);
+    const amount=original-sale;
+    const percent=original>0?(amount/original)*100:0;
+    $("dpAmount").textContent=euro(amount);
+    $("dpPercent").textContent=`${percent.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:2})} %`;
+    const status=$("dpStatus");
+    if(status){
+      status.className="";
+      if(original<=0){status.textContent="Bitte Normalpreis eingeben";status.classList.add("status-neutral");}
+      else if(amount<0){status.textContent="Der Verkaufspreis liegt über dem Normalpreis";status.classList.add("status-bad");}
+      else if(amount===0){status.textContent="Kein Rabatt";status.classList.add("status-neutral");}
+      else{status.textContent="Rabatt berechnet";status.classList.add("status-good");}
+    }
+  }
+}
+function calculateQuickTool(){
+  if(!$("qcMaterial"))return;
+  const mat=resolveMaterialSelection($("qcMaterial").value);
+  const material=(mat?.unitPrice||0)*num($("qcUsage").value);
+  const work=(num($("qcMinutes").value)/60)*num($("qcHourly").value);
+  const base=material+work+num($("qcExtra").value)+num($("qcPackaging").value);
+  const reserve=base*num($("qcReserve").value)/100;
+  const costs=base+reserve;
+  const sale=rounded(costs*(1+num($("qcProfitPercent").value)/100));
+  $("qcMaterialCost").textContent=euro(material);
+  $("qcWorkCost").textContent=euro(work);
+  $("qcCosts").textContent=euro(costs);
+  $("qcSale").textContent=euro(sale);
+}
+["pcCosts","pcMaxPrice","pcTargetMargin"].forEach(id=>$(id)?.addEventListener("input",calculatePriceCheck));
+["gcCosts","gcPercent"].forEach(id=>$(id)?.addEventListener("input",calculateProfitTool));
+["dcTarget","dcPercent","dpOriginal","dpSale"].forEach(id=>$(id)?.addEventListener("input",calculateDiscountTool));
+document.querySelectorAll("[data-discount-mode]").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll("[data-discount-mode]").forEach(b=>b.classList.toggle("active",b===btn));
+  document.querySelectorAll("[data-discount-panel]").forEach(panel=>panel.classList.toggle("active",panel.dataset.discountPanel===btn.dataset.discountMode));
+  calculateDiscountTool();
+}));
+$("dpSwapBtn")?.addEventListener("click",()=>{
+  const original=$("dpOriginal"),sale=$("dpSale");
+  const temp=original.value;original.value=sale.value;sale.value=temp;
+  calculateDiscountTool();
+});
+["qcMaterial","qcUsage","qcMinutes","qcExtra","qcPackaging","qcHourly","qcReserve","qcProfitPercent"].forEach(id=>$(id)?.addEventListener("input",calculateQuickTool));
+
+let lastAreaResult={netCm2:0,grossCm2:0};
+function areaNumber(value,digits=2){
+  return num(value).toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:digits});
+}
+function areaUnitToCm(value,unit){
+  const factor=unit==="mm"?0.1:unit==="m"?100:1;
+  return num(value)*factor;
+}
+function toggleAreaShapeFields(){
+  const shape=$("acShape")?.value||"rectangle";
+  $("acRectangleFields")?.classList.toggle("hidden",shape!=="rectangle");
+  $("acSquareFields")?.classList.toggle("hidden",shape!=="square");
+  $("acCircleFields")?.classList.toggle("hidden",shape!=="circle");
+}
+function calculateAreaTool(){
+  if(!$("acShape"))return;
+  toggleAreaShapeFields();
+  const shape=$("acShape").value,unit=$("acUnit").value;
+  let perPiece=0;
+  if(shape==="rectangle"){
+    perPiece=areaUnitToCm($("acWidth").value,unit)*areaUnitToCm($("acHeight").value,unit);
+  }else if(shape==="square"){
+    const side=areaUnitToCm($("acSide").value,unit);perPiece=side*side;
+  }else{
+    const radius=areaUnitToCm($("acDiameter").value,unit)/2;perPiece=Math.PI*radius*radius;
+  }
+  const quantity=Math.max(1,Math.floor(num($("acQuantity").value)||1));
+  const net=perPiece*quantity;
+  const waste=net*Math.max(0,num($("acWaste").value))/100;
+  const gross=net+waste;
+  lastAreaResult={netCm2:net,grossCm2:gross};
+  $("acPerPiece").textContent=`${areaNumber(perPiece)} cm²`;
+  $("acNetTotal").textContent=`${areaNumber(net)} cm²`;
+  $("acWasteArea").textContent=`${areaNumber(waste)} cm²`;
+  $("acGrossTotal").textContent=`${areaNumber(gross)} cm²`;
+  $("acGrossMeters").textContent=`${areaNumber(gross/10000,4)} m²`;
+}
+function areaMaterials(){
+  return state.materials.filter(m=>m.mainRole!==false&&["cm²","m²"].includes(m.unit));
+}
+function renderAreaMaterials(){
+  if(!$("acMaterial"))return;
+  const old=$("acMaterial").value;
+  const mats=areaMaterials().sort((a,b)=>a.name.localeCompare(b.name));
+  $("acMaterial").innerHTML=mats.length
+    ? `<option value="">Material auswählen</option>`+mats.map(m=>`<option value="${m.id}">${esc(m.name)} – ${esc(m.unit)}</option>`).join("")
+    : `<option value="">Kein Flächenmaterial vorhanden</option>`;
+  if(mats.some(m=>m.id===old))$("acMaterial").value=old;
+  $("acTransferBtn").disabled=!mats.length;
+}
+function moduleFromMaterialArea(area){
+  if(area==="3D-Druck")return "3d";
+  if(area==="Laser")return "laser";
+  if(area==="Vinylfolie"||area==="Übertragungsfolie")return "vinyl";
+  if(area==="Textilfolie")return "textil";
+  return state.activeModule||"laser";
+}
+function transferAreaToCalculator(){
+  calculateAreaTool();
+  const mat=resolveMaterialSelection($("acMaterial")?.value);
+  if(!mat){alert("Bitte zuerst ein Flächenmaterial auswählen.");return;}
+  state.activeModule=moduleFromMaterialArea(mat.area);
+  save();setScreen("calculator");renderCalculator();
+  requestAnimationFrame(()=>{
+    if($("matMain"))$("matMain").value=mat.id;
+    const usage=mat.unit==="m²"?lastAreaResult.grossCm2/10000:lastAreaResult.grossCm2;
+    if($("usageMain"))$("usageMain").value=Number(usage.toFixed(mat.unit==="m²"?6:2));
+    calculate();
+    $("usageMain")?.scrollIntoView({behavior:"smooth",block:"center"});
+  });
+}
+["acShape","acUnit","acWidth","acHeight","acSide","acDiameter","acQuantity","acWaste"].forEach(id=>$(id)?.addEventListener("input",calculateAreaTool));
+$("acTransferBtn")?.addEventListener("click",transferAreaToCalculator);

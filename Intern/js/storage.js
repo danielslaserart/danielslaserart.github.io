@@ -1,0 +1,220 @@
+import { $, num, uid, inferMaterialCategory } from "./utils.js";
+const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
+const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+let currentUser = null;
+let cloudReady = false;
+let saveTimer = null;
+
+const KEY = "dla_kalkulator_v3";
+const APP_VERSION = "4.10.0";
+const VERSION_KEY = "dla_app_version";
+if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
+  if ("caches" in window) {
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).catch(() => {});
+  }
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.unregister());
+    }).catch(() => {});
+  }
+  localStorage.setItem(VERSION_KEY, APP_VERSION);
+}
+
+export const defaults = {
+  settings:{
+    profit:30,hourly:0,machine3d:0.5,laserGravur:0.1,laserSchnitt:0.15,
+    plotter:0.1,presse:0.15,reserve:5,packaging:0,rounding:0.1,
+    overhead:0,electricity:0.35,defaultMachine:"",defaultMaterial:""
+  },
+  materials:[],projects:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
+  machines:[
+    {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:300,active:true},
+    {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:0,active:true},
+    {id:"atomstack-x70",name:"Atomstack X70 Pro",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:500,active:true},
+    {id:"anycubic-k3",name:"Anycubic K3 Combo",type:"3d",hourlyRate:0.50,active:true},
+    {id:"anycubic-kobra2plus",name:"Anycubic Kobra 2 Plus",type:"3d",hourlyRate:0.50,active:true}
+  ]
+};
+export let state = load();
+state.templates=Array.isArray(state.templates)?state.templates:[];
+state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),reference:Boolean(p.reference),status:normalizeProjectStatus(p.status),tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+state.learningRecords=Array.isArray(state.learningRecords)?state.learningRecords:[];
+state.timer={...defaults.timer,...(state.timer||{})};
+state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
+state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.id===m.id)||{};return {...d,...m,engraveSpeed:num(m.engraveSpeed)||num(d.engraveSpeed),cutSpeed:num(m.cutSpeed)||num(d.cutSpeed)};});
+
+export function load(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(KEY));
+    const merged={...defaults,...saved,settings:{...defaults.settings,...(saved?.settings||{})}};
+    merged.learningRecords=Array.isArray(merged.learningRecords)?merged.learningRecords:[];
+    merged.materials=(merged.materials||[]).map(m=>({
+      ...m,
+      mainRole:m.mainRole!==false,
+      consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
+      consumableCategory:m.consumableCategory||"Sonstiges",
+      defaultConsumption:num(m.defaultConsumption),
+      autoAdd:Boolean(m.autoAdd),
+      favorite:Boolean(m.favorite),
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",supplier:v.supplier||"",properties:v.properties||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
+      category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,
+      width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
+      consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
+      scaleWithSize:Boolean(m.scaleWithSize),
+      workshopUnit:m.workshopUnit||m.unit||"Einheit",
+      workshopUnitAmount:num(m.workshopUnitAmount)||1,
+      consumptionLevels:{
+        small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),
+        medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),
+        large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))
+      },
+      sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
+    }));
+    merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
+    merged.projects=(merged.projects||[]).map(p=>({...p,reference:Boolean(p.reference),status:normalizeProjectStatus(p.status)}));
+    return merged;
+  }catch{return structuredClone(defaults)}
+}
+export function normalizeProjectStatus(status){
+  return ({open:"offer",payment:"waiting"}[status])||(["offer","progress","waiting","done","billed"].includes(status)?status:"offer");
+}
+export function save(){
+  localStorage.setItem(KEY,JSON.stringify(state));
+  document.dispatchEvent(new CustomEvent('dla:state-saved'));
+  scheduleCloudSave();
+}
+export function setSyncStatus(text, kind=""){
+  const el=$("syncStatus");
+  if(!el)return;
+  el.textContent=text;
+  el.className="sync-status "+kind;
+}
+function scheduleCloudSave(){
+  if(!cloudReady || !currentUser)return;
+  clearTimeout(saveTimer);
+  setSyncStatus("Speichert …","busy");
+  saveTimer=setTimeout(saveCloudState,500);
+}
+async function saveCloudState(){
+  if(!currentUser)return;
+  const { error } = await db.from("app_state").upsert({
+    user_id: currentUser.id,
+    data: state,
+    updated_at: new Date().toISOString()
+  }, { onConflict: "user_id" });
+  if(error){
+    console.error(error);
+    setSyncStatus("Fehler","error");
+  }else{
+    setSyncStatus("Gespeichert","ok");
+  }
+}
+export async function loadCloudState(){
+  setSyncStatus("Synchronisiert …","busy");
+  const { data, error } = await db.from("app_state").select("data").eq("user_id",currentUser.id).maybeSingle();
+  if(error){
+    console.error(error);
+    setSyncStatus("DB-Fehler","error");
+    return false;
+  }
+  if(data?.data){
+    replaceState({...defaults,...data.data,settings:{...defaults.settings,...(data.data.settings||{})}});
+    state.templates=Array.isArray(state.templates)?state.templates:[];
+    state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),reference:Boolean(p.reference),status:normalizeProjectStatus(p.status),tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
+    state.learningRecords=Array.isArray(state.learningRecords)?state.learningRecords:[];
+    state.timer={...defaults.timer,...(state.timer||{})};
+    state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
+state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.id===m.id)||{};return {...d,...m,engraveSpeed:num(m.engraveSpeed)||num(d.engraveSpeed),cutSpeed:num(m.cutSpeed)||num(d.cutSpeed)};});
+    state.materials=(state.materials||[]).map(m=>({
+      ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
+      consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
+      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",supplier:v.supplier||"",properties:v.properties||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
+      category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
+      consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
+      scaleWithSize:Boolean(m.scaleWithSize),
+      workshopUnit:m.workshopUnit||m.unit||"Einheit",
+      workshopUnitAmount:num(m.workshopUnitAmount)||1,
+      consumptionLevels:{
+        small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),
+        medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),
+        large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))
+      },
+      sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
+    }));
+    state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
+    localStorage.setItem(KEY,JSON.stringify(state));
+  }else{
+    await saveCloudState();
+  }
+  document.dispatchEvent(new CustomEvent('dla:state-loaded'));
+  setSyncStatus("Gespeichert","ok");
+  return true;
+}
+
+
+
+export function replaceState(nextState){
+  state = nextState;
+}
+
+export async function initializeAuth(){
+  try{
+  const { data:{ session }, error } = await db.auth.getSession();
+  if(error) throw error;
+  if(session?.user){
+    await enterApp(session.user);
+  }else{
+    $("authGate").classList.remove("hidden");
+    $("logoutBtn").classList.add("hidden");
+  }
+  db.auth.onAuthStateChange(async (event, session)=>{
+    if(event==="SIGNED_IN" && session?.user && session.user.id!==currentUser?.id){
+      await enterApp(session.user);
+    }
+    if(event==="SIGNED_OUT"){
+      currentUser=null;cloudReady=false;
+      $("authGate").classList.remove("hidden");
+      $("logoutBtn").classList.add("hidden");
+      setSyncStatus("Offline","");
+    }
+  });
+  }catch(error){
+    console.error("Auth-Initialisierung fehlgeschlagen:",error);
+    $("authGate").classList.remove("hidden");
+    $("authError").textContent="Anmeldung konnte nicht initialisiert werden. Bitte Seite neu laden und Internetverbindung prüfen.";
+  }
+}
+async function enterApp(user){
+  currentUser=user;
+  $("authGate").classList.add("hidden");
+  $("logoutBtn").classList.remove("hidden");
+  cloudReady=false;
+  const ok=await loadCloudState();
+  cloudReady=ok;
+}
+$("loginForm").onsubmit=async e=>{
+  e.preventDefault();
+  $("authError").textContent="";
+  const email=$("loginEmail").value.trim();
+  const password=$("loginPassword").value;
+  const btn=e.submitter||$("loginForm").querySelector('button[type="submit"]');
+  try{
+    if(btn){btn.disabled=true;btn.textContent="Anmeldung …";}
+    const { data, error }=await db.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    if(data?.user) await enterApp(data.user);
+  }catch(error){
+    console.error("Login fehlgeschlagen:",error);
+    $("authError").textContent="Anmeldung fehlgeschlagen. Prüfe E-Mail, Passwort und Internetverbindung.";
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent="Anmelden";}
+  }
+};
+$("logoutBtn").onclick=async()=>{
+  if(confirm("Wirklich abmelden?")) await db.auth.signOut();
+};
