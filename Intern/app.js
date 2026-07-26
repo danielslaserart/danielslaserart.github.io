@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.3.1";
+const APP_VERSION = "3.3.2";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -1297,24 +1297,47 @@ $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.promp
 
 
 
-// V3.3.1 – Motiv-Schätzer
+// V3.3.2 – Motiv-Schätzer mit Materialauswahl und getrennten Geschwindigkeiten
 let motifImageDetail = null;
 function motifComplexityLabel(key){return ({simple:"Einfach",medium:"Mittel",high:"Hoch",veryHigh:"Sehr hoch"})[key]||"Hoch"}
 function motifComplexityFactor(key){return ({simple:.55,medium:.78,high:1,veryHigh:1.25})[key]||1}
 function motifProcess(){return document.querySelector('input[name="mcProcess"]:checked')?.value||"cut"}
-function applyMotifMachineSpeed(force=false){
-  const machine=(state.machines||[]).find(m=>m.id===$('mcMachine')?.value);if(!machine||!$('mcSpeed'))return;
-  const process=motifProcess(),suggested=process==='engrave'?num(machine.engraveSpeed):num(machine.cutSpeed);
-  if(force||!num($('mcSpeed').value))$('mcSpeed').value=suggested||'';
+function motifMaterialOptions(){
+  const items=materialSelections("Laser","main");
+  return `<option value="">Material auswählen</option>`+items.map(m=>`<option value="${esc(m.id)}">${m.favorite||m.baseMaterial?.favorite?"★ ":""}${esc(m.name)}${num(m.width)&&num(m.height)?` – ${num(m.width)}×${num(m.height)} ${esc(m.dimensionUnit||"cm")}`:""} – ${euro(m.unitPrice)}/${esc(m.unit||"Stück")}</option>`).join("");
+}
+function applyMotifMachineSpeeds(force=false){
+  const machine=(state.machines||[]).find(m=>m.id===$('mcMachine')?.value);if(!machine)return;
+  if($('mcCutSpeed')&&(force||!num($('mcCutSpeed').value)))$('mcCutSpeed').value=num(machine.cutSpeed)||'';
+  if($('mcEngraveSpeed')&&(force||!num($('mcEngraveSpeed').value)))$('mcEngraveSpeed').value=num(machine.engraveSpeed)||'';
+}
+function updateMotifProcessUI(){
+  const process=motifProcess(),doCut=process==='cut'||process==='both',doEngrave=process==='engrave'||process==='both';
+  $('mcCutSpeedLabel')?.classList.toggle('hidden',!doCut);
+  $('mcEngraveSpeedLabel')?.classList.toggle('hidden',!doEngrave);
+  $('mcCutTimeRow')?.classList.toggle('hidden',!doCut);
+  $('mcEngraveTimeRow')?.classList.toggle('hidden',!doEngrave);
+}
+function calculateMotifMaterialCost(width,height,layers){
+  const selected=resolveMaterialSelection($('mcMaterial')?.value);if(!selected)return {cost:0,text:'–'};
+  const unitPrice=num(selected.unitPrice),mw=num(selected.width),mh=num(selected.height),unit=selected.dimensionUnit||'cm';
+  if(width<=0||height<=0)return {cost:0,text:'Maße fehlen'};
+  if(mw>0&&mh>0&&unit==='cm'){
+    const neededArea=width*height*layers,sheetArea=mw*mh;
+    const cost=sheetArea>0?neededArea/sheetArea*unitPrice:0;
+    return {cost,text:`${neededArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² (${layers} Platte${layers===1?'':'n'})`};
+  }
+  return {cost:unitPrice*layers,text:`${layers} × ${esc(selected.unit||'Stück')} (keine Plattenmaße hinterlegt)`};
 }
 function renderMotifEstimator(){
   if(!$('mcMachine'))return;
-  const old=$('mcMachine').value;
+  const oldMachine=$('mcMachine').value,oldMaterial=$('mcMaterial')?.value;
   const machines=(state.machines||[]).filter(m=>m.type==='laser'&&m.active!==false);
   $('mcMachine').innerHTML=machines.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
-  $('mcMachine').value=machines.some(m=>m.id===old)?old:(machines.find(m=>m.id==='atomstack-x70')?.id||machines[0]?.id||'');
+  $('mcMachine').value=machines.some(m=>m.id===oldMachine)?oldMachine:(machines.find(m=>m.id==='atomstack-x70')?.id||machines[0]?.id||'');
+  if($('mcMaterial')){$('mcMaterial').innerHTML=motifMaterialOptions();if([...$('mcMaterial').options].some(o=>o.value===oldMaterial))$('mcMaterial').value=oldMaterial;}
   if(!$('mcHourly').dataset.ready){$('mcHourly').value=state.settings.hourly;$('mcReserve').value=state.settings.reserve;$('mcProfit').value=state.settings.profit;$('mcHourly').dataset.ready='1';}
-  applyMotifMachineSpeed(false);
+  applyMotifMachineSpeeds(false);updateMotifProcessUI();
   const info=$('mcCalibrationInfo');if(info)info.textContent=`Kalibrierung: ${num(state.motifEstimator?.samples)} Erfahrungswert(e), Korrekturfaktor ${num(state.motifEstimator?.calibrationFactor||1).toLocaleString('de-DE',{maximumFractionDigits:2})}.`;
   calculateMotifEstimator();
 }
@@ -1340,31 +1363,30 @@ function calculateMotifEstimator(){
   if(!$('mcWidth'))return;
   const width=num($('mcWidth').value),height=num($('mcHeight').value),layers=Math.max(1,num($('mcLayers').value)||1);
   const process=motifProcess(),doCut=process==='cut'||process==='both',doEngrave=process==='engrave'||process==='both';
-  const speed=Math.max(1,num($('mcSpeed').value));
+  const cutSpeed=Math.max(1,num($('mcCutSpeed').value)),engraveSpeed=Math.max(1,num($('mcEngraveSpeed').value));
   let complexity=$('mcComplexity').value;if(complexity==='auto')complexity=motifImageDetail||state.motifEstimator?.lastDetected||'high';
   const area=width*height,cal=Math.max(.35,Math.min(3,num(state.motifEstimator?.calibrationFactor)||1));
-  // Kalibriert auf Daniels Referenz: 30×35 cm, 2 Ebenen, hoher Detailgrad, 500 mm/min = 35 min.
-  const theoreticalCut=35*Math.pow(area/1050,.75)*(layers/2)*(500/speed)*motifComplexityFactor(complexity);
+  const theoreticalCut=35*Math.pow(area/1050,.75)*(layers/2)*(500/cutSpeed)*motifComplexityFactor(complexity);
   const cutMinutes=(doCut&&area>0)?theoreticalCut*cal:0;
-  const engraveMinutes=(doEngrave&&area>0)?(area*.055*motifComplexityFactor(complexity)*cal*(5000/speed)):0;
+  const engraveMinutes=(doEngrave&&area>0)?(area*.055*motifComplexityFactor(complexity)*cal*(5000/engraveSpeed)):0;
   let work=num($('mcBaseWork').value);
   if($('mcSand').checked)work+=8+area/180;
   if($('mcPaint').checked)work+=10+area/150;
   if($('mcGlue').checked&&layers>1)work+=8+(layers-1)*5+area/220;
   const machine=(state.machines||[]).find(m=>m.id===$('mcMachine').value);
   const machineCost=cutMinutes*num(machine?.cutRate||state.settings.laserSchnitt)+engraveMinutes*num(machine?.engraveRate||state.settings.laserGravur);
-  const material=num($('mcMaterialCost').value),extra=num($('mcExtraCost').value),workCost=work/60*num($('mcHourly').value);
+  const mat=calculateMotifMaterialCost(width,height,layers);$('mcMaterialCost').value=mat.cost?mat.cost.toFixed(2):'';
+  const material=mat.cost,extra=num($('mcExtraCost').value),workCost=work/60*num($('mcHourly').value);
   const base=material+extra+machineCost+workCost,reserve=base*num($('mcReserve').value)/100,cost=base+reserve;
-  const sale=rounded(cost*(1+num($('mcProfit').value)/100));
-  const low=rounded(sale*.9),high=rounded(sale*1.1);
-  $('mcDetected').textContent=motifComplexityLabel(complexity);
+  const sale=rounded(cost*(1+num($('mcProfit').value)/100));const low=rounded(sale*.9),high=rounded(sale*1.1);
+  $('mcDetected').textContent=motifComplexityLabel(complexity);$('mcMaterialUsage').textContent=mat.text;
   $('mcCutTime').textContent=`${Math.round(cutMinutes)} Min.`;$('mcEngraveTime').textContent=`${Math.round(engraveMinutes)} Min.`;$('mcWorkTime').textContent=`${Math.round(work)} Min.`;
   $('mcMachineCost').textContent=euro(machineCost);$('mcTotalCost').textContent=euro(cost);$('mcSalePrice').textContent=euro(sale);$('mcPriceRange').textContent=`${euro(low)} – ${euro(high)}`;
   $('motifCalc').dataset.predictedMachineMinutes=String(cutMinutes+engraveMinutes);
 }
-['mcWidth','mcHeight','mcLayers','mcSpeed','mcComplexity','mcSand','mcPaint','mcGlue','mcMaterialCost','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
-document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',()=>{applyMotifMachineSpeed(true);calculateMotifEstimator()}));
-if($('mcMachine'))$('mcMachine').addEventListener('change',()=>{applyMotifMachineSpeed(true);calculateMotifEstimator()});
+['mcWidth','mcHeight','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcGlue','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
+document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',()=>{updateMotifProcessUI();calculateMotifEstimator()}));
+if($('mcMachine'))$('mcMachine').addEventListener('change',()=>{applyMotifMachineSpeeds(true);calculateMotifEstimator()});
 ['mcImageGallery','mcImageCamera'].forEach(id=>{const el=$(id);if(el)el.onchange=e=>analyzeMotifImage(e.target.files?.[0])});
 if($('mcRemoveImage'))$('mcRemoveImage').onclick=()=>{motifImageDetail=null;$('mcPreview').removeAttribute('src');$('mcPreview').classList.add('hidden');$('mcPreviewPlaceholder').classList.remove('hidden');$('mcImageAnalysis').textContent='Das Bild hilft bei der automatischen Detail-Einschätzung. Die Berechnung bleibt eine grobe Vorab-Schätzung.';calculateMotifEstimator()};
 if($('mcSaveCalibration'))$('mcSaveCalibration').onclick=()=>{

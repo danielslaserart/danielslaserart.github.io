@@ -302,8 +302,10 @@
         <label>Breite (cm)<input id="mcWidth" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 30"></label>
         <label>Höhe (cm)<input id="mcHeight" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 35"></label>
         <label>Ebenen / Platten<input id="mcLayers" type="number" min="1" max="10" step="1" inputmode="numeric" placeholder="z. B. 2"></label>
+        <label>Material<select id="mcMaterial"><option value="">Material auswählen</option></select></label>
         <label>Maschine<select id="mcMachine"></select></label>
-        <label>Verwendete Geschwindigkeit (mm/min)<input id="mcSpeed" type="number" min="1" step="any" inputmode="decimal" placeholder="kommt aus Maschinenprofil"></label>
+        <label id="mcCutSpeedLabel">Schnittgeschwindigkeit (mm/min)<input id="mcCutSpeed" type="number" min="1" step="any" inputmode="decimal" placeholder="aus Maschinenprofil"></label>
+        <label id="mcEngraveSpeedLabel" class="hidden">Gravurgeschwindigkeit (mm/min)<input id="mcEngraveSpeed" type="number" min="1" step="any" inputmode="decimal" placeholder="aus Maschinenprofil"></label>
         <label>Detailgrad<select id="mcComplexity"><option value="auto" selected>Automatisch aus Bild</option><option value="simple">Einfach</option><option value="medium">Mittel</option><option value="high">Hoch</option><option value="veryHigh">Sehr hoch</option></select></label>
       </div>
 
@@ -325,7 +327,7 @@
       </div>
 
       <div class="field-grid">
-        <label>Materialkosten gesamt (€)<input id="mcMaterialCost" type="number" min="0" step="any" inputmode="decimal" placeholder="0,00"></label>
+        <label>Berechnete Materialkosten (€)<input id="mcMaterialCost" type="number" min="0" step="any" inputmode="decimal" readonly placeholder="Material auswählen"></label>
         <label>Sonstige Kosten (€)<input id="mcExtraCost" type="number" min="0" step="any" inputmode="decimal" placeholder="0,00"></label>
         <label>Aktive Grundarbeit (Min.)<input id="mcBaseWork" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 10"></label>
         <label>Stundenlohn (€)<input id="mcHourly" type="number" min="0" step="any" inputmode="decimal"></label>
@@ -335,8 +337,9 @@
 
       <div class="mini-results motif-results">
         <div><span>Erkannter Detailgrad</span><strong id="mcDetected">Hoch</strong></div>
-        <div><span>Geschätzte Schnittzeit</span><strong id="mcCutTime">0 Min.</strong></div>
-        <div><span>Geschätzte Gravurzeit</span><strong id="mcEngraveTime">0 Min.</strong></div>
+        <div id="mcCutTimeRow"><span>Geschätzte Schnittzeit</span><strong id="mcCutTime">0 Min.</strong></div>
+        <div id="mcEngraveTimeRow" class="hidden"><span>Geschätzte Gravurzeit</span><strong id="mcEngraveTime">0 Min.</strong></div>
+        <div><span>Materialverbrauch</span><strong id="mcMaterialUsage">–</strong></div>
         <div><span>Aktive Arbeitszeit</span><strong id="mcWorkTime">0 Min.</strong></div>
         <div><span>Maschinenkosten</span><strong id="mcMachineCost">0,00 €</strong></div>
         <div><span>Selbstkosten</span><strong id="mcTotalCost">0,00 €</strong></div>
