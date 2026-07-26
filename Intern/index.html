@@ -299,26 +299,35 @@
       </div>
 
       <div class="field-grid">
-        <label>Breite (cm)<input id="mcWidth" type="number" min="1" step="any" inputmode="decimal" value="30"></label>
-        <label>Höhe (cm)<input id="mcHeight" type="number" min="1" step="any" inputmode="decimal" value="35"></label>
-        <label>Ebenen / Platten<input id="mcLayers" type="number" min="1" max="10" step="1" inputmode="numeric" value="2"></label>
+        <label>Breite (cm)<input id="mcWidth" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 30"></label>
+        <label>Höhe (cm)<input id="mcHeight" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 35"></label>
+        <label>Ebenen / Platten<input id="mcLayers" type="number" min="1" max="10" step="1" inputmode="numeric" placeholder="z. B. 2"></label>
         <label>Maschine<select id="mcMachine"></select></label>
-        <label>LightBurn-Geschwindigkeit (mm/min)<input id="mcSpeed" type="number" min="1" step="any" inputmode="decimal" value="500"></label>
-        <label>Detailgrad<select id="mcComplexity"><option value="auto">Automatisch aus Bild</option><option value="simple">Einfach</option><option value="medium">Mittel</option><option value="high" selected>Hoch</option><option value="veryHigh">Sehr hoch</option></select></label>
+        <label>Verwendete Geschwindigkeit (mm/min)<input id="mcSpeed" type="number" min="1" step="any" inputmode="decimal" placeholder="kommt aus Maschinenprofil"></label>
+        <label>Detailgrad<select id="mcComplexity"><option value="auto" selected>Automatisch aus Bild</option><option value="simple">Einfach</option><option value="medium">Mittel</option><option value="high">Hoch</option><option value="veryHigh">Sehr hoch</option></select></label>
       </div>
 
-      <div class="motif-options">
-        <label><input id="mcCut" type="checkbox" checked> Schneiden</label>
-        <label><input id="mcEngrave" type="checkbox"> Gravieren</label>
-        <label><input id="mcSand" type="checkbox" checked> Schleifen / Reinigen</label>
-        <label><input id="mcPaint" type="checkbox" checked> Lackieren / Beizen</label>
-        <label><input id="mcGlue" type="checkbox" checked> Verleimen / Ausrichten</label>
+      <div class="processing-block">
+        <b>Was wird gemacht?</b>
+        <div class="motif-options processing-choice">
+          <label><input name="mcProcess" value="cut" type="radio" checked> ✂️ Nur schneiden</label>
+          <label><input name="mcProcess" value="engrave" type="radio"> ✍️ Nur gravieren</label>
+          <label><input name="mcProcess" value="both" type="radio"> ✂️✍️ Beides</label>
+        </div>
+      </div>
+      <div class="processing-block">
+        <b>Nacharbeit</b>
+        <div class="motif-options">
+          <label><input id="mcSand" type="checkbox"> Schleifen / Reinigen</label>
+          <label><input id="mcPaint" type="checkbox"> Lackieren / Beizen</label>
+          <label><input id="mcGlue" type="checkbox"> Verleimen / Ausrichten</label>
+        </div>
       </div>
 
       <div class="field-grid">
-        <label>Materialkosten gesamt (€)<input id="mcMaterialCost" type="number" min="0" step="any" inputmode="decimal" value="12"></label>
-        <label>Sonstige Kosten (€)<input id="mcExtraCost" type="number" min="0" step="any" inputmode="decimal" value="2"></label>
-        <label>Aktive Grundarbeit (Min.)<input id="mcBaseWork" type="number" min="0" step="any" inputmode="decimal" value="10"></label>
+        <label>Materialkosten gesamt (€)<input id="mcMaterialCost" type="number" min="0" step="any" inputmode="decimal" placeholder="0,00"></label>
+        <label>Sonstige Kosten (€)<input id="mcExtraCost" type="number" min="0" step="any" inputmode="decimal" placeholder="0,00"></label>
+        <label>Aktive Grundarbeit (Min.)<input id="mcBaseWork" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 10"></label>
         <label>Stundenlohn (€)<input id="mcHourly" type="number" min="0" step="any" inputmode="decimal"></label>
         <label>Fehlerreserve (%)<input id="mcReserve" type="number" min="0" step="any" inputmode="decimal"></label>
         <label>Gewinnaufschlag (%)<input id="mcProfit" type="number" min="0" step="any" inputmode="decimal"></label>
@@ -458,7 +467,7 @@
 
     <div class="machines-section">
       <div class="section-head compact"><div><div class="eyebrow">MASCHINEN</div><h3>Kostenprofile</h3></div></div>
-      <p class="tool-intro">Hier legst du nur die Kosten je Minute oder Stunde fest. Anschaffungspreis und Geschwindigkeit werden nicht benötigt.</p>
+      <p class="tool-intro">Hier speicherst du Kosten und Standardgeschwindigkeiten jeder Maschine. Der Motiv-Schätzer übernimmt diese Werte automatisch.</p>
       <div id="machineList" class="machine-list"></div>
     </div>
 

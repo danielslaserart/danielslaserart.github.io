@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.3.0";
+const APP_VERSION = "3.3.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -32,9 +32,9 @@ const defaults = {
   },
   materials:[],projects:[],templates:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[
-    {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
-    {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
-    {id:"atomstack-x70",name:"Atomstack X70 Pro",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
+    {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:300,active:true},
+    {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:0,active:true},
+    {id:"atomstack-x70",name:"Atomstack X70 Pro",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:500,active:true},
     {id:"anycubic-k3",name:"Anycubic K3 Combo",type:"3d",hourlyRate:0.50,active:true},
     {id:"anycubic-kobra2plus",name:"Anycubic Kobra 2 Plus",type:"3d",hourlyRate:0.50,active:true}
   ]
@@ -77,6 +77,7 @@ state.templates=Array.isArray(state.templates)?state.templates:[];
 state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
 state.timer={...defaults.timer,...(state.timer||{})};
 state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
+state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.id===m.id)||{};return {...d,...m,engraveSpeed:num(m.engraveSpeed)||num(d.engraveSpeed),cutSpeed:num(m.cutSpeed)||num(d.cutSpeed)};});
 
 function load(){
   try{
@@ -154,6 +155,7 @@ async function loadCloudState(){
     state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
     state.timer={...defaults.timer,...(state.timer||{})};
     state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
+state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.id===m.id)||{};return {...d,...m,engraveSpeed:num(m.engraveSpeed)||num(d.engraveSpeed),cutSpeed:num(m.cutSpeed)||num(d.cutSpeed)};});
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
@@ -601,8 +603,8 @@ function getMachine(){
 }
 function renderMachines(){
   const box=$("machineList");if(!box)return;
-  box.innerHTML=(state.machines||[]).map(m=>`<div class="machine-row card"><div><strong>${esc(m.name)}</strong><small>${m.type==="laser"?"Laser":"3D-Druck"}</small></div>${m.type==="laser"?`<label>Gravur €/Min.<input data-machine-rate="engraveRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.engraveRate)}"></label><label>Schnitt €/Min.<input data-machine-rate="cutRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.cutRate)}"></label>`:`<label>Kosten €/Std.<input data-machine-rate="hourlyRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.hourlyRate)}"></label>`}</div>`).join("");
-  document.querySelectorAll("[data-machine-rate]").forEach(el=>el.oninput=()=>{const m=state.machines.find(x=>x.id===el.dataset.machineId);if(m){m[el.dataset.machineRate]=num(el.value);save();}});
+  box.innerHTML=(state.machines||[]).map(m=>`<div class="machine-row card"><div><strong>${esc(m.name)}</strong><small>${m.type==="laser"?"Laser":"3D-Druck"}</small></div>${m.type==="laser"?`<label>Gravur €/Min.<input data-machine-field="engraveRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.engraveRate)}"></label><label>Schnitt €/Min.<input data-machine-field="cutRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.cutRate)}"></label><label>Gravur mm/min<input data-machine-field="engraveSpeed" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.engraveSpeed)}"></label><label>Schnitt mm/min<input data-machine-field="cutSpeed" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.cutSpeed)}"></label>`:`<label>Kosten €/Std.<input data-machine-field="hourlyRate" data-machine-id="${m.id}" type="number" min="0" step="any" value="${num(m.hourlyRate)}"></label>`}</div>`).join("");
+  document.querySelectorAll("[data-machine-field]").forEach(el=>el.onchange=()=>{const m=state.machines.find(x=>x.id===el.dataset.machineId);if(m){m[el.dataset.machineField]=num(el.value);save();renderMotifEstimator();}});
 }
 function captureCalculatorFields(){
   const fields={};
@@ -1295,10 +1297,16 @@ $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.promp
 
 
 
-// V3.3.0 – Motiv-Schätzer
+// V3.3.1 – Motiv-Schätzer
 let motifImageDetail = null;
 function motifComplexityLabel(key){return ({simple:"Einfach",medium:"Mittel",high:"Hoch",veryHigh:"Sehr hoch"})[key]||"Hoch"}
 function motifComplexityFactor(key){return ({simple:.55,medium:.78,high:1,veryHigh:1.25})[key]||1}
+function motifProcess(){return document.querySelector('input[name="mcProcess"]:checked')?.value||"cut"}
+function applyMotifMachineSpeed(force=false){
+  const machine=(state.machines||[]).find(m=>m.id===$('mcMachine')?.value);if(!machine||!$('mcSpeed'))return;
+  const process=motifProcess(),suggested=process==='engrave'?num(machine.engraveSpeed):num(machine.cutSpeed);
+  if(force||!num($('mcSpeed').value))$('mcSpeed').value=suggested||'';
+}
 function renderMotifEstimator(){
   if(!$('mcMachine'))return;
   const old=$('mcMachine').value;
@@ -1306,6 +1314,7 @@ function renderMotifEstimator(){
   $('mcMachine').innerHTML=machines.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
   $('mcMachine').value=machines.some(m=>m.id===old)?old:(machines.find(m=>m.id==='atomstack-x70')?.id||machines[0]?.id||'');
   if(!$('mcHourly').dataset.ready){$('mcHourly').value=state.settings.hourly;$('mcReserve').value=state.settings.reserve;$('mcProfit').value=state.settings.profit;$('mcHourly').dataset.ready='1';}
+  applyMotifMachineSpeed(false);
   const info=$('mcCalibrationInfo');if(info)info.textContent=`Kalibrierung: ${num(state.motifEstimator?.samples)} Erfahrungswert(e), Korrekturfaktor ${num(state.motifEstimator?.calibrationFactor||1).toLocaleString('de-DE',{maximumFractionDigits:2})}.`;
   calculateMotifEstimator();
 }
@@ -1329,14 +1338,15 @@ function analyzeMotifImage(file){
 }
 function calculateMotifEstimator(){
   if(!$('mcWidth'))return;
-  const width=Math.max(1,num($('mcWidth').value)),height=Math.max(1,num($('mcHeight').value)),layers=Math.max(1,num($('mcLayers').value));
+  const width=num($('mcWidth').value),height=num($('mcHeight').value),layers=Math.max(1,num($('mcLayers').value)||1);
+  const process=motifProcess(),doCut=process==='cut'||process==='both',doEngrave=process==='engrave'||process==='both';
   const speed=Math.max(1,num($('mcSpeed').value));
   let complexity=$('mcComplexity').value;if(complexity==='auto')complexity=motifImageDetail||state.motifEstimator?.lastDetected||'high';
   const area=width*height,cal=Math.max(.35,Math.min(3,num(state.motifEstimator?.calibrationFactor)||1));
   // Kalibriert auf Daniels Referenz: 30×35 cm, 2 Ebenen, hoher Detailgrad, 500 mm/min = 35 min.
   const theoreticalCut=35*Math.pow(area/1050,.75)*(layers/2)*(500/speed)*motifComplexityFactor(complexity);
-  const cutMinutes=$('mcCut').checked?theoreticalCut*cal:0;
-  const engraveMinutes=$('mcEngrave').checked?(area*.055*motifComplexityFactor(complexity)*cal):0;
+  const cutMinutes=(doCut&&area>0)?theoreticalCut*cal:0;
+  const engraveMinutes=(doEngrave&&area>0)?(area*.055*motifComplexityFactor(complexity)*cal*(5000/speed)):0;
   let work=num($('mcBaseWork').value);
   if($('mcSand').checked)work+=8+area/180;
   if($('mcPaint').checked)work+=10+area/150;
@@ -1352,16 +1362,18 @@ function calculateMotifEstimator(){
   $('mcMachineCost').textContent=euro(machineCost);$('mcTotalCost').textContent=euro(cost);$('mcSalePrice').textContent=euro(sale);$('mcPriceRange').textContent=`${euro(low)} – ${euro(high)}`;
   $('motifCalc').dataset.predictedMachineMinutes=String(cutMinutes+engraveMinutes);
 }
-['mcWidth','mcHeight','mcLayers','mcSpeed','mcComplexity','mcCut','mcEngrave','mcSand','mcPaint','mcGlue','mcMaterialCost','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit','mcMachine'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
+['mcWidth','mcHeight','mcLayers','mcSpeed','mcComplexity','mcSand','mcPaint','mcGlue','mcMaterialCost','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
+document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',()=>{applyMotifMachineSpeed(true);calculateMotifEstimator()}));
+if($('mcMachine'))$('mcMachine').addEventListener('change',()=>{applyMotifMachineSpeed(true);calculateMotifEstimator()});
 ['mcImageGallery','mcImageCamera'].forEach(id=>{const el=$(id);if(el)el.onchange=e=>analyzeMotifImage(e.target.files?.[0])});
 if($('mcRemoveImage'))$('mcRemoveImage').onclick=()=>{motifImageDetail=null;$('mcPreview').removeAttribute('src');$('mcPreview').classList.add('hidden');$('mcPreviewPlaceholder').classList.remove('hidden');$('mcImageAnalysis').textContent='Das Bild hilft bei der automatischen Detail-Einschätzung. Die Berechnung bleibt eine grobe Vorab-Schätzung.';calculateMotifEstimator()};
 if($('mcSaveCalibration'))$('mcSaveCalibration').onclick=()=>{
-  const actual=num($('mcActualTime').value),pred=num($('motifCalc').dataset.predictedMachineMinutes);if(actual<=0||pred<=0){alert('Bitte eine tatsächliche Zeit eingeben und Schneiden oder Gravieren aktivieren.');return}
+  const actual=num($('mcActualTime').value),pred=num($('motifCalc').dataset.predictedMachineMinutes);if(actual<=0||pred<=0){alert('Bitte Maße und tatsächliche Zeit eingeben.');return}
   const ratio=Math.max(.35,Math.min(3,actual/pred)),samples=num(state.motifEstimator?.samples),old=num(state.motifEstimator?.calibrationFactor)||1;
   state.motifEstimator={...state.motifEstimator,calibrationFactor:(old*samples+ratio)/(samples+1),samples:samples+1};save();$('mcActualTime').value='';renderMotifEstimator();alert('Erfahrungswert gespeichert. Die nächsten Schätzungen wurden angepasst.');
 };
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.3.0").catch(()=>{}));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.3.1").catch(()=>{}));
 
 
 async function initializeAuth(){
