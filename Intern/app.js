@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.3.2";
+const APP_VERSION = "3.3.3";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -1297,7 +1297,7 @@ $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.promp
 
 
 
-// V3.3.2 – Motiv-Schätzer mit Materialauswahl und getrennten Geschwindigkeiten
+// V3.3.3 – Motiv-Schätzer: Flächenmaterial korrekt berechnen
 let motifImageDetail = null;
 function motifComplexityLabel(key){return ({simple:"Einfach",medium:"Mittel",high:"Hoch",veryHigh:"Sehr hoch"})[key]||"Hoch"}
 function motifComplexityFactor(key){return ({simple:.55,medium:.78,high:1,veryHigh:1.25})[key]||1}
@@ -1320,14 +1320,30 @@ function updateMotifProcessUI(){
 }
 function calculateMotifMaterialCost(width,height,layers){
   const selected=resolveMaterialSelection($('mcMaterial')?.value);if(!selected)return {cost:0,text:'–'};
-  const unitPrice=num(selected.unitPrice),mw=num(selected.width),mh=num(selected.height),unit=selected.dimensionUnit||'cm';
+  const unitPrice=num(selected.unitPrice),mw=num(selected.width),mh=num(selected.height),dimensionUnit=selected.dimensionUnit||'cm',purchaseUnit=String(selected.unit||'Stück').toLowerCase();
   if(width<=0||height<=0)return {cost:0,text:'Maße fehlen'};
-  if(mw>0&&mh>0&&unit==='cm'){
-    const neededArea=width*height*layers,sheetArea=mw*mh;
-    const cost=sheetArea>0?neededArea/sheetArea*unitPrice:0;
-    return {cost,text:`${neededArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² (${layers} Platte${layers===1?'':'n'})`};
+  const neededArea=width*height*layers;
+
+  // Material wurde bereits als Flächenpreis gespeichert.
+  if(purchaseUnit==='cm²' || purchaseUnit==='cm2'){
+    return {cost:neededArea*unitPrice,text:`${neededArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² (${layers} Ebene${layers===1?'':'n'})`};
   }
-  return {cost:unitPrice*layers,text:`${layers} × ${esc(selected.unit||'Stück')} (keine Plattenmaße hinterlegt)`};
+  if(purchaseUnit==='m²' || purchaseUnit==='m2'){
+    return {cost:(neededArea/10000)*unitPrice,text:`${neededArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² = ${(neededArea/10000).toLocaleString('de-DE',{maximumFractionDigits:4})} m²`};
+  }
+
+  // Ganze Platte/Stück mit hinterlegten Plattenmaßen.
+  let sheetWidth=mw,sheetHeight=mh;
+  if(dimensionUnit==='mm'){sheetWidth/=10;sheetHeight/=10}
+  if(dimensionUnit==='m'){sheetWidth*=100;sheetHeight*=100}
+  if(sheetWidth>0&&sheetHeight>0){
+    const sheetArea=sheetWidth*sheetHeight;
+    const cost=sheetArea>0?neededArea/sheetArea*unitPrice:0;
+    return {cost,text:`${neededArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² von ${sheetArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² je Platte`};
+  }
+
+  // Ohne Maße kann bei Stückware kein Flächenanteil berechnet werden.
+  return {cost:0,text:`⚠ Plattenmaße fehlen – Material bearbeiten und Breite/Höhe hinterlegen`};
 }
 function renderMotifEstimator(){
   if(!$('mcMachine'))return;
