@@ -37,7 +37,7 @@ export function initializeApp(){
   renderMaterialCategoryFilter();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.11.0").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.11.1").catch(()=>{}));
   }
 }
 

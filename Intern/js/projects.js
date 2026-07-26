@@ -53,7 +53,26 @@ export function renderReferenceProjects(){
   const embedded=getReferenceProjects();
   const learning=(state.learningRecords||[]).filter(r=>!embedded.some(p=>p.id===r.projectId));
   const refs=[...learning.map(r=>({...r,source:"learning"})),...embedded.map(p=>({...p,source:"legacy"}))];
-  box.innerHTML=refs.length?refs.map(r=>`<article class="card reference-item">${r.image?`<img class="reference-thumb" src="${r.image}" alt="">`:""}<div><strong>${esc(r.title||r.materialName||"Referenzdatensatz")}</strong><small>${new Date(r.created||Date.now()).toLocaleDateString("de-DE")} · ${esc(r.materialName||"Kein Material")} · ${esc(r.machineName||"Keine Maschine")} · ${esc(({cut:"Schneiden",engrave:"Gravieren",both:"Beides"})[r.process]||r.process||"–")}</small><small>${num(r.width)} × ${num(r.height)} cm · ${num(r.layers)||1} Ebene(n) · Verbrauch ${num(r.area)*(num(r.layers)||1)} cm² · Material ${euro(r.materialCost)}</small><small>Zeit: geschätzt ${num(r.estimatedTotalTime)||num(r.estimatedCutTime)+num(r.estimatedEngravingTime)} Min. · tatsächlich ${r.actualTotalTime==null?"unbekannt":num(r.actualTotalTime)+" Min."}</small><small>Preis: geschätzt ${euro(r.estimatedPrice)} · tatsächlich ${r.actualPrice==null?"unbekannt":euro(r.actualPrice)} · Selbstkosten ${euro(r.cost)} · Gewinn ${r.actualPrice==null?"unbekannt":euro(num(r.actualPrice)-num(r.cost))}</small><small>Lernstatus: ${r.reference===false?"ausgeschlossen":"aktiv"} · zählt nicht zu Umsatz oder Gewinn</small></div><div class="item-actions"><button data-edit-reference="${r.source}:${r.id}">Bearbeiten</button><button data-duplicate-reference="${r.source}:${r.id}">Duplizieren</button><button data-convert-reference="${r.source}:${r.id}">Als echtes Projekt übernehmen</button><button data-toggle-reference="${r.source}:${r.id}">${r.reference===false?"Für Lernsystem verwenden":"Vom Lernsystem ausschließen"}</button><button class="danger" data-delete-reference="${r.source}:${r.id}">Löschen</button></div></article>`).join(""):'<div class="empty-state">Noch keine Referenzprojekte oder Lerndaten gespeichert.</div>';
+  box.innerHTML=refs.length?refs.map(r=>`<article class="card reference-item">
+    ${r.image?`<img class="reference-thumb" src="${r.image}" alt="${esc(r.title||"Referenzprojekt")}">`:`<div class="reference-thumb reference-placeholder" aria-hidden="true">▣</div>`}
+    <div class="reference-card-body">
+      <h3>${esc(r.title||r.materialName||"Referenzdatensatz")}</h3>
+      <div class="reference-summary">
+        <div><span>Material</span><strong>${esc(r.materialName||"–")}</strong></div>
+        <div><span>Maschine</span><strong>${esc(r.machineName||"–")}</strong></div>
+        <div><span>Bearbeitung</span><strong>${processLabel(r.process)}</strong></div>
+        <div><span>Maße</span><strong>${num(r.width)} × ${num(r.height)} cm</strong></div>
+        <div><span>Geschätzt</span><strong>${euro(r.estimatedPrice)}</strong></div>
+        <div><span>Tatsächlich</span><strong>${r.actualPrice==null?"Unbekannt":euro(r.actualPrice)}</strong></div>
+      </div>
+      <div class="reference-learning-status ${r.reference===false?"is-excluded":""}">${r.reference===false?"Vom Lernen ausgeschlossen":"Lernstatus aktiv"}</div>
+      <div class="item-actions reference-card-actions"><button class="primary" data-view-reference="${r.source}:${r.id}">Ansehen</button><button data-edit-reference="${r.source}:${r.id}">Bearbeiten</button></div>
+    </div>
+    <div class="reference-secondary-actions hidden">
+      <button data-duplicate-reference="${r.source}:${r.id}">Duplizieren</button><button data-convert-reference="${r.source}:${r.id}">Als echtes Projekt übernehmen</button><button data-toggle-reference="${r.source}:${r.id}">${r.reference===false?"Für Lernsystem verwenden":"Vom Lernsystem ausschließen"}</button><button class="danger" data-delete-reference="${r.source}:${r.id}">Löschen</button>
+    </div>
+  </article>`).join(""):'<div class="empty-state">Noch keine Referenzprojekte oder Lerndaten gespeichert.</div>';
+  box.querySelectorAll('[data-view-reference]').forEach(b=>b.onclick=()=>viewReferenceProject(b.dataset.viewReference));
   box.querySelectorAll('[data-edit-reference]').forEach(b=>b.onclick=async()=>{
     const [source,id]=b.dataset.editReference.split(":");
     const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(!r)return;
@@ -66,6 +85,50 @@ export function renderReferenceProjects(){
   box.querySelectorAll('[data-duplicate-reference]').forEach(b=>b.onclick=()=>{const [source,id]=b.dataset.duplicateReference.split(":");const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(r)saveLearningRecord({...r,id:uid(),projectId:"",title:(r.title||"Referenz")+" – Kopie",created:new Date().toISOString()});renderReferenceProjects();});
   box.querySelectorAll('[data-toggle-reference]').forEach(b=>b.onclick=()=>{const [source,id]=b.dataset.toggleReference.split(":");const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(r){r.reference=r.reference===false;save();renderReferenceProjects();}});
   box.querySelectorAll('[data-convert-reference]').forEach(b=>b.onclick=async()=>{const [source,id]=b.dataset.convertReference.split(":");const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(!r)return;const result=await appForm({title:"Als echtes Projekt übernehmen",message:"Der tatsächliche Verkaufspreis wird für Umsatz und Gewinn verwendet.",fields:[{name:"title",label:"Projektname",value:r.title||"Projekt"},{name:"actualPrice",label:"Tatsächlicher Verkaufspreis (€)",value:r.actualPrice??"",inputmode:"decimal"}],acceptText:"Projekt anlegen",cancelText:"Abbrechen",validate:(v,parse)=>parse(v.actualPrice)<=0?"Bitte einen tatsächlichen Verkaufspreis größer als 0 eingeben.":""});if(!result)return;const now=new Date().toISOString(),price=num(result.actualPrice);state.projects.unshift({id:uid(),recordType:"project",isReference:false,reference:false,title:result.title.trim(),type:"Laser",module:"laser",machineId:r.machineId,machineName:r.machineName,status:"offer",estimatedPrice:r.estimatedPrice,actualPrice:price,sale:price,cost:num(r.cost),materialCost:r.materialCost,estimatedTotalTime:r.estimatedTotalTime,actualTotalTime:r.actualTotalTime,estimatedCutTime:r.estimatedCutTime,actualCutTime:r.actualCutTime,estimatedEngravingTime:r.estimatedEngravingTime,actualEngravingTime:r.actualEngravingTime,images:r.image?[r.image]:[],notes:r.notes||"",estimatorData:{...r},created:now,updated:now});save();await appAlert("Das echte Kundenprojekt wurde angelegt. Die Referenz bleibt erhalten.");});
+}
+
+function processLabel(value){return esc(({cut:"Schneiden",engrave:"Gravieren",both:"Beides"})[value]||value||"–");}
+function referenceRecord(key){
+  const [source,id]=key.split(":");
+  const record=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);
+  return record?{record,source,id}:null;
+}
+export function viewReferenceProject(key){
+  const found=referenceRecord(key),dialog=$("referenceViewDialog"),box=$("referenceProjectList");if(!found||!dialog||!box)return;
+  const r=found.record,totalArea=(num(r.area)||num(r.width)*num(r.height))*(num(r.layers)||1);
+  $("referenceViewTitle").textContent=r.title||r.materialName||"Referenzdatensatz";
+  $("referenceViewContent").innerHTML=`
+    ${r.image?`<img class="reference-detail-image" src="${r.image}" alt="${esc(r.title||"Referenzprojekt")}">`:""}
+    <div class="reference-detail-grid">
+      <div><span>Datum</span><strong>${new Date(r.created||Date.now()).toLocaleDateString("de-DE")}</strong></div>
+      <div><span>Material</span><strong>${esc(r.materialName||"–")}</strong></div>
+      <div><span>Maschine</span><strong>${esc(r.machineName||"–")}</strong></div>
+      <div><span>Bearbeitungsart</span><strong>${processLabel(r.process)}</strong></div>
+      <div><span>Breite × Höhe</span><strong>${num(r.width)} × ${num(r.height)} cm</strong></div>
+      <div><span>Ebenen</span><strong>${num(r.layers)||1}</strong></div>
+      <div><span>Materialverbrauch</span><strong>${num(totalArea).toLocaleString("de-DE")} cm²</strong></div>
+      <div><span>Materialkosten</span><strong>${euro(r.materialCost)}</strong></div>
+      <div><span>Geschätzte Zeit</span><strong>${num(r.estimatedTotalTime)||num(r.estimatedCutTime)+num(r.estimatedEngravingTime)} Min.</strong></div>
+      <div><span>Tatsächliche Zeit</span><strong>${r.actualTotalTime==null?"Unbekannt":num(r.actualTotalTime)+" Min."}</strong></div>
+      <div><span>Geschätzter Preis</span><strong>${euro(r.estimatedPrice)}</strong></div>
+      <div><span>Tatsächlicher Verkaufspreis</span><strong>${r.actualPrice==null?"Unbekannt":euro(r.actualPrice)}</strong></div>
+      <div><span>Selbstkosten</span><strong>${euro(r.cost)}</strong></div>
+      <div><span>Gewinn</span><strong>${r.actualPrice==null?"Unbekannt":euro(num(r.actualPrice)-num(r.cost))}</strong></div>
+      <div><span>Lernstatus</span><strong>${r.reference===false?"Ausgeschlossen":"Aktiv"}</strong></div>
+      <div><span>Für Lernsystem verwenden</span><strong>${r.reference===false?"Nein":"Ja"}</strong></div>
+    </div>
+    <div class="reference-notes"><span>Notizen</span><p>${esc(r.notes||"Keine Notizen vorhanden.")}</p></div>`;
+  const actions=$("referenceViewActions");
+  actions.innerHTML=`<button class="primary" data-detail-action="edit">Bearbeiten</button><button data-detail-action="duplicate">Duplizieren</button><button data-detail-action="convert">Als echtes Projekt übernehmen</button><button data-detail-action="toggle">${r.reference===false?"Für Lernsystem verwenden":"Vom Lernsystem ausschließen"}</button><button class="danger" data-detail-action="delete">Löschen</button><button data-detail-action="back">Zurück</button>`;
+  const run=action=>{
+    if(action==="back"){dialog.close();return}
+    dialog.close();
+    const selector={edit:"edit-reference",duplicate:"duplicate-reference",convert:"convert-reference",toggle:"toggle-reference",delete:"delete-reference"}[action];
+    box.querySelector(`[data-${selector}="${key}"]`)?.click();
+  };
+  actions.querySelectorAll("[data-detail-action]").forEach(button=>button.onclick=()=>run(button.dataset.detailAction));
+  $("referenceViewClose").onclick=()=>dialog.close();
+  dialog.showModal();
 }
 
 async function referenceForm(r){

@@ -7,22 +7,38 @@ import { renderTools, resetTool } from "./statistics.js";
 import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, getCalculatorProductSize } from "./calculator.js";
 import { appAlert, appPrompt } from "./dialogs.js";
 export function setScreen(id){
+  const current=document.querySelector(".screen.active")?.id;
+  if(current)sessionStorage.setItem(`dla-scroll-${current}`,String(window.scrollY));
   document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
-  document.querySelectorAll("[data-screen]").forEach(b=>b.classList.toggle("active",b.dataset.screen===id));
+  const learningScreens=["learning","references","experience","learningStats"];
+  document.querySelectorAll(".bottom-nav [data-screen]").forEach(b=>b.classList.toggle("active",b.dataset.screen===id||(b.dataset.screen==="learning"&&learningScreens.includes(id))));
   if(id==="materials") renderMaterials();
   if(id==="projects") renderProjects();
   if(id==="references") renderReferenceProjects();
   if(id==="experience") renderExperienceValues();
+  if(id==="learningStats") renderLearningStatistics();
   if(id==="settings") fillSettings();
   if(id==="tools") renderTools();
   if(id==="home") updateHome();
-  window.scrollTo({top:0,behavior:"smooth"});
+  const saved=Number(sessionStorage.getItem(`dla-scroll-${id}`)||0);
+  requestAnimationFrame(()=>window.scrollTo({top:saved,behavior:"auto"}));
 }
 document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>{
   if(b.dataset.screen==="calculator") startNewOrder(); else setScreen(b.dataset.screen);
 });
 document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>startNewOrder(b.dataset.open));
-document.querySelectorAll("[data-open-tool]").forEach(b=>b.onclick=()=>{setScreen("tools");setTimeout(async()=>{document.querySelector(`[data-tool="${b.dataset.openTool}"]`)?.click();await resetTool(b.dataset.openTool,false);if(b.dataset.openDetails==="calibration")document.querySelector("#motifCalc details")?.setAttribute("open","")},0)});
+document.querySelectorAll("[data-open-tool]").forEach(b=>b.onclick=()=>{setScreen("tools");setTimeout(async()=>{document.querySelector(`[data-tool="${b.dataset.openTool}"]`)?.click();await resetTool(b.dataset.openTool,false);if(b.dataset.openDetails==="calibration"){document.querySelector("#motifCalc details")?.setAttribute("open","");document.querySelector('.bottom-nav [data-screen="learning"]')?.classList.add("active");const panel=$("motifCalc");if(panel&&!panel.querySelector(".learning-back-button")){const back=document.createElement("button");back.type="button";back.className="ghost small learning-back-button";back.textContent="← Lernen";back.onclick=()=>setScreen("learning");panel.prepend(back)}}},0)});
+function renderLearningStatistics(){
+  const box=$("learningStatisticsContent");if(!box)return;
+  const records=state.learningRecords||[];
+  const timeRows=records.filter(r=>r.actualTotalTime!=null&&num(r.estimatedTotalTime)>0);
+  const priceRows=records.filter(r=>r.actualPrice!=null&&num(r.estimatedPrice)>0);
+  const avg=(rows,fn)=>rows.length?rows.reduce((sum,r)=>sum+fn(r),0)/rows.length:null;
+  const timeDeviation=avg(timeRows,r=>(num(r.actualTotalTime)-num(r.estimatedTotalTime))/num(r.estimatedTotalTime)*100);
+  const priceDeviation=avg(priceRows,r=>(num(r.actualPrice)-num(r.estimatedPrice))/num(r.estimatedPrice)*100);
+  const active=records.filter(r=>r.reference!==false).length;
+  box.innerHTML=`<div class="stats learning-stat-grid"><div class="card stat"><span>Erfahrungswerte</span><strong>${records.length}</strong></div><div class="card stat"><span>Aktiv im Lernsystem</span><strong>${active}</strong></div><div class="card stat"><span>Ø Zeitabweichung</span><strong>${timeDeviation==null?"–":timeDeviation.toLocaleString("de-DE",{maximumFractionDigits:1})+" %"}</strong></div><div class="card stat"><span>Ø Preisabweichung</span><strong>${priceDeviation==null?"–":priceDeviation.toLocaleString("de-DE",{maximumFractionDigits:1})+" %"}</strong></div></div><div class="card learning-progress-card"><h3>Lernfortschritt</h3><p>${records.length<3?"Noch wenige Vergleichswerte. Mit jedem gepflegten Ist-Wert werden die Schätzungen zuverlässiger.":records.length<10?"Gute Grundlage. Weitere tatsächliche Zeiten und Verkaufspreise verbessern die Trefferquote.":"Das Lernsystem verfügt über eine solide Datenbasis."}</p><div class="learning-progress"><i style="width:${Math.min(100,records.length*10)}%"></i></div></div>`;
+}
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.tab;save();renderCalculator()});
 
 function resetCalculator(module="3d"){
