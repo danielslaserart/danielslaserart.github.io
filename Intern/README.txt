@@ -1,3 +1,7 @@
+Daniels Laser Art Kalkulator V3.3.0
+
+Neu: Motiv-Schätzer mit Bildvorschau, automatischer Detailanalyse, X70-Pro-Referenzwert, Preisberechnung und lernender Zeitkalibrierung.
+
 Daniels Laser Art Kalkulator – Version 3.2.1
 
 Neu in V3.2.1:

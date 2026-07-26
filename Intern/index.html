@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=3.2.1">
-  <link rel="apple-touch-icon" href="icon-192.png?v=3.2.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3.2.1">
-  <link rel="stylesheet" href="style.css?v=3.2.1">
+  <link rel="manifest" href="manifest.json?v=3.3.0">
+  <link rel="apple-touch-icon" href="icon-192.png?v=3.3.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3.3.0">
+  <link rel="stylesheet" href="style.css?v=3.3.0">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,7 +45,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V3.2.1</span>
+      <span class="version-badge">V3.3.0</span>
     </div>
 
     <div class="dashboard-actions">
@@ -56,7 +56,8 @@
 
     <div class="section-head compact home-section-head dashboard-section"><div><div class="eyebrow">WERKZEUGE</div><h3>Schnell berechnen</h3></div></div>
     <div class="home-tool-grid">
-      <button class="home-tool-featured" data-open-tool="areaCalc" type="button"><span>📐</span><div><b>Flächenrechner</b><small>Materialbedarf aus Maßen berechnen</small></div></button>
+      <button class="home-tool-featured" data-open-tool="motifCalc" type="button"><span>🖼️</span><div><b>Motiv-Schätzer</b><small>Preis aus Bild, Größe und Bearbeitung schätzen</small></div></button>
+      <button data-open-tool="areaCalc" type="button"><span>📐</span><div><b>Flächenrechner</b><small>Materialbedarf aus Maßen berechnen</small></div></button>
       <button data-open-tool="priceCheck" type="button"><span>🎯</span><b>Zielpreis</b><small>Gewinn und Marge prüfen</small></button>
       <button data-open-tool="profitCalc" type="button"><span>↗</span><b>Gewinnrechner</b><small>Verkaufspreis berechnen</small></button>
       <button data-open-tool="discountCalc" type="button"><span>%</span><b>Rabattrechner</b><small>Ursprungspreis ermitteln</small></button>
@@ -191,6 +192,7 @@
       <button data-tool="discountCalc">Rabatt</button>
       <button data-tool="quickCalc">Schnell</button>
       <button data-tool="areaCalc">Fläche</button>
+      <button data-tool="motifCalc">Motiv</button>
     </div>
 
     <div id="priceCheck" class="tool-panel card active">
@@ -278,6 +280,72 @@
         <div class="main-row"><span>Verkaufspreis</span><strong id="qcSale">0,00 €</strong></div>
       </div>
     </div>
+
+    <div id="motifCalc" class="tool-panel card">
+      <h3>Motiv-Schätzer</h3>
+      <p class="tool-intro">Grobe Angebotsschätzung aus Bild, Größe und deinen echten X70-Pro-Erfahrungswerten. Referenz: 30 × 35 cm, 2 Ebenen, 500 mm/min, 35 Minuten Schnittzeit.</p>
+
+      <div class="motif-upload-grid">
+        <div class="motif-preview-box">
+          <img id="mcPreview" class="hidden" alt="Motivvorschau">
+          <div id="mcPreviewPlaceholder" class="motif-preview-placeholder"><span>🖼️</span><b>Noch kein Motiv</b><small>Bild aus Galerie oder Kamera auswählen</small></div>
+        </div>
+        <div class="motif-upload-actions">
+          <label class="file-button secondary">Galerie<input id="mcImageGallery" type="file" accept="image/*"></label>
+          <label class="file-button ghost">Kamera<input id="mcImageCamera" type="file" accept="image/*" capture="environment"></label>
+          <button id="mcRemoveImage" class="ghost small" type="button">Bild entfernen</button>
+          <small id="mcImageAnalysis" class="size-help">Das Bild hilft bei der automatischen Detail-Einschätzung. Die Berechnung bleibt eine grobe Vorab-Schätzung.</small>
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <label>Breite (cm)<input id="mcWidth" type="number" min="1" step="any" inputmode="decimal" value="30"></label>
+        <label>Höhe (cm)<input id="mcHeight" type="number" min="1" step="any" inputmode="decimal" value="35"></label>
+        <label>Ebenen / Platten<input id="mcLayers" type="number" min="1" max="10" step="1" inputmode="numeric" value="2"></label>
+        <label>Maschine<select id="mcMachine"></select></label>
+        <label>LightBurn-Geschwindigkeit (mm/min)<input id="mcSpeed" type="number" min="1" step="any" inputmode="decimal" value="500"></label>
+        <label>Detailgrad<select id="mcComplexity"><option value="auto">Automatisch aus Bild</option><option value="simple">Einfach</option><option value="medium">Mittel</option><option value="high" selected>Hoch</option><option value="veryHigh">Sehr hoch</option></select></label>
+      </div>
+
+      <div class="motif-options">
+        <label><input id="mcCut" type="checkbox" checked> Schneiden</label>
+        <label><input id="mcEngrave" type="checkbox"> Gravieren</label>
+        <label><input id="mcSand" type="checkbox" checked> Schleifen / Reinigen</label>
+        <label><input id="mcPaint" type="checkbox" checked> Lackieren / Beizen</label>
+        <label><input id="mcGlue" type="checkbox" checked> Verleimen / Ausrichten</label>
+      </div>
+
+      <div class="field-grid">
+        <label>Materialkosten gesamt (€)<input id="mcMaterialCost" type="number" min="0" step="any" inputmode="decimal" value="12"></label>
+        <label>Sonstige Kosten (€)<input id="mcExtraCost" type="number" min="0" step="any" inputmode="decimal" value="2"></label>
+        <label>Aktive Grundarbeit (Min.)<input id="mcBaseWork" type="number" min="0" step="any" inputmode="decimal" value="10"></label>
+        <label>Stundenlohn (€)<input id="mcHourly" type="number" min="0" step="any" inputmode="decimal"></label>
+        <label>Fehlerreserve (%)<input id="mcReserve" type="number" min="0" step="any" inputmode="decimal"></label>
+        <label>Gewinnaufschlag (%)<input id="mcProfit" type="number" min="0" step="any" inputmode="decimal"></label>
+      </div>
+
+      <div class="mini-results motif-results">
+        <div><span>Erkannter Detailgrad</span><strong id="mcDetected">Hoch</strong></div>
+        <div><span>Geschätzte Schnittzeit</span><strong id="mcCutTime">0 Min.</strong></div>
+        <div><span>Geschätzte Gravurzeit</span><strong id="mcEngraveTime">0 Min.</strong></div>
+        <div><span>Aktive Arbeitszeit</span><strong id="mcWorkTime">0 Min.</strong></div>
+        <div><span>Maschinenkosten</span><strong id="mcMachineCost">0,00 €</strong></div>
+        <div><span>Selbstkosten</span><strong id="mcTotalCost">0,00 €</strong></div>
+        <div class="main-row"><span>Empfohlener Preis</span><strong id="mcSalePrice">0,00 €</strong></div>
+        <div><span>Realistische Preisspanne</span><strong id="mcPriceRange">0,00–0,00 €</strong></div>
+      </div>
+
+      <details class="motif-calibration">
+        <summary>Schätzung mit echter Zeit verbessern</summary>
+        <p class="tool-intro">Nach dem Projekt trägst du die tatsächliche LightBurn-Zeit ein. Der Schätzer passt sich an deine Maschine und Arbeitsweise an.</p>
+        <div class="field-grid">
+          <label>Tatsächliche gesamte Maschinenzeit (Min.)<input id="mcActualTime" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 35"></label>
+          <div class="calibration-action"><button id="mcSaveCalibration" class="secondary wide" type="button">Als Erfahrungswert speichern</button></div>
+        </div>
+        <small id="mcCalibrationInfo" class="size-help"></small>
+      </details>
+    </div>
+
     <div id="areaCalc" class="tool-panel card">
       <h3>Flächenrechner</h3>
       <p class="tool-intro">Berechnet deinen Materialverbrauch aus Form, Maßen, Stückzahl und Verschnitt.</p>
@@ -546,6 +614,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=3.2.1"></script>
+<script src="app.js?v=3.3.0"></script>
 </body>
 </html>

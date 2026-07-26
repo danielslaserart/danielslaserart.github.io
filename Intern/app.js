@@ -11,7 +11,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "3.2.1";
+const APP_VERSION = "3.3.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -30,7 +30,7 @@ const defaults = {
     profit:30,hourly:0,machine3d:0.5,laserGravur:0.1,laserSchnitt:0.15,
     plotter:0.1,presse:0.15,reserve:5,packaging:0,rounding:0.1
   },
-  materials:[],projects:[],templates:[],activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
+  materials:[],projects:[],templates:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[
     {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
     {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,active:true},
@@ -76,6 +76,7 @@ let state = load();
 state.templates=Array.isArray(state.templates)?state.templates:[];
 state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
 state.timer={...defaults.timer,...(state.timer||{})};
+state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
 
 function load(){
   try{
@@ -152,6 +153,7 @@ async function loadCloudState(){
     state.templates=Array.isArray(state.templates)?state.templates:[];
     state.projects=(state.projects||[]).map(p=>({...p,pinned:Boolean(p.pinned),status:["open","progress","payment","done"].includes(p.status)?p.status:"open",tags:Array.isArray(p.tags)?p.tags:(p.tags?String(p.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),images:Array.isArray(p.images)?p.images:(p.image?[p.image]:[]),priceHistory:Array.isArray(p.priceHistory)?p.priceHistory:[],workSeconds:num(p.workSeconds)}));
     state.timer={...defaults.timer,...(state.timer||{})};
+    state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
     state.materials=(state.materials||[]).map(m=>({
       ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
       consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
@@ -914,6 +916,7 @@ function renderTools(){
   calculateQuickTool();
   renderAreaMaterials();
   calculateAreaTool();
+  renderMotifEstimator();
 }
 document.querySelectorAll("[data-tool]").forEach(btn=>btn.onclick=()=>{
   document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b===btn));
@@ -1290,7 +1293,75 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("installBtn").classList.remove("hidden")});
 $("installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("installBtn").classList.add("hidden")};
 
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.2.1").catch(()=>{}));
+
+
+// V3.3.0 – Motiv-Schätzer
+let motifImageDetail = null;
+function motifComplexityLabel(key){return ({simple:"Einfach",medium:"Mittel",high:"Hoch",veryHigh:"Sehr hoch"})[key]||"Hoch"}
+function motifComplexityFactor(key){return ({simple:.55,medium:.78,high:1,veryHigh:1.25})[key]||1}
+function renderMotifEstimator(){
+  if(!$('mcMachine'))return;
+  const old=$('mcMachine').value;
+  const machines=(state.machines||[]).filter(m=>m.type==='laser'&&m.active!==false);
+  $('mcMachine').innerHTML=machines.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
+  $('mcMachine').value=machines.some(m=>m.id===old)?old:(machines.find(m=>m.id==='atomstack-x70')?.id||machines[0]?.id||'');
+  if(!$('mcHourly').dataset.ready){$('mcHourly').value=state.settings.hourly;$('mcReserve').value=state.settings.reserve;$('mcProfit').value=state.settings.profit;$('mcHourly').dataset.ready='1';}
+  const info=$('mcCalibrationInfo');if(info)info.textContent=`Kalibrierung: ${num(state.motifEstimator?.samples)} Erfahrungswert(e), Korrekturfaktor ${num(state.motifEstimator?.calibrationFactor||1).toLocaleString('de-DE',{maximumFractionDigits:2})}.`;
+  calculateMotifEstimator();
+}
+function analyzeMotifImage(file){
+  if(!file)return;
+  const reader=new FileReader();reader.onload=()=>{
+    $('mcPreview').src=reader.result;$('mcPreview').classList.remove('hidden');$('mcPreviewPlaceholder').classList.add('hidden');
+    const img=new Image();img.onload=()=>{
+      const canvas=document.createElement('canvas'),size=160;canvas.width=size;canvas.height=size;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,size,size);
+      const data=ctx.getImageData(0,0,size,size).data;let edges=0,total=0;
+      const gray=(x,y)=>{const i=(y*size+x)*4;return data[i]*.299+data[i+1]*.587+data[i+2]*.114};
+      for(let y=1;y<size-1;y+=2)for(let x=1;x<size-1;x+=2){const d=Math.abs(gray(x+1,y)-gray(x-1,y))+Math.abs(gray(x,y+1)-gray(x,y-1));if(d>70)edges++;total++;}
+      const density=total?edges/total:0;
+      motifImageDetail=density<.08?'simple':density<.15?'medium':density<.25?'high':'veryHigh';
+      state.motifEstimator.lastDetected=motifImageDetail;
+      $('mcImageAnalysis').textContent=`Bildanalyse: ${motifComplexityLabel(motifImageDetail)} (${Math.round(density*100)} % Kantendichte). Du kannst den Detailgrad jederzeit manuell ändern.`;
+      calculateMotifEstimator();
+    };img.src=reader.result;
+  };reader.readAsDataURL(file);
+}
+function calculateMotifEstimator(){
+  if(!$('mcWidth'))return;
+  const width=Math.max(1,num($('mcWidth').value)),height=Math.max(1,num($('mcHeight').value)),layers=Math.max(1,num($('mcLayers').value));
+  const speed=Math.max(1,num($('mcSpeed').value));
+  let complexity=$('mcComplexity').value;if(complexity==='auto')complexity=motifImageDetail||state.motifEstimator?.lastDetected||'high';
+  const area=width*height,cal=Math.max(.35,Math.min(3,num(state.motifEstimator?.calibrationFactor)||1));
+  // Kalibriert auf Daniels Referenz: 30×35 cm, 2 Ebenen, hoher Detailgrad, 500 mm/min = 35 min.
+  const theoreticalCut=35*Math.pow(area/1050,.75)*(layers/2)*(500/speed)*motifComplexityFactor(complexity);
+  const cutMinutes=$('mcCut').checked?theoreticalCut*cal:0;
+  const engraveMinutes=$('mcEngrave').checked?(area*.055*motifComplexityFactor(complexity)*cal):0;
+  let work=num($('mcBaseWork').value);
+  if($('mcSand').checked)work+=8+area/180;
+  if($('mcPaint').checked)work+=10+area/150;
+  if($('mcGlue').checked&&layers>1)work+=8+(layers-1)*5+area/220;
+  const machine=(state.machines||[]).find(m=>m.id===$('mcMachine').value);
+  const machineCost=cutMinutes*num(machine?.cutRate||state.settings.laserSchnitt)+engraveMinutes*num(machine?.engraveRate||state.settings.laserGravur);
+  const material=num($('mcMaterialCost').value),extra=num($('mcExtraCost').value),workCost=work/60*num($('mcHourly').value);
+  const base=material+extra+machineCost+workCost,reserve=base*num($('mcReserve').value)/100,cost=base+reserve;
+  const sale=rounded(cost*(1+num($('mcProfit').value)/100));
+  const low=rounded(sale*.9),high=rounded(sale*1.1);
+  $('mcDetected').textContent=motifComplexityLabel(complexity);
+  $('mcCutTime').textContent=`${Math.round(cutMinutes)} Min.`;$('mcEngraveTime').textContent=`${Math.round(engraveMinutes)} Min.`;$('mcWorkTime').textContent=`${Math.round(work)} Min.`;
+  $('mcMachineCost').textContent=euro(machineCost);$('mcTotalCost').textContent=euro(cost);$('mcSalePrice').textContent=euro(sale);$('mcPriceRange').textContent=`${euro(low)} – ${euro(high)}`;
+  $('motifCalc').dataset.predictedMachineMinutes=String(cutMinutes+engraveMinutes);
+}
+['mcWidth','mcHeight','mcLayers','mcSpeed','mcComplexity','mcCut','mcEngrave','mcSand','mcPaint','mcGlue','mcMaterialCost','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit','mcMachine'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
+['mcImageGallery','mcImageCamera'].forEach(id=>{const el=$(id);if(el)el.onchange=e=>analyzeMotifImage(e.target.files?.[0])});
+if($('mcRemoveImage'))$('mcRemoveImage').onclick=()=>{motifImageDetail=null;$('mcPreview').removeAttribute('src');$('mcPreview').classList.add('hidden');$('mcPreviewPlaceholder').classList.remove('hidden');$('mcImageAnalysis').textContent='Das Bild hilft bei der automatischen Detail-Einschätzung. Die Berechnung bleibt eine grobe Vorab-Schätzung.';calculateMotifEstimator()};
+if($('mcSaveCalibration'))$('mcSaveCalibration').onclick=()=>{
+  const actual=num($('mcActualTime').value),pred=num($('motifCalc').dataset.predictedMachineMinutes);if(actual<=0||pred<=0){alert('Bitte eine tatsächliche Zeit eingeben und Schneiden oder Gravieren aktivieren.');return}
+  const ratio=Math.max(.35,Math.min(3,actual/pred)),samples=num(state.motifEstimator?.samples),old=num(state.motifEstimator?.calibrationFactor)||1;
+  state.motifEstimator={...state.motifEstimator,calibrationFactor:(old*samples+ratio)/(samples+1),samples:samples+1};save();$('mcActualTime').value='';renderMotifEstimator();alert('Erfahrungswert gespeichert. Die nächsten Schätzungen wurden angepasst.');
+};
+
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3.3.0").catch(()=>{}));
 
 
 async function initializeAuth(){
