@@ -1,6 +1,16 @@
-Daniels Laser Art Kalkulator V4.11.0
+Daniels Laser Art Kalkulator V4.11.1
 
 CHANGELOG 4.x
+
+4.11.1 – Lernbereich und Referenzprojekt-Details
+- Lernen als eigener Hauptbereich in die untere Navigation aufgenommen und vollständig von den Systemeinstellungen getrennt.
+- Neue hochwertige Lern-Kacheln für Referenzprojekte, Erfahrungswerte, Lernstatistik und Kalibrierung.
+- Referenzprojekt-Karten mobil neu aufgebaut: Bild oben, kompakte Kerndaten und klare Aktionen ohne Überlauf.
+- Neuer, deutlich hervorgehobener Ansehen-Button vor Bearbeiten.
+- Vollständige Referenzprojekt-Detailansicht mit Bild, Kalkulations-, Ist-, Kosten-, Gewinn- und Lernwerten.
+- Detailaktionen: Bearbeiten, Duplizieren, als echtes Projekt übernehmen, Lernstatus ändern und Löschen.
+- Klare Zurück-Navigation, korrekter aktiver Lern-Navigationspunkt und Erhalt der Listen-Scrollposition.
+- Eigene Lernstatistik mit Zeit-/Preisabweichung und Lernfortschritt.
 
 4.11.0 – Bedienung, Referenzen und Erfahrungswerte
 - Materialkosten werden direkt unter dem Materialverbrauch angezeigt und verwenden exakt denselben Wert wie die Selbstkosten.
@@ -90,4 +100,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.11.0
+https://danielslaserart.de/Intern/?v=4.11.1

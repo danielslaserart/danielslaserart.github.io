@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.11.0">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.11.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.11.0">
-  <link rel="stylesheet" href="style.css?v=4.11.0">
+  <link rel="manifest" href="manifest.json?v=4.11.1">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.11.1">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.11.1">
+  <link rel="stylesheet" href="style.css?v=4.11.1">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,7 +45,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.11.0</span>
+      <span class="version-badge">V4.11.1</span>
     </div>
 
     <div class="dashboard-actions">
@@ -467,13 +467,13 @@
   </section>
 
   <section id="references" class="screen">
-    <div class="section-head"><div><div class="eyebrow">LERNSYSTEM</div><h2>Referenzprojekte</h2></div></div>
+    <div class="section-head"><div><div class="eyebrow">LERNSYSTEM</div><h2>Referenzprojekte</h2></div><button type="button" class="ghost small" data-screen="learning">← Lernen</button></div>
     <p class="tool-intro">Referenzen sind vollständig von Kundenprojekten getrennt und zählen niemals als Umsatz oder Gewinn.</p>
     <div id="referenceProjectList" class="stack reference-list"></div>
   </section>
 
   <section id="experience" class="screen">
-    <div class="section-head"><div><div class="eyebrow">LERNSYSTEM</div><h2>Erfahrungswerte</h2></div></div>
+    <div class="section-head"><div><div class="eyebrow">LERNSYSTEM</div><h2>Erfahrungswerte</h2></div><button type="button" class="ghost small" data-screen="learning">← Lernen</button></div>
     <div class="stats project-stats">
       <div class="card stat"><span>Gespeicherte Erfahrungswerte</span><strong id="experienceCount">0</strong></div>
       <div class="card stat"><span>Ø Zeitabweichung</span><strong id="experienceTimeDeviation">–</strong></div>
@@ -489,6 +489,22 @@
       <select id="experienceSort"><option value="dateDesc">Neueste zuerst</option><option value="dateAsc">Älteste zuerst</option><option value="name">Projektname</option><option value="timeDeviation">Größte Zeitabweichung</option><option value="priceDeviation">Größte Preisabweichung</option></select>
     </div>
     <div id="experienceList" class="stack"></div>
+  </section>
+
+  <section id="learning" class="screen">
+    <div class="section-head"><div><div class="eyebrow">WISSEN AUS ECHTEN PROJEKTEN</div><h2>Lernen</h2></div></div>
+    <p class="tool-intro">Referenzen, Ist-Werte und Kalibrierung an einem Ort. Kundendaten und Umsätze bleiben davon getrennt.</p>
+    <div class="learning-tile-grid">
+      <button type="button" class="learning-tile" data-screen="references"><span>▣</span><div><b>Referenzprojekte</b><small>Gespeicherte Vergleichsprojekte ansehen und bearbeiten.</small></div><i>›</i></button>
+      <button type="button" class="learning-tile" data-screen="experience"><span>◷</span><div><b>Erfahrungswerte</b><small>Gespeicherte Ist-Zeiten und echte Verkaufspreise verwalten.</small></div><i>›</i></button>
+      <button type="button" class="learning-tile" data-screen="learningStats"><span>⌁</span><div><b>Lernstatistik</b><small>Abweichungen, Trefferquote und Lernfortschritt ansehen.</small></div><i>›</i></button>
+      <button type="button" class="learning-tile" data-open-tool="motifCalc" data-open-details="calibration"><span>⚙</span><div><b>Kalibrierung</b><small>Schätzfaktoren für Maschinen und Materialien anpassen.</small></div><i>›</i></button>
+    </div>
+  </section>
+
+  <section id="learningStats" class="screen">
+    <div class="section-head"><div><div class="eyebrow">LERNSYSTEM</div><h2>Lernstatistik</h2></div><button type="button" class="ghost small" data-screen="learning">← Lernen</button></div>
+    <div id="learningStatisticsContent" class="learning-statistics"></div>
   </section>
 
   <section id="settings" class="screen">
@@ -525,17 +541,6 @@
       <p class="tool-intro">Hier speicherst du Kosten und Standardgeschwindigkeiten jeder Maschine. Der Motiv-Schätzer übernimmt diese Werte automatisch.</p>
       <div id="machineList" class="machine-list"></div>
     </div>
-    <div class="card system-navigation">
-      <h3>System & Lernsystem</h3>
-      <div class="button-row system-link-grid">
-        <button type="button" data-screen="projects">Kundenprojekte</button>
-        <button type="button" data-screen="references">Referenzprojekte</button>
-        <button type="button" data-screen="experience">Erfahrungswerte</button>
-        <button type="button" data-open-tool="motifCalc" data-open-details="calibration">Kalibrierung</button>
-        <button type="button" data-screen="experience">Lernstatistik</button>
-      </div>
-    </div>
-
     <div class="card cloud-card">
       <h3>☁ Cloud-Speicherung</h3>
       <p>Materialien, Einstellungen und Projekte werden nach jeder Änderung automatisch in deinem Supabase-Konto gespeichert.</p>
@@ -560,6 +565,13 @@
     <div class="dialog-actions"><button id="appDialogCancel" type="button" class="ghost">Abbrechen</button><button id="appDialogAccept" type="button" class="primary">OK</button></div>
   </form>
 </dialog>
+<dialog id="referenceViewDialog" class="app-dialog reference-view-dialog">
+  <div class="dialog-card">
+    <div class="section-head reference-detail-head"><div><div class="eyebrow">REFERENZPROJEKT</div><h2 id="referenceViewTitle">Details</h2></div><button type="button" class="icon-btn" id="referenceViewClose" aria-label="Schließen">×</button></div>
+    <div id="referenceViewContent"></div>
+    <div id="referenceViewActions" class="reference-detail-actions"></div>
+  </div>
+</dialog>
 <section id="offerPrint" class="offer-print" aria-hidden="true"></section>
 
 <nav class="bottom-nav">
@@ -567,6 +579,7 @@
   <button data-screen="calculator"><span>€</span><small>Rechner</small></button>
   <button data-screen="projects" class="nav-projects"><span>☷</span><small>Projekte</small></button>
   <button data-screen="materials"><span>▦</span><small>Material</small></button>
+  <button data-screen="learning" class="nav-learning"><span>◇</span><small>Lernen</small></button>
   <button data-screen="settings"><span>⚙</span><small>System</small></button>
 </nav>
 
@@ -705,6 +718,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="js/app.js?v=4.11.0"></script>
+<script type="module" src="js/app.js?v=4.11.1"></script>
 </body>
 </html>
