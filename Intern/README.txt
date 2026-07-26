@@ -1,6 +1,17 @@
-Daniels Laser Art Kalkulator V4.10.0
+Daniels Laser Art Kalkulator V4.10.1
 
 CHANGELOG 4.x
+
+4.10.1 – Referenzdaten und Kundenprojekte getrennt
+- Eindeutige Datentypen: recordType "project" und "reference".
+- Schätzungen werden nicht mehr automatisch als Kundenprojekt gespeichert.
+- Getrennte Aktionen „Als Referenz speichern“ und „Als Projekt übernehmen“.
+- Bei der Projektübernahme ist der tatsächlich vereinbarte Verkaufspreis Pflicht.
+- estimatedPrice und actualPrice werden getrennt gespeichert.
+- Referenzdaten zählen nicht zu Umsatz, Gewinn, Projektanzahl, offenen oder letzten Projekten.
+- Preislernen verwendet ausschließlich actualPrice; reine Schätzpreise werden ignoriert.
+- Zeitlernen verwendet ausschließlich vorhandene Ist-Zeiten.
+- Migration: Eindeutig vom alten Assistenten erzeugte Einträge werden als Referenz markiert. Unklare Altdaten bleiben zur Sicherheit echte Projekte. Keine Daten werden automatisch gelöscht.
 
 4.0.1 – Angebotsassistent
 - Gewinn in Euro und Prozent
@@ -67,4 +78,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.10.0
+https://danielslaserart.de/Intern/?v=4.10.1

@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.10.0">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.10.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.10.0">
-  <link rel="stylesheet" href="style.css?v=4.10.0">
+  <link rel="manifest" href="manifest.json?v=4.10.1">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.10.1">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.10.1">
+  <link rel="stylesheet" href="style.css?v=4.10.1">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,7 +45,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.10.0</span>
+      <span class="version-badge">V4.10.1</span>
     </div>
 
     <div class="dashboard-actions">
@@ -357,7 +357,9 @@
       <div id="mcLearningHint" class="learning-hint">Noch keine ähnlichen Referenzprojekte vorhanden.</div>
       <div class="estimator-actions">
         <button id="mcTransferToCalculator" class="secondary wide" type="button">In Preisrechner übernehmen</button>
-        <button id="mcSaveProject" class="primary wide" type="button">Kalkulation als Projekt speichern</button>
+        <button id="mcSaveReference" class="secondary wide" type="button">Als Referenz speichern</button>
+        <label>Tatsächlich vereinbarter Verkaufspreis (€)<input id="mcActualSalePrice" type="number" min="0" step="any" inputmode="decimal" placeholder="vor Projektübernahme eintragen"></label>
+        <button id="mcSaveProject" class="primary wide" type="button">Als Projekt übernehmen</button>
       </div>
 
       <details class="motif-calibration">
@@ -365,6 +367,8 @@
         <p class="tool-intro">Nach dem Projekt trägst du die tatsächliche LightBurn-Zeit ein. Der Schätzer passt sich an deine Maschine und Arbeitsweise an.</p>
         <div class="field-grid">
           <label>Tatsächliche gesamte Maschinenzeit (Min.)<input id="mcActualTime" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 35"></label>
+          <label>Tatsächliche Schnittzeit (Min.)<input id="mcActualCutTime" type="number" min="0" step="any" inputmode="decimal" placeholder="optional"></label>
+          <label>Tatsächliche Gravurzeit (Min.)<input id="mcActualEngravingTime" type="number" min="0" step="any" inputmode="decimal" placeholder="optional"></label>
           <div class="calibration-action"><button id="mcSaveCalibration" class="secondary wide" type="button">Als Erfahrungswert speichern</button></div>
         </div>
         <small id="mcCalibrationInfo" class="size-help"></small>
@@ -658,6 +662,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="js/app.js?v=4.10.0"></script>
+<script type="module" src="js/app.js?v=4.10.1"></script>
 </body>
 </html>
