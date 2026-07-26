@@ -1,15 +1,18 @@
 import { $, num, euro, uid, esc } from "./utils.js";
 import { state, save, defaults, getRealProjects } from "./storage.js";
 import { renderMaterials } from "./materials.js";
-import { renderProjects, viewProject } from "./projects.js";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js";
 import { fillSettings } from "./settings.js";
-import { renderTools } from "./statistics.js";
+import { renderTools, resetTool } from "./statistics.js";
 import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, getCalculatorProductSize } from "./calculator.js";
+import { appAlert, appPrompt } from "./dialogs.js";
 export function setScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
   document.querySelectorAll("[data-screen]").forEach(b=>b.classList.toggle("active",b.dataset.screen===id));
   if(id==="materials") renderMaterials();
   if(id==="projects") renderProjects();
+  if(id==="references") renderReferenceProjects();
+  if(id==="experience") renderExperienceValues();
   if(id==="settings") fillSettings();
   if(id==="tools") renderTools();
   if(id==="home") updateHome();
@@ -19,7 +22,7 @@ document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>{
   if(b.dataset.screen==="calculator") startNewOrder(); else setScreen(b.dataset.screen);
 });
 document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>startNewOrder(b.dataset.open));
-document.querySelectorAll("[data-open-tool]").forEach(b=>b.onclick=()=>{setScreen("tools");setTimeout(()=>document.querySelector(`[data-tool="${b.dataset.openTool}"]`)?.click(),0)});
+document.querySelectorAll("[data-open-tool]").forEach(b=>b.onclick=()=>{setScreen("tools");setTimeout(async()=>{document.querySelector(`[data-tool="${b.dataset.openTool}"]`)?.click();await resetTool(b.dataset.openTool,false);if(b.dataset.openDetails==="calibration")document.querySelector("#motifCalc details")?.setAttribute("open","")},0)});
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.tab;save();renderCalculator()});
 
 function resetCalculator(module="3d"){
@@ -66,12 +69,12 @@ export function startNewOrder(module="3d"){
   save();
   setScreen("calculator");
 }
-export function createTemplateFromProject(id){
+export async function createTemplateFromProject(id){
   const p=getRealProjects().find(x=>x.id===id);if(!p)return;
-  const name=prompt("Name der Vorlage:",p.title);if(!name)return;
+  const name=await appPrompt("Name der Vorlage:",p.title,"Vorlage speichern");if(!name)return;
   state.templates=state.templates||[];
   state.templates.unshift({id:uid(),name:name.trim(),module:p.module,type:p.type,machineId:p.machineId,productSize:p.productSize,consumables:structuredClone(p.consumables||[]),fields:structuredClone(p.fields||{}),notes:p.notes||"",created:new Date().toISOString()});
-  save();updateHome();alert("Vorlage gespeichert.");
+  save();updateHome();appAlert("Vorlage gespeichert.");
 }
 function useTemplate(id){
   const t=(state.templates||[]).find(x=>x.id===id);if(!t)return;

@@ -27,8 +27,12 @@ export function estimatorSnapshot(values={}){
     actualEngravingTime:values.actualEngravingTime==null?null:num(values.actualEngravingTime),
     cutMinutes:num(values.estimatedCutTime??values.cutMinutes),
     engraveMinutes:num(values.estimatedEngravingTime??values.engraveMinutes),
-    actualMinutes:num(values.actualMinutes),
+    estimatedTotalTime:num(values.estimatedTotalTime)||(num(values.estimatedCutTime??values.cutMinutes)+num(values.estimatedEngravingTime??values.engraveMinutes)),
+    actualTotalTime:values.actualTotalTime==null||values.actualTotalTime===""?null:num(values.actualTotalTime),
+    actualMinutes:values.actualTotalTime==null&&values.actualMinutes==null?null:num(values.actualTotalTime??values.actualMinutes),
     estimatedPrice,actualPrice,
+    materialCost:values.materialCost==null?null:num(values.materialCost),
+    notes:values.notes||"",image:values.image||"",
     sale:actualPrice??0,cost,profit:actualPrice==null?null:actualPrice-cost,
     recordType:"reference",isReference:true,
     reference:values.reference!==false

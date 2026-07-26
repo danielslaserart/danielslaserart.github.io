@@ -1,6 +1,7 @@
 import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, categoryOptions, compressProjectImage } from "./utils.js";
 import { state, save } from "./storage.js";
 import { calculate } from "./calculator.js";
+import { appAlert, appConfirm, appForm } from "./dialogs.js";
 const dialog=$("materialDialog");
 $("newMaterialBtn").onclick=()=>openMaterial();
 $("closeMaterialBtn").onclick=()=>dialog.close();
@@ -46,7 +47,7 @@ function toggleMaterialAreaBox(){$("materialAreaDimensions").classList.toggle("h
 function renderMaterialImagePreview(){const box=$("materialImagePreview");box.classList.toggle("hidden",!materialImageData);box.innerHTML=materialImageData?`<img src="${materialImageData}" alt="Materialbild"><button id="removeMaterialImageBtn" type="button">×</button>`:"";if(materialImageData)$("removeMaterialImageBtn").onclick=()=>{materialImageData="";renderMaterialImagePreview()}}
 function dimensionToCm(v,u){return num(v)*(u==="mm"?.1:u==="m"?100:1)}
 function updateMaterialAreaHint(){const area=dimensionToCm($("materialWidth").value,$("materialDimensionUnit").value)*dimensionToCm($("materialHeight").value,$("materialDimensionUnit").value)*Math.max(1,num($("materialSheetCount").value));$("materialAreaHint").textContent=area?`Gesamtfläche: ${area.toLocaleString("de-DE",{maximumFractionDigits:2})} cm² = ${(area/10000).toLocaleString("de-DE",{maximumFractionDigits:4})} m²`:""}
-function calculateMaterialPurchasedArea(){const area=dimensionToCm($("materialWidth").value,$("materialDimensionUnit").value)*dimensionToCm($("materialHeight").value,$("materialDimensionUnit").value)*Math.max(1,num($("materialSheetCount").value));if(!area){alert("Bitte Breite und Höhe eingeben.");return}$("materialUnit").value=$("materialUnit").value==="m²"?"m²":"cm²";$("materialQuantity").value=$("materialUnit").value==="m²"?Number((area/10000).toFixed(6)):Number(area.toFixed(2));previewUnit();updateMaterialAreaHint()}
+function calculateMaterialPurchasedArea(){const area=dimensionToCm($("materialWidth").value,$("materialDimensionUnit").value)*dimensionToCm($("materialHeight").value,$("materialDimensionUnit").value)*Math.max(1,num($("materialSheetCount").value));if(!area){appAlert("Bitte Breite und Höhe eingeben.");return}$("materialUnit").value=$("materialUnit").value==="m²"?"m²":"cm²";$("materialQuantity").value=$("materialUnit").value==="m²"?Number((area/10000).toFixed(6)):Number(area.toFixed(2));previewUnit();updateMaterialAreaHint()}
 function updateWorkshopUnitSentence(){
   const workshopName=$("materialWorkshopUnit")?.value.trim()||"Werkstatt-Einheit";
   const purchaseUnit=$("materialUnit")?.value||"Einheit";
@@ -139,10 +140,10 @@ export function materialSelections(area=null,role="main"){
     if((m.variants||[]).length)m.variants.forEach(v=>out.push(resolveMaterialSelection(selectionKey(m.id,v.id))));else out.push(m);
   });return out.filter(Boolean).sort((a,b)=>(b.favorite-a.favorite)||(b.baseMaterial?.favorite-a.baseMaterial?.favorite)||a.name.localeCompare(b.name,"de"));
 }
-function adjustStock(materialId,variantId=""){
+async function adjustStock(materialId,variantId=""){
   const m=state.materials.find(x=>x.id===materialId);if(!m)return;const target=variantId?(m.variants||[]).find(v=>v.id===variantId):m;if(!target)return;
-  const raw=prompt(`Bestand ändern: ${m.name}${variantId?" – "+target.name:""}\nPositive Zahl = Zugang, negative Zahl = Abgang`,"-1");if(raw===null)return;const change=num(raw);if(!change)return;
-  const reason=prompt("Grund (z. B. Ausschuss, Privat verschenkt, Wareneingang, Inventur)",change>0?"Wareneingang":"Ausschuss")||"Manuelle Korrektur";
+  const entry=await appForm({title:"Bestand ändern",message:`${m.name}${variantId?" – "+target.name:""}`,fields:[{name:"change",label:"Änderung (positiv = Zugang, negativ = Abgang)",value:"-1",inputmode:"decimal"},{name:"reason",label:"Grund",value:"Ausschuss"}],cancelText:"Abbrechen",acceptText:"Übernehmen",validate:(v,parse)=>!parse(v.change)?"Bitte eine Änderung ungleich 0 eingeben.":""});if(!entry)return;const change=num(entry.change);if(!change)return;
+  const reason=entry.reason||"Manuelle Korrektur";
   target.trackStock=true;target.stock=num(target.stock)+change;target.stockHistory=Array.isArray(target.stockHistory)?target.stockHistory:[];target.stockHistory.unshift({date:new Date().toISOString(),change,reason});save();renderMaterials();
 }
 function toggleFavorite(materialId,variantId=""){
@@ -194,11 +195,11 @@ $("materialForm").onsubmit=e=>{
   e.preventDefault();
   const name=$("materialName").value.trim(),price=num($("materialPrice").value),quantity=num($("materialQuantity").value);
   const hasVariants=editingMaterialVariants.some(v=>v.name.trim());
-  if(!name){alert("Bitte einen Materialnamen eingeben.");return}
-  if(!hasVariants&&quantity<=0){alert("Bitte eine gültige gekaufte Menge eingeben.");return}
+  if(!name){appAlert("Bitte einen Materialnamen eingeben.");return}
+  if(!hasVariants&&quantity<=0){appAlert("Bitte eine gültige gekaufte Menge eingeben.");return}
   if(hasVariants){
     const invalid=editingMaterialVariants.filter(v=>v.name.trim()).some(v=>num(v.quantity)<=0);
-    if(invalid){alert("Bitte bei jeder Variante eine gültige gekaufte Menge eingeben.");return}
+    if(invalid){appAlert("Bitte bei jeder Variante eine gültige gekaufte Menge eingeben.");return}
   }
   const modules=[...document.querySelectorAll("[data-consumable-module]:checked")].map(cb=>cb.value);
   const item={
@@ -243,7 +244,7 @@ export function renderMaterials(){
         </article>`).join("")}</div>
     </details>`).join(""):`<div class="empty-state">Keine passenden Materialien gefunden.</div>`;
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openMaterial(state.materials.find(m=>m.id===b.dataset.edit)));
-  document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{if(confirm("Material wirklich löschen?")){state.materials=state.materials.filter(m=>m.id!==b.dataset.delete);save();renderMaterials()}});
+  document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=async()=>{if(await appConfirm("Material wirklich löschen?","Material löschen","Löschen")){state.materials=state.materials.filter(m=>m.id!==b.dataset.delete);save();renderMaterials()}});
   document.querySelectorAll("[data-favorite-material]").forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.favoriteMaterial));
   document.querySelectorAll("[data-favorite-variant]").forEach(b=>b.onclick=()=>{const [m,v]=b.dataset.favoriteVariant.split("::");toggleFavorite(m,v)});
   document.querySelectorAll("[data-stock-material]").forEach(b=>b.onclick=()=>adjustStock(b.dataset.stockMaterial));

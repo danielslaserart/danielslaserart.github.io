@@ -4,6 +4,8 @@ import { materialSelections, resolveMaterialSelection } from "./materials.js";
 import { rounded, renderCalculator, calculate } from "./calculator.js";
 import { setScreen } from "./ui.js";
 import { renderMotifEstimator } from "./estimator.js";
+import { resetMotifEstimator } from "./estimator.js";
+import { appAlert, appConfirm } from "./dialogs.js";
 function allMaterialOptions(){
   return `<option value="">Kein Material</option>`+
     materialSelections(null,"main")
@@ -27,6 +29,20 @@ export function renderTools(){
   renderAreaMaterials();
   calculateAreaTool();
   renderMotifEstimator();
+  document.querySelectorAll(".tool-panel").forEach(panel=>{
+    if(panel.querySelector(".tool-reset-button"))return;
+    const button=document.createElement("button");button.type="button";button.className="ghost small tool-reset-button";button.textContent="Neue Kalkulation";
+    button.onclick=()=>resetTool(panel.id,true);panel.insertBefore(button,panel.firstElementChild?.nextSibling||null);
+  });
+}
+export async function resetTool(id,confirmFirst=false){
+  if(confirmFirst&&!await appConfirm("Neue Kalkulation starten?\nAlle nicht gespeicherten Eingaben werden gelöscht.","Neue Kalkulation","Neue Kalkulation"))return false;
+  if(id==="motifCalc")return resetMotifEstimator(false);
+  const panel=$(id);if(!panel)return false;
+  panel.querySelectorAll("input").forEach(input=>{if(input.type==="checkbox"||input.type==="radio")input.checked=input.defaultChecked;else input.value=""});
+  panel.querySelectorAll("select").forEach(select=>select.selectedIndex=0);
+  if(id==="priceCheck")calculatePriceCheck();if(id==="profitCalc")calculateProfitTool();if(id==="discountCalc")calculateDiscountTool();if(id==="quickCalc")calculateQuickTool();if(id==="areaCalc")calculateAreaTool();
+  return true;
 }
 document.querySelectorAll("[data-tool]").forEach(btn=>btn.onclick=()=>{
   document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b===btn));
@@ -168,7 +184,7 @@ function moduleFromMaterialArea(area){
 function transferAreaToCalculator(){
   calculateAreaTool();
   const mat=resolveMaterialSelection($("acMaterial")?.value);
-  if(!mat){alert("Bitte zuerst ein Flächenmaterial auswählen.");return;}
+  if(!mat){appAlert("Bitte zuerst ein Flächenmaterial auswählen.");return;}
   state.activeModule=moduleFromMaterialArea(mat.area);
   save();setScreen("calculator");renderCalculator();
   requestAnimationFrame(()=>{

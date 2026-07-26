@@ -3,6 +3,7 @@ import { state, save } from "./storage.js";
 import { materialSelections, resolveMaterialSelection } from "./materials.js";
 import { rounded } from "./calculator.js";
 import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js";
+import { appAlert, appForm, appConfirm } from "./dialogs.js";
 let motifImageDetail = null;
 function motifComplexityLabel(key){return ({simple:"Einfach",medium:"Mittel",high:"Hoch",veryHigh:"Sehr hoch"})[key]||"Hoch"}
 function motifComplexityFactor(key){return ({simple:.55,medium:.78,high:1,veryHigh:1.25})[key]||1}
@@ -107,7 +108,7 @@ export function calculateMotifEstimator(){
   const sale=rounded(Math.max(cost,learnedPriceSuggestion(similar,area,calculatedSale)));
   const profit=sale-cost,margin=sale>0?profit/sale*100:0;
   const minimal=rounded(Math.max(cost,sale*.9)),premium=rounded(sale*1.2);
-  $('mcDetected').textContent=motifComplexityLabel(complexity);$('mcMaterialUsage').textContent=mat.text;
+  $('mcDetected').textContent=motifComplexityLabel(complexity);$('mcMaterialUsage').textContent=mat.text;$('mcMaterialCostResult').textContent=euro(mat.cost);
   $('mcCutTime').textContent=`${Math.round(cutMinutes)} Min.`;$('mcEngraveTime').textContent=`${Math.round(engraveMinutes)} Min.`;$('mcWorkTime').textContent=`${Math.round(work)} Min.`;
   $('mcMachineCost').textContent=euro(machineCost);$('mcTotalCost').textContent=euro(cost);$('mcSalePrice').textContent=euro(sale);
   $('mcProfitEuro').textContent=euro(profit);$('mcProfitPercent').textContent=`${margin.toLocaleString('de-DE',{maximumFractionDigits:1})} %`;
@@ -118,40 +119,65 @@ export function calculateMotifEstimator(){
   $('motifCalc').dataset.snapshot=JSON.stringify(snapshot);
   return snapshot;
 }
+export async function resetMotifEstimator(confirmFirst=true){
+  if(confirmFirst&&!await appConfirm("Neue Kalkulation starten?\nAlle nicht gespeicherten Eingaben werden gelöscht.","Neue Kalkulation","Neue Kalkulation"))return false;
+  ["mcWidth","mcHeight","mcLayers","mcCutSpeed","mcEngraveSpeed","mcExtraCost","mcBaseWork","mcActualSalePrice","mcActualTime","mcActualCutTime","mcActualEngravingTime"].forEach(id=>{if($(id))$(id).value=""});
+  ["mcSand","mcPaint","mcGlue"].forEach(id=>{if($(id))$(id).checked=false});
+  if($("mcMaterial"))$("mcMaterial").value="";
+  if($("mcComplexity"))$("mcComplexity").value="auto";
+  const cut=document.querySelector('input[name="mcProcess"][value="cut"]');if(cut)cut.checked=true;
+  motifImageDetail=null;$("mcPreview")?.removeAttribute("src");$("mcPreview")?.classList.add("hidden");$("mcPreviewPlaceholder")?.classList.remove("hidden");
+  if($("mcHourly"))$("mcHourly").value=state.settings.hourly;
+  if($("mcReserve"))$("mcReserve").value=state.settings.reserve;
+  if($("mcProfit"))$("mcProfit").value=state.settings.profit;
+  applyMotifMachineSpeeds(true);updateMotifProcessUI();calculateMotifEstimator();return true;
+}
 ['mcWidth','mcHeight','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcGlue','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
 document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',()=>{updateMotifProcessUI();calculateMotifEstimator()}));
 if($('mcMachine'))$('mcMachine').addEventListener('change',()=>{applyMotifMachineSpeeds(true);calculateMotifEstimator()});
 ['mcImageGallery','mcImageCamera'].forEach(id=>{const el=$(id);if(el)el.onchange=e=>analyzeMotifImage(e.target.files?.[0])});
 if($('mcRemoveImage'))$('mcRemoveImage').onclick=()=>{motifImageDetail=null;$('mcPreview').removeAttribute('src');$('mcPreview').classList.add('hidden');$('mcPreviewPlaceholder').classList.remove('hidden');$('mcImageAnalysis').textContent='Das Bild hilft bei der automatischen Detail-Einschätzung. Die Berechnung bleibt eine grobe Vorab-Schätzung.';calculateMotifEstimator()};
-if($('mcSaveCalibration'))$('mcSaveCalibration').onclick=()=>{
-  const actual=num($('mcActualTime').value),pred=num($('motifCalc').dataset.predictedMachineMinutes);if(actual<=0||pred<=0){alert('Bitte Maße und tatsächliche Zeit eingeben.');return}
+if($('mcSaveCalibration'))$('mcSaveCalibration').onclick=async()=>{
+  const actual=num($('mcActualTime').value),pred=num($('motifCalc').dataset.predictedMachineMinutes);if(actual<=0||pred<=0){await appAlert('Bitte Maße und tatsächliche Zeit eingeben.');return}
   const ratio=Math.max(.35,Math.min(3,actual/pred)),samples=num(state.motifEstimator?.samples),old=num(state.motifEstimator?.calibrationFactor)||1;
   state.motifEstimator={...state.motifEstimator,calibrationFactor:(old*samples+ratio)/(samples+1),samples:samples+1};
-  const snapshot=calculateMotifEstimator();saveLearningRecord({...snapshot,actualMinutes:actual,actualCutTime:num($('mcActualCutTime')?.value)||null,actualEngravingTime:num($('mcActualEngravingTime')?.value)||null,actualPrice:num($('mcActualSalePrice')?.value)||null,reference:true});
-  $('mcActualTime').value='';renderMotifEstimator();alert('Erfahrungswert und Referenzprojekt gespeichert. Die nächsten Schätzungen wurden angepasst.');
+  const snapshot=calculateMotifEstimator();saveLearningRecord({...snapshot,actualTotalTime:actual,actualCutTime:num($('mcActualCutTime')?.value)||null,actualEngravingTime:num($('mcActualEngravingTime')?.value)||null,actualPrice:num($('mcActualSalePrice')?.value)||null,reference:true});
+  $('mcActualTime').value='';renderMotifEstimator();await appAlert('Erfahrungswert und Referenzprojekt gespeichert. Die nächsten Schätzungen wurden angepasst.');
 };
 if($('mcTransferToCalculator'))$('mcTransferToCalculator').onclick=()=>{
   const snapshot=calculateMotifEstimator();
   document.dispatchEvent(new CustomEvent('dla:estimator-transfer',{detail:snapshot}));
 };
-if($('mcSaveReference'))$('mcSaveReference').onclick=()=>{
+if($('mcSaveReference'))$('mcSaveReference').onclick=async()=>{
   const data=calculateMotifEstimator();
-  if(!data.materialId||!data.machineId||data.area<=0){alert('Bitte zuerst Material, Maschine, Breite und Höhe auswählen.');return;}
-  const title=prompt('Bezeichnung des Referenzdatensatzes:','Schätzung '+new Date().toLocaleDateString('de-DE'));
-  if(!title)return;
-  saveLearningRecord({...data,title:title.trim(),actualPrice:num($('mcActualSalePrice')?.value)||null,actualMinutes:num($('mcActualTime')?.value)||0,actualCutTime:num($('mcActualCutTime')?.value)||null,actualEngravingTime:num($('mcActualEngravingTime')?.value)||null,reference:true});
-  alert('Referenzdatensatz gespeichert. Er erscheint nur unter Referenzprojekte / Lerndaten.');
+  if(!data.materialId||!data.machineId||data.area<=0){await appAlert('Bitte zuerst Material, Maschine, Breite und Höhe auswählen.');return;}
+  const result=await appForm({title:"Referenzprojekt speichern",message:"Leer lassen, wenn noch nicht bekannt.",fields:[
+    {name:"title",label:"Projektname",value:"Schätzung "+new Date().toLocaleDateString("de-DE")},
+    {name:"actualPrice",label:"Tatsächlicher Verkaufspreis (€)",inputmode:"decimal",value:$("mcActualSalePrice")?.value||""},
+    {name:"actualTotalTime",label:"Tatsächliche Gesamtzeit (Min.)",inputmode:"decimal",value:$("mcActualTime")?.value||""},
+    {name:"actualCutTime",label:"Tatsächliche Schnittzeit (Min.)",inputmode:"decimal",value:$("mcActualCutTime")?.value||""},
+    {name:"actualEngravingTime",label:"Tatsächliche Gravurzeit (Min.)",inputmode:"decimal",value:$("mcActualEngravingTime")?.value||""},
+    {name:"notes",label:"Notiz",type:"textarea",value:""},
+    {name:"reference",label:"Für Lernsystem verwenden",type:"select",value:"yes",options:[{value:"yes",label:"Ja"},{value:"no",label:"Nein"}]}
+  ],cancelText:"Abbrechen",acceptText:"Referenz speichern",validate:(v,parse)=>{
+    if(!v.title.trim())return"Bitte einen Projektnamen eingeben.";
+    for(const key of ["actualPrice","actualTotalTime","actualCutTime","actualEngravingTime"]){const n=parse(v[key]);if(Number.isNaN(n))return"Bitte nur gültige Zahlen eingeben. Komma und Punkt sind erlaubt.";if(n!=null&&n<0)return"Preise und Zeiten dürfen nicht negativ sein."}
+    return "";
+  }});
+  if(!result)return;const val=k=>result[k].trim()===""?null:num(result[k]);
+  saveLearningRecord({...data,title:result.title.trim(),actualPrice:val("actualPrice"),actualTotalTime:val("actualTotalTime"),actualCutTime:val("actualCutTime"),actualEngravingTime:val("actualEngravingTime"),notes:result.notes,image:$("mcPreview")?.src||"",reference:result.reference==="yes"});
+  if(await appConfirm("Gespeichert.\nMöchtest du eine neue Kalkulation starten?","Gespeichert","Ja"))resetMotifEstimator(false);
 };
-if($('mcSaveProject'))$('mcSaveProject').onclick=()=>{
+if($('mcSaveProject'))$('mcSaveProject').onclick=async()=>{
   const data=calculateMotifEstimator();
-  if(!data.materialId||!data.machineId||data.area<=0){alert('Bitte zuerst Material, Maschine, Breite und Höhe auswählen.');return;}
+  if(!data.materialId||!data.machineId||data.area<=0){await appAlert('Bitte zuerst Material, Maschine, Breite und Höhe auswählen.');return;}
   const actualPrice=num($('mcActualSalePrice')?.value);
-  if(actualPrice<=0){alert('Bitte den tatsächlich vereinbarten Verkaufspreis eintragen. Die Schätzung wird nicht automatisch als Verkaufspreis übernommen.');$('mcActualSalePrice')?.focus();return;}
-  const title=prompt('Projektname für die Angebotsschätzung:','Angebot '+new Date().toLocaleDateString('de-DE'));
-  if(!title)return;
+  if(actualPrice<=0){await appAlert('Bitte den tatsächlich vereinbarten Verkaufspreis eintragen. Die Schätzung wird nicht automatisch als Verkaufspreis übernommen.');$('mcActualSalePrice')?.focus();return;}
+  const entry=await appForm({title:"Als Kundenprojekt übernehmen",fields:[{name:"title",label:"Projektname",value:"Angebot "+new Date().toLocaleDateString("de-DE")},{name:"actualPrice",label:"Tatsächlich vereinbarter Verkaufspreis (€)",value:$("mcActualSalePrice").value,inputmode:"decimal"}],cancelText:"Abbrechen",acceptText:"Projekt übernehmen",validate:(v,parse)=>!v.title.trim()?"Bitte einen Projektnamen eingeben.":parse(v.actualPrice)<=0?"Bitte einen tatsächlichen Verkaufspreis größer als 0 eingeben.":""});
+  if(!entry)return;const title=entry.title,confirmedPrice=num(entry.actualPrice);
   const id=uid(),now=new Date().toISOString();
-  const project={id,recordType:'project',isReference:false,title:title.trim(),customer:'',customerAddress:'',type:'Laser',module:'laser',machineId:data.machineId,machineName:data.machineName,notes:'Aus Angebotsassistent als Kundenprojekt übernommen',status:'offer',tags:['Angebot','Schätzer'],images:$('mcPreview')?.src?[ $('mcPreview').src ]:[],priceHistory:[{date:now,sale:actualPrice,cost:data.cost}],workSeconds:Math.round(num(data.workMinutes)*60),estimatedPrice:data.estimatedPrice,actualPrice,sale:actualPrice,cost:data.cost,qty:1,reference:false,estimatorData:{...data,actualPrice},created:now,updated:now};
-  state.projects.unshift(project);state.lastPrice=actualPrice;
-  saveLearningRecord({...data,projectId:id,title:title.trim(),actualPrice,actualMinutes:num($('mcActualTime')?.value)||0,actualCutTime:num($('mcActualCutTime')?.value)||null,actualEngravingTime:num($('mcActualEngravingTime')?.value)||null,reference:true});save();
-  alert('Als echtes Kundenprojekt gespeichert. Umsatz und Gewinn verwenden den tatsächlichen Preis.');
+  const project={id,recordType:'project',isReference:false,title:title.trim(),customer:'',customerAddress:'',type:'Laser',module:'laser',machineId:data.machineId,machineName:data.machineName,notes:'Aus Angebotsassistent als Kundenprojekt übernommen',status:'offer',tags:['Angebot','Schätzer'],images:$('mcPreview')?.src?[ $('mcPreview').src ]:[],priceHistory:[{date:now,sale:confirmedPrice,cost:data.cost}],workSeconds:Math.round(num(data.workMinutes)*60),estimatedPrice:data.estimatedPrice,actualPrice:confirmedPrice,estimatedTotalTime:data.estimatedCutTime+data.estimatedEngravingTime,actualTotalTime:num($('mcActualTime')?.value)||null,estimatedCutTime:data.estimatedCutTime,actualCutTime:num($('mcActualCutTime')?.value)||null,estimatedEngravingTime:data.estimatedEngravingTime,actualEngravingTime:num($('mcActualEngravingTime')?.value)||null,materialCost:data.materialCost,sale:confirmedPrice,cost:data.cost,qty:1,reference:false,estimatorData:{...data,actualPrice:confirmedPrice},created:now,updated:now};
+  state.projects.unshift(project);state.lastPrice=confirmedPrice;
+  saveLearningRecord({...data,projectId:id,title:title.trim(),actualPrice:confirmedPrice,actualTotalTime:num($('mcActualTime')?.value)||null,actualCutTime:num($('mcActualCutTime')?.value)||null,actualEngravingTime:num($('mcActualEngravingTime')?.value)||null,reference:true});save();
+  if(await appConfirm('Gespeichert.\nMöchtest du eine neue Kalkulation starten?',"Projekt gespeichert","Ja"))resetMotifEstimator(false);
 };

@@ -1,4 +1,5 @@
 import { $, num, uid, inferMaterialCategory } from "./utils.js";
+import { appConfirm } from "./dialogs.js";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -9,7 +10,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.10.1";
+const APP_VERSION = "4.11.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -100,6 +101,13 @@ export function normalizeProjectRecord(project={}){
     reference:recordType==="reference",
     estimatedPrice,
     actualPrice,
+    estimatedTotalTime:project.estimatedTotalTime??(project.estimatorData?num(project.estimatorData.estimatedCutTime??project.estimatorData.cutMinutes)+num(project.estimatorData.estimatedEngravingTime??project.estimatorData.engraveMinutes):null),
+    actualTotalTime:project.actualTotalTime==null?null:num(project.actualTotalTime),
+    estimatedCutTime:project.estimatedCutTime??project.estimatorData?.estimatedCutTime??null,
+    actualCutTime:project.actualCutTime==null?null:num(project.actualCutTime),
+    estimatedEngravingTime:project.estimatedEngravingTime??project.estimatorData?.estimatedEngravingTime??null,
+    actualEngravingTime:project.actualEngravingTime==null?null:num(project.actualEngravingTime),
+    materialCost:project.materialCost??project.estimatorData?.materialCost??null,
     sale:recordType==="project"?num(actualPrice):num(project.sale),
     pinned:Boolean(project.pinned),
     status:recordType==="project"?normalizeProjectStatus(project.status):null,
@@ -110,12 +118,21 @@ export function normalizeProjectRecord(project={}){
   };
 }
 export function normalizeLearningRecord(record={}){
+  const actualTotal=record.actualTotalTime??record.actualMinutes;
   return {
     ...record,
     recordType:"reference",
     isReference:true,
     estimatedPrice:record.estimatedPrice??num(record.sale),
     actualPrice:record.actualPrice==null?null:num(record.actualPrice),
+    estimatedTotalTime:record.estimatedTotalTime??(num(record.estimatedCutTime??record.cutMinutes)+num(record.estimatedEngravingTime??record.engraveMinutes)),
+    actualTotalTime:actualTotal==null||actualTotal===""||num(actualTotal)<=0?null:num(actualTotal),
+    actualMinutes:actualTotal==null||actualTotal===""||num(actualTotal)<=0?null:num(actualTotal),
+    estimatedCutTime:num(record.estimatedCutTime??record.cutMinutes),
+    actualCutTime:record.actualCutTime==null||record.actualCutTime===""?null:num(record.actualCutTime),
+    estimatedEngravingTime:num(record.estimatedEngravingTime??record.engraveMinutes),
+    actualEngravingTime:record.actualEngravingTime==null||record.actualEngravingTime===""?null:num(record.actualEngravingTime),
+    materialCost:record.materialCost==null?null:num(record.materialCost),
     sale:record.actualPrice==null?0:num(record.actualPrice),
     cost:num(record.cost),
     profit:record.actualPrice==null?null:num(record.actualPrice)-num(record.cost)
@@ -276,5 +293,5 @@ $("loginForm").onsubmit=async e=>{
   }
 };
 $("logoutBtn").onclick=async()=>{
-  if(confirm("Wirklich abmelden?")) await db.auth.signOut();
+  if(await appConfirm("Wirklich abmelden?","Abmelden","Abmelden")) await db.auth.signOut();
 };

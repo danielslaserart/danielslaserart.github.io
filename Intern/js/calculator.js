@@ -2,6 +2,7 @@ import { $, num, euro, uid, esc } from "./utils.js";
 import { state, save, defaults } from "./storage.js";
 import { materialSelections, resolveMaterialSelection } from "./materials.js";
 import { renderProjects } from "./projects.js";
+import { appConfirm } from "./dialogs.js";
 let editingProjectId=null;
 export function getTimerSeconds(){
   const timer=state.timer||defaults.timer;
@@ -110,7 +111,7 @@ export function renderConsumables(){
 function consumablesCost(){return consumableSelections.reduce((sum,row)=>{const mat=state.materials.find(m=>m.id===row.materialId);return sum+workshopCost(mat,row.quantity);},0);}
 $("addConsumableBtn").onclick=()=>{consumableSelections.push({materialId:"",quantity:0,auto:false});renderConsumables();};
 if($("timerToggleBtn")) $("timerToggleBtn").onclick=toggleTimer;
-if($("timerResetBtn")) $("timerResetBtn").onclick=()=>{if(confirm("Arbeitszeit wirklich zurücksetzen?"))setTimerSeconds(0);};
+if($("timerResetBtn")) $("timerResetBtn").onclick=async()=>{if(await appConfirm("Arbeitszeit wirklich zurücksetzen?"))setTimerSeconds(0);};
 function setProductSize(size){
   const previous=productSize;productSize=size;
   document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===size));
@@ -228,7 +229,7 @@ export function renderCalculator(clear=false){
   document.querySelectorAll("#calcForm input,#calcForm select").forEach(el=>el.oninput=calculate);
   calculate();
 }
-$("resetCalcBtn").onclick=()=>{if(confirm("Aktuelle Eingaben wirklich leeren?"))document.dispatchEvent(new CustomEvent("dla:new-order",{detail:{module:state.activeModule}}))};
+$("resetCalcBtn").onclick=async()=>{if(await appConfirm("Neue Kalkulation starten?\nAlle nicht gespeicherten Eingaben werden gelöscht.","Neue Kalkulation","Neue Kalkulation"))document.dispatchEvent(new CustomEvent("dla:new-order",{detail:{module:state.activeModule}}))};
 
 function getMat(id){
   const el=$(id); if(!el) return null;
@@ -314,7 +315,7 @@ export function calculate(){
   $("calcForm").dataset.cost=cost;
   $("calcForm").dataset.qty=qty;
 }
-$("calcForm").onsubmit=e=>{
+$("calcForm").onsubmit=async e=>{
   e.preventDefault();calculate();
   const title=$("projectName").value.trim()||`${titles[state.activeModule]} ${new Date().toLocaleDateString("de-DE")}`;
   const machine=getMachine();
@@ -330,7 +331,8 @@ $("calcForm").onsubmit=e=>{
     const stockTarget=mainSel?.variantId?mainSel.baseMaterial.variants.find(v=>v.id===mainSel.variantId):mainSel;
     if(stockTarget?.trackStock&&used>0){stockTarget.stock=num(stockTarget.stock)-used;stockTarget.stockHistory=Array.isArray(stockTarget.stockHistory)?stockTarget.stockHistory:[];stockTarget.stockHistory.unshift({date:new Date().toISOString(),change:-used,reason:`Projekt: ${title}`});}
   }
-  state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();alert(idx>=0?"Projekt aktualisiert.":"Projekt gespeichert.");
+  state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();
+  if(await appConfirm(`${idx>=0?"Projekt aktualisiert.":"Projekt gespeichert."}\nMöchtest du eine neue Kalkulation starten?`,"Gespeichert","Ja"))document.dispatchEvent(new CustomEvent("dla:new-order",{detail:{module:state.activeModule}}));
 };
 
 

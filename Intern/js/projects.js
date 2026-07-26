@@ -4,6 +4,7 @@ import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrde
 import { resolveMaterialSelection } from "./materials.js";
 import { workshopUnit } from "./calculator.js";
 import { deleteLearningRecord, saveLearningRecord } from "./learning.js";
+import { appAlert, appConfirm, appForm } from "./dialogs.js";
 function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
@@ -43,9 +44,8 @@ export function renderProjects(){
   document.querySelectorAll('[data-duplicate-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.duplicateProject,true)});
   document.querySelectorAll('[data-pin-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.pinProject);if(p){p.pinned=!p.pinned;p.updated=new Date().toISOString();save();renderProjects();}});
   document.querySelectorAll('[data-template-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();createTemplateFromProject(b.dataset.templateProject)});
-  document.querySelectorAll('[data-reference-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.referenceProject);if(p?.estimatorData){saveLearningRecord({...p.estimatorData,projectId:p.id,title:p.title,estimatedPrice:p.estimatedPrice,actualPrice:p.actualPrice,reference:true});alert('Das Kundenprojekt bleibt in der Projektübersicht. Eine getrennte Lernreferenz wurde aktualisiert.');renderProjects();}});
-  document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm('Projekt löschen?')){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();updateHome()}});
-  renderReferenceProjects();
+  document.querySelectorAll('[data-reference-project]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.referenceProject);if(p?.estimatorData){saveLearningRecord({...p.estimatorData,projectId:p.id,title:p.title,estimatedPrice:p.estimatedPrice,actualPrice:p.actualPrice,reference:true});await appAlert('Das Kundenprojekt bleibt in der Projektübersicht. Eine getrennte Lernreferenz wurde aktualisiert.');renderProjects();}});
+  document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=async e=>{e.stopPropagation();if(await appConfirm('Projekt löschen?',"Projekt löschen","Löschen")){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();updateHome()}});
   renderStatisticsCharts();
 }
 export function renderReferenceProjects(){
@@ -53,20 +53,49 @@ export function renderReferenceProjects(){
   const embedded=getReferenceProjects();
   const learning=(state.learningRecords||[]).filter(r=>!embedded.some(p=>p.id===r.projectId));
   const refs=[...learning.map(r=>({...r,source:"learning"})),...embedded.map(p=>({...p,source:"legacy"}))];
-  box.innerHTML=refs.length?refs.map(r=>`<article class="card reference-item"><div><strong>${esc(r.title||r.materialName||"Referenzdatensatz")}</strong><small>${esc(r.machineName||"")} · Schätzung ${euro(r.estimatedPrice)} · Tatsächlich ${r.actualPrice==null?"noch nicht eingetragen":euro(r.actualPrice)}</small><small>${num(r.actualMinutes)>0?`Ist-Zeit ${num(r.actualMinutes).toLocaleString("de-DE")} Min.`:"Keine Ist-Zeit"} · zählt nicht zu Umsatz oder Gewinn</small></div><div class="item-actions"><button data-edit-reference="${r.source}:${r.id}">Bearbeiten</button><button class="danger" data-delete-reference="${r.source}:${r.id}">Löschen</button></div></article>`).join(""):'<div class="empty-state">Noch keine Referenzprojekte oder Lerndaten gespeichert.</div>';
-  box.querySelectorAll('[data-edit-reference]').forEach(b=>b.onclick=()=>{
+  box.innerHTML=refs.length?refs.map(r=>`<article class="card reference-item">${r.image?`<img class="reference-thumb" src="${r.image}" alt="">`:""}<div><strong>${esc(r.title||r.materialName||"Referenzdatensatz")}</strong><small>${new Date(r.created||Date.now()).toLocaleDateString("de-DE")} · ${esc(r.materialName||"Kein Material")} · ${esc(r.machineName||"Keine Maschine")} · ${esc(({cut:"Schneiden",engrave:"Gravieren",both:"Beides"})[r.process]||r.process||"–")}</small><small>${num(r.width)} × ${num(r.height)} cm · ${num(r.layers)||1} Ebene(n) · Verbrauch ${num(r.area)*(num(r.layers)||1)} cm² · Material ${euro(r.materialCost)}</small><small>Zeit: geschätzt ${num(r.estimatedTotalTime)||num(r.estimatedCutTime)+num(r.estimatedEngravingTime)} Min. · tatsächlich ${r.actualTotalTime==null?"unbekannt":num(r.actualTotalTime)+" Min."}</small><small>Preis: geschätzt ${euro(r.estimatedPrice)} · tatsächlich ${r.actualPrice==null?"unbekannt":euro(r.actualPrice)} · Selbstkosten ${euro(r.cost)} · Gewinn ${r.actualPrice==null?"unbekannt":euro(num(r.actualPrice)-num(r.cost))}</small><small>Lernstatus: ${r.reference===false?"ausgeschlossen":"aktiv"} · zählt nicht zu Umsatz oder Gewinn</small></div><div class="item-actions"><button data-edit-reference="${r.source}:${r.id}">Bearbeiten</button><button data-duplicate-reference="${r.source}:${r.id}">Duplizieren</button><button data-convert-reference="${r.source}:${r.id}">Als echtes Projekt übernehmen</button><button data-toggle-reference="${r.source}:${r.id}">${r.reference===false?"Für Lernsystem verwenden":"Vom Lernsystem ausschließen"}</button><button class="danger" data-delete-reference="${r.source}:${r.id}">Löschen</button></div></article>`).join(""):'<div class="empty-state">Noch keine Referenzprojekte oder Lerndaten gespeichert.</div>';
+  box.querySelectorAll('[data-edit-reference]').forEach(b=>b.onclick=async()=>{
     const [source,id]=b.dataset.editReference.split(":");
     const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(!r)return;
-    const price=prompt("Tatsächlich verwendeter Verkaufspreis (leer = unbekannt):",r.actualPrice??"");
-    if(price===null)return;
-    const time=prompt("Tatsächliche Gesamtzeit in Minuten (leer = unbekannt):",num(r.actualMinutes)||"");
-    if(time===null)return;
-    r.actualPrice=price===""?null:num(price);r.actualMinutes=time===""?0:num(time);r.profit=r.actualPrice==null?null:r.actualPrice-num(r.cost);r.updated=new Date().toISOString();
+    const result=await referenceForm(r);if(!result)return;Object.assign(r,result,{updated:new Date().toISOString()});
+    r.profit=r.actualPrice==null?null:r.actualPrice-num(r.cost);
     if(source==="legacy"){const linked=(state.learningRecords||[]).find(x=>x.projectId===r.id);if(linked){linked.actualPrice=r.actualPrice;linked.actualMinutes=r.actualMinutes;linked.profit=r.profit;linked.updated=r.updated;}}
-    save();renderProjects();
+    save();renderReferenceProjects();renderExperienceValues();
   });
-  box.querySelectorAll('[data-delete-reference]').forEach(b=>b.onclick=()=>{if(!confirm('Referenzdatensatz wirklich löschen? Ein echtes Kundenprojekt bleibt unberührt.'))return;const [source,id]=b.dataset.deleteReference.split(":");if(source==="learning")deleteLearningRecord(id);else state.projects=state.projects.filter(p=>p.id!==id);save();renderProjects();});
+  box.querySelectorAll('[data-delete-reference]').forEach(b=>b.onclick=async()=>{if(!await appConfirm('Referenzdatensatz wirklich löschen? Ein echtes Kundenprojekt bleibt unberührt.',"Referenz löschen","Löschen"))return;const [source,id]=b.dataset.deleteReference.split(":");if(source==="learning")deleteLearningRecord(id);else state.projects=state.projects.filter(p=>p.id!==id);save();renderReferenceProjects();});
+  box.querySelectorAll('[data-duplicate-reference]').forEach(b=>b.onclick=()=>{const [source,id]=b.dataset.duplicateReference.split(":");const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(r)saveLearningRecord({...r,id:uid(),projectId:"",title:(r.title||"Referenz")+" – Kopie",created:new Date().toISOString()});renderReferenceProjects();});
+  box.querySelectorAll('[data-toggle-reference]').forEach(b=>b.onclick=()=>{const [source,id]=b.dataset.toggleReference.split(":");const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(r){r.reference=r.reference===false;save();renderReferenceProjects();}});
+  box.querySelectorAll('[data-convert-reference]').forEach(b=>b.onclick=async()=>{const [source,id]=b.dataset.convertReference.split(":");const r=source==="learning"?(state.learningRecords||[]).find(x=>x.id===id):getReferenceProjects().find(x=>x.id===id);if(!r)return;const result=await appForm({title:"Als echtes Projekt übernehmen",message:"Der tatsächliche Verkaufspreis wird für Umsatz und Gewinn verwendet.",fields:[{name:"title",label:"Projektname",value:r.title||"Projekt"},{name:"actualPrice",label:"Tatsächlicher Verkaufspreis (€)",value:r.actualPrice??"",inputmode:"decimal"}],acceptText:"Projekt anlegen",cancelText:"Abbrechen",validate:(v,parse)=>parse(v.actualPrice)<=0?"Bitte einen tatsächlichen Verkaufspreis größer als 0 eingeben.":""});if(!result)return;const now=new Date().toISOString(),price=num(result.actualPrice);state.projects.unshift({id:uid(),recordType:"project",isReference:false,reference:false,title:result.title.trim(),type:"Laser",module:"laser",machineId:r.machineId,machineName:r.machineName,status:"offer",estimatedPrice:r.estimatedPrice,actualPrice:price,sale:price,cost:num(r.cost),materialCost:r.materialCost,estimatedTotalTime:r.estimatedTotalTime,actualTotalTime:r.actualTotalTime,estimatedCutTime:r.estimatedCutTime,actualCutTime:r.actualCutTime,estimatedEngravingTime:r.estimatedEngravingTime,actualEngravingTime:r.actualEngravingTime,images:r.image?[r.image]:[],notes:r.notes||"",estimatorData:{...r},created:now,updated:now});save();await appAlert("Das echte Kundenprojekt wurde angelegt. Die Referenz bleibt erhalten.");});
 }
+
+async function referenceForm(r){
+  const result=await appForm({title:"Referenzprojekt bearbeiten",message:"Leere Ist-Werte bleiben unbekannt.",fields:[
+    {name:"title",label:"Name",value:r.title||""},{name:"materialName",label:"Material",value:r.materialName||""},{name:"machineName",label:"Maschine",value:r.machineName||""},
+    {name:"process",label:"Bearbeitungsart",type:"select",value:r.process||"cut",options:[{value:"cut",label:"Schneiden"},{value:"engrave",label:"Gravieren"},{value:"both",label:"Beides"}]},
+    {name:"width",label:"Breite (cm)",value:r.width||"",inputmode:"decimal"},{name:"height",label:"Höhe (cm)",value:r.height||"",inputmode:"decimal"},{name:"layers",label:"Ebenen",value:r.layers||1,inputmode:"decimal"},
+    {name:"detail",label:"Detailgrad",type:"select",value:r.detail||"high",options:[{value:"simple",label:"Einfach"},{value:"medium",label:"Mittel"},{value:"high",label:"Hoch"},{value:"veryHigh",label:"Sehr hoch"}]},
+    {name:"actualTotalTime",label:"Tatsächliche Gesamtzeit (Min.)",value:r.actualTotalTime??"",inputmode:"decimal"},{name:"actualCutTime",label:"Tatsächliche Schnittzeit (Min.)",value:r.actualCutTime??"",inputmode:"decimal"},{name:"actualEngravingTime",label:"Tatsächliche Gravurzeit (Min.)",value:r.actualEngravingTime??"",inputmode:"decimal"},{name:"actualPrice",label:"Tatsächlicher Verkaufspreis (€)",value:r.actualPrice??"",inputmode:"decimal"},{name:"notes",label:"Notizen",type:"textarea",value:r.notes||""},{name:"reference",label:"Für Lernsystem verwenden",type:"select",value:r.reference===false?"no":"yes",options:[{value:"yes",label:"Ja"},{value:"no",label:"Nein"}]}
+  ],acceptText:"Speichern",cancelText:"Abbrechen",validate:(v,parse)=>{for(const k of ["width","height","layers","actualTotalTime","actualCutTime","actualEngravingTime","actualPrice"]){const n=parse(v[k]);if(Number.isNaN(n))return"Bitte gültige Zahlen eingeben. Komma und Punkt sind erlaubt.";if(n!=null&&n<0)return"Preise, Zeiten und Maße dürfen nicht negativ sein."}return v.title.trim()?"":"Bitte einen Namen eingeben.";}});if(!result)return null;
+  const nullable=k=>result[k].trim()===""?null:num(result[k]);return {...result,width:num(result.width),height:num(result.height),area:num(result.width)*num(result.height),layers:Math.max(1,num(result.layers)||1),actualTotalTime:nullable("actualTotalTime"),actualMinutes:nullable("actualTotalTime"),actualCutTime:nullable("actualCutTime"),actualEngravingTime:nullable("actualEngravingTime"),actualPrice:nullable("actualPrice"),reference:result.reference==="yes"};
+}
+
+export function renderExperienceValues(){
+  const box=$("experienceList");if(!box)return;
+  const materialFilter=$("experienceMaterialFilter"),machineFilter=$("experienceMachineFilter");
+  if(materialFilter&&materialFilter.options.length<=1)materialFilter.innerHTML='<option value="">Alle Materialien</option>'+state.materials.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join("");
+  if(machineFilter&&machineFilter.options.length<=1)machineFilter.innerHTML='<option value="">Alle Maschinen</option>'+state.machines.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join("");
+  const real=getRealProjects().filter(p=>p.estimatorData).map(p=>({...p.estimatorData,...p,recordType:"project"}));
+  let rows=[...(state.learningRecords||[]),...real];
+  const q=($("experienceSearch")?.value||"").trim().toLowerCase(),mat=$("experienceMaterialFilter")?.value||"",machine=$("experienceMachineFilter")?.value||"",process=$("experienceProcessFilter")?.value||"",type=$("experienceTypeFilter")?.value||"",from=$("experienceFrom")?.value,to=$("experienceTo")?.value;
+  rows=rows.filter(r=>(!q||`${r.title} ${r.materialName} ${r.machineName}`.toLowerCase().includes(q))&&(!mat||r.materialId===mat)&&(!machine||r.machineId===machine)&&(!process||r.process===process)&&(!type||r.recordType===type)&&(!from||new Date(r.created)>=new Date(from))&&(!to||new Date(r.created)<=new Date(to+"T23:59:59")));
+  const timeDev=r=>r.actualTotalTime==null?null:num(r.actualTotalTime)-num(r.estimatedTotalTime),priceDev=r=>r.actualPrice==null?null:num(r.actualPrice)-num(r.estimatedPrice);
+  const sort=$("experienceSort")?.value||"dateDesc";rows.sort((a,b)=>sort==="dateAsc"?new Date(a.created)-new Date(b.created):sort==="name"?String(a.title).localeCompare(String(b.title),"de"):sort==="timeDeviation"?Math.abs(timeDev(b)||0)-Math.abs(timeDev(a)||0):sort==="priceDeviation"?Math.abs(priceDev(b)||0)-Math.abs(priceDev(a)||0):new Date(b.created)-new Date(a.created));
+  const times=rows.map(timeDev).filter(x=>x!=null),prices=rows.map(priceDev).filter(x=>x!=null);$("experienceCount").textContent=rows.length;$("experienceTimeDeviation").textContent=times.length?`${(times.reduce((a,b)=>a+b,0)/times.length).toLocaleString("de-DE",{maximumFractionDigits:1})} Min.`:"–";$("experiencePriceDeviation").textContent=prices.length?euro(prices.reduce((a,b)=>a+b,0)/prices.length):"–";
+  box.innerHTML=rows.length?rows.map(r=>`<article class="card experience-item"><strong>${esc(r.title||"Erfahrungswert")}</strong><small>${new Date(r.created||Date.now()).toLocaleDateString("de-DE")} · ${r.recordType==="project"?"Echtes Projekt":"Referenzprojekt"} · ${esc(r.materialName||"–")} · ${esc(r.machineName||"–")}</small><div class="project-view-details"><div><span>Bearbeitung</span><strong>${esc(r.process||"–")}</strong></div><div><span>Maße / Fläche</span><strong>${num(r.width)} × ${num(r.height)} cm / ${num(r.area)} cm²</strong></div><div><span>Ebenen / Detail</span><strong>${num(r.layers)||1} / ${esc(r.detail||"–")}</strong></div><div><span>Zeit geschätzt / tatsächlich</span><strong>${num(r.estimatedTotalTime)} / ${r.actualTotalTime==null?"unbekannt":num(r.actualTotalTime)} Min.</strong></div><div><span>Preis geschätzt / tatsächlich</span><strong>${euro(r.estimatedPrice)} / ${r.actualPrice==null?"unbekannt":euro(r.actualPrice)}</strong></div><div><span>Lernfaktor</span><strong>${r.actualTotalTime!=null&&num(r.estimatedTotalTime)>0?(num(r.actualTotalTime)/num(r.estimatedTotalTime)).toLocaleString("de-DE",{maximumFractionDigits:2}):"–"}</strong></div></div>${r.recordType==="reference"?`<div class="item-actions"><button data-experience-edit="${r.id}">Bearbeiten</button><button class="danger" data-experience-delete="${r.id}">Löschen</button></div>`:""}</article>`).join(""):'<div class="empty-state">Keine passenden Erfahrungswerte gefunden.</div>';
+  box.querySelectorAll("[data-experience-edit]").forEach(b=>b.onclick=async()=>{const r=(state.learningRecords||[]).find(x=>x.id===b.dataset.experienceEdit),result=r&&await referenceForm(r);if(result){Object.assign(r,result,{updated:new Date().toISOString()});save();renderExperienceValues();}});
+  box.querySelectorAll("[data-experience-delete]").forEach(b=>b.onclick=async()=>{if(await appConfirm("Erfahrungswert wirklich löschen?","Erfahrungswert löschen","Löschen")){deleteLearningRecord(b.dataset.experienceDelete);renderExperienceValues();}});
+}
+["experienceSearch","experienceMaterialFilter","experienceMachineFilter","experienceProcessFilter","experienceTypeFilter","experienceFrom","experienceTo","experienceSort"].forEach(id=>$(id)?.addEventListener("input",renderExperienceValues));
 export function renderStatisticsCharts(){
   const box=$('statisticsCharts');if(!box)return;
   const projects=getRealProjects(),max=Math.max(1,...projects.map(p=>num(p.sale)));
@@ -88,7 +117,7 @@ function projectFieldValue(id,value){
 }
 export function viewProject(id){
   const p=getRealProjects().find(x=>x.id===id);
-  if(!p){alert("Projekt wurde nicht gefunden.");return;}
+  if(!p){appAlert("Projekt wurde nicht gefunden.");return;}
   const dialog=$("projectViewDialog");
   const details=Object.entries(p.fields||{}).filter(([fieldId])=>!["projectName","customerName","projectNotes","machineSelect","projectStatus","projectTags"].includes(fieldId)).map(([fieldId,value])=>`<div><span>${esc(projectFieldLabel(fieldId))}</span><strong>${esc(projectFieldValue(fieldId,value))}</strong></div>`).join("");
   const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
@@ -125,10 +154,10 @@ export function viewProject(id){
       p.images=p.images||[];
       for(const file of files.slice(0,Math.max(0,6-p.images.length)))p.images.push(await compressProjectImage(file));
       p.updated=new Date().toISOString();save();renderProjects();dialog.close();viewProject(id);
-    }catch(err){console.error(err);alert("Mindestens ein Bild konnte nicht verarbeitet werden.")}
+    }catch(err){console.error(err);appAlert("Mindestens ein Bild konnte nicht verarbeitet werden.")}
   });
-  dialog.querySelectorAll("[data-delete-image]").forEach(btn=>btn.onclick=()=>{
-    if(confirm("Dieses Projektbild löschen?")){p.images.splice(Number(btn.dataset.deleteImage),1);p.updated=new Date().toISOString();save();renderProjects();dialog.close();viewProject(id)}
+  dialog.querySelectorAll("[data-delete-image]").forEach(btn=>btn.onclick=async()=>{
+    if(await appConfirm("Dieses Projektbild löschen?","Bild löschen","Löschen")){p.images.splice(Number(btn.dataset.deleteImage),1);p.updated=new Date().toISOString();save();renderProjects();dialog.close();viewProject(id)}
   });
   try{if(!dialog.open)dialog.showModal()}catch(err){console.error(err);dialog.setAttribute("open","")}
 }
@@ -193,7 +222,7 @@ function printOffer(p){
   <\/script></body></html>`;
 
   const popup=window.open("","_blank");
-  if(!popup){alert("Die Druckansicht wurde blockiert. Bitte Pop-ups für diese Seite erlauben.");return;}
+  if(!popup){appAlert("Die Druckansicht wurde blockiert. Bitte Pop-ups für diese Seite erlauben.");return;}
   popup.document.open();popup.document.write(doc);popup.document.close();
 }
 
@@ -201,10 +230,10 @@ function loadProject(id,duplicate=false){
   const p=getRealProjects().find(x=>x.id===id);if(!p)return;
   loadCalculatorData(p,{duplicate,editingProjectId:duplicate?null:p.id});
 }
-$("clearProjectsBtn").onclick=()=>{const real=getRealProjects();if(real.length&&confirm("Wirklich alle echten Kundenprojekte löschen? Referenz- und Lerndaten bleiben erhalten.")){const ids=new Set(real.map(p=>p.id));state.projects=state.projects.filter(p=>!ids.has(p.id));save();renderProjects()}};
+$("clearProjectsBtn").onclick=async()=>{const real=getRealProjects();if(real.length&&await appConfirm("Wirklich alle echten Kundenprojekte löschen? Referenz- und Lerndaten bleiben erhalten.","Kundenprojekte löschen","Alle löschen")){const ids=new Set(real.map(p=>p.id));state.projects=state.projects.filter(p=>!ids.has(p.id));save();renderProjects()}};
 $("projectSearch").oninput=renderProjects;
 if($("projectStatusFilter"))$("projectStatusFilter").onchange=renderProjects;
 if($("projectSort"))$("projectSort").onchange=renderProjects;
 if($("newOrderBtn"))$("newOrderBtn").onclick=()=>startNewOrder("3d");
 if($("projectNewBtn"))$("projectNewBtn").onclick=()=>startNewOrder("3d");
-if($("manageTemplatesBtn"))$("manageTemplatesBtn").onclick=()=>{if(!(state.templates||[]).length){alert("Noch keine Vorlagen vorhanden. Erstelle eine Vorlage über ein gespeichertes Projekt.");return;} const names=state.templates.map((t,i)=>`${i+1}. ${t.name}`).join("\n");const n=prompt(`Vorlagen verwalten\n\n${names}\n\nNummer zum Löschen eingeben:`);const idx=Number(n)-1;if(Number.isInteger(idx)&&idx>=0&&idx<state.templates.length&&confirm(`Vorlage „${state.templates[idx].name}“ löschen?`)){state.templates.splice(idx,1);save();updateHome();}};
+if($("manageTemplatesBtn"))$("manageTemplatesBtn").onclick=async()=>{if(!(state.templates||[]).length){await appAlert("Noch keine Vorlagen vorhanden. Erstelle eine Vorlage über ein gespeichertes Projekt.");return;}const result=await appForm({title:"Vorlagen verwalten",fields:[{name:"template",label:"Zu löschende Vorlage",type:"select",options:state.templates.map(t=>({value:t.id,label:t.name}))}],cancelText:"Abbrechen",acceptText:"Vorlage löschen"});if(result&&await appConfirm("Vorlage wirklich löschen?","Vorlage löschen","Löschen")){state.templates=state.templates.filter(t=>t.id!==result.template);save();updateHome();}};
