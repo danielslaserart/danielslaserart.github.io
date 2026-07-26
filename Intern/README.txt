@@ -1,6 +1,18 @@
-Daniels Laser Art Kalkulator V4.10.1
+Daniels Laser Art Kalkulator V4.11.0
 
 CHANGELOG 4.x
+
+4.11.0 – Bedienung, Referenzen und Erfahrungswerte
+- Materialkosten werden direkt unter dem Materialverbrauch angezeigt und verwenden exakt denselben Wert wie die Selbstkosten.
+- Eigene, sichtbare Bereiche für Referenzprojekte und Erfahrungswerte ergänzt.
+- Referenzen vollständig anzeigen, bearbeiten, löschen, duplizieren, konvertieren und vom Lernsystem ausschließen.
+- Erfahrungswerte suchen, filtern, sortieren und bearbeiten; Zeit-/Preisabweichungsstatistik ergänzt.
+- Ist- und Schätzwerte im Datenmodell getrennt; unbekannte Ist-Werte werden als null migriert.
+- Rechner beginnen beim erneuten Öffnen leer und besitzen eine sichtbare Aktion „Neue Kalkulation“.
+- Speicher-Rückfrage für eine neue Kalkulation ergänzt.
+- Native Browser-Dialoge durch Dialogfenster im App-Design ersetzt.
+- Sichtbare Systemnavigation zu Kundenprojekten, Referenzen, Erfahrungswerten, Lernstatistik und Kalibrierung.
+- Service-Worker-Cache, Manifest und sichtbare Version aktualisiert.
 
 4.10.1 – Referenzdaten und Kundenprojekte getrennt
 - Eindeutige Datentypen: recordType "project" und "reference".
@@ -78,4 +90,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.10.1
+https://danielslaserart.de/Intern/?v=4.11.0

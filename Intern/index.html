@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.10.1">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.10.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.10.1">
-  <link rel="stylesheet" href="style.css?v=4.10.1">
+  <link rel="manifest" href="manifest.json?v=4.11.0">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.11.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.11.0">
+  <link rel="stylesheet" href="style.css?v=4.11.0">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,7 +45,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.10.1</span>
+      <span class="version-badge">V4.11.0</span>
     </div>
 
     <div class="dashboard-actions">
@@ -344,6 +344,7 @@
         <div id="mcCutTimeRow"><span>Geschätzte Schnittzeit</span><strong id="mcCutTime">0 Min.</strong></div>
         <div id="mcEngraveTimeRow" class="hidden"><span>Geschätzte Gravurzeit</span><strong id="mcEngraveTime">0 Min.</strong></div>
         <div><span>Materialverbrauch</span><strong id="mcMaterialUsage">–</strong></div>
+        <div><span>Materialkosten</span><strong id="mcMaterialCostResult">0,00 €</strong></div>
         <div><span>Aktive Arbeitszeit</span><strong id="mcWorkTime">0 Min.</strong></div>
         <div><span>Maschinenkosten</span><strong id="mcMachineCost">0,00 €</strong></div>
         <div><span>Selbstkosten</span><strong id="mcTotalCost">0,00 €</strong></div>
@@ -454,8 +455,6 @@
       <button class="primary wide" type="button" id="projectNewBtn">＋ Neuer Auftrag</button>
     </div>
     <div id="projectList" class="stack"></div>
-    <div class="section-head compact dashboard-section"><div><div class="eyebrow">LERNSYSTEM</div><h3>Referenzprojekte</h3></div></div>
-    <div id="referenceProjectList" class="stack reference-list"></div>
     <div class="stats project-stats project-stats-bottom">
       <div class="card stat"><span>Projekte</span><strong id="projectStatCount">0</strong></div>
       <div class="card stat"><span>Gesamtgewinn</span><strong id="projectStatProfit">0,00 €</strong></div>
@@ -465,6 +464,31 @@
       <h3>Auswertung</h3>
       <div id="statisticsCharts" class="chart-grid"></div>
     </div>
+  </section>
+
+  <section id="references" class="screen">
+    <div class="section-head"><div><div class="eyebrow">LERNSYSTEM</div><h2>Referenzprojekte</h2></div></div>
+    <p class="tool-intro">Referenzen sind vollständig von Kundenprojekten getrennt und zählen niemals als Umsatz oder Gewinn.</p>
+    <div id="referenceProjectList" class="stack reference-list"></div>
+  </section>
+
+  <section id="experience" class="screen">
+    <div class="section-head"><div><div class="eyebrow">LERNSYSTEM</div><h2>Erfahrungswerte</h2></div></div>
+    <div class="stats project-stats">
+      <div class="card stat"><span>Gespeicherte Erfahrungswerte</span><strong id="experienceCount">0</strong></div>
+      <div class="card stat"><span>Ø Zeitabweichung</span><strong id="experienceTimeDeviation">–</strong></div>
+      <div class="card stat"><span>Ø Preisabweichung</span><strong id="experiencePriceDeviation">–</strong></div>
+    </div>
+    <div class="project-toolbar card experience-toolbar">
+      <input id="experienceSearch" type="search" placeholder="Projekt, Material oder Maschine suchen …">
+      <select id="experienceMaterialFilter"><option value="">Alle Materialien</option></select>
+      <select id="experienceMachineFilter"><option value="">Alle Maschinen</option></select>
+      <select id="experienceProcessFilter"><option value="">Alle Bearbeitungen</option><option value="cut">Schneiden</option><option value="engrave">Gravieren</option><option value="both">Beides</option></select>
+      <select id="experienceTypeFilter"><option value="">Referenzen und echte Projekte</option><option value="reference">Referenzprojekt</option><option value="project">Echtes Projekt</option></select>
+      <label>Von<input id="experienceFrom" type="date"></label><label>Bis<input id="experienceTo" type="date"></label>
+      <select id="experienceSort"><option value="dateDesc">Neueste zuerst</option><option value="dateAsc">Älteste zuerst</option><option value="name">Projektname</option><option value="timeDeviation">Größte Zeitabweichung</option><option value="priceDeviation">Größte Preisabweichung</option></select>
+    </div>
+    <div id="experienceList" class="stack"></div>
   </section>
 
   <section id="settings" class="screen">
@@ -501,6 +525,16 @@
       <p class="tool-intro">Hier speicherst du Kosten und Standardgeschwindigkeiten jeder Maschine. Der Motiv-Schätzer übernimmt diese Werte automatisch.</p>
       <div id="machineList" class="machine-list"></div>
     </div>
+    <div class="card system-navigation">
+      <h3>System & Lernsystem</h3>
+      <div class="button-row system-link-grid">
+        <button type="button" data-screen="projects">Kundenprojekte</button>
+        <button type="button" data-screen="references">Referenzprojekte</button>
+        <button type="button" data-screen="experience">Erfahrungswerte</button>
+        <button type="button" data-open-tool="motifCalc" data-open-details="calibration">Kalibrierung</button>
+        <button type="button" data-screen="experience">Lernstatistik</button>
+      </div>
+    </div>
 
     <div class="card cloud-card">
       <h3>☁ Cloud-Speicherung</h3>
@@ -517,6 +551,15 @@
     </div>
   </section>
 </main>
+<dialog id="appDialog" class="app-dialog">
+  <form class="dialog-card" method="dialog" onsubmit="return false">
+    <div class="section-head"><h2 id="appDialogTitle">Hinweis</h2></div>
+    <p id="appDialogMessage"></p>
+    <div id="appDialogFields" class="dialog-fields"></div>
+    <div id="appDialogError" class="auth-error"></div>
+    <div class="dialog-actions"><button id="appDialogCancel" type="button" class="ghost">Abbrechen</button><button id="appDialogAccept" type="button" class="primary">OK</button></div>
+  </form>
+</dialog>
 <section id="offerPrint" class="offer-print" aria-hidden="true"></section>
 
 <nav class="bottom-nav">
@@ -662,6 +705,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="js/app.js?v=4.10.1"></script>
+<script type="module" src="js/app.js?v=4.11.0"></script>
 </body>
 </html>
