@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.11.1">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.11.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.11.1">
-  <link rel="stylesheet" href="style.css?v=4.11.1">
+  <link rel="manifest" href="manifest.json?v=4.12.0">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.12.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.12.0">
+  <link rel="stylesheet" href="style.css?v=4.12.0">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,7 +45,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.11.1</span>
+      <span class="version-badge">V4.12.0</span>
     </div>
 
     <div class="dashboard-actions">
@@ -92,6 +92,13 @@
       <div class="card metric"><span>Materialwarnungen</span><strong id="homeMaterialWarnings">0</strong><small>unter Mindestbestand</small></div>
       <div class="card metric"><span>Letzter Preis</span><strong id="homeLastPrice">–</strong></div>
     </div>
+    <div class="section-head compact dashboard-section"><div><div class="eyebrow">AUFTRAGSARTEN</div><h3>Eigene Produkte & Kundenobjekte</h3></div></div>
+    <div class="dashboard-metrics customer-object-metrics">
+      <div class="card metric"><span>Kundenobjekte gesamt</span><strong id="homeCustomerObjectCount">0</strong></div>
+      <div class="card metric"><span>Eigenprodukte gesamt</span><strong id="homeOwnProductCount">0</strong></div>
+      <div class="card metric"><span>Anteil Kundenobjekte</span><strong id="homeCustomerObjectShare">0 %</strong></div>
+      <div class="card metric"><span>Ø Preis Kundenobjekt</span><strong id="homeCustomerObjectAverage">0,00 €</strong></div>
+    </div>
   </section>
 
   <section id="materials" class="screen">
@@ -134,6 +141,24 @@
     </div>
 
     <form id="calcForm" class="card form-card">
+      <div class="order-assistant">
+        <div class="group-title">1. AUFTRAGSART WÄHLEN</div>
+        <div class="order-type-grid" role="radiogroup" aria-label="Auftragsart">
+          <label class="order-type-card"><input type="radio" name="orderType" value="own" checked><span>◆</span><b>Eigenes Produkt herstellen</b><small>Material, Maschine und Arbeitszeit kalkulieren</small></label>
+          <label class="order-type-card"><input type="radio" name="orderType" value="customerObject"><span>◎</span><b>Kundenobjekt bearbeiten</b><small>Ohne Materialkosten, mit Grundpauschale und Risiko</small></label>
+          <label class="order-type-card"><input type="radio" name="orderType" value="service"><span>◇</span><b>Dienstleistung ohne Material</b><small>Maschinen- und Arbeitszeit ohne eigenes Material</small></label>
+        </div>
+        <div id="customerObjectIntro" class="customer-object-intro hidden">
+          <label>Bearbeitung
+            <select id="customerObjectProcess">
+              <option value="engrave">Kundenobjekt gravieren</option>
+              <option value="cut">Kundenobjekt schneiden</option>
+              <option value="both">Kundenobjekt gravieren + schneiden</option>
+            </select>
+          </label>
+          <p>Materialverbrauch und Materialkosten werden bei Kundenobjekten grundsätzlich nicht berechnet.</p>
+        </div>
+      </div>
       <div class="project-grid">
         <label>Projektname<input id="projectName" placeholder="z. B. Schild Familie Müller"></label>
         <label>Kundenname / Firma<input id="customerName" placeholder="optional"></label>
@@ -168,15 +193,20 @@
         <div id="consumableRows" class="consumable-list"></div>
       </div>
       <div class="result-card">
-        <div><span>Hauptmaterial</span><strong id="resMaterial">0,00 €</strong></div>
-        <div><span>Verbrauchsmaterial</span><strong id="resConsumables">0,00 €</strong></div>
+        <div id="resMaterialRow"><span>Hauptmaterial</span><strong id="resMaterial">0,00 €</strong></div>
+        <div id="resConsumablesRow"><span>Verbrauchsmaterial</span><strong id="resConsumables">0,00 €</strong></div>
+        <div id="resBaseFeeRow" class="hidden"><span>Grundpauschale</span><strong id="resBaseFee">0,00 €</strong></div>
         <div><span>Maschinenkosten</span><strong id="resMachine">0,00 €</strong></div>
         <div><span>Arbeitskosten</span><strong id="resWork">0,00 €</strong></div>
-        <div><span>Zusatzkosten</span><strong id="resExtra">0,00 €</strong></div>
-        <div><span>Fehlerreserve</span><strong id="resReserve">0,00 €</strong></div>
+        <div id="resExtraRow"><span>Zusatzkosten</span><strong id="resExtra">0,00 €</strong></div>
+        <div id="resReserveRow"><span>Fehlerreserve</span><strong id="resReserve">0,00 €</strong></div>
+        <div id="resDifficultyRow" class="hidden"><span>Schwierigkeitsaufschlag</span><strong id="resDifficulty">0,00 €</strong></div>
+        <div id="resRiskRow" class="hidden"><span>Risikoaufschlag</span><strong id="resRisk">0,00 €</strong></div>
         <div><span>Selbstkosten</span><strong id="resCost">0,00 €</strong></div>
         <div><span>Gewinn</span><strong id="resProfit">0,00 €</strong></div>
-        <div class="final"><span>Verkaufspreis</span><strong id="resSale">0,00 €</strong></div>
+        <div id="resCalculatedRow" class="hidden"><span>Berechneter Preis</span><strong id="resCalculated">0,00 €</strong></div>
+        <div id="resMinimumRow" class="hidden"><span>Mindestpreis angewendet</span><strong id="resMinimum">0,00 €</strong></div>
+        <div class="final"><span id="resSaleLabel">Verkaufspreis</span><strong id="resSale">0,00 €</strong></div>
         <small id="resPerPiece"></small>
       </div>
 
@@ -464,6 +494,10 @@
       <h3>Auswertung</h3>
       <div id="statisticsCharts" class="chart-grid"></div>
     </div>
+    <div class="card customer-object-statistics">
+      <div class="section-head compact"><div><div class="eyebrow">KUNDENOBJEKTE</div><h3>Statistik</h3></div></div>
+      <div id="customerObjectStatistics" class="stats project-stats"></div>
+    </div>
   </section>
 
   <section id="references" class="screen">
@@ -532,6 +566,29 @@
             <option value="1">Auf volle Euro</option>
           </select>
         </label>
+      </div>
+      <div class="settings-subsection">
+        <div class="group-title">KUNDENOBJEKTE</div>
+        <div class="field-grid">
+          <label>Grundpauschale Kundenobjekte (€)<input id="setCustomerBaseFee" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>Mindestpreis Kundenobjekte (€)<input id="setCustomerMinimum" type="number" min="0" step="any" inputmode="decimal"></label>
+        </div>
+        <h4>Schwierigkeitsgrade (%)</h4>
+        <div class="field-grid settings-five-grid">
+          <label>Sehr einfach<input id="setDifficultyVeryEasy" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>Einfach<input id="setDifficultyEasy" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>Normal<input id="setDifficultyNormal" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>Schwer<input id="setDifficultyHard" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>Sehr schwer<input id="setDifficultyVeryHard" type="number" min="0" step="any" inputmode="decimal"></label>
+        </div>
+        <h4>Risikoaufschläge nach Objektwert (€)</h4>
+        <div class="field-grid settings-five-grid">
+          <label>Unter 50 €<input id="setRiskUnder50" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>50–100 €<input id="setRisk50To100" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>100–250 €<input id="setRisk100To250" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>250–500 €<input id="setRisk250To500" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>Über 500 €<input id="setRiskOver500" type="number" min="0" step="any" inputmode="decimal"></label>
+        </div>
       </div>
       <button class="primary wide" type="submit">Einstellungen speichern</button>
     </form>
@@ -718,6 +775,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="js/app.js?v=4.11.1"></script>
+<script type="module" src="js/app.js?v=4.12.0"></script>
 </body>
 </html>

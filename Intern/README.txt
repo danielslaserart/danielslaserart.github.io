@@ -1,6 +1,18 @@
-Daniels Laser Art Kalkulator V4.11.1
+Daniels Laser Art Kalkulator V4.12.0
 
 CHANGELOG 4.x
+
+4.12.0 – Universeller Auftragsassistent und Kundenobjekte
+- Neuer Auftragseinstieg: Eigenes Produkt, Kundenobjekt oder Dienstleistung ohne Material.
+- Kundenobjekte unterstützen Gravieren, Schneiden und beide Bearbeitungsarten.
+- Keine Materialfelder und garantiert 0,00 € Materialkosten bei Kundenobjekten.
+- Grundpauschale, Maschinenzeit, Arbeitszeit, Schwierigkeit, Risiko und Mindestpreis in derselben Preis-Engine.
+- Automatischer, manuell überschreibbarer Risikoaufschlag anhand des Objektwerts.
+- Frei änderbare Grundpauschale, Mindestpreis-, Risiko- und Schwierigkeitswerte.
+- Transparente Preisaufschlüsselung einschließlich berechnetem und empfohlenem Preis.
+- Auftragstyp-Badges in der Projektübersicht und zusätzliche Kundenobjekt-Kennzahlen.
+- Eigenprodukte und Kundenobjekte werden im Lernsystem getrennt verglichen.
+- Bestehende Projekte werden vorsichtig als Eigenprodukte migriert; erkannte Kundenobjekte bleiben entsprechend gekennzeichnet.
 
 4.11.1 – Lernbereich und Referenzprojekt-Details
 - Lernen als eigener Hauptbereich in die untere Navigation aufgenommen und vollständig von den Systemeinstellungen getrennt.
@@ -100,4 +112,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.11.1
+https://danielslaserart.de/Intern/?v=4.12.0
