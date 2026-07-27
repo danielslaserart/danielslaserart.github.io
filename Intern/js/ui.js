@@ -48,21 +48,24 @@ function resetCalculator(module="3d"){
   setCalculatorProductSize("medium");
   state.timer={running:false,startedAt:null,elapsed:0};
   renderCalculator(true);
-  const requestedOrderType=source.orderType||"own";
-  const orderRadio=document.querySelector(`input[name="orderType"][value="${requestedOrderType}"]`);
+  const orderRadio=document.querySelector('input[name="orderType"][value="own"]');
   if(orderRadio)orderRadio.checked=true;
-  if($("customerObjectProcess"))$("customerObjectProcess").value=source.customerObjectProcess||source.estimatorData?.process||"engrave";
-  if(requestedOrderType!=="own")state.activeModule="laser";
+  if($("customerObjectProcess"))$("customerObjectProcess").value="engrave";
   renderCalculator(false);
 }
 export function loadCalculatorData(source={},options={}){
   const module=source.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[source.type])||"3d";
-  state.activeModule=module;
+  const requestedOrderType=source.orderType||"own";
+  state.activeModule=requestedOrderType==="own"?module:"laser";
   setEditingProjectId(options.editingProjectId??null);
   setCalculatorProductSize(source.productSize||"medium");
   setCalculatorConsumables([]);
   state.timer={running:false,startedAt:null,elapsed:0};
   renderCalculator(true);
+  const orderRadio=document.querySelector(`input[name="orderType"][value="${requestedOrderType}"]`);
+  if(orderRadio)orderRadio.checked=true;
+  if($("customerObjectProcess"))$("customerObjectProcess").value=source.customerObjectProcess||source.estimatorData?.process||"engrave";
+  renderCalculator(false);
   document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===getCalculatorProductSize()));
   setCalculatorConsumables((source.consumables||[]).map(r=>({materialId:r.materialId||"",quantity:num(r.quantity),auto:false})));
   renderConsumables();
