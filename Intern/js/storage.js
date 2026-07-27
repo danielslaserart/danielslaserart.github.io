@@ -10,7 +10,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.11.1";
+const APP_VERSION = "4.12.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -28,7 +28,12 @@ export const defaults = {
   settings:{
     profit:30,hourly:0,machine3d:0.5,laserGravur:0.1,laserSchnitt:0.15,
     plotter:0.1,presse:0.15,reserve:5,packaging:0,rounding:0.1,
-    overhead:0,electricity:0.35,defaultMachine:"",defaultMaterial:""
+    overhead:0,electricity:0.35,defaultMachine:"",defaultMaterial:"",
+    customerObject:{
+      baseFee:15,minimumPrice:15,
+      difficulties:{veryEasy:0,easy:5,normal:10,hard:20,veryHard:35},
+      risks:{under50:0,from50To100:3,from100To250:5,from250To500:8,over500:12}
+    }
   },
   materials:[],projects:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[
@@ -52,7 +57,7 @@ state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.
 export function load(){
   try{
     const saved=JSON.parse(localStorage.getItem(KEY));
-    const merged={...defaults,...saved,settings:{...defaults.settings,...(saved?.settings||{})}};
+    const merged={...defaults,...saved,settings:mergeSettings(saved?.settings)};
     merged.learningRecords=(Array.isArray(merged.learningRecords)?merged.learningRecords:[]).map(normalizeLearningRecord);
     merged.materials=(merged.materials||[]).map(m=>({
       ...m,
@@ -94,9 +99,18 @@ export function normalizeProjectRecord(project={}){
   const recordType=project.recordType==="reference"||clearlyGeneratedReference?"reference":"project";
   const estimatedPrice=project.estimatedPrice??(recordType==="reference"?num(project.sale):null);
   const actualPrice=project.actualPrice??(recordType==="project"?num(project.sale):null);
+  const inferredCustomerObject=String(project.type||"").toLowerCase().includes("kundenobjekt");
+  const orderType=["own","customerObject","service"].includes(project.orderType)?project.orderType:(inferredCustomerObject?"customerObject":"own");
   return {
     ...project,
     recordType,
+    orderType,
+    customerObjectProcess:project.customerObjectProcess||null,
+    objectValue:project.objectValue==null?null:num(project.objectValue),
+    riskSurcharge:project.riskSurcharge==null?null:num(project.riskSurcharge),
+    difficulty:project.difficulty||null,
+    difficultyPercent:project.difficultyPercent==null?null:num(project.difficultyPercent),
+    objectMaterial:project.objectMaterial||"",
     isReference:recordType==="reference",
     reference:recordType==="reference",
     estimatedPrice,
@@ -122,6 +136,7 @@ export function normalizeLearningRecord(record={}){
   return {
     ...record,
     recordType:"reference",
+    orderType:["own","customerObject","service"].includes(record.orderType)?record.orderType:"own",
     isReference:true,
     estimatedPrice:record.estimatedPrice??num(record.sale),
     actualPrice:record.actualPrice==null?null:num(record.actualPrice),
@@ -142,6 +157,18 @@ export function isRealProject(record){return record?.recordType!=="reference";}
 export function isReferenceRecord(record){return record?.recordType==="reference";}
 export function getRealProjects(){return state.projects.filter(isRealProject);}
 export function getReferenceProjects(){return state.projects.filter(isReferenceRecord);}
+export function mergeSettings(settings={}){
+  return {
+    ...defaults.settings,
+    ...(settings||{}),
+    customerObject:{
+      ...defaults.settings.customerObject,
+      ...(settings?.customerObject||{}),
+      difficulties:{...defaults.settings.customerObject.difficulties,...(settings?.customerObject?.difficulties||{})},
+      risks:{...defaults.settings.customerObject.risks,...(settings?.customerObject?.risks||{})}
+    }
+  };
+}
 function migrateEmbeddedReferences(container){
   container.learningRecords=Array.isArray(container.learningRecords)?container.learningRecords:[];
   container.projects.filter(isReferenceRecord).forEach(project=>{
@@ -198,7 +225,7 @@ export async function loadCloudState(){
     return false;
   }
   if(data?.data){
-    replaceState({...defaults,...data.data,settings:{...defaults.settings,...(data.data.settings||{})}});
+    replaceState({...defaults,...data.data,settings:mergeSettings(data.data.settings)});
     state.templates=Array.isArray(state.templates)?state.templates:[];
     state.projects=(state.projects||[]).map(normalizeProjectRecord);
     state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);

@@ -12,6 +12,7 @@ export function estimatorSnapshot(values={}){
     projectId:values.projectId||"",
     created:values.created||new Date().toISOString(),
     updated:new Date().toISOString(),
+    orderType:["own","customerObject","service"].includes(values.orderType)?values.orderType:"own",
     materialId:values.materialId||"",
     materialName:values.materialName||"",
     machineId:values.machineId||"",
@@ -53,10 +54,10 @@ export function deleteLearningRecord(id){
   save();
 }
 
-export function findSimilarProjects({materialId,machineId,area,detail,process},limit=12){
+export function findSimilarProjects({materialId,machineId,area,detail,process,orderType="own"},limit=12){
   const targetArea=Math.max(1,num(area));
   return (state.learningRecords||[])
-    .filter(r=>r.reference!==false)
+    .filter(r=>r.reference!==false&&(r.orderType||"own")===orderType)
     .map(record=>{
       const areaRatio=Math.min(targetArea,Math.max(1,num(record.area)))/Math.max(targetArea,Math.max(1,num(record.area)));
       const material=record.materialId===materialId?1:.35;
@@ -92,6 +93,6 @@ export function syncReferenceProjects(){
   getRealProjects().forEach(project=>{
     if(!project.estimatorData||project.actualPrice==null)return;
     const existing=(state.learningRecords||[]).find(r=>r.projectId===project.id);
-    saveLearningRecord({...project.estimatorData,id:existing?.id,projectId:project.id,title:project.title,estimatedPrice:project.estimatedPrice,actualPrice:project.actualPrice,reference:true});
+    saveLearningRecord({...project.estimatorData,id:existing?.id,projectId:project.id,title:project.title,orderType:project.orderType||"own",estimatedPrice:project.estimatedPrice,actualPrice:project.actualPrice,reference:true});
   });
 }

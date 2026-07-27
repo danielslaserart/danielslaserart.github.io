@@ -4,6 +4,42 @@ import { materialSelections, resolveMaterialSelection } from "./materials.js";
 import { renderProjects } from "./projects.js";
 import { appConfirm } from "./dialogs.js";
 let editingProjectId=null;
+export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
+function getCustomerSettings(){return state.settings.customerObject||defaults.settings.customerObject;}
+export function suggestedRiskSurcharge(value,settings=getCustomerSettings()){
+  const v=Math.max(0,num(value)),r=settings.risks||{};
+  if(v<50)return num(r.under50);
+  if(v<=100)return num(r.from50To100);
+  if(v<=250)return num(r.from100To250);
+  if(v<=500)return num(r.from250To500);
+  return num(r.over500);
+}
+export function computePriceBreakdown(parts={}){
+  const orderType=parts.orderType||"own";
+  if(orderType==="customerObject"){
+    const baseFee=Math.max(0,num(parts.baseFee));
+    const machine=Math.max(0,num(parts.machine));
+    const work=Math.max(0,num(parts.work));
+    const risk=Math.max(0,num(parts.risk));
+    const difficultyPercent=Math.max(0,num(parts.difficultyPercent));
+    const difficulty=(baseFee+machine+work)*difficultyPercent/100;
+    const calculated=baseFee+machine+work+difficulty+risk;
+    const minimum=Math.max(0,num(parts.minimumPrice));
+    const minimumApplied=calculated<minimum;
+    const minimumAdjusted=Math.max(calculated,minimum);
+    const recommended=calculated<=minimum?minimum:Math.max(minimum,Math.ceil(minimumAdjusted)+.9);
+    const cost=machine+work;
+    return {material:0,consumables:0,baseFee,machine,work,extra:0,reserve:0,difficulty,risk,calculated,minimum,minimumApplied,cost,sale:recommended,profit:Math.max(0,recommended-cost)};
+  }
+  const material=Math.max(0,num(parts.material)),consumables=Math.max(0,num(parts.consumables)),machine=Math.max(0,num(parts.machine)),work=Math.max(0,num(parts.work)),extra=Math.max(0,num(parts.extra));
+  const direct=material+consumables+machine+work+extra;
+  const overhead=direct*Math.max(0,num(parts.overheadPercent))/100;
+  const base=direct+overhead;
+  const reserve=base*Math.max(0,num(parts.reservePercent))/100;
+  const cost=base+reserve;
+  const sale=parts.roundFn?parts.roundFn(cost*(1+Math.max(0,num(parts.profitPercent))/100)):cost*(1+Math.max(0,num(parts.profitPercent))/100);
+  return {material,consumables,machine,work,extra,reserve,cost,sale,profit:Math.max(0,sale-cost),baseFee:0,difficulty:0,risk:0,calculated:sale,minimum:0,minimumApplied:false};
+}
 export function getTimerSeconds(){
   const timer=state.timer||defaults.timer;
   const runningExtra=timer.running&&timer.startedAt?Math.max(0,Math.floor((Date.now()-new Date(timer.startedAt).getTime())/1000)):0;
@@ -50,6 +86,7 @@ export function captureCalculatorFields(){
 }
 export function applyCalculatorFields(fields={}){
   Object.entries(fields).forEach(([id,value])=>{const el=$(id);if(el)el.value=value;});
+  if($("riskSurcharge")&&fields.riskSurcharge!=="")$("riskSurcharge").dataset.manual="true";
   calculate();
 }
 export const titles={ "3d":"3D-Druck","laser":"Laser","vinyl":"Vinylfolie","textil":"Textilfolie" };
@@ -73,6 +110,18 @@ function defaultQty(mat,size=productSize){
   if(size==="custom")return num(mat.consumptionLevels?.medium)||num(mat.defaultConsumption);
   return num(mat.consumptionLevels?.[size])||num(mat.defaultConsumption);
 }
+function updateOrderAssistantUI(){
+  const orderType=getOrderType(),noMaterial=orderType!=="own";
+  $("customerObjectIntro")?.classList.toggle("hidden",orderType!=="customerObject");
+  document.querySelector(".product-size-section")?.classList.toggle("hidden",noMaterial);
+  document.querySelector(".consumables-section")?.classList.toggle("hidden",noMaterial);
+  document.querySelector(".tabs")?.classList.toggle("order-no-material",noMaterial);
+}
+document.querySelectorAll('input[name="orderType"]').forEach(input=>input.addEventListener("change",()=>{
+  if(input.checked&&input.value!=="own")state.activeModule="laser";
+  renderCalculator(false);
+}));
+$("customerObjectProcess")?.addEventListener("change",()=>{const fields=captureCalculatorFields();renderCalculator(false);applyCalculatorFields(fields)});
 export function workshopUnit(mat){return mat?.workshopUnit||mat?.unit||"Einheit";}
 function workshopCost(mat,quantity){return (mat?.unitPrice||0)*(num(mat?.workshopUnitAmount)||1)*num(quantity);}
 function autoConsumables(type=state.activeModule){
@@ -124,7 +173,12 @@ function setProductSize(size){
 document.querySelectorAll("[data-product-size]").forEach(b=>b.onclick=()=>setProductSize(b.dataset.productSize));
 export function renderCalculator(clear=false){
   const type=state.activeModule||"3d";
-  if(clear){consumableSelections=[];productSize="medium";}
+  if(clear){
+    consumableSelections=[];productSize="medium";
+    const own=document.querySelector('input[name="orderType"][value="own"]');if(own)own.checked=true;
+    if($("customerObjectProcess"))$("customerObjectProcess").value="engrave";
+  }
+  const orderType=getOrderType();
   initializeConsumables(clear);
   $("calcTitle").textContent=titles[type];
   document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===type));
@@ -158,7 +212,7 @@ export function renderCalculator(clear=false){
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
     </div>`;
 
-  if(type==="laser") html=`
+  if(type==="laser"&&orderType==="own") html=`
     <div class="group-title">MATERIAL & MASCHINE</div>
     <label>Laser auswählen<select id="machineSelect">${machineOptions("laser")}</select></label>
     <label>Material auswählen<select id="matMain">${options("Laser")}</select></label><div id="selectedMaterialPreview" class="selected-material-preview hidden"></div>
@@ -176,6 +230,27 @@ export function renderCalculator(clear=false){
       <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
     </div>`;
+
+  if(type==="laser"&&orderType!=="own"){
+    const customer=orderType==="customerObject",settings=getCustomerSettings(),process=$("customerObjectProcess")?.value||"engrave";
+    html=`
+      <div class="group-title">${customer?"KUNDENOBJEKT":"DIENSTLEISTUNG"} & MASCHINE</div>
+      <label>Laser auswählen<select id="machineSelect">${machineOptions("laser")}</select></label>
+      <div class="field-grid customer-object-fields">
+        ${customer?`<label>Material des Kundenobjekts (nur Bezeichnung)<input id="objectMaterial" placeholder="z. B. versilbert, Edelstahl, Holz"></label>
+        <label>Wert des Kundenobjekts (€)<input id="objectValue" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 120"></label>
+        <label>Schwierigkeitsgrad<select id="difficulty"><option value="veryEasy">Sehr einfach (${num(settings.difficulties.veryEasy)} %)</option><option value="easy">Einfach (${num(settings.difficulties.easy)} %)</option><option value="normal" selected>Normal (${num(settings.difficulties.normal)} %)</option><option value="hard">Schwer (${num(settings.difficulties.hard)} %)</option><option value="veryHard">Sehr schwer (${num(settings.difficulties.veryHard)} %)</option></select></label>
+        <div class="risk-field-wrap"><label>Risikoaufschlag (€)<input id="riskSurcharge" type="number" min="0" step="any" inputmode="decimal" value="0"></label><button id="resetRiskSuggestion" class="ghost small" type="button">Automatisch</button></div>`:""}
+        <label class="${customer&&process==="cut"?"hidden":""}">Gravurdauer (Minuten)<input id="engraveMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+        <label class="${customer&&process==="engrave"?"hidden":""}">Schnittdauer (Minuten)<input id="cutMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+        <div class="machine-rate-display">Gravur: <strong id="engraveRateDisplay">0,00 € / Min.</strong></div>
+        <div class="machine-rate-display">Schnitt: <strong id="cutRateDisplay">0,00 € / Min.</strong></div>
+        <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
+        <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
+        ${customer?"":`<label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label><label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label><label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>`}
+      </div>
+      ${customer?`<div class="price-explanation">Die Grundpauschale von ${euro(settings.baseFee)} deckt Beratung, Einrichtung, Positionierung, Fokus, Probelauf, Reinigung und Dokumentation ab.</div>`:""}`;
+  }
 
   if(type==="vinyl") html=`
     <div class="group-title">VINYL & ÜBERTRAGUNGSFOLIE</div>
@@ -225,8 +300,15 @@ export function renderCalculator(clear=false){
     </div>`;
 
   $("moduleFields").innerHTML=html;
+  updateOrderAssistantUI();
   renderConsumables();
   document.querySelectorAll("#calcForm input,#calcForm select").forEach(el=>el.oninput=calculate);
+  if($("objectValue"))$("objectValue").oninput=()=>{
+    const risk=$("riskSurcharge");if(risk?.dataset.manual!=="true")risk.value=String(suggestedRiskSurcharge($("objectValue").value));
+    calculate();
+  };
+  if($("riskSurcharge"))$("riskSurcharge").oninput=()=>{$("riskSurcharge").dataset.manual="true";calculate()};
+  if($("resetRiskSuggestion"))$("resetRiskSuggestion").onclick=()=>{const risk=$("riskSurcharge");risk.dataset.manual="false";risk.value=String(suggestedRiskSurcharge($("objectValue")?.value));calculate()};
   calculate();
 }
 $("resetCalcBtn").onclick=async()=>{if(await appConfirm("Neue Kalkulation starten?\nAlle nicht gespeicherten Eingaben werden gelöscht.","Neue Kalkulation","Neue Kalkulation"))document.dispatchEvent(new CustomEvent("dla:new-order",{detail:{module:state.activeModule}}))};
@@ -249,7 +331,7 @@ function updateSelectedMaterialPreview(){
 }
 export function calculate(){
   updateSelectedMaterialPreview();
-  const type=state.activeModule;
+  const type=state.activeModule,orderType=getOrderType();
   const main=getMat("matMain"),transfer=getMat("matTransfer");
   const unitMain=main?.unitPrice||0,unitTransfer=transfer?.unitPrice||0;
   if($("priceMain")) $("priceMain").textContent=main?`${euro(unitMain)} / ${main.unit}`:"0,00 €";
@@ -272,8 +354,11 @@ export function calculate(){
     const engraveRate=num(selectedMachine?.engraveRate),cutRate=num(selectedMachine?.cutRate);
     if($("engraveRateDisplay")) $("engraveRateDisplay").textContent=`${euro(engraveRate)} / Min.`;
     if($("cutRateDisplay")) $("cutRateDisplay").textContent=`${euro(cutRate)} / Min.`;
-    material=unitMain*num($("usageMain")?.value);
-    machine=num($("engraveMinutes")?.value)*engraveRate+num($("cutMinutes")?.value)*cutRate;
+    material=orderType==="own"?unitMain*num($("usageMain")?.value):0;
+    const process=$("customerObjectProcess")?.value||"both";
+    const engravingMinutes=orderType==="customerObject"&&process==="cut"?0:num($("engraveMinutes")?.value);
+    const cuttingMinutes=orderType==="customerObject"&&process==="engrave"?0:num($("cutMinutes")?.value);
+    machine=engravingMinutes*engraveRate+cuttingMinutes*cutRate;
     work=(num($("workMinutes")?.value)/60)*num($("hourlyRate")?.value);
     extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
@@ -293,35 +378,46 @@ export function calculate(){
     extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
 
-  const direct=material+consumables+machine+work+extra;
-  const overhead=direct*num(state.settings.overhead)/100;
-  const base=direct+overhead;
-  const reserve=base*num($("reserve")?.value)/100;
-  const cost=base+reserve;
-  const profit=cost*num($("profit")?.value)/100;
-  const sale=rounded(cost+profit);
-
-  $("resMaterial").textContent=euro(material);
-  $("resConsumables").textContent=euro(consumables);
-  $("resMachine").textContent=euro(machine);
-  $("resWork").textContent=euro(work);
-  $("resExtra").textContent=euro(extra);
-  $("resReserve").textContent=euro(reserve);
-  $("resCost").textContent=euro(cost);
-  $("resProfit").textContent=euro(Math.max(0,sale-cost));
-  $("resSale").textContent=euro(sale);
-  $("resPerPiece").textContent=qty>1?`${euro(sale/qty)} je Stück`:"";
-  $("calcForm").dataset.sale=sale;
-  $("calcForm").dataset.cost=cost;
+  const settings=getCustomerSettings(),difficultyKey=$("difficulty")?.value||"normal";
+  const breakdown=computePriceBreakdown({
+    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
+    overheadPercent:state.settings.overhead,reservePercent:num($("reserve")?.value),profitPercent:num($("profit")?.value),roundFn:rounded,
+    baseFee:settings.baseFee,minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value)
+  });
+  const customerObject=orderType==="customerObject";
+  $("resMaterialRow").classList.toggle("hidden",orderType!=="own");$("resConsumablesRow").classList.toggle("hidden",orderType!=="own");
+  $("resBaseFeeRow").classList.toggle("hidden",!customerObject);$("resDifficultyRow").classList.toggle("hidden",!customerObject);$("resRiskRow").classList.toggle("hidden",!customerObject);$("resCalculatedRow").classList.toggle("hidden",!customerObject);$("resMinimumRow").classList.toggle("hidden",!customerObject||!breakdown.minimumApplied);
+  $("resExtraRow").classList.toggle("hidden",customerObject);$("resReserveRow").classList.toggle("hidden",customerObject);
+  $("resMaterial").textContent=euro(breakdown.material);$("resConsumables").textContent=euro(breakdown.consumables);$("resBaseFee").textContent=euro(breakdown.baseFee);
+  $("resMachine").textContent=euro(breakdown.machine);$("resWork").textContent=euro(breakdown.work);$("resExtra").textContent=euro(breakdown.extra);$("resReserve").textContent=euro(breakdown.reserve);
+  $("resDifficulty").textContent=euro(breakdown.difficulty);$("resRisk").textContent=euro(breakdown.risk);$("resCalculated").textContent=euro(breakdown.calculated);$("resMinimum").textContent=euro(breakdown.minimum);
+  $("resCost").textContent=euro(breakdown.cost);$("resProfit").textContent=euro(breakdown.profit);$("resSale").textContent=euro(breakdown.sale);$("resSaleLabel").textContent=customerObject?"Empfohlener Verkaufspreis":"Verkaufspreis";
+  $("resPerPiece").textContent=qty>1?`${euro(breakdown.sale/qty)} je Stück`:"";
+  $("calcForm").dataset.sale=breakdown.sale;
+  $("calcForm").dataset.cost=breakdown.cost;
+  $("calcForm").dataset.breakdown=JSON.stringify(breakdown);
   $("calcForm").dataset.qty=qty;
 }
 $("calcForm").onsubmit=async e=>{
   e.preventDefault();calculate();
   const title=$("projectName").value.trim()||`${titles[state.activeModule]} ${new Date().toLocaleDateString("de-DE")}`;
   const machine=getMachine();
+  const orderType=getOrderType(),customerObject=orderType==="customerObject";
+  const customerProcess=$("customerObjectProcess")?.value||null;
+  const customerSettings=getCustomerSettings();
+  const difficulty=$("difficulty")?.value||null;
+  const breakdown=JSON.parse($("calcForm").dataset.breakdown||"{}");
   const existingProject=editingProjectId?state.projects.find(p=>p.id===editingProjectId):null;
   const saleNow=num($("calcForm").dataset.sale),costNow=num($("calcForm").dataset.cost);const history=[...(existingProject?.priceHistory||[])];if(!existingProject||num(existingProject.sale)!==saleNow||num(existingProject.cost)!==costNow)history.unshift({date:new Date().toISOString(),sale:saleNow,cost:costNow});
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,title,customer:$("customerName").value.trim(),customerAddress:$("customerAddress")?.value.trim()||"",type:titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:existingProject?.estimatedPrice??null,actualPrice:saleNow,estimatorData:existingProject?.estimatorData||null,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})),fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const estimatedCutTime=customerObject&&customerProcess==="engrave"?0:num($("cutMinutes")?.value);
+  const estimatedEngravingTime=customerObject&&customerProcess==="cut"?0:num($("engraveMinutes")?.value);
+  const estimatorData=customerObject?{
+    orderType,process:customerProcess,materialId:"",materialName:$("objectMaterial")?.value.trim()||"Kundenobjekt",machineId:machine?.id||"",machineName:machine?.name||"",
+    estimatedCutTime,estimatedEngravingTime,estimatedTotalTime:estimatedCutTime+estimatedEngravingTime,
+    actualCutTime:null,actualEngravingTime:null,actualTotalTime:null,estimatedPrice:saleNow,actualPrice:saleNow,materialCost:0,cost:costNow,
+    objectValue:num($("objectValue")?.value),riskSurcharge:num($("riskSurcharge")?.value),difficulty,difficultyPercent:num(customerSettings.difficulties?.[difficulty])
+  }:(existingProject?.estimatorData||null);
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customer:$("customerName").value.trim(),customerAddress:$("customerAddress")?.value.trim()||"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
   const usedKeys=[project.fields?.matMain,project.fields?.matTransfer,...project.consumables.map(r=>r.materialId)].filter(Boolean);

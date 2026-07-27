@@ -4,7 +4,7 @@ import { renderMaterials } from "./materials.js";
 import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js";
 import { fillSettings } from "./settings.js";
 import { renderTools, resetTool } from "./statistics.js";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, getCalculatorProductSize } from "./calculator.js";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, getCalculatorProductSize, getOrderType } from "./calculator.js";
 import { appAlert, appPrompt } from "./dialogs.js";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
@@ -39,7 +39,7 @@ function renderLearningStatistics(){
   const active=records.filter(r=>r.reference!==false).length;
   box.innerHTML=`<div class="stats learning-stat-grid"><div class="card stat"><span>Erfahrungswerte</span><strong>${records.length}</strong></div><div class="card stat"><span>Aktiv im Lernsystem</span><strong>${active}</strong></div><div class="card stat"><span>Ø Zeitabweichung</span><strong>${timeDeviation==null?"–":timeDeviation.toLocaleString("de-DE",{maximumFractionDigits:1})+" %"}</strong></div><div class="card stat"><span>Ø Preisabweichung</span><strong>${priceDeviation==null?"–":priceDeviation.toLocaleString("de-DE",{maximumFractionDigits:1})+" %"}</strong></div></div><div class="card learning-progress-card"><h3>Lernfortschritt</h3><p>${records.length<3?"Noch wenige Vergleichswerte. Mit jedem gepflegten Ist-Wert werden die Schätzungen zuverlässiger.":records.length<10?"Gute Grundlage. Weitere tatsächliche Zeiten und Verkaufspreise verbessern die Trefferquote.":"Das Lernsystem verfügt über eine solide Datenbasis."}</p><div class="learning-progress"><i style="width:${Math.min(100,records.length*10)}%"></i></div></div>`;
 }
-document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.tab;save();renderCalculator()});
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=getOrderType()==="own"?b.dataset.tab:"laser";save();renderCalculator()});
 
 function resetCalculator(module="3d"){
   state.activeModule=module||"3d";
@@ -48,6 +48,12 @@ function resetCalculator(module="3d"){
   setCalculatorProductSize("medium");
   state.timer={running:false,startedAt:null,elapsed:0};
   renderCalculator(true);
+  const requestedOrderType=source.orderType||"own";
+  const orderRadio=document.querySelector(`input[name="orderType"][value="${requestedOrderType}"]`);
+  if(orderRadio)orderRadio.checked=true;
+  if($("customerObjectProcess"))$("customerObjectProcess").value=source.customerObjectProcess||source.estimatorData?.process||"engrave";
+  if(requestedOrderType!=="own")state.activeModule="laser";
+  renderCalculator(false);
 }
 export function loadCalculatorData(source={},options={}){
   const module=source.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[source.type])||"3d";
@@ -89,7 +95,7 @@ export async function createTemplateFromProject(id){
   const p=getRealProjects().find(x=>x.id===id);if(!p)return;
   const name=await appPrompt("Name der Vorlage:",p.title,"Vorlage speichern");if(!name)return;
   state.templates=state.templates||[];
-  state.templates.unshift({id:uid(),name:name.trim(),module:p.module,type:p.type,machineId:p.machineId,productSize:p.productSize,consumables:structuredClone(p.consumables||[]),fields:structuredClone(p.fields||{}),notes:p.notes||"",created:new Date().toISOString()});
+  state.templates.unshift({id:uid(),name:name.trim(),module:p.module,type:p.type,orderType:p.orderType||"own",customerObjectProcess:p.customerObjectProcess||null,machineId:p.machineId,productSize:p.productSize,consumables:structuredClone(p.consumables||[]),fields:structuredClone(p.fields||{}),notes:p.notes||"",created:new Date().toISOString()});
   save();updateHome();appAlert("Vorlage gespeichert.");
 }
 function useTemplate(id){
@@ -113,6 +119,11 @@ export function updateHome(){
   $("homeMonthOrders").textContent=`${monthProjects.length} ${monthProjects.length===1?"Auftrag":"Aufträge"}`;
   $("homeFavoriteCount").textContent=`${state.materials.filter(m=>m.favorite).length} Favoriten`;
   $("homeLastPrice").textContent=state.lastPrice==null?"–":euro(state.lastPrice);
+  const customerObjects=realProjects.filter(p=>p.orderType==="customerObject"),ownProducts=realProjects.filter(p=>(p.orderType||"own")==="own");
+  if($("homeCustomerObjectCount"))$("homeCustomerObjectCount").textContent=customerObjects.length;
+  if($("homeOwnProductCount"))$("homeOwnProductCount").textContent=ownProducts.length;
+  if($("homeCustomerObjectShare"))$("homeCustomerObjectShare").textContent=`${realProjects.length?(customerObjects.length/realProjects.length*100).toLocaleString("de-DE",{maximumFractionDigits:1}):0} %`;
+  if($("homeCustomerObjectAverage"))$("homeCustomerObjectAverage").textContent=euro(customerObjects.length?customerObjects.reduce((sum,p)=>sum+num(p.actualPrice??p.sale),0)/customerObjects.length:0);
   const greeting=now.getHours()<11?"Guten Morgen":now.getHours()<18?"Guten Tag":"Guten Abend";
   if($("dashboardGreeting")) $("dashboardGreeting").textContent=`${greeting}, Daniel`;
   const todayKey=now.toLocaleDateString("de-DE");

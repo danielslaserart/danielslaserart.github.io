@@ -9,6 +9,7 @@ function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
 function projectStatusClass(status){return `status-${["offer","progress","waiting","done","billed"].includes(status)?status:"offer"}`;}
+function orderTypeLabel(type){return ({own:"Eigenes Produkt",customerObject:"Kundenobjekt",service:"Dienstleistung"})[type]||"Eigenes Produkt";}
 export function renderProjects(){
   const realProjects=getRealProjects();
   const term=($('projectSearch')?.value||'').trim().toLowerCase();
@@ -34,7 +35,7 @@ export function renderProjects(){
     <article class="card project-item" data-project-card="${p.id}">
       ${(p.images||[])[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${p.images[0]}" alt=""></button>`:''}
       <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="item-price">${euro(p.sale)}</div></div>
-      <div class="project-status-row"><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
+      <div class="project-status-row"><span class="order-badge ${p.orderType||"own"}">${orderTypeLabel(p.orderType)}</span><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
       ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
       <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button>${p.estimatorData?`<button type="button" data-reference-project="${p.id}">Als Lerndaten nutzen</button>`:""}<button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
     </article>`).join(''):`<div class="empty-state">Keine passenden Projekte gefunden.</div>`;
@@ -47,6 +48,16 @@ export function renderProjects(){
   document.querySelectorAll('[data-reference-project]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.referenceProject);if(p?.estimatorData){saveLearningRecord({...p.estimatorData,projectId:p.id,title:p.title,estimatedPrice:p.estimatedPrice,actualPrice:p.actualPrice,reference:true});await appAlert('Das Kundenprojekt bleibt in der Projektübersicht. Eine getrennte Lernreferenz wurde aktualisiert.');renderProjects();}});
   document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=async e=>{e.stopPropagation();if(await appConfirm('Projekt löschen?',"Projekt löschen","Löschen")){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();updateHome()}});
   renderStatisticsCharts();
+  renderCustomerObjectStatistics();
+}
+function renderCustomerObjectStatistics(){
+  const box=$("customerObjectStatistics");if(!box)return;
+  const rows=getRealProjects().filter(p=>p.orderType==="customerObject");
+  const avg=fn=>rows.length?rows.reduce((sum,p)=>sum+num(fn(p)),0)/rows.length:0;
+  const knownEngravingTimes=rows.map(p=>p.actualEngravingTime).filter(value=>value!=null);
+  const materials=new Map();rows.forEach(p=>{const name=p.objectMaterial||p.estimatorData?.materialName||"Nicht angegeben";materials.set(name,(materials.get(name)||0)+1)});
+  const popular=[...materials.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||"–";
+  box.innerHTML=`<div class="card stat"><span>Anzahl bearbeiteter Kundenobjekte</span><strong>${rows.length}</strong></div><div class="card stat"><span>Ø Preis</span><strong>${euro(avg(p=>p.actualPrice??p.sale))}</strong></div><div class="card stat"><span>Ø Gravurzeit</span><strong>${knownEngravingTimes.length?(knownEngravingTimes.reduce((sum,value)=>sum+num(value),0)/knownEngravingTimes.length).toLocaleString("de-DE",{maximumFractionDigits:1})+" Min.":"–"}</strong></div><div class="card stat"><span>Gewinn</span><strong>${euro(rows.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0))}</strong></div><div class="card stat"><span>Beliebtestes Objektmaterial</span><strong>${esc(popular)}</strong></div><div class="card stat"><span>Ø Risikoaufschlag</span><strong>${euro(avg(p=>p.riskSurcharge))}</strong></div>`;
 }
 export function renderReferenceProjects(){
   const box=$('referenceProjectList');if(!box)return;
@@ -57,6 +68,7 @@ export function renderReferenceProjects(){
     ${r.image?`<img class="reference-thumb" src="${r.image}" alt="${esc(r.title||"Referenzprojekt")}">`:`<div class="reference-thumb reference-placeholder" aria-hidden="true">▣</div>`}
     <div class="reference-card-body">
       <h3>${esc(r.title||r.materialName||"Referenzdatensatz")}</h3>
+      <span class="order-badge ${r.orderType||"own"}">${orderTypeLabel(r.orderType)}</span>
       <div class="reference-summary">
         <div><span>Material</span><strong>${esc(r.materialName||"–")}</strong></div>
         <div><span>Maschine</span><strong>${esc(r.machineName||"–")}</strong></div>
@@ -101,6 +113,7 @@ export function viewReferenceProject(key){
     ${r.image?`<img class="reference-detail-image" src="${r.image}" alt="${esc(r.title||"Referenzprojekt")}">`:""}
     <div class="reference-detail-grid">
       <div><span>Datum</span><strong>${new Date(r.created||Date.now()).toLocaleDateString("de-DE")}</strong></div>
+      <div><span>Auftragstyp</span><strong>${esc(orderTypeLabel(r.orderType))}</strong></div>
       <div><span>Material</span><strong>${esc(r.materialName||"–")}</strong></div>
       <div><span>Maschine</span><strong>${esc(r.machineName||"–")}</strong></div>
       <div><span>Bearbeitungsart</span><strong>${processLabel(r.process)}</strong></div>
@@ -154,7 +167,7 @@ export function renderExperienceValues(){
   const timeDev=r=>r.actualTotalTime==null?null:num(r.actualTotalTime)-num(r.estimatedTotalTime),priceDev=r=>r.actualPrice==null?null:num(r.actualPrice)-num(r.estimatedPrice);
   const sort=$("experienceSort")?.value||"dateDesc";rows.sort((a,b)=>sort==="dateAsc"?new Date(a.created)-new Date(b.created):sort==="name"?String(a.title).localeCompare(String(b.title),"de"):sort==="timeDeviation"?Math.abs(timeDev(b)||0)-Math.abs(timeDev(a)||0):sort==="priceDeviation"?Math.abs(priceDev(b)||0)-Math.abs(priceDev(a)||0):new Date(b.created)-new Date(a.created));
   const times=rows.map(timeDev).filter(x=>x!=null),prices=rows.map(priceDev).filter(x=>x!=null);$("experienceCount").textContent=rows.length;$("experienceTimeDeviation").textContent=times.length?`${(times.reduce((a,b)=>a+b,0)/times.length).toLocaleString("de-DE",{maximumFractionDigits:1})} Min.`:"–";$("experiencePriceDeviation").textContent=prices.length?euro(prices.reduce((a,b)=>a+b,0)/prices.length):"–";
-  box.innerHTML=rows.length?rows.map(r=>`<article class="card experience-item"><strong>${esc(r.title||"Erfahrungswert")}</strong><small>${new Date(r.created||Date.now()).toLocaleDateString("de-DE")} · ${r.recordType==="project"?"Echtes Projekt":"Referenzprojekt"} · ${esc(r.materialName||"–")} · ${esc(r.machineName||"–")}</small><div class="project-view-details"><div><span>Bearbeitung</span><strong>${esc(r.process||"–")}</strong></div><div><span>Maße / Fläche</span><strong>${num(r.width)} × ${num(r.height)} cm / ${num(r.area)} cm²</strong></div><div><span>Ebenen / Detail</span><strong>${num(r.layers)||1} / ${esc(r.detail||"–")}</strong></div><div><span>Zeit geschätzt / tatsächlich</span><strong>${num(r.estimatedTotalTime)} / ${r.actualTotalTime==null?"unbekannt":num(r.actualTotalTime)} Min.</strong></div><div><span>Preis geschätzt / tatsächlich</span><strong>${euro(r.estimatedPrice)} / ${r.actualPrice==null?"unbekannt":euro(r.actualPrice)}</strong></div><div><span>Lernfaktor</span><strong>${r.actualTotalTime!=null&&num(r.estimatedTotalTime)>0?(num(r.actualTotalTime)/num(r.estimatedTotalTime)).toLocaleString("de-DE",{maximumFractionDigits:2}):"–"}</strong></div></div>${r.recordType==="reference"?`<div class="item-actions"><button data-experience-edit="${r.id}">Bearbeiten</button><button class="danger" data-experience-delete="${r.id}">Löschen</button></div>`:""}</article>`).join(""):'<div class="empty-state">Keine passenden Erfahrungswerte gefunden.</div>';
+  box.innerHTML=rows.length?rows.map(r=>`<article class="card experience-item"><strong>${esc(r.title||"Erfahrungswert")}</strong><small>${new Date(r.created||Date.now()).toLocaleDateString("de-DE")} · ${r.recordType==="project"?"Echtes Projekt":"Referenzprojekt"} · ${esc(r.materialName||"–")} · ${esc(r.machineName||"–")}</small><div class="project-view-details"><div><span>Auftragstyp</span><strong>${esc(orderTypeLabel(r.orderType))}</strong></div><div><span>Bearbeitung</span><strong>${esc(r.process||"–")}</strong></div><div><span>Maße / Fläche</span><strong>${num(r.width)} × ${num(r.height)} cm / ${num(r.area)} cm²</strong></div><div><span>Ebenen / Detail</span><strong>${num(r.layers)||1} / ${esc(r.detail||"–")}</strong></div><div><span>Zeit geschätzt / tatsächlich</span><strong>${num(r.estimatedTotalTime)} / ${r.actualTotalTime==null?"unbekannt":num(r.actualTotalTime)} Min.</strong></div><div><span>Preis geschätzt / tatsächlich</span><strong>${euro(r.estimatedPrice)} / ${r.actualPrice==null?"unbekannt":euro(r.actualPrice)}</strong></div><div><span>Lernfaktor</span><strong>${r.actualTotalTime!=null&&num(r.estimatedTotalTime)>0?(num(r.actualTotalTime)/num(r.estimatedTotalTime)).toLocaleString("de-DE",{maximumFractionDigits:2}):"–"}</strong></div></div>${r.recordType==="reference"?`<div class="item-actions"><button data-experience-edit="${r.id}">Bearbeiten</button><button class="danger" data-experience-delete="${r.id}">Löschen</button></div>`:""}</article>`).join(""):'<div class="empty-state">Keine passenden Erfahrungswerte gefunden.</div>';
   box.querySelectorAll("[data-experience-edit]").forEach(b=>b.onclick=async()=>{const r=(state.learningRecords||[]).find(x=>x.id===b.dataset.experienceEdit),result=r&&await referenceForm(r);if(result){Object.assign(r,result,{updated:new Date().toISOString()});save();renderExperienceValues();}});
   box.querySelectorAll("[data-experience-delete]").forEach(b=>b.onclick=async()=>{if(await appConfirm("Erfahrungswert wirklich löschen?","Erfahrungswert löschen","Löschen")){deleteLearningRecord(b.dataset.experienceDelete);renderExperienceValues();}});
 }
@@ -190,6 +203,7 @@ export function viewProject(id){
     <div class="project-image-actions"><label class="secondary file-button">＋ Bilder hinzufügen<input id="projectImageInput" type="file" accept="image/*" multiple></label></div>
     <div class="project-view-summary">
       <div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div>
+      <div><span>Auftragstyp</span><strong>${esc(orderTypeLabel(p.orderType))}</strong></div>${p.orderType==="customerObject"?`<div><span>Objektmaterial</span><strong>${esc(p.objectMaterial||"–")}</strong></div><div><span>Objektwert</span><strong>${euro(p.objectValue)}</strong></div><div><span>Risikoaufschlag</span><strong>${euro(p.riskSurcharge)}</strong></div>`:""}
       <div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created||p.updated).toLocaleDateString("de-DE")}</strong></div>
       <div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div>
       ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}<div><span>Tatsächlicher Preis</span><strong>${euro(p.actualPrice??p.sale)}</strong></div>

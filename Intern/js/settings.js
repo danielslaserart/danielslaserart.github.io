@@ -1,5 +1,5 @@
 import { $, num, esc, inferMaterialCategory } from "./utils.js";
-import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord } from "./storage.js";
+import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord, mergeSettings } from "./storage.js";
 import { renderMachines } from "./machines.js";
 import { renderMaterials } from "./materials.js";
 import { renderProjects } from "./projects.js";
@@ -12,10 +12,14 @@ export function fillSettings(){
   $("setDefaultMachine").innerHTML='<option value="">Keine Vorgabe</option>'+state.machines.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("");
   $("setDefaultMaterial").innerHTML='<option value="">Keine Vorgabe</option>'+state.materials.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("");
   $("setDefaultMachine").value=state.settings.defaultMachine||"";$("setDefaultMaterial").value=state.settings.defaultMaterial||"";
+  const customer=state.settings.customerObject||defaults.settings.customerObject,d=customer.difficulties,r=customer.risks;
+  $("setCustomerBaseFee").value=num(customer.baseFee);$("setCustomerMinimum").value=num(customer.minimumPrice);
+  $("setDifficultyVeryEasy").value=num(d.veryEasy);$("setDifficultyEasy").value=num(d.easy);$("setDifficultyNormal").value=num(d.normal);$("setDifficultyHard").value=num(d.hard);$("setDifficultyVeryHard").value=num(d.veryHard);
+  $("setRiskUnder50").value=num(r.under50);$("setRisk50To100").value=num(r.from50To100);$("setRisk100To250").value=num(r.from100To250);$("setRisk250To500").value=num(r.from250To500);$("setRiskOver500").value=num(r.over500);
 }
 $("settingsForm").onsubmit=e=>{
   e.preventDefault();
-  state.settings={...state.settings,profit:num($("setProfit").value),hourly:num($("setHourly").value),plotter:num($("setPlotter").value),presse:num($("setPresse").value),reserve:num($("setReserve").value),packaging:num($("setPackaging").value),rounding:num($("setRounding").value),overhead:num($("setOverhead").value),electricity:num($("setElectricity").value),defaultMachine:$("setDefaultMachine").value,defaultMaterial:$("setDefaultMaterial").value};
+  state.settings={...state.settings,profit:num($("setProfit").value),hourly:num($("setHourly").value),plotter:num($("setPlotter").value),presse:num($("setPresse").value),reserve:num($("setReserve").value),packaging:num($("setPackaging").value),rounding:num($("setRounding").value),overhead:num($("setOverhead").value),electricity:num($("setElectricity").value),defaultMachine:$("setDefaultMachine").value,defaultMaterial:$("setDefaultMaterial").value,customerObject:{baseFee:num($("setCustomerBaseFee").value),minimumPrice:num($("setCustomerMinimum").value),difficulties:{veryEasy:num($("setDifficultyVeryEasy").value),easy:num($("setDifficultyEasy").value),normal:num($("setDifficultyNormal").value),hard:num($("setDifficultyHard").value),veryHard:num($("setDifficultyVeryHard").value)},risks:{under50:num($("setRiskUnder50").value),from50To100:num($("setRisk50To100").value),from100To250:num($("setRisk100To250").value),from250To500:num($("setRisk250To500").value),over500:num($("setRiskOver500").value)}}};
   save();appAlert("Einstellungen gespeichert.");
 };
 
@@ -28,7 +32,7 @@ $("importInput").onchange=async e=>{
   try{
     const d=JSON.parse(await f.text());
     if(!Array.isArray(d.materials)||!Array.isArray(d.projects))throw new Error();
-    replaceState({...defaults,...d,settings:{...defaults.settings,...(d.settings||{})}});
+    replaceState({...defaults,...d,settings:mergeSettings(d.settings)});
     state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
     state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
     state.projects=(state.projects||[]).map(normalizeProjectRecord);
