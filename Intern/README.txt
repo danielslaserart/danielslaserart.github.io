@@ -1,6 +1,13 @@
-Daniels Laser Art Kalkulator V4.12.0
+Daniels Laser Art Kalkulator V4.12.1
 
 CHANGELOG 4.x
+
+4.12.1 – Rechner-Start und Datenladen korrigiert
+- Startfehler „source is not defined“ beim Öffnen des Rechners behoben.
+- Neue Kalkulationen starten zuverlässig mit Auftragstyp „Eigenes Produkt“.
+- Kundenobjekt-Bearbeitung wird bei neuen Kalkulationen auf „Gravieren“ zurückgesetzt.
+- Bearbeitungs-ID, Verbrauchsmaterialien, Produktgröße und Timer werden sauber zurückgesetzt.
+- Bestehende Projekte und Vorlagen laden Auftragstyp und Bearbeitungsmodus weiterhin aus ihren gespeicherten Quelldaten.
 
 4.12.0 – Universeller Auftragsassistent und Kundenobjekte
 - Neuer Auftragseinstieg: Eigenes Produkt, Kundenobjekt oder Dienstleistung ohne Material.
@@ -112,4 +119,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.12.0
+https://danielslaserart.de/Intern/?v=4.12.1
