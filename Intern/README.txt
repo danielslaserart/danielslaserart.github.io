@@ -1,4 +1,12 @@
-Daniels Laser Art Kalkulator V4.13.2
+Daniels Laser Art Kalkulator V4.13.3
+
+4.13.3 – Kritischen Authentifizierungs-Startfehler behoben
+- Supabase-Client wird ausfallsicher und nur einmal initialisiert.
+- Sessionprüfung besitzt ein Zeitlimit und kann den Ladebildschirm nicht mehr dauerhaft blockieren.
+- Loginformular und „Erneut prüfen“ werden bei Lade-, Netzwerk- und Startfehlern freigegeben.
+- Globale JavaScript- und Promise-Startfehler werden verständlich angezeigt.
+- Auth-Listener und App-Einstieg sind gegen Mehrfachausführung geschützt.
+- Service-Worker-Cache und Registrierungsparameter auf 4.13.3 aktualisiert.
 
 4.13.2 – Startseite, Designkarte, Navigation und Login-Session korrigiert
 - Startseite auf die wichtigsten Schnellzugriffe, Tagesübersicht und letzten Projekte verkürzt; ausführliche Werkzeuge und Kennzahlen sind über „Mehr anzeigen“ erreichbar.
@@ -141,4 +149,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.13.2
+https://danielslaserart.de/Intern/?v=4.13.3

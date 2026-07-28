@@ -5,10 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.13.2">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.13.2">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.13.2">
-  <link rel="stylesheet" href="style.css?v=4.13.2">
+  <link rel="manifest" href="manifest.json?v=4.13.3">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.13.3">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.13.3">
+  <link rel="stylesheet" href="style.css?v=4.13.3">
+  <script>
+    window.addEventListener("error",event=>{
+      console.error("Globaler Startfehler:",event.error||event.message);
+      const gate=document.getElementById("authGate");
+      const authText=document.getElementById("authText");
+      const authError=document.getElementById("authError");
+      const retryBtn=document.getElementById("authRetryBtn");
+      if(gate)gate.classList.remove("auth-pending","hidden");
+      if(authText)authText.textContent="Die App konnte nicht gestartet werden.";
+      if(authError)authError.textContent="Es ist ein technischer Startfehler aufgetreten. Bitte erneut versuchen.";
+      if(retryBtn)retryBtn.classList.remove("hidden");
+    });
+    window.addEventListener("unhandledrejection",event=>{
+      console.error("Nicht behandelter Promise-Fehler:",event.reason);
+    });
+  </script>
 </head>
 <body>
 <div id="authGate" class="auth-gate auth-pending">
@@ -26,6 +42,8 @@
       <button class="primary wide" type="submit">Anmelden</button>
     </form>
     <div id="authError" class="auth-error"></div>
+    <button id="authRetryBtn" class="secondary wide hidden" type="button"
+      onclick="window.__dlaRetryAuth ? window.__dlaRetryAuth() : location.reload()">Erneut prüfen</button>
   </div>
 </div>
 <header class="app-header">
@@ -45,7 +63,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.13.2</span>
+      <span class="version-badge">V4.13.3</span>
     </div>
 
     <div class="dashboard-actions">
@@ -840,7 +858,9 @@
   </div>
 </dialog>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="js/app.js?v=4.13.2"></script>
+<script id="supabaseScript" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  onload="this.dataset.loaded='true'"
+  onerror="this.dataset.failed='true'"></script>
+<script type="module" src="js/app.js?v=4.13.3"></script>
 </body>
 </html>
