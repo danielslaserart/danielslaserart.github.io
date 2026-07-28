@@ -1,4 +1,12 @@
-Daniels Laser Art Kalkulator V4.12.1
+Daniels Laser Art Kalkulator V4.13.0
+
+4.13.0 – Design- und Dateidienstleistungen
+- Hauptrechner zeigt nur noch Eigenprodukt und Kundenobjekt; die bestehende Dienstleistungslogik bleibt technisch erhalten.
+- Motiv-Schätzer unterstützt eigenes Material und Material vom Kunden.
+- Kundenmaterial wird für Maschine, Bearbeitung und Lernen berücksichtigt, jedoch mit 0,00 € Materialkosten kalkuliert.
+- Eigenständiger Designbereich für Grafik, Logo, Vektorisierung, 3D-Datei, Datenaufbereitung, Beratung und sonstige digitale Leistungen.
+- Design-Stundenlohn und Mindestpauschale sind in den Einstellungen änderbar.
+- Designaufträge werden mit Projekttyp design gespeichert und in Projektliste, Dashboard und Statistik getrennt ausgewertet.
 
 CHANGELOG 4.x
 
@@ -119,4 +127,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.12.1
+https://danielslaserart.de/Intern/?v=4.13.0

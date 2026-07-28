@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.12.1">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.12.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.12.1">
-  <link rel="stylesheet" href="style.css?v=4.12.1">
+  <link rel="manifest" href="manifest.json?v=4.13.0">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.13.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.13.0">
+  <link rel="stylesheet" href="style.css?v=4.13.0">
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -45,11 +45,12 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.12.1</span>
+      <span class="version-badge">V4.13.0</span>
     </div>
 
     <div class="dashboard-actions">
       <button class="dash-action dash-action-primary" data-open-tool="motifCalc" type="button"><span>✦</span><div><b>Schnellstart Angebotsassistent</b><small>Motiv, Material und Maschine kalkulieren</small></div></button>
+      <button class="dash-action" data-screen="design" type="button"><span>🖥️</span><div><b>Design- und Dateidienstleistung</b><small>Digitale Arbeitszeit ohne Material und Maschine kalkulieren</small></div></button>
       <button class="dash-action dash-action-primary" id="newOrderBtn" type="button"><span>＋</span><div><b>Neuer Auftrag</b><small>Startet mit einem komplett leeren Rechner</small></div></button>
       <button class="dash-action" id="continueLastProjectBtn" type="button"><span>↻</span><div><b>Letztes Projekt fortsetzen</b><small id="continueLastProjectText">Noch kein Projekt vorhanden</small></div></button>
       <button class="dash-action" type="button" data-screen="projects"><span>☷</span><div><b>Projekte</b><small>Suchen, filtern und bearbeiten</small></div></button>
@@ -99,6 +100,12 @@
       <div class="card metric"><span>Anteil Kundenobjekte</span><strong id="homeCustomerObjectShare">0 %</strong></div>
       <div class="card metric"><span>Ø Preis Kundenobjekt</span><strong id="homeCustomerObjectAverage">0,00 €</strong></div>
     </div>
+    <div class="section-head compact dashboard-section"><div><div class="eyebrow">DESIGN & DATEI</div><h3>Design- und Dateidienstleistungen</h3></div></div>
+    <div class="dashboard-metrics design-dashboard-metrics">
+      <div class="card metric"><span>Anzahl Aufträge</span><strong id="homeDesignCount">0</strong></div>
+      <div class="card metric"><span>Umsatz</span><strong id="homeDesignRevenue">0,00 €</strong></div>
+      <div class="card metric"><span>Ø Auftragswert</span><strong id="homeDesignAverage">0,00 €</strong></div>
+    </div>
   </section>
 
   <section id="materials" class="screen">
@@ -146,7 +153,7 @@
         <div class="order-type-grid" role="radiogroup" aria-label="Auftragsart">
           <label class="order-type-card"><input type="radio" name="orderType" value="own" checked><span>◆</span><b>Eigenes Produkt herstellen</b><small>Material, Maschine und Arbeitszeit kalkulieren</small></label>
           <label class="order-type-card"><input type="radio" name="orderType" value="customerObject"><span>◎</span><b>Kundenobjekt bearbeiten</b><small>Ohne Materialkosten, mit Grundpauschale und Risiko</small></label>
-          <label class="order-type-card"><input type="radio" name="orderType" value="service"><span>◇</span><b>Dienstleistung ohne Material</b><small>Maschinen- und Arbeitszeit ohne eigenes Material</small></label>
+          <label class="order-type-card hidden"><input type="radio" name="orderType" value="service"><span>◇</span><b>Dienstleistung ohne Material</b><small>Maschinen- und Arbeitszeit ohne eigenes Material</small></label>
         </div>
         <div id="customerObjectIntro" class="customer-object-intro hidden">
           <label>Bearbeitung
@@ -202,6 +209,7 @@
         <div id="resReserveRow"><span>Fehlerreserve</span><strong id="resReserve">0,00 €</strong></div>
         <div id="resDifficultyRow" class="hidden"><span>Schwierigkeitsaufschlag</span><strong id="resDifficulty">0,00 €</strong></div>
         <div id="resRiskRow" class="hidden"><span>Risikoaufschlag</span><strong id="resRisk">0,00 €</strong></div>
+        <div id="resExpressRow" class="hidden"><span>Expresszuschlag</span><strong id="resExpress">0,00 €</strong></div>
         <div><span>Selbstkosten</span><strong id="resCost">0,00 €</strong></div>
         <div><span>Gewinn</span><strong id="resProfit">0,00 €</strong></div>
         <div id="resCalculatedRow" class="hidden"><span>Berechneter Preis</span><strong id="resCalculated">0,00 €</strong></div>
@@ -333,6 +341,13 @@
       </div>
 
       <div class="field-grid">
+        <fieldset class="material-source-field">
+          <legend>Materialquelle</legend>
+          <div class="motif-options">
+            <label><input name="mcMaterialSource" value="own" type="radio" checked> Eigenes Material</label>
+            <label><input name="mcMaterialSource" value="customer" type="radio"> Material vom Kunden</label>
+          </div>
+        </fieldset>
         <label>Breite (cm)<input id="mcWidth" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 30"></label>
         <label>Höhe (cm)<input id="mcHeight" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 35"></label>
         <label>Ebenen / Platten<input id="mcLayers" type="number" min="1" max="10" step="1" inputmode="numeric" placeholder="z. B. 2"></label>
@@ -374,7 +389,7 @@
         <div id="mcCutTimeRow"><span>Geschätzte Schnittzeit</span><strong id="mcCutTime">0 Min.</strong></div>
         <div id="mcEngraveTimeRow" class="hidden"><span>Geschätzte Gravurzeit</span><strong id="mcEngraveTime">0 Min.</strong></div>
         <div><span>Materialverbrauch</span><strong id="mcMaterialUsage">–</strong></div>
-        <div><span>Materialkosten</span><strong id="mcMaterialCostResult">0,00 €</strong></div>
+        <div><span>Materialkosten</span><strong id="mcMaterialCostResult">0,00 €</strong><small id="mcMaterialSourceHint"></small></div>
         <div><span>Aktive Arbeitszeit</span><strong id="mcWorkTime">0 Min.</strong></div>
         <div><span>Maschinenkosten</span><strong id="mcMachineCost">0,00 €</strong></div>
         <div><span>Selbstkosten</span><strong id="mcTotalCost">0,00 €</strong></div>
@@ -456,6 +471,45 @@
     </div>
   </section>
 
+  <section id="design" class="screen">
+    <div class="section-head">
+      <div><div class="eyebrow">DIGITALE DIENSTLEISTUNGEN</div><h2>Design- und Dateidienstleistung</h2></div>
+      <button id="resetDesignBtn" class="ghost small" type="button">Neue Kalkulation</button>
+    </div>
+    <p class="tool-intro">Grafik, Vektorisierung, 3D-Dateien, Datenaufbereitung und Beratung ohne Fertigung kalkulieren.</p>
+    <form id="designForm" class="card form-card">
+      <div class="field-grid">
+        <label>Projektname<input id="designProjectName" required placeholder="z. B. Logo vektorisieren"></label>
+        <label>Kunde<input id="designCustomer" placeholder="optional"></label>
+        <label>Art der Dienstleistung
+          <select id="designServiceType">
+            <option value="Grafik">Grafik</option>
+            <option value="Logo">Logo</option>
+            <option value="Vektorisierung">Vektorisierung</option>
+            <option value="3D-Datei">3D-Datei</option>
+            <option value="Datenaufbereitung">Datenaufbereitung</option>
+            <option value="Beratung">Beratung</option>
+            <option value="Sonstiges">Sonstiges</option>
+          </select>
+        </label>
+        <label>Arbeitszeit – Stunden<input id="designHours" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></label>
+        <label>Arbeitszeit – Minuten<input id="designMinutes" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="0"></label>
+        <label>Design-Stundenlohn (€/h)<input id="designHourlyRate" type="number" min="0" step="any" inputmode="decimal"></label>
+        <label>Mindestpauschale (€)<input id="designMinimumFee" type="number" min="0" step="any" inputmode="decimal"></label>
+        <label>Zusatzkosten (€)<input id="designExtraCosts" type="number" min="0" step="any" inputmode="decimal" placeholder="0,00"></label>
+      </div>
+      <label>Notizen<textarea id="designNotes" rows="4" placeholder="Leistungsumfang, Dateiformate oder Absprachen"></textarea></label>
+      <div class="mini-results design-results">
+        <div><span>Arbeitszeit</span><strong id="designTimeResult">0 Min.</strong></div>
+        <div><span>Arbeitskosten</span><strong id="designWorkCost">0,00 €</strong></div>
+        <div><span>Zusatzkosten</span><strong id="designExtraResult">0,00 €</strong></div>
+        <div id="designMinimumRow" class="hidden"><span>Mindestpauschale angewendet</span><strong id="designMinimumResult">0,00 €</strong></div>
+        <div class="main-row"><span>Gesamtpreis</span><strong id="designTotalPrice">0,00 €</strong></div>
+      </div>
+      <button class="primary wide" type="submit">Designauftrag speichern</button>
+    </form>
+  </section>
+
   <section id="projects" class="screen">
     <div class="section-head">
       <div><div class="eyebrow">VERLAUF</div><h2>Projekte</h2></div>
@@ -497,6 +551,10 @@
     <div class="card customer-object-statistics">
       <div class="section-head compact"><div><div class="eyebrow">KUNDENOBJEKTE</div><h3>Statistik</h3></div></div>
       <div id="customerObjectStatistics" class="stats project-stats"></div>
+    </div>
+    <div class="card design-statistics">
+      <div class="section-head compact"><div><div class="eyebrow">DESIGN & DATEI</div><h3>Statistik</h3></div></div>
+      <div id="designStatistics" class="stats project-stats"></div>
     </div>
   </section>
 
@@ -568,10 +626,18 @@
         </label>
       </div>
       <div class="settings-subsection">
+        <div class="group-title">DESIGN- UND DATEIDIENSTLEISTUNGEN</div>
+        <div class="field-grid">
+          <label>Design-Stundenlohn (€/h)<input id="setDesignHourly" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>Mindestpauschale Design (€)<input id="setDesignMinimum" type="number" min="0" step="any" inputmode="decimal"></label>
+        </div>
+      </div>
+      <div class="settings-subsection">
         <div class="group-title">KUNDENOBJEKTE</div>
         <div class="field-grid">
           <label>Grundpauschale Kundenobjekte (€)<input id="setCustomerBaseFee" type="number" min="0" step="any" inputmode="decimal"></label>
           <label>Mindestpreis Kundenobjekte (€)<input id="setCustomerMinimum" type="number" min="0" step="any" inputmode="decimal"></label>
+          <label>Standard-Expresszuschlag (€)<input id="setCustomerExpress" type="number" min="0" step="any" inputmode="decimal"></label>
         </div>
         <h4>Schwierigkeitsgrade (%)</h4>
         <div class="field-grid settings-five-grid">
@@ -775,6 +841,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="js/app.js?v=4.12.1"></script>
+<script type="module" src="js/app.js?v=4.13.0"></script>
 </body>
 </html>

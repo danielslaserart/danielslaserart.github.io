@@ -448,7 +448,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(5px)}
 .empty strong{color:var(--text)}
 .hidden{display:none!important}
 .order-assistant{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(191,145,62,.24)}
-.order-type-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.order-type-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .order-type-card{position:relative;display:grid;grid-template-columns:auto 1fr;gap:3px 10px;align-items:center;padding:14px;border:1px solid #4d4337;border-radius:14px;background:#12151b;cursor:pointer;min-width:0}
 .order-type-card input{position:absolute;opacity:0;pointer-events:none}
 .order-type-card>span{grid-row:1/3;font-size:1.45rem;color:#c69a4b}
@@ -822,3 +822,11 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
   .reference-summary{grid-template-columns:1fr 1fr}.reference-detail-grid{grid-template-columns:1fr}.reference-detail-actions{grid-template-columns:1fr 1fr}
 }
 @media(max-width:370px){.bottom-nav small{font-size:.52rem}.bottom-nav span{font-size:1.02rem}.reference-summary{grid-template-columns:1fr}}
+
+/* V4.13.0 – Design- und Dateidienstleistungen */
+.material-source-field{grid-column:1/-1;margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:14px}
+.material-source-field legend{padding:0 6px;color:var(--gold2);font-weight:800}
+.material-source-field .motif-options{grid-template-columns:repeat(2,minmax(0,1fr));margin:4px 0 0}
+#mcMaterialSourceHint{display:block;margin-top:4px;color:var(--gold2);font-size:.7rem}
+.design-results{margin:18px 0}.order-badge.design{border-color:rgba(89,157,212,.48);color:#a9d7f5;background:rgba(50,112,159,.16)}
+@media(max-width:520px){.material-source-field .motif-options{grid-template-columns:1fr}}
