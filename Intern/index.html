@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.13.1">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.13.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.13.1">
-  <link rel="stylesheet" href="style.css?v=4.13.1">
+  <link rel="manifest" href="manifest.json?v=4.13.2">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.13.2">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.13.2">
+  <link rel="stylesheet" href="style.css?v=4.13.2">
 </head>
 <body>
-<div id="authGate" class="auth-gate">
+<div id="authGate" class="auth-gate auth-pending">
   <div class="auth-card card">
     <div class="eyebrow">DANIELS LASER ART</div>
     <h2>Interner Kalkulator</h2>
-    <p id="authText">Melde dich an, damit deine Daten sicher in Supabase gespeichert werden.</p>
+    <p id="authText">Anmeldung wird geprüft …</p>
     <form id="loginForm">
       <label>E-Mail-Adresse
         <input id="loginEmail" type="email" autocomplete="username" required>
@@ -45,7 +45,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.13.1</span>
+      <span class="version-badge">V4.13.2</span>
     </div>
 
     <div class="dashboard-actions">
@@ -53,17 +53,6 @@
       <button class="dash-action dash-action-design" data-screen="design" type="button"><span>🖥️</span><div><b>Design &amp; Dateien</b><small>Grafik, Vektorisierung und 3D-Dateien kalkulieren</small></div></button>
       <button class="dash-action dash-action-primary" id="newOrderBtn" type="button"><span>＋</span><div><b>Neuer Auftrag</b><small>Startet mit einem komplett leeren Rechner</small></div></button>
       <button class="dash-action" id="continueLastProjectBtn" type="button"><span>↻</span><div><b>Letztes Projekt fortsetzen</b><small id="continueLastProjectText">Noch kein Projekt vorhanden</small></div></button>
-      <button class="dash-action" type="button" data-screen="projects"><span>☷</span><div><b>Projekte</b><small>Suchen, filtern und bearbeiten</small></div></button>
-    </div>
-
-    <div class="section-head compact home-section-head dashboard-section"><div><div class="eyebrow">WERKZEUGE</div><h3>Schnell berechnen</h3></div></div>
-    <div class="home-tool-grid">
-      <button class="home-tool-featured" data-open-tool="motifCalc" type="button"><span>🖼️</span><div><b>Motiv-Schätzer</b><small>Preis aus Bild, Größe und Bearbeitung schätzen</small></div></button>
-      <button data-open-tool="areaCalc" type="button"><span>📐</span><div><b>Flächenrechner</b><small>Materialbedarf aus Maßen berechnen</small></div></button>
-      <button data-open-tool="priceCheck" type="button"><span>🎯</span><b>Zielpreis</b><small>Gewinn und Marge prüfen</small></button>
-      <button data-open-tool="profitCalc" type="button"><span>↗</span><b>Gewinnrechner</b><small>Verkaufspreis berechnen</small></button>
-      <button data-open-tool="discountCalc" type="button"><span>%</span><b>Rabattrechner</b><small>Ursprungspreis ermitteln</small></button>
-      <button data-open-tool="quickCalc" type="button"><span>⚡</span><b>Schnellrechner</b><small>Preis ohne Projekt</small></button>
     </div>
 
     <div class="section-head compact dashboard-section"><div><div class="eyebrow">HEUTE</div><h3>Tagesübersicht</h3></div></div>
@@ -74,38 +63,49 @@
       <div class="card metric"><span>Arbeitszeit</span><strong id="homeTodayWork">0 Min.</strong></div>
     </div>
 
-    <div class="section-head compact dashboard-section"><div><div class="eyebrow">VORLAGEN</div><h3>Schnell starten</h3></div><button id="manageTemplatesBtn" class="ghost small" type="button">Verwalten</button></div>
-    <div id="homeTemplates" class="template-grid"></div>
-
-    <label class="dashboard-search-label">Projekt oder Kunde suchen
-      <input id="dashboardSearch" type="search" placeholder="🔍  Projektname oder Kunde …">
-    </label>
-    <div id="dashboardSearchResults" class="dashboard-search-results hidden"></div>
-
     <div class="section-head compact dashboard-section"><div><div class="eyebrow">ZULETZT</div><h3>Letzte Projekte</h3></div></div>
     <div id="homeRecentProjects" class="recent-projects"></div>
 
-    <div class="dashboard-metrics dashboard-metrics-bottom">
-      <div class="card metric"><span>Umsatz diesen Monat</span><strong id="homeMonthRevenue">0,00 €</strong></div>
-      <div class="card metric"><span>Offene Projekte</span><strong id="homeOpenCount">0</strong></div>
-      <div class="card metric"><span>Gewinn diesen Monat</span><strong id="homeMonthProfit">0,00 €</strong><small id="homeMonthOrders">0 Aufträge</small></div>
-      <div class="card metric"><span>Materialien</span><strong id="homeMaterialCount">0</strong><small id="homeFavoriteCount">0 Favoriten</small></div>
-      <div class="card metric"><span>Materialwarnungen</span><strong id="homeMaterialWarnings">0</strong><small>unter Mindestbestand</small></div>
-      <div class="card metric"><span>Letzter Preis</span><strong id="homeLastPrice">–</strong></div>
-    </div>
-    <div class="section-head compact dashboard-section"><div><div class="eyebrow">AUFTRAGSARTEN</div><h3>Eigene Produkte & Kundenobjekte</h3></div></div>
-    <div class="dashboard-metrics customer-object-metrics">
-      <div class="card metric"><span>Kundenobjekte gesamt</span><strong id="homeCustomerObjectCount">0</strong></div>
-      <div class="card metric"><span>Eigenprodukte gesamt</span><strong id="homeOwnProductCount">0</strong></div>
-      <div class="card metric"><span>Anteil Kundenobjekte</span><strong id="homeCustomerObjectShare">0 %</strong></div>
-      <div class="card metric"><span>Ø Preis Kundenobjekt</span><strong id="homeCustomerObjectAverage">0,00 €</strong></div>
-    </div>
-    <div class="section-head compact dashboard-section"><div><div class="eyebrow">DESIGN & DATEI</div><h3>Design- und Dateidienstleistungen</h3></div></div>
-    <div class="dashboard-metrics design-dashboard-metrics">
-      <div class="card metric"><span>Anzahl Aufträge</span><strong id="homeDesignCount">0</strong></div>
-      <div class="card metric"><span>Umsatz</span><strong id="homeDesignRevenue">0,00 €</strong></div>
-      <div class="card metric"><span>Ø Auftragswert</span><strong id="homeDesignAverage">0,00 €</strong></div>
-    </div>
+    <details class="home-more">
+      <summary>Mehr anzeigen</summary>
+      <div class="section-head compact home-section-head dashboard-section"><div><div class="eyebrow">WERKZEUGE</div><h3>Schnell berechnen</h3></div></div>
+      <div class="home-tool-grid">
+        <button data-open-tool="areaCalc" type="button"><span>📐</span><div><b>Fläche</b><small>Materialbedarf berechnen</small></div></button>
+        <button data-open-tool="priceCheck" type="button"><span>🎯</span><b>Zielpreis</b><small>Marge prüfen</small></button>
+        <button data-open-tool="profitCalc" type="button"><span>↗</span><b>Gewinn</b><small>Verkaufspreis berechnen</small></button>
+        <button data-open-tool="discountCalc" type="button"><span>%</span><b>Rabatt</b><small>Ursprungspreis ermitteln</small></button>
+        <button data-open-tool="quickCalc" type="button"><span>⚡</span><b>Schnellpreis</b><small>Ohne Projekt kalkulieren</small></button>
+      </div>
+
+      <div class="section-head compact dashboard-section"><div><div class="eyebrow">VORLAGEN</div><h3>Schnell starten</h3></div><button id="manageTemplatesBtn" class="ghost small" type="button">Verwalten</button></div>
+      <div id="homeTemplates" class="template-grid"></div>
+      <label class="dashboard-search-label">Projekt oder Kunde suchen
+        <input id="dashboardSearch" type="search" placeholder="🔍  Projektname oder Kunde …">
+      </label>
+      <div id="dashboardSearchResults" class="dashboard-search-results hidden"></div>
+
+      <div class="dashboard-metrics dashboard-metrics-bottom">
+        <div class="card metric"><span>Umsatz diesen Monat</span><strong id="homeMonthRevenue">0,00 €</strong></div>
+        <div class="card metric"><span>Offene Projekte</span><strong id="homeOpenCount">0</strong></div>
+        <div class="card metric"><span>Gewinn diesen Monat</span><strong id="homeMonthProfit">0,00 €</strong><small id="homeMonthOrders">0 Aufträge</small></div>
+        <div class="card metric"><span>Materialien</span><strong id="homeMaterialCount">0</strong><small id="homeFavoriteCount">0 Favoriten</small></div>
+        <div class="card metric"><span>Materialwarnungen</span><strong id="homeMaterialWarnings">0</strong><small>unter Mindestbestand</small></div>
+        <div class="card metric"><span>Letzter Preis</span><strong id="homeLastPrice">–</strong></div>
+      </div>
+      <div class="section-head compact dashboard-section"><div><div class="eyebrow">AUFTRAGSARTEN</div><h3>Eigene Produkte & Kundenobjekte</h3></div></div>
+      <div class="dashboard-metrics customer-object-metrics">
+        <div class="card metric"><span>Kundenobjekte gesamt</span><strong id="homeCustomerObjectCount">0</strong></div>
+        <div class="card metric"><span>Eigenprodukte gesamt</span><strong id="homeOwnProductCount">0</strong></div>
+        <div class="card metric"><span>Anteil Kundenobjekte</span><strong id="homeCustomerObjectShare">0 %</strong></div>
+        <div class="card metric"><span>Ø Preis Kundenobjekt</span><strong id="homeCustomerObjectAverage">0,00 €</strong></div>
+      </div>
+      <div class="section-head compact dashboard-section"><div><div class="eyebrow">DESIGN & DATEI</div><h3>Design- und Dateidienstleistungen</h3></div></div>
+      <div class="dashboard-metrics design-dashboard-metrics">
+        <div class="card metric"><span>Anzahl Aufträge</span><strong id="homeDesignCount">0</strong></div>
+        <div class="card metric"><span>Umsatz</span><strong id="homeDesignRevenue">0,00 €</strong></div>
+        <div class="card metric"><span>Ø Auftragswert</span><strong id="homeDesignAverage">0,00 €</strong></div>
+      </div>
+    </details>
   </section>
 
   <section id="materials" class="screen">
@@ -841,6 +841,6 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="js/app.js?v=4.13.1"></script>
+<script type="module" src="js/app.js?v=4.13.2"></script>
 </body>
 </html>

@@ -1,4 +1,12 @@
-Daniels Laser Art Kalkulator V4.13.1
+Daniels Laser Art Kalkulator V4.13.2
+
+4.13.2 – Startseite, Designkarte, Navigation und Login-Session korrigiert
+- Startseite auf die wichtigsten Schnellzugriffe, Tagesübersicht und letzten Projekte verkürzt; ausführliche Werkzeuge und Kennzahlen sind über „Mehr anzeigen“ erreichbar.
+- Doppelter großer Einstieg zum Angebotsassistenten entfernt und Schnellrechner kompakter angeordnet.
+- Karte „Design & Dateien“ an die Hauptkarten angeglichen.
+- Alle sechs Einträge der unteren Navigation verwenden identische Icon- und Textbereiche.
+- Supabase-Session wird vor Anzeige des Logins wiederhergestellt; Cloud- und Netzwerkfehler lösen keine Abmeldung mehr aus.
+- Service-Worker-Cache und Registrierungsparameter auf 4.13.2 aktualisiert.
 
 4.13.1 – Design-Vorgaben und mobile Startseiten-Karte korrigiert
 - Gespeicherter Design-Stundenlohn und gespeicherte Mindestpauschale werden bei neuen Designkalkulationen zuverlässig übernommen.
@@ -133,4 +141,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.13.1
+https://danielslaserart.de/Intern/?v=4.13.2

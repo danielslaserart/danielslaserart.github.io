@@ -490,6 +490,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(5px)}
     url("/assets/images/hero/background.webp") center/cover;
 }
 .auth-gate.hidden{display:none!important}
+.auth-gate.auth-pending #loginForm{display:none}
 .auth-card{width:min(100%,430px);padding:25px}
 .auth-card h2{font-size:1.65rem}
 .auth-card p{color:var(--muted);line-height:1.5}
@@ -634,7 +635,9 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 /* V17 – projektorientierte Bedienung */
 .project-toolbar{display:grid;gap:10px;margin-bottom:14px;padding:13px}.project-toolbar label{margin:0}.project-stats-bottom{margin-top:18px;margin-bottom:8px}.project-item{cursor:pointer}.project-status-row{display:flex;margin-top:9px}.project-status{display:inline-flex;align-items:center;width:max-content;padding:5px 9px;border-radius:999px;border:1px solid var(--line);font:800 .72rem system-ui,sans-serif}.status-open{color:#e6c47a;background:rgba(201,151,69,.12)}.status-progress{color:#9ed1ff;background:rgba(72,139,195,.16)}.status-payment{color:#ffcc86;background:rgba(190,112,42,.17)}.status-done{color:#9dd9a8;background:rgba(70,145,83,.17)}
 .project-dialog-card{padding-bottom:92px}.project-dialog-head{position:sticky;top:-1px;z-index:4;padding:10px 0;background:rgba(20,12,8,.97)}.project-dialog-footer{position:sticky;bottom:-1px;z-index:5;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:18px -14px -92px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(18,11,7,.98);backdrop-filter:blur(14px)}.project-dialog-footer button{min-width:0;padding:11px 7px;font-size:.78rem}.project-view-summary .project-status{font-size:.72rem}
-.bottom-nav .nav-projects span{font-size:1.35rem}.bottom-nav .nav-projects{border-top:2px solid rgba(201,151,69,.35)}
+.bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;padding:8px 0}
+.bottom-nav span{display:flex;align-items:center;justify-content:center;width:100%;height:22px;line-height:1;font-size:1.15rem}
+.bottom-nav small{display:block;height:12px;margin:0;line-height:1}
 @media(max-width:420px){.project-dialog-footer{grid-template-columns:1fr 1fr}.project-dialog-footer #projectViewEditBtn{grid-column:1/-1}.project-actions{grid-template-columns:1fr 1fr}.project-stats-bottom{grid-template-columns:1fr 1fr}.project-stats-bottom .stat:last-child{grid-column:1/-1}}
 
 
@@ -831,4 +834,21 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .design-results{margin:18px 0}.order-badge.design{border-color:rgba(89,157,212,.48);color:#a9d7f5;background:rgba(50,112,159,.16)}
 .dash-action-design>div{min-width:0;flex:1}
 .dash-action-design b,.dash-action-design small{overflow-wrap:anywhere}
+.dash-action-design{width:100%;min-height:96px;border-width:1px;border-radius:20px;padding:18px}
+.home-more{margin-top:18px}
+.home-more>summary{display:flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;color:var(--gold2);background:rgba(201,151,69,.08);font:800 .82rem system-ui,sans-serif;cursor:pointer;list-style:none}
+.home-more>summary::-webkit-details-marker{display:none}
+.home-more>summary::after{content:"⌄";margin-left:8px}
+.home-more[open]>summary::after{transform:rotate(180deg)}
+@media(max-width:520px){
+  .dashboard-actions{gap:9px;margin:12px 0 16px}
+  .dash-action,.dash-action-design{min-height:76px;padding:12px 13px;gap:11px;border-radius:17px}
+  .dash-action>span{width:42px;height:42px;border-radius:13px;font-size:21px}
+  .dash-action b{margin-bottom:3px}
+  .dashboard-section{margin-top:16px}
+  .dashboard-metrics{gap:8px}
+  .metric{min-height:88px;padding:11px}
+  .home-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .home-tool-grid button{min-height:92px;padding:11px;border-radius:15px}
+}
 @media(max-width:520px){.material-source-field .motif-options{grid-template-columns:1fr}}
