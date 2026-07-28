@@ -3,14 +3,21 @@ import { appConfirm } from "./dialogs.js";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: window.localStorage,
+    storageKey: "sb-qsnlwppbcczjwxwuhbkv-auth-token"
+  }
 });
 let currentUser = null;
 let cloudReady = false;
 let saveTimer = null;
+let logoutRequested = false;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.13.1";
+const APP_VERSION = "4.13.2";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -269,39 +276,57 @@ export function replaceState(nextState){
 }
 
 export async function initializeAuth(){
-  try{
-  const { data:{ session }, error } = await db.auth.getSession();
-  if(error) throw error;
-  if(session?.user){
-    await enterApp(session.user);
-  }else{
-    $("authGate").classList.remove("hidden");
+  const gate=$("authGate");
+  const authText=$("authText");
+  const showLogin=()=>{
+    gate.classList.remove("auth-pending","hidden");
+    authText.textContent="Melde dich an, damit deine Daten sicher in Supabase gespeichert werden.";
     $("logoutBtn").classList.add("hidden");
-  }
-  db.auth.onAuthStateChange(async (event, session)=>{
-    if(event==="SIGNED_IN" && session?.user && session.user.id!==currentUser?.id){
-      await enterApp(session.user);
-    }
-    if(event==="SIGNED_OUT"){
-      currentUser=null;cloudReady=false;
-      $("authGate").classList.remove("hidden");
-      $("logoutBtn").classList.add("hidden");
-      setSyncStatus("Offline","");
-    }
-  });
+  };
+  try{
+    const { data:{ session }, error } = await db.auth.getSession();
+    if(error) throw error;
+    if(session?.user) await enterApp(session.user);
+    else showLogin();
+
+    db.auth.onAuthStateChange((event, session)=>{
+      if((event==="INITIAL_SESSION"||event==="SIGNED_IN"||event==="TOKEN_REFRESHED")&&session?.user){
+        if(session.user.id!==currentUser?.id) void enterApp(session.user);
+        return;
+      }
+      if(event==="SIGNED_OUT"&&logoutRequested){
+        logoutRequested=false;
+        currentUser=null;cloudReady=false;
+        showLogin();
+        setSyncStatus("Offline","");
+      }
+    });
   }catch(error){
     console.error("Auth-Initialisierung fehlgeschlagen:",error);
-    $("authGate").classList.remove("hidden");
-    $("authError").textContent="Anmeldung konnte nicht initialisiert werden. Bitte Seite neu laden und Internetverbindung prüfen.";
+    gate.classList.remove("auth-pending");
+    $("logoutBtn").classList.add("hidden");
+    if(localStorage.getItem("sb-qsnlwppbcczjwxwuhbkv-auth-token")){
+      gate.classList.add("hidden");
+      setSyncStatus("Offline – lokale Daten verfügbar","error");
+    }else{
+      showLogin();
+      $("authError").textContent="Anmeldung konnte nicht initialisiert werden. Bitte Seite neu laden und Internetverbindung prüfen.";
+    }
   }
 }
 async function enterApp(user){
   currentUser=user;
+  $("authGate").classList.remove("auth-pending");
   $("authGate").classList.add("hidden");
   $("logoutBtn").classList.remove("hidden");
   cloudReady=false;
-  const ok=await loadCloudState();
-  cloudReady=ok;
+  try{
+    cloudReady=await loadCloudState();
+  }catch(error){
+    console.error("Cloud-Daten konnten nicht geladen werden:",error);
+    cloudReady=false;
+    setSyncStatus("Offline – lokale Daten verfügbar","error");
+  }
 }
 $("loginForm").onsubmit=async e=>{
   e.preventDefault();
@@ -322,5 +347,13 @@ $("loginForm").onsubmit=async e=>{
   }
 };
 $("logoutBtn").onclick=async()=>{
-  if(await appConfirm("Wirklich abmelden?","Abmelden","Abmelden")) await db.auth.signOut();
+  if(await appConfirm("Wirklich abmelden?","Abmelden","Abmelden")){
+    logoutRequested=true;
+    const { error }=await db.auth.signOut();
+    if(error){
+      logoutRequested=false;
+      console.error("Abmelden fehlgeschlagen:",error);
+      setSyncStatus("Abmelden fehlgeschlagen","error");
+    }
+  }
 };
