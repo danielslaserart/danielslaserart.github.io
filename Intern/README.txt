@@ -1,4 +1,10 @@
-Daniels Laser Art Kalkulator V4.13.0
+Daniels Laser Art Kalkulator V4.13.1
+
+4.13.1 – Design-Vorgaben und mobile Startseiten-Karte korrigiert
+- Gespeicherter Design-Stundenlohn und gespeicherte Mindestpauschale werden bei neuen Designkalkulationen zuverlässig übernommen.
+- Fehlende Einzelwerte greifen auf die Design-Standardwerte zurück; gültige Werte von 0 bleiben erhalten.
+- Gespeicherte Projektwerte und manuelle Eingaben werden beim Rendern oder Bildschirmwechsel nicht überschrieben.
+- Die Designkarte auf der Startseite heißt kompakt „Design & Dateien“ und bricht auf Mobilgeräten sauber um.
 
 4.13.0 – Design- und Dateidienstleistungen
 - Hauptrechner zeigt nur noch Eigenprodukt und Kundenobjekt; die bestehende Dienstleistungslogik bleibt technisch erhalten.
@@ -127,4 +133,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.13.0
+https://danielslaserart.de/Intern/?v=4.13.1

@@ -829,4 +829,6 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .material-source-field .motif-options{grid-template-columns:repeat(2,minmax(0,1fr));margin:4px 0 0}
 #mcMaterialSourceHint{display:block;margin-top:4px;color:var(--gold2);font-size:.7rem}
 .design-results{margin:18px 0}.order-badge.design{border-color:rgba(89,157,212,.48);color:#a9d7f5;background:rgba(50,112,159,.16)}
+.dash-action-design>div{min-width:0;flex:1}
+.dash-action-design b,.dash-action-design small{overflow-wrap:anywhere}
 @media(max-width:520px){.material-source-field .motif-options{grid-template-columns:1fr}}
