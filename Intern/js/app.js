@@ -6,7 +6,7 @@ import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButton
 import { renderProjects } from "./projects.js";
 import { fillSettings } from "./settings.js";
 import { renderMotifEstimator } from "./estimator.js";
-import { resetDesign, renderDesignStatistics } from "./design.js";
+import { applyDesignDefaults, renderDesignStatistics } from "./design.js";
 
 function renderAll(){
   updateHome();
@@ -18,7 +18,7 @@ function renderAll(){
   renderProjects();
   fillSettings();
   renderMotifEstimator();
-  resetDesign(false);
+  applyDesignDefaults();
   renderDesignStatistics();
 }
 
@@ -41,7 +41,7 @@ export function initializeApp(){
   renderMaterialCategoryFilter();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.13.0").catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.13.1").catch(()=>{}));
   }
 }
 

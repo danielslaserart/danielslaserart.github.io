@@ -3,6 +3,23 @@ import { state, save, defaults, getRealProjects } from "./storage.js";
 import { appAlert, appConfirm } from "./dialogs.js";
 let editingDesignId=null;
 
+function getDesignDefaults(){
+  const settings=state.settings?.design||{};
+  return {
+    hourlyRate:settings.hourlyRate??defaults.settings.design.hourlyRate,
+    minimumFee:settings.minimumFee??defaults.settings.design.minimumFee
+  };
+}
+
+export function applyDesignDefaults({force=false}={}){
+  const settings=getDesignDefaults();
+  const hourlyInput=$("designHourlyRate");
+  const minimumInput=$("designMinimumFee");
+  if(hourlyInput&&(force||hourlyInput.value===""))hourlyInput.value=settings.hourlyRate;
+  if(minimumInput&&(force||minimumInput.value===""))minimumInput.value=settings.minimumFee;
+  calculateDesign();
+}
+
 export function computeDesignPrice({hours=0,minutes=0,hourlyRate=0,minimumFee=0,extraCosts=0}={}){
   const totalMinutes=Math.max(0,num(hours))*60+Math.max(0,num(minutes));
   const workCost=totalMinutes/60*Math.max(0,num(hourlyRate));
@@ -32,10 +49,7 @@ export function resetDesign(confirmFirst=false){
   const reset=async()=>{
     $("designForm")?.reset();
     editingDesignId=null;
-    const settings=state.settings.design||defaults.settings.design;
-    $("designHourlyRate").value=num(settings.hourlyRate);
-    $("designMinimumFee").value=num(settings.minimumFee);
-    calculateDesign();
+    applyDesignDefaults({force:true});
   };
   if(!confirmFirst)return reset();
   return appConfirm("Neue Kalkulation starten?\nAlle nicht gespeicherten Eingaben werden gelöscht.","Neue Kalkulation","Neue Kalkulation").then(ok=>ok?reset():false);
@@ -90,8 +104,9 @@ document.addEventListener("dla:load-design",event=>{
   const total=num(source.designMinutes??source.actualTotalTime);
   $("designHours").value=Math.floor(total/60)||"";
   $("designMinutes").value=total%60||"";
-  $("designHourlyRate").value=num(source.designHourlyRate??source.fields?.designHourlyRate??state.settings.design?.hourlyRate);
-  $("designMinimumFee").value=num(source.designMinimumFee??source.fields?.designMinimumFee??state.settings.design?.minimumFee);
+  const settings=getDesignDefaults();
+  $("designHourlyRate").value=source.designHourlyRate??source.fields?.designHourlyRate??settings.hourlyRate;
+  $("designMinimumFee").value=source.designMinimumFee??source.fields?.designMinimumFee??settings.minimumFee;
   $("designExtraCosts").value=num(source.designExtraCosts??source.fields?.designExtraCosts);
   $("designNotes").value=source.notes||"";
   calculateDesign();

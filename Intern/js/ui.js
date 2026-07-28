@@ -6,6 +6,7 @@ import { fillSettings } from "./settings.js";
 import { renderTools, resetTool } from "./statistics.js";
 import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, getCalculatorProductSize, getOrderType } from "./calculator.js";
 import { appAlert, appPrompt } from "./dialogs.js";
+import { applyDesignDefaults } from "./design.js";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
   if(current)sessionStorage.setItem(`dla-scroll-${current}`,String(window.scrollY));
@@ -20,6 +21,7 @@ export function setScreen(id){
   if(id==="settings") fillSettings();
   if(id==="tools") renderTools();
   if(id==="home") updateHome();
+  if(id==="design") applyDesignDefaults();
   const saved=Number(sessionStorage.getItem(`dla-scroll-${id}`)||0);
   requestAnimationFrame(()=>window.scrollTo({top:saved,behavior:"auto"}));
 }
