@@ -9,7 +9,7 @@ function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
 function projectStatusClass(status){return `status-${["offer","progress","waiting","done","billed"].includes(status)?status:"offer"}`;}
-function orderTypeLabel(type){return ({own:"Eigenes Produkt",customerObject:"Kundenobjekt",service:"Dienstleistung"})[type]||"Eigenes Produkt";}
+function orderTypeLabel(type){return ({own:"Eigenes Produkt",customerObject:"Kundenobjekt",service:"Dienstleistung",design:"🖥️ Design"})[type]||"Eigenes Produkt";}
 export function renderProjects(){
   const realProjects=getRealProjects();
   const term=($('projectSearch')?.value||'').trim().toLowerCase();
@@ -41,14 +41,15 @@ export function renderProjects(){
     </article>`).join(''):`<div class="empty-state">Keine passenden Projekte gefunden.</div>`;
   document.querySelectorAll('[data-view-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();viewProject(b.dataset.viewProject)});
   document.querySelectorAll('[data-project-card]').forEach(card=>card.onclick=e=>{if(!e.target.closest('button'))viewProject(card.dataset.projectCard)});
-  document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.editProject,false)});
-  document.querySelectorAll('[data-duplicate-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadProject(b.dataset.duplicateProject,true)});
+  document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.editProject);if(p?.orderType==="design"||p?.projectType==="design")document.dispatchEvent(new CustomEvent("dla:load-design",{detail:{project:p,duplicate:false}}));else loadProject(b.dataset.editProject,false)});
+  document.querySelectorAll('[data-duplicate-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.duplicateProject);if(p?.orderType==="design"||p?.projectType==="design")document.dispatchEvent(new CustomEvent("dla:load-design",{detail:{project:p,duplicate:true}}));else loadProject(b.dataset.duplicateProject,true)});
   document.querySelectorAll('[data-pin-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.pinProject);if(p){p.pinned=!p.pinned;p.updated=new Date().toISOString();save();renderProjects();}});
   document.querySelectorAll('[data-template-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();createTemplateFromProject(b.dataset.templateProject)});
   document.querySelectorAll('[data-reference-project]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.referenceProject);if(p?.estimatorData){saveLearningRecord({...p.estimatorData,projectId:p.id,title:p.title,estimatedPrice:p.estimatedPrice,actualPrice:p.actualPrice,reference:true});await appAlert('Das Kundenprojekt bleibt in der Projektübersicht. Eine getrennte Lernreferenz wurde aktualisiert.');renderProjects();}});
   document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=async e=>{e.stopPropagation();if(await appConfirm('Projekt löschen?',"Projekt löschen","Löschen")){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();updateHome()}});
   renderStatisticsCharts();
   renderCustomerObjectStatistics();
+  document.dispatchEvent(new CustomEvent("dla:projects-rendered"));
 }
 function renderCustomerObjectStatistics(){
   const box=$("customerObjectStatistics");if(!box)return;

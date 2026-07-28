@@ -10,7 +10,7 @@ let cloudReady = false;
 let saveTimer = null;
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.12.1";
+const APP_VERSION = "4.13.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -29,8 +29,9 @@ export const defaults = {
     profit:30,hourly:0,machine3d:0.5,laserGravur:0.1,laserSchnitt:0.15,
     plotter:0.1,presse:0.15,reserve:5,packaging:0,rounding:0.1,
     overhead:0,electricity:0.35,defaultMachine:"",defaultMaterial:"",
+    design:{hourlyRate:35,minimumFee:0},
     customerObject:{
-      baseFee:15,minimumPrice:15,
+      baseFee:15,minimumPrice:15,expressFee:0,
       difficulties:{veryEasy:0,easy:5,normal:10,hard:20,veryHard:35},
       risks:{under50:0,from50To100:3,from100To250:5,from250To500:8,over500:12}
     }
@@ -100,7 +101,7 @@ export function normalizeProjectRecord(project={}){
   const estimatedPrice=project.estimatedPrice??(recordType==="reference"?num(project.sale):null);
   const actualPrice=project.actualPrice??(recordType==="project"?num(project.sale):null);
   const inferredCustomerObject=String(project.type||"").toLowerCase().includes("kundenobjekt");
-  const orderType=["own","customerObject","service"].includes(project.orderType)?project.orderType:(inferredCustomerObject?"customerObject":"own");
+  const orderType=["own","customerObject","service","design"].includes(project.orderType)?project.orderType:(project.projectType==="design"?"design":inferredCustomerObject?"customerObject":"own");
   return {
     ...project,
     recordType,
@@ -136,7 +137,7 @@ export function normalizeLearningRecord(record={}){
   return {
     ...record,
     recordType:"reference",
-    orderType:["own","customerObject","service"].includes(record.orderType)?record.orderType:"own",
+    orderType:["own","customerObject","service","design"].includes(record.orderType)?record.orderType:"own",
     isReference:true,
     estimatedPrice:record.estimatedPrice??num(record.sale),
     actualPrice:record.actualPrice==null?null:num(record.actualPrice),
@@ -161,6 +162,7 @@ export function mergeSettings(settings={}){
   return {
     ...defaults.settings,
     ...(settings||{}),
+    design:{...defaults.settings.design,...(settings?.design||{})},
     customerObject:{
       ...defaults.settings.customerObject,
       ...(settings?.customerObject||{}),

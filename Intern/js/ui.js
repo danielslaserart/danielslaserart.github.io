@@ -123,10 +123,15 @@ export function updateHome(){
   $("homeFavoriteCount").textContent=`${state.materials.filter(m=>m.favorite).length} Favoriten`;
   $("homeLastPrice").textContent=state.lastPrice==null?"–":euro(state.lastPrice);
   const customerObjects=realProjects.filter(p=>p.orderType==="customerObject"),ownProducts=realProjects.filter(p=>(p.orderType||"own")==="own");
+  const designProjects=realProjects.filter(p=>p.orderType==="design"||p.projectType==="design");
   if($("homeCustomerObjectCount"))$("homeCustomerObjectCount").textContent=customerObjects.length;
   if($("homeOwnProductCount"))$("homeOwnProductCount").textContent=ownProducts.length;
-  if($("homeCustomerObjectShare"))$("homeCustomerObjectShare").textContent=`${realProjects.length?(customerObjects.length/realProjects.length*100).toLocaleString("de-DE",{maximumFractionDigits:1}):0} %`;
+  const manufacturingCount=customerObjects.length+ownProducts.length;
+  if($("homeCustomerObjectShare"))$("homeCustomerObjectShare").textContent=`${manufacturingCount?(customerObjects.length/manufacturingCount*100).toLocaleString("de-DE",{maximumFractionDigits:1}):0} %`;
   if($("homeCustomerObjectAverage"))$("homeCustomerObjectAverage").textContent=euro(customerObjects.length?customerObjects.reduce((sum,p)=>sum+num(p.actualPrice??p.sale),0)/customerObjects.length:0);
+  if($("homeDesignCount"))$("homeDesignCount").textContent=designProjects.length;
+  if($("homeDesignRevenue"))$("homeDesignRevenue").textContent=euro(designProjects.reduce((sum,p)=>sum+num(p.actualPrice??p.sale),0));
+  if($("homeDesignAverage"))$("homeDesignAverage").textContent=euro(designProjects.length?designProjects.reduce((sum,p)=>sum+num(p.actualPrice??p.sale),0)/designProjects.length:0);
   const greeting=now.getHours()<11?"Guten Morgen":now.getHours()<18?"Guten Tag":"Guten Abend";
   if($("dashboardGreeting")) $("dashboardGreeting").textContent=`${greeting}, Daniel`;
   const todayKey=now.toLocaleDateString("de-DE");
