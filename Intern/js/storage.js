@@ -2,22 +2,64 @@ import { $, num, uid, inferMaterialCategory } from "./utils.js";
 import { appConfirm } from "./dialogs.js";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: window.localStorage,
-    storageKey: "sb-qsnlwppbcczjwxwuhbkv-auth-token"
-  }
-});
+const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+let db = null;
 let currentUser = null;
 let cloudReady = false;
 let saveTimer = null;
 let logoutRequested = false;
+let authInitializing = false;
+let authListenerRegistered = false;
+let enteringApp = false;
+
+function withTimeout(promise,milliseconds,message){
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>{
+      timer=setTimeout(()=>reject(new Error(message)),milliseconds);
+    })
+  ]).finally(()=>clearTimeout(timer));
+}
+
+async function ensureSupabaseLibrary(){
+  if(window.supabase?.createClient)return;
+  const existing=document.getElementById("supabaseScript");
+  if(existing?.dataset.loaded==="true"&&window.supabase?.createClient)return;
+  if(existing)existing.remove();
+  await withTimeout(new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    script.id="supabaseScript";
+    script.src=SUPABASE_SCRIPT_URL;
+    script.onload=()=>{
+      script.dataset.loaded="true";
+      window.supabase?.createClient?resolve():reject(new Error("Supabase-Bibliothek ist unvollständig."));
+    };
+    script.onerror=()=>reject(new Error("Supabase-Bibliothek konnte nicht geladen werden."));
+    document.head.appendChild(script);
+  }),8000,"Zeitüberschreitung beim Laden der Supabase-Bibliothek.");
+}
+
+async function createSupabaseClient(){
+  if(db)return db;
+  await ensureSupabaseLibrary();
+  if(!window.supabase?.createClient){
+    throw new Error("Supabase-Bibliothek wurde nicht geladen.");
+  }
+  db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true,
+      storage:window.localStorage,
+      storageKey:"sb-qsnlwppbcczjwxwuhbkv-auth-token"
+    }
+  });
+  return db;
+}
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.13.2";
+const APP_VERSION = "4.13.3";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -213,7 +255,8 @@ function scheduleCloudSave(){
 }
 async function saveCloudState(){
   if(!currentUser)return;
-  const { error } = await db.from("app_state").upsert({
+  const client=await createSupabaseClient();
+  const { error } = await client.from("app_state").upsert({
     user_id: currentUser.id,
     data: state,
     updated_at: new Date().toISOString()
@@ -226,8 +269,9 @@ async function saveCloudState(){
   }
 }
 export async function loadCloudState(){
+  const client=await createSupabaseClient();
   setSyncStatus("Synchronisiert …","busy");
-  const { data, error } = await db.from("app_state").select("data").eq("user_id",currentUser.id).maybeSingle();
+  const { data, error } = await client.from("app_state").select("data").eq("user_id",currentUser.id).maybeSingle();
   if(error){
     console.error(error);
     setSyncStatus("DB-Fehler","error");
@@ -276,20 +320,38 @@ export function replaceState(nextState){
 }
 
 export async function initializeAuth(){
+  if(authInitializing)return;
+  authInitializing=true;
   const gate=$("authGate");
   const authText=$("authText");
-  const showLogin=()=>{
+  const authError=$("authError");
+  const retryBtn=$("authRetryBtn");
+  const showLogin=(message="",headline="Melde dich an, damit deine Daten sicher in Supabase gespeichert werden.")=>{
     gate.classList.remove("auth-pending","hidden");
-    authText.textContent="Melde dich an, damit deine Daten sicher in Supabase gespeichert werden.";
+    authText.textContent=headline;
+    authError.textContent=message;
+    retryBtn?.classList.toggle("hidden",!message);
     $("logoutBtn").classList.add("hidden");
   };
   try{
-    const { data:{ session }, error } = await db.auth.getSession();
+    gate.classList.remove("hidden");
+    gate.classList.add("auth-pending");
+    authText.textContent="Anmeldung wird geprüft …";
+    authError.textContent="";
+    retryBtn?.classList.add("hidden");
+    const client=await createSupabaseClient();
+    const { data:{ session }={}, error } = await withTimeout(
+      client.auth.getSession(),
+      10000,
+      "Zeitüberschreitung bei der Sessionprüfung."
+    );
     if(error) throw error;
     if(session?.user) await enterApp(session.user);
     else showLogin();
 
-    db.auth.onAuthStateChange((event, session)=>{
+    if(!authListenerRegistered){
+      authListenerRegistered=true;
+      client.auth.onAuthStateChange((event, session)=>{
       if((event==="INITIAL_SESSION"||event==="SIGNED_IN"||event==="TOKEN_REFRESHED")&&session?.user){
         if(session.user.id!==currentUser?.id) void enterApp(session.user);
         return;
@@ -300,21 +362,22 @@ export async function initializeAuth(){
         showLogin();
         setSyncStatus("Offline","");
       }
-    });
+      });
+    }
   }catch(error){
     console.error("Auth-Initialisierung fehlgeschlagen:",error);
+    showLogin(
+      "Bitte Internetverbindung prüfen und erneut versuchen.",
+      "Die Anmeldung konnte nicht geprüft werden."
+    );
+  }finally{
     gate.classList.remove("auth-pending");
-    $("logoutBtn").classList.add("hidden");
-    if(localStorage.getItem("sb-qsnlwppbcczjwxwuhbkv-auth-token")){
-      gate.classList.add("hidden");
-      setSyncStatus("Offline – lokale Daten verfügbar","error");
-    }else{
-      showLogin();
-      $("authError").textContent="Anmeldung konnte nicht initialisiert werden. Bitte Seite neu laden und Internetverbindung prüfen.";
-    }
+    authInitializing=false;
   }
 }
 async function enterApp(user){
+  if(enteringApp)return;
+  enteringApp=true;
   currentUser=user;
   $("authGate").classList.remove("auth-pending");
   $("authGate").classList.add("hidden");
@@ -326,6 +389,8 @@ async function enterApp(user){
     console.error("Cloud-Daten konnten nicht geladen werden:",error);
     cloudReady=false;
     setSyncStatus("Offline – lokale Daten verfügbar","error");
+  }finally{
+    enteringApp=false;
   }
 }
 $("loginForm").onsubmit=async e=>{
@@ -336,7 +401,8 @@ $("loginForm").onsubmit=async e=>{
   const btn=e.submitter||$("loginForm").querySelector('button[type="submit"]');
   try{
     if(btn){btn.disabled=true;btn.textContent="Anmeldung …";}
-    const { data, error }=await db.auth.signInWithPassword({email,password});
+    const client=await createSupabaseClient();
+    const { data, error }=await client.auth.signInWithPassword({email,password});
     if(error) throw error;
     if(data?.user) await enterApp(data.user);
   }catch(error){
@@ -349,7 +415,8 @@ $("loginForm").onsubmit=async e=>{
 $("logoutBtn").onclick=async()=>{
   if(await appConfirm("Wirklich abmelden?","Abmelden","Abmelden")){
     logoutRequested=true;
-    const { error }=await db.auth.signOut();
+    const client=await createSupabaseClient();
+    const { error }=await client.auth.signOut();
     if(error){
       logoutRequested=false;
       console.error("Abmelden fehlgeschlagen:",error);
@@ -357,3 +424,4 @@ $("logoutBtn").onclick=async()=>{
     }
   }
 };
+window.__dlaRetryAuth=()=>initializeAuth();
