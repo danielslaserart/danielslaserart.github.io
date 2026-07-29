@@ -1,4 +1,10 @@
-Daniels Laser Art Kalkulator V4.13.3
+Daniels Laser Art Kalkulator V4.13.4
+
+4.13.4 – Kritischen Motivschätzer-Startfehler behoben
+- Materialherkunft wird in calculateMotifEstimator() sicher aus der vorhandenen Auswahl ermittelt.
+- Eigenes Material berechnet Materialkosten wie bisher; Kundenmaterial setzt sie auf 0,00 €.
+- Nicht definierte Verwendung von orderType beseitigt.
+- Service-Worker-Cache und Registrierungsparameter auf 4.13.4 aktualisiert.
 
 4.13.3 – Kritischen Authentifizierungs-Startfehler behoben
 - Supabase-Client wird ausfallsicher und nur einmal initialisiert.
@@ -149,4 +155,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.13.3
+https://danielslaserart.de/Intern/?v=4.13.4
