@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.15.0";
+const APP_VERSION = "4.15.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -221,10 +221,11 @@ export function normalizeProjectRecord(project={}){
   const orderType=normalizeOrderType(project.orderType,{...project,customerObjectProcess:project.customerObjectProcess||(inferredCustomerObject?"engrave":null)});
   return {
     ...project,
-    agreementPrice:project.agreementPrice===null||project.agreementPrice===undefined||project.agreementPrice===""?null:num(project.agreementPrice),
-    priceAgreementDate:project.priceAgreementDate&&!Number.isNaN(new Date(project.priceAgreementDate).getTime())?project.priceAgreementDate:null,
-    isPreferredCustomerPrice:project.agreementPrice!==null&&project.agreementPrice!==undefined&&project.agreementPrice!==""&&Boolean(project.isPreferredCustomerPrice),
-    agreementPriceNote:String(project.agreementPriceNote||""),
+    agreementPrice:(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===null||(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===undefined||(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===""?null:num(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice),
+    priceAgreementDate:(project.priceAgreementDate??project.agreementPriceDate)&&!Number.isNaN(new Date(project.priceAgreementDate??project.agreementPriceDate).getTime())?project.priceAgreementDate??project.agreementPriceDate:null,
+    isPreferredRepeatPrice:(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==null&&(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==undefined&&(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==""&&Boolean(project.isPreferredRepeatPrice??project.isPreferredCustomerPrice),
+    priceType:["normal","regularCustomer","special","promotion","repeatOrder","other"].includes(project.priceType??project.agreementPriceType)?project.priceType??project.agreementPriceType:(Boolean(project.isPreferredRepeatPrice??project.isPreferredCustomerPrice)?"regularCustomer":"normal"),
+    agreementPriceNote:String(project.agreementPriceNote??project.agreementNote??""),
     agreementPriceCreatedAt:project.agreementPriceCreatedAt&&!Number.isNaN(new Date(project.agreementPriceCreatedAt).getTime())?project.agreementPriceCreatedAt:null,
     calculationSource:project.calculationSource||project.calculationSnapshot?.sourceModule||(project.estimatorData&&!project.fields?"estimator":"calculator"),
     calculationSnapshot:project.calculationSnapshot&&typeof project.calculationSnapshot==="object"?project.calculationSnapshot:null,

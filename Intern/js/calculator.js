@@ -4,6 +4,7 @@ import { materialSelections, resolveMaterialSelection } from "./materials.js";
 import { renderCalculatorProfiles } from "./processing-profiles.js";
 import { renderProjects } from "./projects.js";
 import { appConfirm } from "./dialogs.js";
+import { readAgreementForm, updateAgreementFormState } from "./customer-price-history.js";
 let editingProjectId=null;
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
 function getCustomerSettings(){return state.settings.customerObject||defaults.settings.customerObject;}
@@ -349,7 +350,8 @@ export function renderCalculator(clear=false){
   $("moduleFields").innerHTML=html;
   updateOrderAssistantUI();
   renderConsumables();
-  document.querySelectorAll("#calcForm input,#calcForm select").forEach(el=>el.oninput=calculate);
+  document.querySelectorAll("#calcForm input:not(.agreement-field),#calcForm select:not(.agreement-field)").forEach(el=>el.oninput=calculate);
+  $("agreementPrice")?.addEventListener("input",updateAgreementFormState);
   ["machineSelect","matMain","calculatorProfileSource","profileProcessType"].forEach(id=>$(id)?.addEventListener("change",renderCalculatorProfiles));
   if($("objectValue"))$("objectValue").oninput=()=>{
     const risk=$("riskSurcharge");if(risk?.dataset.manual!=="true")risk.value=String(suggestedRiskSurcharge($("objectValue").value));
@@ -476,7 +478,7 @@ $("calcForm").onsubmit=async e=>{
     objectValue:num($("objectValue")?.value),riskSurcharge:num($("riskSurcharge")?.value),expressSurcharge:num($("expressSurcharge")?.value),difficulty,difficultyPercent:num(customerSettings.difficulties?.[difficulty])
   }:(existingProject?.estimatorData||null);
   const calculationSnapshot=buildCalculationSnapshot({breakdown,sale:saleNow,cost:costNow,machine,orderType,customerProcess});
-  const agreementFields=existingProject?{agreementPrice:existingProject.agreementPrice,priceAgreementDate:existingProject.priceAgreementDate,isPreferredCustomerPrice:existingProject.isPreferredCustomerPrice,agreementPriceNote:existingProject.agreementPriceNote,agreementPriceCreatedAt:existingProject.agreementPriceCreatedAt}:{agreementPrice:saleNow,priceAgreementDate:new Date().toISOString(),isPreferredCustomerPrice:false,agreementPriceNote:"",agreementPriceCreatedAt:new Date().toISOString()};
+  let agreementFields;try{agreementFields=readAgreementForm(existingProject||{})}catch(error){await appConfirm(error.message,"Preisvereinbarung prüfen","OK");return}
   const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customer:$("customerName").value.trim(),customerAddress:$("customerAddress")?.value.trim()||"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);

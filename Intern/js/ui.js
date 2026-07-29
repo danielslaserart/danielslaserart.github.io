@@ -7,6 +7,7 @@ import { renderTools, resetTool } from "./statistics.js";
 import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, getCalculatorProductSize, getOrderType } from "./calculator.js";
 import { appAlert, appPrompt } from "./dialogs.js";
 import { applyDesignDefaults } from "./design.js";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
   if(current)sessionStorage.setItem(`dla-scroll-${current}`,String(window.scrollY));
@@ -89,12 +90,14 @@ export function loadCalculatorData(source={},options={}){
     if($("projectTags"))$("projectTags").value=(source.tags||[]).join(", ");
   }
   if($("projectNotes"))$("projectNotes").value=source.notes||"";
+  if(options.blankCustomer||options.duplicate)clearAgreementForm();else loadAgreementForm(source);
   setTimerSeconds(options.blankCustomer?0:num(source.workSeconds));
   calculate();
   setScreen("calculator");
 }
 export function startNewOrder(module="3d"){
   resetCalculator(module);
+  clearAgreementForm();
   save();
   setScreen("calculator");
 }

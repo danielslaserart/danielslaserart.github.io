@@ -75,7 +75,7 @@ $("designForm")?.addEventListener("submit",async event=>{
   if(result.totalMinutes<=0){await appAlert("Bitte eine Arbeitszeit eingeben.");$("designHours").focus();return;}
   const now=new Date().toISOString();
   const existing=editingDesignId?state.projects.find(p=>p.id===editingDesignId):null;
-  const agreementFields=existing?{agreementPrice:existing.agreementPrice,priceAgreementDate:existing.priceAgreementDate,isPreferredCustomerPrice:existing.isPreferredCustomerPrice,agreementPriceNote:existing.agreementPriceNote,agreementPriceCreatedAt:existing.agreementPriceCreatedAt}:{agreementPrice:result.total,priceAgreementDate:now,isPreferredCustomerPrice:false,agreementPriceNote:"",agreementPriceCreatedAt:now};
+  const agreementFields=existing?{agreementPrice:existing.agreementPrice,priceAgreementDate:existing.priceAgreementDate,isPreferredRepeatPrice:existing.isPreferredRepeatPrice,priceType:existing.priceType,agreementPriceNote:existing.agreementPriceNote,agreementPriceCreatedAt:existing.agreementPriceCreatedAt}:{agreementPrice:result.total,priceAgreementDate:now,isPreferredRepeatPrice:false,priceType:"normal",agreementPriceNote:"",agreementPriceCreatedAt:now};
   const project={
     ...agreementFields,
     id:existing?.id||uid(),recordType:"project",isReference:false,reference:false,
