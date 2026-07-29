@@ -34,7 +34,7 @@ document.addEventListener("dla:estimator-transfer",event=>{
   const data=event.detail||{};
   loadCalculatorData({
     module:"laser",type:"Laser",orderType:data.orderType||"own",customerObjectProcess:data.process,machineId:data.machineId,productSize:"custom",
-    fields:{matMain:data.materialId,usageMain:data.area,cutMinutes:data.cutMinutes,engraveMinutes:data.engraveMinutes,workMinutes:data.workMinutes,profit:document.getElementById("mcProfit")?.value||""},
+    fields:{matMain:data.materialId,usageMain:data.area,cutMinutes:data.cutMinutes,engraveMinutes:data.engraveMinutes,workMinutes:data.workMinutes,profit:document.getElementById("mcProfit")?.value||"",difficulty:data.customerPricing?.difficultyKey||"normal",riskSurcharge:data.customerPricing?.risk??"",expressSurcharge:data.customerPricing?.express??""},
     notes:"Aus Angebotsassistent übernommen"
   },{blankCustomer:true,editingProjectId:null});
 });
@@ -56,7 +56,7 @@ export function initializeApp(){
   initializeProcessingProfiles();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.14.1",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.14.2",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 

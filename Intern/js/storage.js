@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.14.1";
+const APP_VERSION = "4.14.2";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -197,6 +197,18 @@ export function normalizeProcessingProfiles(profiles){
 export function normalizeProjectStatus(status){
   return ({open:"offer",payment:"waiting"}[status])||(["offer","progress","waiting","done","billed"].includes(status)?status:"offer");
 }
+export function normalizeOrderType(value,project={}){
+  const normalized=String(value??"").trim().toLowerCase().replace(/[\s_-]/g,"");
+  if(["own","ownproduct","eigenesprodukt"].includes(normalized))return "own";
+  if(["customer","customerobject","kundenobjekt"].includes(normalized))return "customerObject";
+  if(["service","dienstleistung"].includes(normalized))return "service";
+  if(["design","filedesign","dateidienstleistung"].includes(normalized))return "design";
+  const customerHints=project.materialSource==="customer"||project.customerMaterial===true||
+    project.baseFee!=null||project.customerObjectProcess||project.objectMaterial||
+    project.riskSurcharge!=null||project.expressSurcharge!=null;
+  if(project.projectType==="design")return "design";
+  return customerHints?"customerObject":"own";
+}
 export function normalizeProjectRecord(project={}){
   const clearlyGeneratedReference=project.reference===true&&project.estimatorData&&(
     project.notes==="Aus Angebotsassistent erstellt"||
@@ -206,7 +218,7 @@ export function normalizeProjectRecord(project={}){
   const estimatedPrice=project.estimatedPrice??(recordType==="reference"?num(project.sale):null);
   const actualPrice=project.actualPrice??(recordType==="project"?num(project.sale):null);
   const inferredCustomerObject=String(project.type||"").toLowerCase().includes("kundenobjekt");
-  const orderType=["own","customerObject","service","design"].includes(project.orderType)?project.orderType:(project.projectType==="design"?"design":inferredCustomerObject?"customerObject":"own");
+  const orderType=normalizeOrderType(project.orderType,{...project,customerObjectProcess:project.customerObjectProcess||(inferredCustomerObject?"engrave":null)});
   return {
     ...project,
     calculationSource:project.calculationSource||project.calculationSnapshot?.sourceModule||(project.estimatorData&&!project.fields?"estimator":"calculator"),
@@ -244,7 +256,7 @@ export function normalizeLearningRecord(record={}){
   return {
     ...record,
     recordType:"reference",
-    orderType:["own","customerObject","service","design"].includes(record.orderType)?record.orderType:"own",
+    orderType:normalizeOrderType(record.orderType,record),
     isReference:true,
     estimatedPrice:record.estimatedPrice??num(record.sale),
     actualPrice:record.actualPrice==null?null:num(record.actualPrice),
