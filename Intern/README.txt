@@ -1,4 +1,11 @@
-Daniels Laser Art Kalkulator V4.15.0
+Daniels Laser Art Kalkulator V4.15.1
+
+4.15.1 – Preisvereinbarung vollständig bearbeitbar
+---------------------------------------------------
+- Preisvereinbarung optisch an das bestehende App-Design angepasst und vollständig in die Projektbearbeitung integriert. Vereinbarter Preis, Datum, Preisart, Folgebestellungskennzeichnung und Notiz können jetzt direkt eingegeben und geändert werden.
+- Weiße Einzelkarten durch kompakte dunkle Detailzeilen mit Goldakzenten ersetzt.
+- Bestehende Feldvarianten werden beim Laden verlustfrei auf kanonische Preisvereinbarungsfelder normalisiert.
+- Preisvereinbarungsfelder lösen keine Neuberechnung aus und bleiben von Kalkulation, Lernsystem und Statistik getrennt.
 
 4.15.0 – Vereinbarter Verkaufspreis & Kundenpreis-Historie
 ----------------------------------------------------------
@@ -204,4 +211,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.15.0
+https://danielslaserart.de/Intern/?v=4.15.1
