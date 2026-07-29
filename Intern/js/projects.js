@@ -5,6 +5,7 @@ import { resolveMaterialSelection } from "./materials.js";
 import { workshopUnit } from "./calculator.js";
 import { deleteLearningRecord, saveLearningRecord } from "./learning.js";
 import { appAlert, appConfirm, appForm } from "./dialogs.js";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js";
 function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
@@ -34,7 +35,7 @@ export function renderProjects(){
   $('projectList').innerHTML=list.length?list.map(p=>`
     <article class="card project-item" data-project-card="${p.id}">
       ${(p.images||[])[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${p.images[0]}" alt=""></button>`:''}
-      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="item-price">${euro(p.sale)}</div></div>
+      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="item-price">${euro(p.sale)}${p.agreementPrice!=null?`<small>Vereinbart: ${euro(p.agreementPrice)}${p.isPreferredCustomerPrice?" · ⭐":""}</small>`:""}</div></div>
       <div class="project-status-row"><span class="order-badge ${p.orderType||"own"}">${orderTypeLabel(p.orderType)}</span><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
       ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
       <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button>${p.estimatorData?`<button type="button" data-reference-project="${p.id}">Als Lerndaten nutzen</button>`:""}<button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
@@ -251,6 +252,7 @@ export function viewProject(id){
       <div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div>`}
     </div>
     ${customerCalculationOverview(p)}
+    ${priceAgreementHtml(p)}
     ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}
     ${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}
     ${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}
@@ -264,7 +266,7 @@ export function viewProject(id){
     save();renderProjects();updateHome();
   };
   $("projectViewEditBtn").onclick=()=>{dialog.close();loadProject(id,false)};
-  $("offerPdfBtn").onclick=()=>printOffer(p);
+  $("offerPdfBtn").onclick=async()=>{let price=p.sale;if(p.agreementPrice!=null){const choice=await appForm({title:"Preis für Kunden-PDF",message:"Interne Notizen und Preis-Historie werden nicht im PDF ausgegeben.",fields:[{name:"priceSource",label:"Endpreis verwenden",type:"select",value:"project",options:[{value:"project",label:`Bisheriger Projektpreis (${euro(p.sale)})`},{value:"agreement",label:`Vereinbarter Verkaufspreis (${euro(p.agreementPrice)})`}]}],acceptText:"PDF erstellen"});if(!choice)return;price=choice.priceSource==="agreement"?p.agreementPrice:p.sale}printOffer(p,price)};
   $("closeProjectViewBtn").onclick=()=>dialog.close();
   dialog.onclick=e=>{if(e.target===dialog)dialog.close()};
   $("projectImageInput")?.addEventListener("change",async e=>{
@@ -278,17 +280,18 @@ export function viewProject(id){
   dialog.querySelectorAll("[data-delete-image]").forEach(btn=>btn.onclick=async()=>{
     if(await appConfirm("Dieses Projektbild löschen?","Bild löschen","Löschen")){p.images.splice(Number(btn.dataset.deleteImage),1);p.updated=new Date().toISOString();save();renderProjects();dialog.close();viewProject(id)}
   });
+  bindPriceAgreementActions(dialog,p,{refresh:()=>{renderProjects();dialog.close();viewProject(id)},openProject:otherId=>{dialog.close();viewProject(otherId)}});
   try{if(!dialog.open)dialog.showModal()}catch(err){console.error(err);dialog.setAttribute("open","")}
 }
 
-function printOffer(p){
+function printOffer(p,selectedPrice=p.sale){
   const today=new Date();
   const date=today.toLocaleDateString("de-DE");
   const created=new Date(p.created||p.updated||Date.now());
   const offerNo=`A-${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,"0")}${String(created.getDate()).padStart(2,"0")}-${String((p.id||"").replace(/\D/g,"").slice(-3)||"001").padStart(3,"0")}`;
   const service=esc(p.title||p.type||"Individuelle Anfertigung");
   const qty=Math.max(1,num(p.qty)||1);
-  const unitPrice=num(p.sale)/qty;
+  const pdfPrice=num(selectedPrice),unitPrice=pdfPrice/qty;
   const address=(p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
   const addressHtml=address?address.split(/\r?\n/).map(esc).join("<br>"):"Kundenanschrift";
   const logoUrl=new URL("briefkopf-logo.png",window.location.href).href;
@@ -324,8 +327,8 @@ function printOffer(p){
     <h1>Angebot</h1>
     <p class="subject"><strong>Betreff:</strong> Angebot zu Ihrem Auftrag</p>
     <p class="intro">Vielen Dank für Ihre Anfrage. Gern biete ich Ihnen folgende Leistung an:</p>
-    <table><thead><tr><th>Pos.</th><th>Beschreibung</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead><tbody><tr><td>1.</td><td>${service}</td><td>${qty.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:2})}</td><td>${euro(unitPrice)}</td><td>${euro(p.sale)}</td></tr></tbody></table>
-    <div class="total"><span>Gesamt</span><strong>${euro(p.sale)}</strong></div>
+    <table><thead><tr><th>Pos.</th><th>Beschreibung</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead><tbody><tr><td>1.</td><td>${service}</td><td>${qty.toLocaleString("de-DE",{minimumFractionDigits:0,maximumFractionDigits:2})}</td><td>${euro(unitPrice)}</td><td>${euro(pdfPrice)}</td></tr></tbody></table>
+    <div class="total"><span>Gesamt</span><strong>${euro(pdfPrice)}</strong></div>
     <div class="notes"><p>Dieses Angebot ist 14 Tage ab dem Ausstellungsdatum gültig.</p><p>Gemäß § 19 UStG wird aufgrund der Kleinunternehmerregelung keine Umsatzsteuer erhoben.</p></div>
     <p class="closing">Vielen Dank für Ihr Interesse. Ich freue mich auf Ihren Auftrag.</p>
     <footer>

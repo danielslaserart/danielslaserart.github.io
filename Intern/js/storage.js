@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.14.3";
+const APP_VERSION = "4.15.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -221,6 +221,11 @@ export function normalizeProjectRecord(project={}){
   const orderType=normalizeOrderType(project.orderType,{...project,customerObjectProcess:project.customerObjectProcess||(inferredCustomerObject?"engrave":null)});
   return {
     ...project,
+    agreementPrice:project.agreementPrice===null||project.agreementPrice===undefined||project.agreementPrice===""?null:num(project.agreementPrice),
+    priceAgreementDate:project.priceAgreementDate&&!Number.isNaN(new Date(project.priceAgreementDate).getTime())?project.priceAgreementDate:null,
+    isPreferredCustomerPrice:project.agreementPrice!==null&&project.agreementPrice!==undefined&&project.agreementPrice!==""&&Boolean(project.isPreferredCustomerPrice),
+    agreementPriceNote:String(project.agreementPriceNote||""),
+    agreementPriceCreatedAt:project.agreementPriceCreatedAt&&!Number.isNaN(new Date(project.agreementPriceCreatedAt).getTime())?project.agreementPriceCreatedAt:null,
     calculationSource:project.calculationSource||project.calculationSnapshot?.sourceModule||(project.estimatorData&&!project.fields?"estimator":"calculator"),
     calculationSnapshot:project.calculationSnapshot&&typeof project.calculationSnapshot==="object"?project.calculationSnapshot:null,
     recordType,

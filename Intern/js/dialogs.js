@@ -25,8 +25,8 @@ function openDialog(options={}){
       const type=field.type==="textarea"?"textarea":field.type==="select"?"select":"input";
       const attrs=type==="input"?`type="${field.type||"text"}" inputmode="${field.inputmode||"text"}"`:"";
       const content=type==="textarea"?esc(field.value??""):type==="select"?(field.options||[]).map(o=>`<option value="${esc(o.value)}"${String(o.value)===String(field.value)?" selected":""}>${esc(o.label)}</option>`).join(""):"";
-      const value=type==="input"?`value="${esc(field.value??"")}"`:"";
-      return `<label>${esc(field.label)}${type==="textarea"?`<textarea data-dialog-field="${esc(field.name)}" rows="${field.rows||3}">${content}</textarea>`:type==="select"?`<select data-dialog-field="${esc(field.name)}">${content}</select>`:`<input data-dialog-field="${esc(field.name)}" ${attrs} ${value} placeholder="${esc(field.placeholder||"")}">`}</label>`;
+      const value=type==="input"&&field.type!=="checkbox"?`value="${esc(field.value??"")}"`:"";
+      return `<label class="${field.type==="checkbox"?"dialog-checkbox":""}">${field.type==="checkbox"?`<input data-dialog-field="${esc(field.name)}" type="checkbox" ${field.value?"checked":""}>${esc(field.label)}`:`${esc(field.label)}${type==="textarea"?`<textarea data-dialog-field="${esc(field.name)}" rows="${field.rows||3}">${content}</textarea>`:type==="select"?`<select data-dialog-field="${esc(field.name)}">${content}</select>`:`<input data-dialog-field="${esc(field.name)}" ${attrs} ${value} placeholder="${esc(field.placeholder||"")}">`}`}</label>`;
     }).join("");
     cancel.textContent=options.cancelText||"Abbrechen";
     cancel.classList.toggle("hidden",options.cancelText===null);
