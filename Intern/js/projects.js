@@ -306,6 +306,9 @@ function printOffer(p){
 
 function loadProject(id,duplicate=false){
   const p=getRealProjects().find(x=>x.id===id);if(!p)return;
+  if(!duplicate&&(p.calculationSource==="estimator"||p.calculationSnapshot?.sourceModule==="estimator"||(!p.fields&&p.estimatorData))){
+    document.dispatchEvent(new CustomEvent("dla:edit-estimator-project",{detail:{projectId:p.id}}));return;
+  }
   loadCalculatorData(p,{duplicate,editingProjectId:duplicate?null:p.id});
 }
 $("clearProjectsBtn").onclick=async()=>{const real=getRealProjects();if(real.length&&await appConfirm("Wirklich alle echten Kundenprojekte löschen? Referenz- und Lerndaten bleiben erhalten.","Kundenprojekte löschen","Alle löschen")){const ids=new Set(real.map(p=>p.id));state.projects=state.projects.filter(p=>!ids.has(p.id));save();renderProjects()}};

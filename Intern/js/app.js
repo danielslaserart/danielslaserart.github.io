@@ -1,11 +1,11 @@
-import { initializeAuth } from "./storage.js";
+import { initializeAuth, state } from "./storage.js";
 import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js";
 import { renderCalculator } from "./calculator.js";
 import { renderTools } from "./statistics.js";
 import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js";
 import { renderProjects } from "./projects.js";
 import { fillSettings } from "./settings.js";
-import { renderMotifEstimator } from "./estimator.js";
+import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js";
 import { applyDesignDefaults, renderDesignStatistics } from "./design.js";
 import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js";
 
@@ -38,6 +38,16 @@ document.addEventListener("dla:estimator-transfer",event=>{
     notes:"Aus Angebotsassistent übernommen"
   },{blankCustomer:true,editingProjectId:null});
 });
+document.addEventListener("dla:open-estimator-editor",()=>{
+  document.querySelector("#motifCalc details")?.setAttribute("open","");
+  document.querySelector('.bottom-nav [data-screen="learning"]')?.classList.add("active");
+  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id==="tools"));
+});
+document.addEventListener("dla:edit-estimator-project",event=>{
+  const id=event.detail?.projectId;
+  const project=state.projects?.find(p=>p.id===id);
+  if(project)loadProjectIntoMotifEstimator(project);
+});
 
 export function initializeApp(){
   renderCalculator(true);
@@ -46,7 +56,7 @@ export function initializeApp(){
   initializeProcessingProfiles();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.14.0",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.14.1",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 

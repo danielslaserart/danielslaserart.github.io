@@ -86,6 +86,41 @@ export function captureCalculatorFields(){
   document.querySelectorAll("#calcForm input,#calcForm select,#calcForm textarea").forEach(el=>{if(el.id)fields[el.id]=el.value;});
   return fields;
 }
+function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,customerProcess}){
+  const customerSettings=getCustomerSettings();
+  return {
+    version:1,
+    calculatorType:orderType==="customerObject"?"customerObject":orderType==="service"?"service":"main",
+    sourceModule:"calculator",
+    module:state.activeModule,
+    orderType,
+    materialSource:orderType==="own"?"own":"customer",
+    customerObjectProcess:customerProcess,
+    machineId:machine?.id||"",
+    materialId:$("matMain")?.value||"",
+    fields:captureCalculatorFields(),
+    consumables:structuredClone(consumableSelections),
+    productSize,
+    workSeconds:getTimerSeconds(),
+    pricingSettings:{
+      overhead:num(state.settings.overhead),
+      rounding:num(state.settings.rounding),
+      baseFee:num(customerSettings.baseFee),
+      minimumPrice:num(customerSettings.minimumPrice),
+      difficultyPercent:num(customerSettings.difficulties?.[$("difficulty")?.value||"normal"])
+    },
+    results:{
+      materialCosts:num(breakdown.material),
+      machineCosts:num(breakdown.machine),
+      workCosts:num(breakdown.work),
+      additionalCosts:num(breakdown.extra),
+      calculatedSelfCosts:cost,
+      calculatedPrice:sale,
+      profit:num(breakdown.profit)
+    },
+    createdAt:new Date().toISOString()
+  };
+}
 export function applyCalculatorFields(fields={}){
   Object.entries(fields).forEach(([id,value])=>{const el=$(id);if(el)el.value=value;});
   if($("riskSurcharge")&&fields.riskSurcharge!=="")$("riskSurcharge").dataset.manual="true";
@@ -430,7 +465,8 @@ $("calcForm").onsubmit=async e=>{
     actualCutTime:null,actualEngravingTime:null,actualTotalTime:null,estimatedPrice:saleNow,actualPrice:saleNow,materialCost:0,cost:costNow,
     objectValue:num($("objectValue")?.value),riskSurcharge:num($("riskSurcharge")?.value),expressSurcharge:num($("expressSurcharge")?.value),difficulty,difficultyPercent:num(customerSettings.difficulties?.[difficulty])
   }:(existingProject?.estimatorData||null);
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customer:$("customerName").value.trim(),customerAddress:$("customerAddress")?.value.trim()||"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const calculationSnapshot=buildCalculationSnapshot({breakdown,sale:saleNow,cost:costNow,machine,orderType,customerProcess});
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customer:$("customerName").value.trim(),customerAddress:$("customerAddress")?.value.trim()||"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
   const usedKeys=[project.fields?.matMain,project.fields?.matTransfer,...project.consumables.map(r=>r.materialId)].filter(Boolean);

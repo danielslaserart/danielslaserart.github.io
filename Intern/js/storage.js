@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.14.0";
+const APP_VERSION = "4.14.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -209,6 +209,8 @@ export function normalizeProjectRecord(project={}){
   const orderType=["own","customerObject","service","design"].includes(project.orderType)?project.orderType:(project.projectType==="design"?"design":inferredCustomerObject?"customerObject":"own");
   return {
     ...project,
+    calculationSource:project.calculationSource||project.calculationSnapshot?.sourceModule||(project.estimatorData&&!project.fields?"estimator":"calculator"),
+    calculationSnapshot:project.calculationSnapshot&&typeof project.calculationSnapshot==="object"?project.calculationSnapshot:null,
     recordType,
     orderType,
     customerObjectProcess:project.customerObjectProcess||null,
