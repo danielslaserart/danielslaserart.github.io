@@ -1,4 +1,11 @@
-Daniels Laser Art Kalkulator V4.14.0
+Daniels Laser Art Kalkulator V4.14.1
+
+4.14.1 – Gespeicherte Kalkulationen identisch bearbeiten
+- Vollständiger Kalkulations-Snapshot für Hauptrechner und Angebotsassistent.
+- Kalkulationsherkunft, Eingaben, Kostenbestandteile und Ergebniswerte werden beim Bearbeiten wiederhergestellt.
+- Ältere Projekte ohne Snapshot werden kompatibel über vorhandene Felder geladen.
+- Tatsächliche Verkaufspreise werden beim bloßen Öffnen nicht überschrieben.
+- Fehler behoben, durch den gespeicherte Kalkulationen beim erneuten Bearbeiten unvollständig geladen und dadurch mit abweichenden Selbstkosten und Verkaufspreisen neu berechnet wurden.
 
 4.14.0 – Material-Bearbeitungsprofile
 - Technische Maschinen- und Lasereinstellungen zentral als Bearbeitungsprofile speichern.
@@ -174,4 +181,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.14.0
+https://danielslaserart.de/Intern/?v=4.14.1
