@@ -1,4 +1,11 @@
-Daniels Laser Art Kalkulator V4.14.1
+Daniels Laser Art Kalkulator V4.14.2
+
+4.14.2 – Einheitliche Kundenobjekt-Kalkulation im Angebotsassistenten
+- Angebotsassistent und Hauptrechner verwenden bei Kundenobjekten dieselbe zentrale Kalkulationsfunktion.
+- Auftragstyp, konfigurierte Grundpauschale, Mindestpreis, Arbeits- und Maschinenkosten sowie Kundenobjekt-Zuschläge werden gemeinsam berücksichtigt.
+- Kompatible Normalisierung älterer Auftragstyp-Bezeichnungen ergänzt.
+- Übernahme in den Preisrechner erhält Auftragstyp und auftragstypabhängige Werte.
+- Fehler behoben, durch den der Angebotsassistent bei Kundenobjekten die Grundpauschale und weitere auftragstypabhängige Kalkulationsbestandteile nicht identisch zum Hauptrechner berücksichtigte.
 
 4.14.1 – Gespeicherte Kalkulationen identisch bearbeiten
 - Vollständiger Kalkulations-Snapshot für Hauptrechner und Angebotsassistent.
@@ -181,4 +188,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.14.1
+https://danielslaserart.de/Intern/?v=4.14.2
