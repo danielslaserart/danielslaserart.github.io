@@ -4,6 +4,7 @@ import { materialSelections, resolveMaterialSelection } from "./materials.js";
 import { rounded } from "./calculator.js";
 import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js";
 import { appAlert, appForm, appConfirm } from "./dialogs.js";
+import { renderMotifProfiles } from "./processing-profiles.js";
 let motifImageDetail = null;
 function motifComplexityLabel(key){return ({simple:"Einfach",medium:"Mittel",high:"Hoch",veryHigh:"Sehr hoch"})[key]||"Hoch"}
 function motifComplexityFactor(key){return ({simple:.55,medium:.78,high:1,veryHigh:1.25})[key]||1}
@@ -62,7 +63,7 @@ export function renderMotifEstimator(){
   if(!$('mcHourly').dataset.ready){$('mcHourly').value=state.settings.hourly;$('mcReserve').value=state.settings.reserve;$('mcProfit').value=state.settings.profit;$('mcHourly').dataset.ready='1';}
   applyMotifMachineSpeeds(false);updateMotifProcessUI();
   const info=$('mcCalibrationInfo');if(info)info.textContent=`Kalibrierung: ${num(state.motifEstimator?.samples)} Erfahrungswert(e), Korrekturfaktor ${num(state.motifEstimator?.calibrationFactor||1).toLocaleString('de-DE',{maximumFractionDigits:2})}.`;
-  calculateMotifEstimator();
+  calculateMotifEstimator();renderMotifProfiles();
 }
 function analyzeMotifImage(file){
   if(!file)return;
@@ -138,8 +139,11 @@ export async function resetMotifEstimator(confirmFirst=true){
 }
 ['mcWidth','mcHeight','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcGlue','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
 document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',()=>{updateMotifProcessUI();calculateMotifEstimator()}));
+document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',renderMotifProfiles));
 document.querySelectorAll('input[name="mcMaterialSource"]').forEach(el=>el.addEventListener('change',calculateMotifEstimator));
-if($('mcMachine'))$('mcMachine').addEventListener('change',()=>{applyMotifMachineSpeeds(true);calculateMotifEstimator()});
+if($('mcMaterial'))$('mcMaterial').addEventListener('change',renderMotifProfiles);
+if($('mcMachine'))$('mcMachine').addEventListener('change',()=>{applyMotifMachineSpeeds(true);calculateMotifEstimator();renderMotifProfiles()});
+["mcProfileSource","mcProfileProcessType"].forEach(id=>$(id)?.addEventListener("change",renderMotifProfiles));
 ['mcImageGallery','mcImageCamera'].forEach(id=>{const el=$(id);if(el)el.onchange=e=>analyzeMotifImage(e.target.files?.[0])});
 if($('mcRemoveImage'))$('mcRemoveImage').onclick=()=>{motifImageDetail=null;$('mcPreview').removeAttribute('src');$('mcPreview').classList.add('hidden');$('mcPreviewPlaceholder').classList.remove('hidden');$('mcImageAnalysis').textContent='Das Bild hilft bei der automatischen Detail-Einschätzung. Die Berechnung bleibt eine grobe Vorab-Schätzung.';calculateMotifEstimator()};
 if($('mcSaveCalibration'))$('mcSaveCalibration').onclick=async()=>{

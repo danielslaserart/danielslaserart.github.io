@@ -1,6 +1,7 @@
 import { $, num, euro, uid, esc } from "./utils.js";
 import { state, save, defaults } from "./storage.js";
 import { materialSelections, resolveMaterialSelection } from "./materials.js";
+import { renderCalculatorProfiles } from "./processing-profiles.js";
 import { renderProjects } from "./projects.js";
 import { appConfirm } from "./dialogs.js";
 let editingProjectId=null;
@@ -230,7 +231,16 @@ export function renderCalculator(clear=false){
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
-    </div>`;
+    </div>
+    <section class="processing-profile-recommendations">
+      <div class="group-title">TECHNISCHE EINSTELLUNGEN</div>
+      <div class="profile-context-grid">
+        <label>Laserquelle / Werkzeug<select id="calculatorProfileSource"><option value="">Alle Quellen</option><option value="diode">Diode</option><option value="ir">IR</option><option value="blue">Blau</option><option value="co2">CO₂</option></select></label>
+        <label>Bearbeitungsart<select id="profileProcessType"><option value="">Alle Bearbeitungsarten</option><option value="vectorEngraving">Vektorgravur</option><option value="imageEngraving">Bildgravur</option><option value="marking">Markieren</option><option value="cutting">Schneiden</option></select></label>
+      </div>
+      <div id="calculatorProcessingProfiles"></div>
+      <small class="profile-information-note">Nur als technische Erinnerung. Preise, Laufzeiten und Kosten werden nicht verändert.</small>
+    </section>`;
 
   if(type==="laser"&&orderType!=="own"){
     const customer=orderType==="customerObject",settings=getCustomerSettings(),process=$("customerObjectProcess")?.value||"engrave";
@@ -305,13 +315,14 @@ export function renderCalculator(clear=false){
   updateOrderAssistantUI();
   renderConsumables();
   document.querySelectorAll("#calcForm input,#calcForm select").forEach(el=>el.oninput=calculate);
+  ["machineSelect","matMain","calculatorProfileSource","profileProcessType"].forEach(id=>$(id)?.addEventListener("change",renderCalculatorProfiles));
   if($("objectValue"))$("objectValue").oninput=()=>{
     const risk=$("riskSurcharge");if(risk?.dataset.manual!=="true")risk.value=String(suggestedRiskSurcharge($("objectValue").value));
     calculate();
   };
   if($("riskSurcharge"))$("riskSurcharge").oninput=()=>{$("riskSurcharge").dataset.manual="true";calculate()};
   if($("resetRiskSuggestion"))$("resetRiskSuggestion").onclick=()=>{const risk=$("riskSurcharge");risk.dataset.manual="false";risk.value=String(suggestedRiskSurcharge($("objectValue")?.value));calculate()};
-  calculate();
+  calculate();renderCalculatorProfiles();
 }
 $("resetCalcBtn").onclick=async()=>{if(await appConfirm("Neue Kalkulation starten?\nAlle nicht gespeicherten Eingaben werden gelöscht.","Neue Kalkulation","Neue Kalkulation"))document.dispatchEvent(new CustomEvent("dla:new-order",{detail:{module:state.activeModule}}))};
 

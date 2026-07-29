@@ -1,5 +1,5 @@
 import { $, num, esc, inferMaterialCategory } from "./utils.js";
-import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord, mergeSettings } from "./storage.js";
+import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord, normalizeProcessingProfiles, mergeSettings } from "./storage.js";
 import { renderMachines } from "./machines.js";
 import { renderMaterials } from "./materials.js";
 import { renderProjects } from "./projects.js";
@@ -35,6 +35,7 @@ $("importInput").onchange=async e=>{
     const d=JSON.parse(await f.text());
     if(!Array.isArray(d.materials)||!Array.isArray(d.projects))throw new Error();
     replaceState({...defaults,...d,settings:mergeSettings(d.settings)});
+    state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
     state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
     state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
     state.projects=(state.projects||[]).map(normalizeProjectRecord);

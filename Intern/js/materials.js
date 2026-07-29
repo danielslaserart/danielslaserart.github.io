@@ -2,6 +2,7 @@ import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, cat
 import { state, save } from "./storage.js";
 import { calculate } from "./calculator.js";
 import { appAlert, appConfirm, appForm } from "./dialogs.js";
+import { renderMaterialProfileSections, renderProcessingProfileManager } from "./processing-profiles.js";
 const dialog=$("materialDialog");
 $("newMaterialBtn").onclick=()=>openMaterial();
 $("closeMaterialBtn").onclick=()=>dialog.close();
@@ -241,6 +242,8 @@ export function renderMaterials(){
           <div class="material-price-block"><strong>${(m.variants||[]).length?`${m.variants.length} Varianten`:euro(m.unitPrice)}</strong><small>${(m.variants||[]).length?"":`/${esc(m.unit)}`}</small></div>
           <div class="material-compact-actions"><button data-favorite-material="${m.id}" class="favorite-toggle" title="Favorit">${m.favorite?"★":"☆"}</button><button data-edit="${m.id}">Bearbeiten</button>${!(m.variants||[]).length&&m.trackStock?`<button data-stock-material="${m.id}">Bestand ${num(m.stock)}</button>`:""}<button data-delete="${m.id}" class="danger">Löschen</button></div>
           ${(m.variants||[]).length?`<div class="material-stock-actions">${m.variants.map(v=>`<button data-favorite-variant="${m.id}::${v.id}" class="ghost small">${v.favorite?"★":"☆"} ${esc(v.name)}</button>${v.trackStock?`<button data-stock-variant="${m.id}::${v.id}" class="ghost small">± Bestand (${num(v.stock)})</button>`:""}`).join("")}</div>`:""}
+          <div class="material-processing-profiles" data-material-profile-section="${m.id}"></div>
+          ${(m.variants||[]).length?m.variants.map(v=>`<div class="material-processing-profiles variant-profile-section" data-material-profile-section="${v.id}"><div class="profile-section-placeholder">${esc(v.name)}</div></div>`).join(""):""}
         </article>`).join("")}</div>
     </details>`).join(""):`<div class="empty-state">Keine passenden Materialien gefunden.</div>`;
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openMaterial(state.materials.find(m=>m.id===b.dataset.edit)));
@@ -249,6 +252,8 @@ export function renderMaterials(){
   document.querySelectorAll("[data-favorite-variant]").forEach(b=>b.onclick=()=>{const [m,v]=b.dataset.favoriteVariant.split("::");toggleFavorite(m,v)});
   document.querySelectorAll("[data-stock-material]").forEach(b=>b.onclick=()=>adjustStock(b.dataset.stockMaterial));
   document.querySelectorAll("[data-stock-variant]").forEach(b=>b.onclick=()=>{const [m,v]=b.dataset.stockVariant.split("::");adjustStock(m,v)});
+  renderMaterialProfileSections($("materialList"));
+  renderProcessingProfileManager();
   const categoryElements=[...document.querySelectorAll(".material-category")];
   categoryElements.forEach(group=>{
     group.open=allMaterialGroupsOpen;

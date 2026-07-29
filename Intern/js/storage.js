@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.13.6";
+const APP_VERSION = "4.14.0";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -85,7 +85,7 @@ export const defaults = {
       risks:{under50:0,from50To100:3,from100To250:5,from250To500:8,over500:12}
     }
   },
-  materials:[],projects:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
+  materials:[],processingProfiles:[],projects:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[
     {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:300,active:true},
     {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:0,active:true},
@@ -95,6 +95,7 @@ export const defaults = {
   ]
 };
 export let state = load();
+state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
 state.templates=Array.isArray(state.templates)?state.templates:[];
 state.projects=(state.projects||[]).map(normalizeProjectRecord);
 state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
@@ -133,10 +134,65 @@ export function load(){
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
     merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
+    merged.processingProfiles=normalizeProcessingProfiles(merged.processingProfiles);
     merged.projects=(merged.projects||[]).map(normalizeProjectRecord);
     migrateEmbeddedReferences(merged);
     return merged;
   }catch{return structuredClone(defaults)}
+}
+function normalizeNullableNumber(value){
+  return value===null||value===undefined||value===""?null:num(value);
+}
+export function normalizeProcessingProfile(profile={}){
+  if(!profile||typeof profile!=="object")return null;
+  const scope=profile.scope==="material"?"material":"family";
+  const settings=profile.settings&&typeof profile.settings==="object"?profile.settings:{};
+  return {
+    ...profile,
+    id:String(profile.id||uid()),
+    scope,
+    familyId:String(profile.familyId||""),
+    materialId:scope==="material"?String(profile.materialId||""):null,
+    name:String(profile.name||"").trim(),
+    machineId:String(profile.machineId||""),
+    laserSource:String(profile.laserSource||""),
+    processType:String(profile.processType||""),
+    settings:{
+      speed:normalizeNullableNumber(settings.speed),
+      speedUnit:settings.speedUnit==="mm/s"?"mm/s":"mm/min",
+      powerPercent:normalizeNullableNumber(settings.powerPercent),
+      passes:settings.passes===null||settings.passes===undefined||settings.passes===""?1:Math.max(1,Math.round(num(settings.passes))),
+      dpi:normalizeNullableNumber(settings.dpi),
+      lineInterval:normalizeNullableNumber(settings.lineInterval),
+      dotDuration:normalizeNullableNumber(settings.dotDuration),
+      pulseDuration:normalizeNullableNumber(settings.pulseDuration),
+      frequency:normalizeNullableNumber(settings.frequency),
+      airAssist:settings.airAssist===true||settings.airAssist===false?settings.airAssist:null,
+      airAssistValue:normalizeNullableNumber(settings.airAssistValue),
+      bidirectional:settings.bidirectional===true||settings.bidirectional===false?settings.bidirectional:null,
+      fillMethod:String(settings.fillMethod||""),
+      rasterMethod:String(settings.rasterMethod||""),
+      scanAngle:normalizeNullableNumber(settings.scanAngle),
+      focusDistance:normalizeNullableNumber(settings.focusDistance),
+      focusNote:String(settings.focusNote||""),
+      zOffset:normalizeNullableNumber(settings.zOffset),
+      materialThicknessMm:normalizeNullableNumber(settings.materialThicknessMm),
+      layers:normalizeNullableNumber(settings.layers),
+      interval:normalizeNullableNumber(settings.interval),
+      printTemperature:normalizeNullableNumber(settings.printTemperature),
+      bedTemperature:normalizeNullableNumber(settings.bedTemperature),
+      feedRate:normalizeNullableNumber(settings.feedRate)
+    },
+    isDefault:Boolean(profile.isDefault),
+    status:["untested","testing","proven","preferred","obsolete"].includes(profile.status)?profile.status:"untested",
+    rating:profile.rating===null||profile.rating===undefined||profile.rating===""?null:Math.max(1,Math.min(5,Math.round(num(profile.rating)))),
+    notes:String(profile.notes||""),
+    createdAt:profile.createdAt||new Date().toISOString(),
+    updatedAt:profile.updatedAt||profile.createdAt||new Date().toISOString()
+  };
+}
+export function normalizeProcessingProfiles(profiles){
+  return (Array.isArray(profiles)?profiles:[]).map(normalizeProcessingProfile).filter(Boolean);
 }
 export function normalizeProjectStatus(status){
   return ({open:"offer",payment:"waiting"}[status])||(["offer","progress","waiting","done","billed"].includes(status)?status:"offer");
@@ -282,6 +338,7 @@ export async function loadCloudState(){
     state.templates=Array.isArray(state.templates)?state.templates:[];
     state.projects=(state.projects||[]).map(normalizeProjectRecord);
     state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
+    state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
     migrateEmbeddedReferences(state);
     state.timer={...defaults.timer,...(state.timer||{})};
     state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};

@@ -7,6 +7,7 @@ import { renderProjects } from "./projects.js";
 import { fillSettings } from "./settings.js";
 import { renderMotifEstimator } from "./estimator.js";
 import { applyDesignDefaults, renderDesignStatistics } from "./design.js";
+import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js";
 
 function renderAll(){
   updateHome();
@@ -20,6 +21,9 @@ function renderAll(){
   renderMotifEstimator();
   applyDesignDefaults();
   renderDesignStatistics();
+  renderProcessingProfileManager();
+  renderCalculatorProfiles();
+  renderMotifProfiles();
 }
 
 document.addEventListener("dla:state-saved", updateHome);
@@ -39,9 +43,10 @@ export function initializeApp(){
   renderCalculator(true);
   renderTools();
   renderMaterialCategoryFilter();
+  initializeProcessingProfiles();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.13.6",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.14.0",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
