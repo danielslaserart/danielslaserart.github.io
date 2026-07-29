@@ -1,4 +1,13 @@
-Daniels Laser Art Kalkulator V4.13.6
+Daniels Laser Art Kalkulator V4.14.0
+
+4.14.0 – Material-Bearbeitungsprofile
+- Technische Maschinen- und Lasereinstellungen zentral als Bearbeitungsprofile speichern.
+- Profile gelten wahlweise für eine gesamte Materialfamilie oder ein konkretes Material beziehungsweise eine vorhandene Variante.
+- Materialprofile haben nur bei derselben technischen Kombination Vorrang; andere Familienprofile bleiben verfügbar.
+- Maschinen-, Quellen- und Bearbeitungsart-abhängige Felder mit Status, Bewertung, Standardprofil und Notizen.
+- Profile anlegen, ansehen, bearbeiten, duplizieren, löschen, filtern und geerbte Familienprofile als eigenes Materialprofil übernehmen.
+- Rein informative Anzeige passender Einstellungen im Hauptrechner und Motivschätzer.
+- Keine Änderung an Preisen, Laufzeiten, Materialkosten, Maschinenkosten, Projekten, Lernsystem, Statistik oder Authentifizierung.
 
 4.13.6 – Design-&-Dateien-Karte vollständig vergoldet
 - Karte „Design & Dateien“ verwendet jetzt dieselbe deckende goldene Hauptkartenklasse wie Schnellstart Angebotsassistent und Neuer Auftrag.
@@ -165,4 +174,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.13.6
+https://danielslaserart.de/Intern/?v=4.14.0
