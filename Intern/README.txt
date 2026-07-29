@@ -1,4 +1,9 @@
-Daniels Laser Art Kalkulator V4.13.5
+Daniels Laser Art Kalkulator V4.13.6
+
+4.13.6 – Design-&-Dateien-Karte vollständig vergoldet
+- Karte „Design & Dateien“ verwendet jetzt dieselbe deckende goldene Hauptkartenklasse wie Schnellstart Angebotsassistent und Neuer Auftrag.
+- Die Modifier-Klasse enthält keine abweichenden Hintergrund-, Rahmen-, Text- oder Schattenfarben mehr.
+- Keine anderen UI-Bereiche, Berechnungen, Authentifizierungs- oder Navigationsfunktionen geändert.
 
 4.13.5 – Zwei gezielte UI-Korrekturen
 - Karte „Design & Dateien“ verwendet vollständig dieselbe Hauptkarten-Basis wie Schnellstart und neuer Auftrag; nur die Farbgebung bleibt als Modifier abgesetzt.
@@ -160,4 +165,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.13.5
+https://danielslaserart.de/Intern/?v=4.13.6

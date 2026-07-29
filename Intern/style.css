@@ -836,7 +836,6 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .design-results{margin:18px 0}.order-badge.design{border-color:rgba(89,157,212,.48);color:#a9d7f5;background:rgba(50,112,159,.16)}
 .dash-action-design>div{min-width:0;flex:1}
 .dash-action-design b,.dash-action-design small{overflow-wrap:anywhere}
-.dash-action-design{border-color:rgba(89,157,212,.48);background:linear-gradient(145deg,rgba(50,112,159,.22),rgba(20,42,59,.34))}
 .design-page,.design-form,.design-section,.design-card{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
 .design-page input,.design-page select,.design-page textarea,.design-page button{max-width:100%;box-sizing:border-box}
 .design-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -850,7 +849,7 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .home-more[open]>summary::after{transform:rotate(180deg)}
 @media(max-width:520px){
   .dashboard-actions{gap:9px;margin:12px 0 16px}
-  .dash-action,.dash-action-design{min-height:76px;padding:12px 13px;gap:11px;border-radius:17px}
+  .dash-action{min-height:76px;padding:12px 13px;gap:11px;border-radius:17px}
   .dash-action>span{width:42px;height:42px;border-radius:13px;font-size:21px}
   .dash-action b{margin-bottom:3px}
   .dashboard-section{margin-top:16px}
