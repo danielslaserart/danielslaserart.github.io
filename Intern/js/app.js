@@ -41,7 +41,7 @@ export function initializeApp(){
   renderMaterialCategoryFilter();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.13.4",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.13.5",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
