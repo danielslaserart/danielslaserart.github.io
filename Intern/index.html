@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.14.2">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.14.2">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.14.2">
-  <link rel="stylesheet" href="style.css?v=4.14.2">
+  <link rel="manifest" href="manifest.json?v=4.14.3">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.14.3">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.14.3">
+  <link rel="stylesheet" href="style.css?v=4.14.3">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -63,7 +63,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.14.2</span>
+      <span class="version-badge">V4.14.3</span>
     </div>
 
     <div class="dashboard-actions">
@@ -238,21 +238,33 @@
         <div id="consumableRows" class="consumable-list"></div>
       </div>
       <div class="result-card">
+        <div id="resCostHeading" class="result-section-heading hidden">TATSÄCHLICHE KOSTEN</div>
         <div id="resMaterialRow"><span>Hauptmaterial</span><strong id="resMaterial">0,00 €</strong></div>
         <div id="resConsumablesRow"><span>Verbrauchsmaterial</span><strong id="resConsumables">0,00 €</strong></div>
-        <div id="resBaseFeeRow" class="hidden"><span>Grundpauschale</span><strong id="resBaseFee">0,00 €</strong></div>
+        <div id="resCustomerMaterialRow" class="hidden"><span>Materialkosten</span><strong>0,00 €</strong></div>
         <div><span>Maschinenkosten</span><strong id="resMachine">0,00 €</strong></div>
         <div><span>Arbeitskosten</span><strong id="resWork">0,00 €</strong></div>
         <div id="resExtraRow"><span>Zusatzkosten</span><strong id="resExtra">0,00 €</strong></div>
         <div id="resReserveRow"><span>Fehlerreserve</span><strong id="resReserve">0,00 €</strong></div>
+        <div id="resOtherActualCostsRow" class="hidden"><span>Sonstige echte Kosten</span><strong>0,00 €</strong></div>
+        <div id="resCostRow"><span>Selbstkosten</span><strong id="resCost">0,00 €</strong></div>
+        <div id="resPricePartsHeading" class="result-section-heading hidden">PREISBESTANDTEILE UND ZUSCHLÄGE</div>
+        <div id="resBaseFeeRow" class="hidden"><span>Grundpauschale</span><strong id="resBaseFee">0,00 €</strong></div>
         <div id="resDifficultyRow" class="hidden"><span>Schwierigkeitsaufschlag</span><strong id="resDifficulty">0,00 €</strong></div>
         <div id="resRiskRow" class="hidden"><span>Risikoaufschlag</span><strong id="resRisk">0,00 €</strong></div>
         <div id="resExpressRow" class="hidden"><span>Expresszuschlag</span><strong id="resExpress">0,00 €</strong></div>
-        <div><span>Selbstkosten</span><strong id="resCost">0,00 €</strong></div>
-        <div><span>Gewinn</span><strong id="resProfit">0,00 €</strong></div>
+        <div id="resFurtherSurchargesRow" class="hidden"><span>Weitere Zuschläge</span><strong>0,00 €</strong></div>
+        <div id="resProfitRow"><span id="resProfitLabel">Gewinn</span><strong id="resProfit">0,00 €</strong><small id="resProfitExplanation"></small></div>
+        <div id="resCalculatedHeading" class="result-section-heading hidden">BERECHNETER PREIS</div>
         <div id="resCalculatedRow" class="hidden"><span>Berechneter Preis</span><strong id="resCalculated">0,00 €</strong></div>
         <div id="resMinimumRow" class="hidden"><span>Mindestpreis angewendet</span><strong id="resMinimum">0,00 €</strong></div>
+        <div id="resRoundingHeading" class="result-section-heading hidden">RUNDUNG</div>
+        <div id="resRoundingRow" class="rounding-row hidden"><span>Rundungsdifferenz</span><strong id="resRounding">0,00 €</strong></div>
+        <div id="resSaleHeading" class="result-section-heading hidden">EMPFOHLENER VERKAUFSPREIS</div>
         <div class="final"><span id="resSaleLabel">Verkaufspreis</span><strong id="resSale">0,00 €</strong></div>
+        <div id="resActualProfitHeading" class="result-section-heading hidden">TATSÄCHLICHER GEWINN</div>
+        <div id="resActualProfitRow" class="hidden"><span>Tatsächlicher Gewinn</span><strong id="resActualProfit">0,00 €</strong><small id="resActualProfitExplanation"></small></div>
+        <div id="resMarginRow" class="hidden"><span>Gewinnmarge vom Verkaufspreis</span><strong id="resMargin">0,0 %</strong></div>
         <small id="resPerPiece"></small>
       </div>
 
@@ -436,16 +448,28 @@
         <div id="mcCutTimeRow"><span>Geschätzte Schnittzeit</span><strong id="mcCutTime">0 Min.</strong></div>
         <div id="mcEngraveTimeRow" class="hidden"><span>Geschätzte Gravurzeit</span><strong id="mcEngraveTime">0 Min.</strong></div>
         <div><span>Materialverbrauch</span><strong id="mcMaterialUsage">–</strong></div>
+        <div id="mcCostHeading" class="result-section-heading hidden">TATSÄCHLICHE KOSTEN</div>
         <div><span>Materialkosten</span><strong id="mcMaterialCostResult">0,00 €</strong><small id="mcMaterialSourceHint"></small></div>
         <div><span>Aktive Arbeitszeit</span><strong id="mcWorkTime">0 Min.</strong></div>
         <div><span>Arbeitskosten</span><strong id="mcWorkCostResult">0,00 €</strong></div>
         <div><span>Maschinenkosten</span><strong id="mcMachineCost">0,00 €</strong></div>
-        <div><span>Grundpauschale</span><strong id="mcBaseFeeResult">0,00 €</strong></div>
-        <div><span>Zuschläge</span><strong id="mcSurchargesResult">0,00 €</strong></div>
+        <div id="mcOtherActualCostsRow" class="hidden"><span>Sonstige echte Kosten</span><strong id="mcOtherActualCosts">0,00 €</strong></div>
         <div><span>Selbstkosten</span><strong id="mcTotalCost">0,00 €</strong></div>
-        <div><span>Gewinn</span><strong id="mcProfitEuro">0,00 €</strong></div>
-        <div><span>Gewinnmarge</span><strong id="mcProfitPercent">0 %</strong></div>
-        <div class="main-row"><span>Empfohlener Preis</span><strong id="mcSalePrice">0,00 €</strong></div>
+        <div id="mcPricePartsHeading" class="result-section-heading hidden">PREISBESTANDTEILE UND ZUSCHLÄGE</div>
+        <div id="mcBaseFeeRow"><span>Grundpauschale</span><strong id="mcBaseFeeResult">0,00 €</strong></div>
+        <div id="mcDifficultyRow"><span>Schwierigkeitsaufschlag</span><strong id="mcDifficultyResult">0,00 €</strong></div>
+        <div id="mcRiskRow"><span>Risikoaufschlag</span><strong id="mcRiskResult">0,00 €</strong></div>
+        <div id="mcExpressRow"><span>Expresszuschlag</span><strong id="mcExpressResult">0,00 €</strong></div>
+        <div id="mcFurtherSurchargesRow"><span>Weitere Zuschläge</span><strong>0,00 €</strong></div>
+        <div id="mcCalculatedHeading" class="result-section-heading hidden">BERECHNETER PREIS</div>
+        <div id="mcCalculatedRow" class="hidden"><span>Berechneter Preis</span><strong id="mcCalculatedPrice">0,00 €</strong></div>
+        <div id="mcRoundingHeading" class="result-section-heading hidden">RUNDUNG</div>
+        <div id="mcRoundingRow" class="rounding-row hidden"><span>Rundungsdifferenz</span><strong id="mcRoundingDifference">0,00 €</strong></div>
+        <div id="mcSaleHeading" class="result-section-heading hidden">EMPFOHLENER VERKAUFSPREIS</div>
+        <div class="main-row"><span>Empfohlener Verkaufspreis</span><strong id="mcSalePrice">0,00 €</strong></div>
+        <div id="mcActualProfitHeading" class="result-section-heading hidden">TATSÄCHLICHER GEWINN</div>
+        <div><span id="mcProfitLabel">Gewinn</span><strong id="mcProfitEuro">0,00 €</strong><small id="mcProfitExplanation"></small></div>
+        <div><span id="mcMarginLabel">Gewinnmarge</span><strong id="mcProfitPercent">0 %</strong></div>
         <div><span>Minimal</span><strong id="mcPriceMin">0,00 €</strong></div>
         <div><span>Optimal</span><strong id="mcPriceOptimal">0,00 €</strong></div>
         <div><span>Premium</span><strong id="mcPricePremium">0,00 €</strong></div>
@@ -951,6 +975,6 @@
 <script id="supabaseScript" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
-<script type="module" src="js/app.js?v=4.14.2"></script>
+<script type="module" src="js/app.js?v=4.14.3"></script>
 </body>
 </html>

@@ -1,4 +1,12 @@
-Daniels Laser Art Kalkulator V4.14.2
+Daniels Laser Art Kalkulator V4.14.3
+
+4.14.3 – Verständliche Kalkulationsübersicht für Kundenobjekte
+---------------------------------------------------------------
+- Kalkulationsübersicht für Kundenobjekte verständlicher gegliedert: Selbstkosten, Preisbestandteile, Rundungsdifferenz, Verkaufspreis und tatsächlicher Gewinn werden nun eindeutig getrennt dargestellt.
+- Grundpauschale und Verkaufsaufschläge werden nicht mehr optisch mit den tatsächlichen Selbstkosten vermischt.
+- Hauptrechner, Angebotsassistent und Projektansicht verwenden dieselben eindeutigen Bezeichnungen und Ausgangswerte.
+- Der tatsächliche Gewinn wird als finaler Verkaufspreis abzüglich Selbstkosten erklärt; die Marge bezieht sich sichtbar auf den Verkaufspreis.
+- Kundenangebote enthalten weiterhin keine internen Selbstkosten-, Gewinn- oder Margenangaben.
 
 4.14.2 – Einheitliche Kundenobjekt-Kalkulation im Angebotsassistenten
 - Angebotsassistent und Hauptrechner verwenden bei Kundenobjekten dieselbe zentrale Kalkulationsfunktion.
@@ -188,4 +196,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.14.2
+https://danielslaserart.de/Intern/?v=4.14.3
