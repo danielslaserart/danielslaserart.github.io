@@ -1,4 +1,9 @@
-Daniels Laser Art Kalkulator V4.13.4
+Daniels Laser Art Kalkulator V4.13.5
+
+4.13.5 – Zwei gezielte UI-Korrekturen
+- Karte „Design & Dateien“ verwendet vollständig dieselbe Hauptkarten-Basis wie Schnellstart und neuer Auftrag; nur die Farbgebung bleibt als Modifier abgesetzt.
+- Horizontalen Overflow der Designseite behoben: Die zu breite Kopfzeile bricht auf schmalen Displays sauber um, Form-Grids und Inhalte dürfen auf die verfügbare Breite schrumpfen.
+- Authentifizierung, Motivschätzer, Berechnungen und übrige App-Bereiche unverändert.
 
 4.13.4 – Kritischen Motivschätzer-Startfehler behoben
 - Materialherkunft wird in calculateMotifEstimator() sicher aus der vorhandenen Auswahl ermittelt.
@@ -155,4 +160,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.13.4
+https://danielslaserart.de/Intern/?v=4.13.5
