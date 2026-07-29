@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "4.14.2";
+const APP_VERSION = "4.14.3";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {

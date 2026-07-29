@@ -369,6 +369,10 @@ export function rounded(v){
   const step=num(state.settings.rounding)||0.01;
   return Math.ceil(v/step)*step;
 }
+function signedEuro(value){
+  const clean=Math.abs(value)<.005?0:value;
+  return `${clean>0?"+":""}${euro(clean)}`;
+}
 function updateSelectedMaterialPreview(){
   const box=$("selectedMaterialPreview"),mat=getMat("matMain");if(!box)return;
   if(!mat){box.classList.add("hidden");box.innerHTML="";return;}
@@ -433,13 +437,19 @@ export function calculate(){
     baseFee:settings.baseFee,minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:num($("expressSurcharge")?.value)
   });
   const customerObject=orderType==="customerObject";
+  ["resCostHeading","resPricePartsHeading","resCalculatedHeading","resRoundingHeading","resSaleHeading","resActualProfitHeading","resCustomerMaterialRow","resOtherActualCostsRow","resFurtherSurchargesRow","resRoundingRow","resActualProfitRow","resMarginRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
   $("resMaterialRow").classList.toggle("hidden",orderType!=="own");$("resConsumablesRow").classList.toggle("hidden",orderType!=="own");
   $("resBaseFeeRow").classList.toggle("hidden",!customerObject);$("resDifficultyRow").classList.toggle("hidden",!customerObject);$("resRiskRow").classList.toggle("hidden",!customerObject);$("resExpressRow").classList.toggle("hidden",!customerObject);$("resCalculatedRow").classList.toggle("hidden",!customerObject);$("resMinimumRow").classList.toggle("hidden",!customerObject||!breakdown.minimumApplied);
   $("resExtraRow").classList.toggle("hidden",customerObject);$("resReserveRow").classList.toggle("hidden",customerObject);
   $("resMaterial").textContent=euro(breakdown.material);$("resConsumables").textContent=euro(breakdown.consumables);$("resBaseFee").textContent=euro(breakdown.baseFee);
   $("resMachine").textContent=euro(breakdown.machine);$("resWork").textContent=euro(breakdown.work);$("resExtra").textContent=euro(breakdown.extra);$("resReserve").textContent=euro(breakdown.reserve);
   $("resDifficulty").textContent=euro(breakdown.difficulty);$("resRisk").textContent=euro(breakdown.risk);$("resExpress").textContent=euro(breakdown.express);$("resCalculated").textContent=euro(breakdown.calculated);$("resMinimum").textContent=euro(breakdown.minimum);
+  const roundingDifference=breakdown.sale-breakdown.calculated;
+  const actualProfit=breakdown.sale-breakdown.cost;
+  const margin=breakdown.sale>0?actualProfit/breakdown.sale*100:0;
   $("resCost").textContent=euro(breakdown.cost);$("resProfit").textContent=euro(breakdown.profit);$("resSale").textContent=euro(breakdown.sale);$("resSaleLabel").textContent=customerObject?"Empfohlener Verkaufspreis":"Verkaufspreis";
+  $("resProfitRow").classList.toggle("hidden",customerObject);$("resProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("resProfitExplanation").textContent="";
+  $("resRounding").textContent=signedEuro(roundingDifference);$("resActualProfit").textContent=euro(actualProfit);$("resActualProfitExplanation").textContent=`${euro(breakdown.sale)} − ${euro(breakdown.cost)}`;$("resMargin").textContent=`${margin.toLocaleString("de-DE",{maximumFractionDigits:1})} %`;
   $("resPerPiece").textContent=qty>1?`${euro(breakdown.sale/qty)} je Stück`:"";
   $("calcForm").dataset.sale=breakdown.sale;
   $("calcForm").dataset.cost=breakdown.cost;

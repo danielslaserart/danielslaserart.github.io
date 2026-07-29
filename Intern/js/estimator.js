@@ -12,6 +12,7 @@ function motifComplexityLabel(key){return ({simple:"Einfach",medium:"Mittel",hig
 function motifComplexityFactor(key){return ({simple:.55,medium:.78,high:1,veryHigh:1.25})[key]||1}
 function motifProcess(){return document.querySelector('input[name="mcProcess"]:checked')?.value||"cut"}
 function motifMaterialSource(){return document.querySelector('input[name="mcMaterialSource"]:checked')?.value||"own"}
+function signedEuro(value){const clean=Math.abs(value)<.005?0:value;return `${clean>0?"+":""}${euro(clean)}`}
 function motifMaterialOptions(){
   const items=materialSelections("Laser","main");
   return `<option value="">Material auswählen</option>`+items.map(m=>`<option value="${esc(m.id)}">${m.favorite||m.baseMaterial?.favorite?"★ ":""}${esc(m.name)}${num(m.width)&&num(m.height)?` – ${num(m.width)}×${num(m.height)} ${esc(m.dimensionUnit||"cm")}`:""} – ${euro(m.unitPrice)}/${esc(m.unit||"Stück")}</option>`).join("");
@@ -127,14 +128,21 @@ export function calculateMotifEstimator(){
   const finalCost=customerBreakdown?.cost??cost;
   const sale=customerBreakdown?.sale??rounded(Math.max(cost,learnedPriceSuggestion(similar,area,calculatedSale)));
   const profit=sale-finalCost,margin=sale>0?profit/sale*100:0;
+  const calculatedPrice=customerBreakdown?.calculated??sale;
+  const roundingDifference=sale-calculatedPrice;
   const minimal=rounded(Math.max(finalCost,sale*.9)),premium=rounded(sale*1.2);
   $('mcDetected').textContent=motifComplexityLabel(complexity);$('mcMaterialUsage').textContent=mat.text;$('mcMaterialCostResult').textContent=euro(material);
   if($("mcMaterialSourceHint"))$("mcMaterialSourceHint").textContent=materialSource==="customer"?"Kundenmaterial – keine Materialkosten berechnet":"";
   $('mcCutTime').textContent=`${Math.round(cutMinutes)} Min.`;$('mcEngraveTime').textContent=`${Math.round(engraveMinutes)} Min.`;$('mcWorkTime').textContent=`${Math.round(work)} Min.`;
   $('mcMachineCost').textContent=euro(machineCost);$('mcWorkCostResult').textContent=euro(workCost);$('mcBaseFeeResult').textContent=euro(customerBreakdown?.baseFee||0);
-  $('mcSurchargesResult').textContent=euro((customerBreakdown?.difficulty||0)+(customerBreakdown?.risk||0)+(customerBreakdown?.express||0));
+  $('mcDifficultyResult').textContent=euro(customerBreakdown?.difficulty||0);$('mcRiskResult').textContent=euro(customerBreakdown?.risk||0);$('mcExpressResult').textContent=euro(customerBreakdown?.express||0);
   $('mcTotalCost').textContent=euro(finalCost);$('mcSalePrice').textContent=euro(sale);
   $('mcProfitEuro').textContent=euro(profit);$('mcProfitPercent').textContent=`${margin.toLocaleString('de-DE',{maximumFractionDigits:1})} %`;
+  const customerObject=orderType==="customerObject";
+  ["mcCostHeading","mcPricePartsHeading","mcCalculatedHeading","mcRoundingHeading","mcSaleHeading","mcActualProfitHeading","mcCalculatedRow","mcRoundingRow","mcOtherActualCostsRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
+  ["mcBaseFeeRow","mcDifficultyRow","mcRiskRow","mcExpressRow","mcFurtherSurchargesRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
+  $("mcCalculatedPrice").textContent=euro(calculatedPrice);$("mcRoundingDifference").textContent=signedEuro(roundingDifference);$("mcOtherActualCosts").textContent=euro(0);
+  $("mcProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("mcMarginLabel").textContent=customerObject?"Gewinnmarge vom Verkaufspreis":"Gewinnmarge";$("mcProfitExplanation").textContent=customerObject?`${euro(sale)} − ${euro(finalCost)}`:"";
   $('mcPriceMin').textContent=euro(minimal);$('mcPriceOptimal').textContent=euro(sale);$('mcPricePremium').textContent=euro(premium);
   $('mcLearningHint').textContent=similar.length?`Es wurden ${similar.length} ähnliche Projekte gefunden. Die Zeitberechnung wurde mit diesen Erfahrungswerten verbessert.`:'Noch keine ähnlichen Referenzprojekte vorhanden.';
   $('motifCalc').dataset.predictedMachineMinutes=String(cutMinutes+engraveMinutes);

@@ -192,6 +192,46 @@ function projectFieldValue(id,value){
   if(id==="machineSelect") return state.machines.find(m=>m.id===value)?.name||"–";
   return value===""?"–":value;
 }
+function signedEuro(value){
+  const clean=Math.abs(value)<.005?0:value;
+  return `${clean>0?"+":""}${euro(clean)}`;
+}
+function customerCalculationOverview(p){
+  if(p.orderType!=="customerObject")return "";
+  const breakdown=p.pricingBreakdown||p.calculationSnapshot?.pricingBreakdown||p.estimatorData?.pricingBreakdown||{};
+  const results=p.calculationSnapshot?.results||{};
+  const selfCosts=num(p.cost??results.calculatedSelfCosts??breakdown.cost);
+  const calculated=num(breakdown.calculated??results.calculatedPrice??p.estimatedPrice??p.sale);
+  const recommended=num(breakdown.sale??results.optimalPrice??p.estimatedPrice??p.sale);
+  const finalSale=num(p.actualPrice??p.sale??recommended);
+  const actualProfit=finalSale-selfCosts;
+  const margin=finalSale>0?actualProfit/finalSale*100:0;
+  return `<div class="project-calculation-overview">
+    <h4>TATSÄCHLICHE KOSTEN</h4>
+    <div><span>Materialkosten</span><strong>${euro(breakdown.material||0)}</strong></div>
+    <div><span>Maschinenkosten</span><strong>${euro(breakdown.machine??results.machineCosts)}</strong></div>
+    <div><span>Arbeitskosten</span><strong>${euro(breakdown.work??results.workCosts)}</strong></div>
+    <div><span>Sonstige echte Kosten</span><strong>${euro(breakdown.extra??results.additionalCosts)}</strong></div>
+    <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
+    <h4>PREISBESTANDTEILE UND ZUSCHLÄGE</h4>
+    <div><span>Grundpauschale</span><strong>${euro(breakdown.baseFee)}</strong></div>
+    <div><span>Schwierigkeitsaufschlag</span><strong>${euro(breakdown.difficulty)}</strong></div>
+    <div><span>Risikoaufschlag</span><strong>${euro(breakdown.risk??p.riskSurcharge)}</strong></div>
+    <div><span>Expresszuschlag</span><strong>${euro(breakdown.express??p.expressSurcharge)}</strong></div>
+    <div><span>Weitere Zuschläge</span><strong>0,00 €</strong></div>
+    <h4>BERECHNETER PREIS</h4>
+    <div><span>Berechneter Preis</span><strong>${euro(calculated)}</strong></div>
+    <h4>RUNDUNG</h4>
+    <div><span>Rundungsdifferenz</span><strong>${signedEuro(recommended-calculated)}</strong></div>
+    <h4>EMPFOHLENER VERKAUFSPREIS</h4>
+    <div class="project-price-final"><span>Empfohlener Verkaufspreis</span><strong>${euro(recommended)}</strong></div>
+    ${finalSale!==recommended?`<div><span>Tatsächlicher Verkaufspreis</span><strong>${euro(finalSale)}</strong></div>`:""}
+    <h4>TATSÄCHLICHER GEWINN</h4>
+    <div><span>Tatsächlicher Gewinn</span><strong>${euro(actualProfit)}</strong><small>${euro(finalSale)} − ${euro(selfCosts)}</small></div>
+    <div><span>Gewinnmarge vom Verkaufspreis</span><strong>${margin.toLocaleString("de-DE",{maximumFractionDigits:1})} %</strong></div>
+    ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}
+  </div>`;
+}
 export function viewProject(id){
   const p=getRealProjects().find(x=>x.id===id);
   if(!p){appAlert("Projekt wurde nicht gefunden.");return;}
@@ -206,10 +246,11 @@ export function viewProject(id){
       <div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div>
       <div><span>Auftragstyp</span><strong>${esc(orderTypeLabel(p.orderType))}</strong></div>${p.orderType==="customerObject"?`<div><span>Objektmaterial</span><strong>${esc(p.objectMaterial||"–")}</strong></div><div><span>Objektwert</span><strong>${euro(p.objectValue)}</strong></div><div><span>Risikoaufschlag</span><strong>${euro(p.riskSurcharge)}</strong></div>`:""}
       <div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created||p.updated).toLocaleDateString("de-DE")}</strong></div>
-      <div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div>
+      ${p.orderType==="customerObject"?"":`<div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div>
       ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}<div><span>Tatsächlicher Preis</span><strong>${euro(p.actualPrice??p.sale)}</strong></div>
-      <div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div>
+      <div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div>`}
     </div>
+    ${customerCalculationOverview(p)}
     ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}
     ${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}
     ${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}
