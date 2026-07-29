@@ -1,4 +1,12 @@
-Daniels Laser Art Kalkulator V4.14.3
+Daniels Laser Art Kalkulator V4.15.0
+
+4.15.0 – Vereinbarter Verkaufspreis & Kundenpreis-Historie
+----------------------------------------------------------
+- Neue Kundenpreis-Historie: Vereinbarte Verkaufspreise, Stammkundenpreise und frühere Preisvereinbarungen können jetzt unabhängig von Kalkulation, Lernsystem und Statistik dokumentiert und bei Folgebestellungen angezeigt werden.
+- Eigener Bereich „Preisvereinbarung“ mit Datum, interner Notiz, Stammkundenkennzeichnung, Abweichung zur Empfehlung sowie informativem Gewinn und Marge.
+- Frühere Vereinbarungen desselben Kunden und bis zu drei konservativ ermittelte ähnliche Projekte werden priorisiert angezeigt.
+- Historische Preise werden ausschließlich nach Bestätigung als `agreementPrice` übernommen.
+- Ältere Projekte bleiben ohne automatische Befüllung kompatibel.
 
 4.14.3 – Verständliche Kalkulationsübersicht für Kundenobjekte
 ---------------------------------------------------------------
@@ -196,4 +204,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.14.3
+https://danielslaserart.de/Intern/?v=4.15.0
