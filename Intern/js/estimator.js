@@ -85,6 +85,7 @@ function analyzeMotifImage(file){
 export function calculateMotifEstimator(){
   if(!$('mcWidth'))return;
   const width=num($('mcWidth').value),height=num($('mcHeight').value),layers=Math.max(1,num($('mcLayers').value)||1);
+  const materialSource=motifMaterialSource(),orderType=materialSource==="customer"?"customerObject":"own";
   const process=motifProcess(),doCut=process==='cut'||process==='both',doEngrave=process==='engrave'||process==='both';
   const cutSpeed=Math.max(1,num($('mcCutSpeed').value)),engraveSpeed=Math.max(1,num($('mcEngraveSpeed').value));
   let complexity=$('mcComplexity').value;if(complexity==='auto')complexity=motifImageDetail||state.motifEstimator?.lastDetected||'high';
