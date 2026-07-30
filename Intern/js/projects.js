@@ -6,6 +6,7 @@ import { workshopUnit } from "./calculator.js";
 import { deleteLearningRecord, saveLearningRecord } from "./learning.js";
 import { appAlert, appConfirm, appForm } from "./dialogs.js";
 import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js";
+import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js";
 function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
@@ -185,13 +186,25 @@ export function renderStatisticsCharts(){
   const machines=[...machineUsage.entries()].sort((a,b)=>b[1]-a[1]).map(([name,hours])=>`${esc(name)}: ${hours.toLocaleString("de-DE",{maximumFractionDigits:1})} Std.`).join("<br>")||"Noch keine Daten";
   box.innerHTML=`<div class="chart-card"><b>Umsatz</b><strong>${euro(totalSale)}</strong>${bars}</div><div class="chart-card"><b>Gewinn</b><strong>${euro(totalProfit)}</strong><p>${projects.length} Projekte</p></div><div class="chart-card"><b>Meistgenutzte Materialien</b><p>${topMaterials}</p></div><div class="chart-card"><b>Maschinenlaufzeit</b><p>${machines}</p></div>`;
 }
-function projectFieldLabel(id){
-  return ({matMain:"Hauptmaterial",matTransfer:"Übertragungsfolie",usageMain:"Materialverbrauch",usageTransfer:"Verbrauch Übertragungsfolie",printMinutes:"Druckdauer",engraveMinutes:"Gravurdauer",cutMinutes:"Schnittdauer",workMinutes:"Arbeitszeit",hourlyRate:"Stundenlohn",packaging:"Verpackung",otherCosts:"Sonstige Kosten",reserve:"Fehlerreserve",profit:"Gewinnaufschlag",quantity:"Stückzahl",colors:"Farben",plotMinutes:"Plottdauer",weedMinutes:"Entgitterzeit",mountMinutes:"Montagezeit",pressMinutes:"Presszeit",prepMinutes:"Vor-/Nachbereitung",textilePrice:"Textilpreis"})[id]||id;
+const PROCESSING_FIELD_IDS=["matMain","matTransfer","usageMain","usageTransfer","printMinutes","engraveMinutes","cutMinutes","workMinutes","hourlyRate","quantity","colors","plotMinutes","weedMinutes","mountMinutes","pressMinutes","prepMinutes"];
+const PROJECT_FIELD_SKIP=new Set(["projectName","customerName","customerAddress","projectNotes","machineSelect","projectStatus","projectTags","difficulty","riskSurcharge","expressSurcharge","objectMaterial","customerObjectProcess","agreementPrice","agreementPriceNote","agreementPriceType","priceType","priceAgreementDate","agreementPriceDate","isPreferredRepeatPrice","isPreferredCustomerPrice",...PROCESSING_FIELD_IDS]);
+function fieldRow(id,value){
+  const formatted=formatProjectFieldValue(id,value,{resolveMaterial:resolveMaterialSelection,resolveMachine:value=>state.machines.find(m=>m.id===value)});
+  return `<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(formatted)}</strong></div>`;
 }
-function projectFieldValue(id,value){
-  if(id==="matMain"||id==="matTransfer") return resolveMaterialSelection(value)?.name||"–";
-  if(id==="machineSelect") return state.machines.find(m=>m.id===value)?.name||"–";
-  return value===""?"–":value;
+function projectProcessingDetails(p){
+  const fields=p.fields||{},rows=[];
+  const add=(label,value,formatted)=>{if(!isEmptyProjectValue(value))rows.push(`<div><span>${esc(label)}</span><strong>${esc(formatted??String(value))}</strong></div>`)};
+  add("Bearbeitungsart",p.customerObjectProcess,p.customerObjectProcess?formatProjectFieldValue("customerObjectProcess",p.customerObjectProcess):"");
+  add("Objektmaterial",p.objectMaterial);
+  add("Maschine",p.machineName);
+  PROCESSING_FIELD_IDS.forEach(id=>{if(!isEmptyProjectValue(fields[id]))rows.push(fieldRow(id,fields[id]))});
+  add("Schwierigkeitsgrad",p.difficulty,p.difficulty?formatProjectFieldValue("difficulty",p.difficulty):"");
+  return rows.length?`<h3>Bearbeitung</h3><div class="project-view-details">${rows.join("")}</div>`:"";
+}
+function projectTechnicalDetails(p){
+  const rows=Object.entries(p.fields||{}).filter(([key,value])=>!PROJECT_FIELD_SKIP.has(key)&&!isEmptyProjectValue(value)).map(([key,value])=>fieldRow(key,value));
+  return rows.length?`<details class="project-technical-details"><summary>Technische Details</summary><div class="project-view-details">${rows.join("")}</div></details>`:"";
 }
 function signedEuro(value){
   const clean=Math.abs(value)<.005?0:value;
@@ -214,6 +227,7 @@ function customerCalculationOverview(p){
     <div><span>Arbeitskosten</span><strong>${euro(breakdown.work??results.workCosts)}</strong></div>
     <div><span>Sonstige echte Kosten</span><strong>${euro(breakdown.extra??results.additionalCosts)}</strong></div>
     <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
+    <div class="cost-covering-row"><span>Kostendeckender Mindestpreis</span><strong>${euro(selfCosts)}</strong><small>Kosten gedeckt, Gewinn 0,00 €.</small></div>
     <h4>PREISBESTANDTEILE UND ZUSCHLÄGE</h4>
     <div><span>Grundpauschale</span><strong>${euro(breakdown.baseFee)}</strong></div>
     <div><span>Schwierigkeitsaufschlag</span><strong>${euro(breakdown.difficulty)}</strong></div>
@@ -237,26 +251,39 @@ export function viewProject(id){
   const p=getRealProjects().find(x=>x.id===id);
   if(!p){appAlert("Projekt wurde nicht gefunden.");return;}
   const dialog=$("projectViewDialog");
-  const details=Object.entries(p.fields||{}).filter(([fieldId])=>!["projectName","customerName","projectNotes","machineSelect","projectStatus","projectTags"].includes(fieldId)).map(([fieldId,value])=>`<div><span>${esc(projectFieldLabel(fieldId))}</span><strong>${esc(projectFieldValue(fieldId,value))}</strong></div>`).join("");
+  const selfCosts=getCostCoveringMinimumPrice(p);
   const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
   $("projectViewTitle").textContent=p.title||"Projekt";
   $("projectViewContent").innerHTML=`
     ${(p.images||[]).length?`<div class="project-gallery">${p.images.map((img,i)=>`<figure><img class="project-view-image" src="${img}" alt="Projektbild ${i+1}"><button type="button" data-delete-image="${i}" class="image-delete" aria-label="Bild löschen">×</button></figure>`).join("")}</div>`:`<div class="project-image-empty">Noch kein Projektbild vorhanden.</div>`}
     <div class="project-image-actions"><label class="secondary file-button">＋ Bilder hinzufügen<input id="projectImageInput" type="file" accept="image/*" multiple></label></div>
-    <div class="project-view-summary">
-      <div><span>Kunde</span><strong>${esc(p.customer||"–")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div>
-      <div><span>Auftragstyp</span><strong>${esc(orderTypeLabel(p.orderType))}</strong></div>${p.orderType==="customerObject"?`<div><span>Objektmaterial</span><strong>${esc(p.objectMaterial||"–")}</strong></div><div><span>Objektwert</span><strong>${euro(p.objectValue)}</strong></div><div><span>Risikoaufschlag</span><strong>${euro(p.riskSurcharge)}</strong></div>`:""}
-      <div><span>Maschine</span><strong>${esc(p.machineName||"–")}</strong></div><div><span>Datum</span><strong>${new Date(p.created||p.updated).toLocaleDateString("de-DE")}</strong></div>
-      ${p.orderType==="customerObject"?"":`<div><span>Selbstkosten</span><strong>${euro(p.cost)}</strong></div><div><span>Gewinn</span><strong>${euro(num(p.sale)-num(p.cost))}</strong></div>
-      ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}<div><span>Tatsächlicher Preis</span><strong>${euro(p.actualPrice??p.sale)}</strong></div>
-      <div class="project-view-final"><span>Verkaufspreis</span><strong>${euro(p.sale)}</strong></div>`}
+    <h3>Projektdaten</h3><div class="project-view-summary">
+      <div><span>Projektname</span><strong>${esc(p.title||"Projekt")}</strong></div><div><span>Bereich</span><strong>${esc(p.type||"–")}</strong></div>
+      <div><span>Auftragstyp</span><strong>${esc(orderTypeLabel(p.orderType))}</strong></div><div><span>Datum</span><strong>${new Date(p.created||p.updated).toLocaleDateString("de-DE")}</strong></div>
+      <div><span>Status</span><strong>${esc(projectStatusLabel(p.status))}</strong></div>
     </div>
+    ${(p.customer||p.customerAddress||p.fields?.customerEmail||p.fields?.customerPhone)?`<h3>Kundendaten</h3><div class="project-view-details">
+      ${p.customer?`<div><span>Kunde / Firma</span><strong>${esc(p.customer)}</strong></div>`:""}
+      ${p.customerAddress?`<div><span>Kundenadresse</span><strong>${esc(p.customerAddress)}</strong></div>`:""}
+      ${p.fields?.customerEmail?`<div><span>E-Mail</span><strong>${esc(p.fields.customerEmail)}</strong></div>`:""}
+      ${p.fields?.customerPhone?`<div><span>Telefon</span><strong>${esc(p.fields.customerPhone)}</strong></div>`:""}
+    </div>`:""}
+    ${projectProcessingDetails(p)}
     ${customerCalculationOverview(p)}
+    ${p.orderType==="customerObject"?"":`<h3>Tatsächliche Kosten</h3><div class="project-view-details">
+      <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
+      <div class="cost-covering-row"><span>Kostendeckender Mindestpreis</span><strong>${euro(selfCosts)}</strong><small>Kosten gedeckt, Gewinn 0,00 €.</small></div>
+    </div><h3>Preisübersicht</h3><div class="project-view-details">
+      ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}
+      <div><span>Empfohlener Verkaufspreis</span><strong>${euro(p.sale)}</strong></div>
+      <div><span>Tatsächlicher Gewinn</span><strong>${euro(num(p.sale)-selfCosts)}</strong></div>
+      <div><span>Gewinnmarge</span><strong>${num(p.sale)>0?`${((num(p.sale)-selfCosts)/num(p.sale)*100).toLocaleString("de-DE",{maximumFractionDigits:1})} %`:"0,0 %"}</strong></div>
+    </div>`}
     ${priceAgreementHtml(p)}
     ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}
     ${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}
-    ${details?`<h3>Kalkulationsdaten</h3><div class="project-view-details">${details}</div>`:""}
-    ${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}`;
+    ${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}
+    ${projectTechnicalDetails(p)}`;
 
   const statusSelect=$("projectViewStatusSelect");
   statusSelect.value=p.status||"offer";

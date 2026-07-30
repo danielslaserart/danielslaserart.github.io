@@ -49,8 +49,8 @@ function openDialog(options={}){
 export function appAlert(messageText,titleText="Hinweis"){
   return openDialog({title:titleText,message:messageText,cancelText:null,acceptText:"OK"});
 }
-export function appConfirm(messageText,titleText="Bitte bestätigen",acceptText="Bestätigen"){
-  return openDialog({title:titleText,message:messageText,cancelText:"Abbrechen",acceptText});
+export function appConfirm(messageText,titleText="Bitte bestätigen",acceptText="Bestätigen",cancelText="Abbrechen"){
+  return openDialog({title:titleText,message:messageText,cancelText,acceptText});
 }
 export async function appPrompt(messageText,defaultValue="",titleText="Eingabe"){
   const result=await openDialog({title:titleText,message:messageText,fields:[{name:"value",label:"Eingabe",value:defaultValue}],cancelText:"Abbrechen",acceptText:"Übernehmen"});

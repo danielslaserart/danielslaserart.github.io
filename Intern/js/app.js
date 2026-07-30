@@ -56,7 +56,7 @@ export function initializeApp(){
   initializeProcessingProfiles();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.15.1",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=4.15.2",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 

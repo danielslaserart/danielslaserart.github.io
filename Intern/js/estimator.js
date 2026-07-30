@@ -137,6 +137,7 @@ export function calculateMotifEstimator(){
   $('mcMachineCost').textContent=euro(machineCost);$('mcWorkCostResult').textContent=euro(workCost);$('mcBaseFeeResult').textContent=euro(customerBreakdown?.baseFee||0);
   $('mcDifficultyResult').textContent=euro(customerBreakdown?.difficulty||0);$('mcRiskResult').textContent=euro(customerBreakdown?.risk||0);$('mcExpressResult').textContent=euro(customerBreakdown?.express||0);
   $('mcTotalCost').textContent=euro(finalCost);$('mcSalePrice').textContent=euro(sale);
+  $('mcCostCoveringMinimum').textContent=euro(finalCost);
   $('mcProfitEuro').textContent=euro(profit);$('mcProfitPercent').textContent=`${margin.toLocaleString('de-DE',{maximumFractionDigits:1})} %`;
   const customerObject=orderType==="customerObject";
   ["mcCostHeading","mcPricePartsHeading","mcCalculatedHeading","mcRoundingHeading","mcSaleHeading","mcActualProfitHeading","mcCalculatedRow","mcRoundingRow","mcOtherActualCostsRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
