@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=4.15.4">
-  <link rel="apple-touch-icon" href="icon-192.png?v=4.15.4">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.15.4">
-  <link rel="stylesheet" href="style.css?v=4.15.4">
+  <link rel="manifest" href="manifest.json?v=4.16.0">
+  <link rel="apple-touch-icon" href="icon-192.png?v=4.16.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4.16.0">
+  <link rel="stylesheet" href="style.css?v=4.16.0">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -63,7 +63,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V4.15.4</span>
+      <span class="version-badge">V4.16.0</span>
     </div>
 
     <div class="dashboard-actions">
@@ -638,23 +638,34 @@
       <button class="primary wide" type="button" id="projectNewBtn">＋ Neuer Auftrag</button>
     </div>
     <div id="projectList" class="stack"></div>
-    <div class="stats project-stats project-stats-bottom">
-      <div class="card stat"><span>Projekte</span><strong id="projectStatCount">0</strong></div>
-      <div class="card stat"><span>Gesamtgewinn</span><strong id="projectStatProfit">0,00 €</strong></div>
-      <div class="card stat"><span>Ø Verkaufspreis</span><strong id="projectStatAverage">0,00 €</strong></div>
-    </div>
-    <div class="card statistics-charts">
-      <h3>Auswertung</h3>
-      <div id="statisticsCharts" class="chart-grid"></div>
-    </div>
-    <div class="card customer-object-statistics">
-      <div class="section-head compact"><div><div class="eyebrow">KUNDENOBJEKTE</div><h3>Statistik</h3></div></div>
-      <div id="customerObjectStatistics" class="stats project-stats"></div>
-    </div>
-    <div class="card design-statistics">
-      <div class="section-head compact"><div><div class="eyebrow">DESIGN & DATEI</div><h3>Statistik</h3></div></div>
-      <div id="designStatistics" class="stats project-stats"></div>
-    </div>
+    <section id="workshopAnalysisArea" class="workshop-analysis">
+      <div class="analysis-head">
+        <div><div class="eyebrow">INTERNE KALKULATIONSAUSWERTUNG</div><h2>Werkstatt-Analyse</h2><p>Werkstatt-, Preis- und Schätzwerte – keine Buchhaltungs- oder Steuerdaten.</p></div>
+        <label class="analysis-filter">Zeitraum<select id="workshopAnalysisPeriod"><option value="all">Gesamt</option><option value="month">Aktueller Monat</option><option value="year">Aktuelles Jahr</option></select></label>
+      </div>
+      <div id="workshopAnalysisContent" class="analysis-stack"></div>
+      <label class="legacy-statistics-switch card"><input id="legacyStatisticsToggle" type="checkbox"><span><b>Bisherige Statistik anzeigen</b><small>Umsatz, Gewinn und alte Projektauswertungen vorübergehend einblenden.</small></span></label>
+    </section>
+    <section id="legacyStatisticsArea">
+      <div class="stats project-stats project-stats-bottom">
+        <div class="card stat"><span>Projekte</span><strong id="projectStatCount">0</strong></div>
+        <div class="card stat"><span>Gesamtgewinn</span><strong id="projectStatProfit">0,00 €</strong></div>
+        <div class="card stat"><span>Ø Verkaufspreis</span><strong id="projectStatAverage">0,00 €</strong></div>
+      </div>
+      <div class="card statistics-charts">
+        <h3>Auswertung</h3>
+        <p class="analysis-note">Kalkulatorische Projektsumme – nicht mit Papierkram abgeglichen.</p>
+        <div id="statisticsCharts" class="chart-grid"></div>
+      </div>
+      <div class="card customer-object-statistics">
+        <div class="section-head compact"><div><div class="eyebrow">KUNDENOBJEKTE</div><h3>Statistik</h3></div></div>
+        <div id="customerObjectStatistics" class="stats project-stats"></div>
+      </div>
+      <div class="card design-statistics">
+        <div class="section-head compact"><div><div class="eyebrow">DESIGN & DATEI</div><h3>Statistik</h3></div></div>
+        <div id="designStatistics" class="stats project-stats"></div>
+      </div>
+    </section>
   </section>
 
   <section id="references" class="screen">
@@ -1000,6 +1011,6 @@
 <script id="supabaseScript" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
-<script type="module" src="js/app.js?v=4.15.4"></script>
+<script type="module" src="js/app.js?v=4.16.0"></script>
 </body>
 </html>

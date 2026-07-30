@@ -1,4 +1,12 @@
-Daniels Laser Art Kalkulator V4.15.4
+Daniels Laser Art Kalkulator V4.16.0
+
+4.16.0 – Werkstatt-Analyse
+---------------------------
+- Neue Werkstatt-Analyse für Kalkulationsqualität, Preisvereinbarungen, Werkstattnutzung sowie Lern- und Schätzgenauigkeit.
+- Die bisherige Umsatz- und Gewinnstatistik bleibt technisch vollständig erhalten, ist standardmäßig ausgeblendet und kann mit einem zentralen Schalter wieder angezeigt werden.
+- Referenzprojekte zählen ausschließlich in der Lernanalyse, niemals als Verkauf, Kundenauftrag oder Preisvereinbarung.
+- Alle Auswertungen sind defensiv gegen unvollständige Altdaten; Projekte, Preisformeln, Preisleiter, Preisvereinbarungen und Lernregeln werden nicht verändert.
+- Papierkram bleibt die führende Quelle für Rechnungen, Zahlungseingänge, EÜR und steuerliche Auswertungen.
 
 4.15.4 – Preisvereinbarung in der Preisleiter
 -----------------------------------------------
@@ -231,4 +239,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.15.4
+https://danielslaserart.de/Intern/?v=4.16.0
