@@ -7,6 +7,7 @@ import { deleteLearningRecord, saveLearningRecord } from "./learning.js";
 import { appAlert, appConfirm, appForm } from "./dialogs.js";
 import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js";
 import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
 function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
@@ -227,19 +228,15 @@ function customerCalculationOverview(p){
     <div><span>Arbeitskosten</span><strong>${euro(breakdown.work??results.workCosts)}</strong></div>
     <div><span>Sonstige echte Kosten</span><strong>${euro(breakdown.extra??results.additionalCosts)}</strong></div>
     <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
-    <div class="cost-covering-row"><span>Kostendeckender Mindestpreis</span><strong>${euro(selfCosts)}</strong><small>Kosten gedeckt, Gewinn 0,00 €.</small></div>
     <h4>PREISBESTANDTEILE UND ZUSCHLÄGE</h4>
     <div><span>Grundpauschale</span><strong>${euro(breakdown.baseFee)}</strong></div>
     <div><span>Schwierigkeitsaufschlag</span><strong>${euro(breakdown.difficulty)}</strong></div>
     <div><span>Risikoaufschlag</span><strong>${euro(breakdown.risk??p.riskSurcharge)}</strong></div>
     <div><span>Expresszuschlag</span><strong>${euro(breakdown.express??p.expressSurcharge)}</strong></div>
     <div><span>Weitere Zuschläge</span><strong>0,00 €</strong></div>
-    <h4>BERECHNETER PREIS</h4>
-    <div><span>Berechneter Preis</span><strong>${euro(calculated)}</strong></div>
     <h4>RUNDUNG</h4>
     <div><span>Rundungsdifferenz</span><strong>${signedEuro(recommended-calculated)}</strong></div>
-    <h4>EMPFOHLENER VERKAUFSPREIS</h4>
-    <div class="project-price-final"><span>Empfohlener Verkaufspreis</span><strong>${euro(recommended)}</strong></div>
+    ${renderPriceLadder(getPriceLadderData(p),{heading:true,details:true})}
     ${finalSale!==recommended?`<div><span>Tatsächlicher Verkaufspreis</span><strong>${euro(finalSale)}</strong></div>`:""}
     <h4>TATSÄCHLICHER GEWINN</h4>
     <div><span>Tatsächlicher Gewinn</span><strong>${euro(actualProfit)}</strong><small>${euro(finalSale)} − ${euro(selfCosts)}</small></div>
@@ -272,10 +269,9 @@ export function viewProject(id){
     ${customerCalculationOverview(p)}
     ${p.orderType==="customerObject"?"":`<h3>Tatsächliche Kosten</h3><div class="project-view-details">
       <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
-      <div class="cost-covering-row"><span>Kostendeckender Mindestpreis</span><strong>${euro(selfCosts)}</strong><small>Kosten gedeckt, Gewinn 0,00 €.</small></div>
     </div><h3>Preisübersicht</h3><div class="project-view-details">
       ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}
-      <div><span>Empfohlener Verkaufspreis</span><strong>${euro(p.sale)}</strong></div>
+      ${renderPriceLadder(getPriceLadderData(p),{heading:false,details:true})}
       <div><span>Tatsächlicher Gewinn</span><strong>${euro(num(p.sale)-selfCosts)}</strong></div>
       <div><span>Gewinnmarge</span><strong>${num(p.sale)>0?`${((num(p.sale)-selfCosts)/num(p.sale)*100).toLocaleString("de-DE",{maximumFractionDigits:1})} %`:"0,0 %"}</strong></div>
     </div>`}

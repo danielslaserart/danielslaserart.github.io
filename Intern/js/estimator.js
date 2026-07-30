@@ -2,6 +2,7 @@ import { $, num, euro, esc, uid } from "./utils.js";
 import { state, save } from "./storage.js";
 import { materialSelections, resolveMaterialSelection } from "./materials.js";
 import { rounded, computePriceBreakdown } from "./calculator.js";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
 import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js";
 import { appAlert, appForm, appConfirm } from "./dialogs.js";
 import { renderMotifProfiles } from "./processing-profiles.js";
@@ -138,9 +139,13 @@ export function calculateMotifEstimator(){
   $('mcDifficultyResult').textContent=euro(customerBreakdown?.difficulty||0);$('mcRiskResult').textContent=euro(customerBreakdown?.risk||0);$('mcExpressResult').textContent=euro(customerBreakdown?.express||0);
   $('mcTotalCost').textContent=euro(finalCost);$('mcSalePrice').textContent=euro(sale);
   $('mcCostCoveringMinimum').textContent=euro(finalCost);
+  if($("estimatorPriceLadder"))$("estimatorPriceLadder").innerHTML=renderPriceLadder(getPriceLadderData({
+    ...(customerBreakdown||{}),orderType,cost:finalCost,sale
+  }),{heading:true,details:true});
   $('mcProfitEuro').textContent=euro(profit);$('mcProfitPercent').textContent=`${margin.toLocaleString('de-DE',{maximumFractionDigits:1})} %`;
   const customerObject=orderType==="customerObject";
-  ["mcCostHeading","mcPricePartsHeading","mcCalculatedHeading","mcRoundingHeading","mcSaleHeading","mcActualProfitHeading","mcCalculatedRow","mcRoundingRow","mcOtherActualCostsRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
+  ["mcCostHeading","mcPricePartsHeading","mcRoundingHeading","mcActualProfitHeading","mcRoundingRow","mcOtherActualCostsRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
+  $("mcCalculatedHeading")?.classList.add("hidden");$("mcCalculatedRow")?.classList.add("hidden");$("mcSaleHeading")?.classList.add("hidden");
   ["mcBaseFeeRow","mcDifficultyRow","mcRiskRow","mcExpressRow","mcFurtherSurchargesRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
   $("mcCalculatedPrice").textContent=euro(calculatedPrice);$("mcRoundingDifference").textContent=signedEuro(roundingDifference);$("mcOtherActualCosts").textContent=euro(0);
   $("mcProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("mcMarginLabel").textContent=customerObject?"Gewinnmarge vom Verkaufspreis":"Gewinnmarge";$("mcProfitExplanation").textContent=customerObject?`${euro(sale)} − ${euro(finalCost)}`:"";
