@@ -1,4 +1,11 @@
-Daniels Laser Art Kalkulator V4.15.2
+Daniels Laser Art Kalkulator V4.15.3
+
+4.15.3 – Einheitliche Preisleiter
+----------------------------------
+- Neue Preisleiter in Hauptrechner, Angebotsassistent und Projektansicht: Kostendeckender Mindestpreis, kalkulierter Arbeitspreis und empfohlener Verkaufspreis stehen direkt untereinander.
+- Aktive Zuschläge werden zentral vom zusätzlichen Unternehmensgewinn getrennt; der Gewinnaufschlag bezieht sich auf den kalkulierten Arbeitspreis.
+- Bestehende Projekte erhalten die Preisleiter defensiv aus zuverlässig gespeicherten Selbstkosten-, Zwischenpreis- und Empfehlungswerten, ohne gespeicherte Preise zu verändern.
+- Farbige Statuspunkte kennzeichnen Kostendeckung, Arbeitspreis, positiven, neutralen oder negativen Unternehmensgewinn.
 
 4.15.2 – Projektansicht und Kostendeckung
 ------------------------------------------
@@ -218,4 +225,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.15.2
+https://danielslaserart.de/Intern/?v=4.15.3
