@@ -352,7 +352,7 @@ export function renderCalculator(clear=false){
   updateOrderAssistantUI();
   renderConsumables();
   document.querySelectorAll("#calcForm input:not(.agreement-field),#calcForm select:not(.agreement-field)").forEach(el=>el.oninput=calculate);
-  $("agreementPrice")?.addEventListener("input",updateAgreementFormState);
+  $("agreementPrice")?.addEventListener("input",()=>{updateAgreementFormState();calculate()});
   ["machineSelect","matMain","calculatorProfileSource","profileProcessType"].forEach(id=>$(id)?.addEventListener("change",renderCalculatorProfiles));
   if($("objectValue"))$("objectValue").oninput=()=>{
     const risk=$("riskSurcharge");if(risk?.dataset.manual!=="true")risk.value=String(suggestedRiskSurcharge($("objectValue").value));
@@ -452,7 +452,12 @@ export function calculate(){
   const margin=breakdown.sale>0?actualProfit/breakdown.sale*100:0;
   $("resCost").textContent=euro(breakdown.cost);$("resProfit").textContent=euro(breakdown.profit);$("resSale").textContent=euro(breakdown.sale);$("resSaleLabel").textContent=customerObject?"Empfohlener Verkaufspreis":"Verkaufspreis";
   $("resCostCoveringMinimum").textContent=euro(breakdown.cost);
-  if($("calculatorPriceLadder"))$("calculatorPriceLadder").innerHTML=renderPriceLadder(getPriceLadderData({...breakdown,orderType}),{heading:true,details:true});
+  const agreementText=$("agreementPrice")?.value?.trim()??"";
+  const liveAgreementPrice=agreementText===""?null:Number(agreementText.replace(",","."));
+  if($("calculatorPriceLadder"))$("calculatorPriceLadder").innerHTML=renderPriceLadder(getPriceLadderData({
+    ...breakdown,orderType,
+    agreementPrice:Number.isFinite(liveAgreementPrice)?liveAgreementPrice:null
+  }),{heading:true,details:true});
   $("resProfitRow").classList.toggle("hidden",customerObject);$("resProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("resProfitExplanation").textContent="";
   $("resRounding").textContent=signedEuro(roundingDifference);$("resActualProfit").textContent=euro(actualProfit);$("resActualProfitExplanation").textContent=`${euro(breakdown.sale)} − ${euro(breakdown.cost)}`;$("resMargin").textContent=`${margin.toLocaleString("de-DE",{maximumFractionDigits:1})} %`;
   $("resPerPiece").textContent=qty>1?`${euro(breakdown.sale/qty)} je Stück`:"";

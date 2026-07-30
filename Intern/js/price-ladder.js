@@ -25,6 +25,52 @@ function component(source,keys){
   return hasValue(value)?money(value):0;
 }
 
+export function getAgreementPrice(source={}){
+  const snapshot=source.calculationSnapshot||{};
+  const normalized=source.priceAgreement||source.normalizedPriceAgreement||{};
+  const raw=firstValue(
+    source.agreementPrice,
+    normalized.agreementPrice,
+    snapshot.agreementPrice,
+    snapshot.priceAgreement?.agreementPrice,
+    source.agreedPrice,
+    source.agreedSalePrice,
+    source.customerAgreementPrice,
+    source.customerPrice,
+    source.negotiatedPrice
+  );
+  return hasValue(raw)?money(raw):null;
+}
+
+export function getAgreementProfit({agreementPrice,selfCosts}={}){
+  if(!hasValue(agreementPrice)||!hasValue(selfCosts))return null;
+  return (cents(agreementPrice)-cents(selfCosts))/100;
+}
+
+export function getAgreementMargin({agreementPrice,selfCosts}={}){
+  if(!hasValue(agreementPrice)||!hasValue(selfCosts)||cents(agreementPrice)===0)return null;
+  return getAgreementProfit({agreementPrice,selfCosts})/money(agreementPrice)*100;
+}
+
+export function getAgreementPriceStatus({agreementPrice,selfCosts,calculatedWorkPrice,recommendedSalePrice}={}){
+  if(!hasValue(agreementPrice))return null;
+  if(!hasValue(selfCosts))return "Preisstatus nicht vollständig ermittelbar";
+  const agreement=cents(agreementPrice);
+  const cost=cents(selfCosts);
+  if(agreement<cost)return "Unter Kostendeckung";
+  if(agreement===cost)return "Selbstkosten exakt gedeckt";
+  if(hasValue(calculatedWorkPrice)&&agreement<cents(calculatedWorkPrice)){
+    return "Kosten gedeckt, Zuschläge jedoch nicht vollständig abgedeckt";
+  }
+  if(hasValue(recommendedSalePrice)){
+    const recommended=cents(recommendedSalePrice);
+    if(agreement<recommended)return "Arbeitspreis gedeckt, aber unter der Empfehlung";
+    if(agreement===recommended)return "Entspricht der Empfehlung";
+    return "Liegt über der Empfehlung";
+  }
+  return "Kosten gedeckt";
+}
+
 export function getPriceLadderData(source={}){
   const result=source.calculationSnapshot?.results||{};
   const estimator=source.estimatorData||{};
@@ -67,13 +113,51 @@ export function getPriceLadderData(source={}){
   const companyProfitPercent=companyProfit!==null&&cents(calculatedWorkPrice)!==0
     ?companyProfit/calculatedWorkPrice*100:null;
   const status=companyProfit===null?"unknown":cents(companyProfit)>0?"positive":cents(companyProfit)<0?"negative":"neutral";
+  const agreementPrice=getAgreementPrice(source);
+  const agreementProfit=getAgreementProfit({agreementPrice,selfCosts});
+  const agreementMargin=getAgreementMargin({agreementPrice,selfCosts});
+  const agreementStatus=getAgreementPriceStatus({
+    agreementPrice,selfCosts,calculatedWorkPrice,recommendedSalePrice
+  });
   return {selfCosts,costCoveringMinimumPrice:selfCosts,surchargeItems,totalSurcharges,
-    calculatedWorkPrice,recommendedSalePrice,companyProfit,companyProfitPercent,status};
+    calculatedWorkPrice,recommendedSalePrice,companyProfit,companyProfitPercent,status,
+    agreementPrice,agreementProfit,agreementMargin,agreementStatus};
 }
 
 function signedMoney(value){
   const clean=cents(value)===0?0:money(value);
   return `${clean>0?"+":clean<0?"−":""}${euro(Math.abs(clean))}`;
+}
+
+function signedPercent(value){
+  const clean=Math.abs(value)<.05?0:value;
+  const formatted=Math.abs(clean).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+  return `${clean<0?"−":""}${formatted} %`;
+}
+
+export function renderAgreementPriceSummary(data={}){
+  if(data.agreementPrice===null||data.agreementPrice===undefined)return "";
+  const profit=data.agreementProfit;
+  const profitState=profit===null?"unknown":cents(profit)<0?"negative":cents(profit)>0?"positive":"neutral";
+  let result;
+  if(profit===null){
+    result=`<small class="agreement-result agreement-result--unknown">Aktueller Gewinn bei diesem älteren Projekt nicht vollständig ermittelbar.</small>`;
+  }else{
+    const label=cents(profit)<0?"aktueller Verlust":"aktueller Gewinn";
+    result=`<small class="agreement-result agreement-result--${profitState}">${signedMoney(profit)} ${label}</small>`;
+    result+=cents(data.agreementPrice)===0
+      ?`<small class="agreement-margin">Gewinnmarge: nicht berechenbar</small>`
+      :`<small class="agreement-margin">(${signedPercent(data.agreementMargin)} aktuelle Gewinnmarge)</small>`;
+  }
+  return `<div class="price-ladder-agreement" aria-label="Preisvereinbarung">
+    <span class="price-step-dot price-step-dot--agreement" aria-hidden="true"></span>
+    <div class="price-ladder-content">
+      <span class="price-ladder-label price-ladder-label--agreement">Preisvereinbarung</span>
+      <strong>${euro(data.agreementPrice)}</strong>
+      ${result}
+      ${data.agreementStatus?`<small class="agreement-status">Status: ${esc(data.agreementStatus)}</small>`:""}
+    </div>
+  </div>`;
 }
 
 export function renderPriceLadder(data,{heading=true,details=true}={}){
@@ -103,5 +187,6 @@ export function renderPriceLadder(data,{heading=true,details=true}={}){
     ${step("minimum","Kostendeckender Mindestpreis",data.costCoveringMinimumPrice,data.costCoveringMinimumPrice===null?"Für dieses ältere Projekt nicht zuverlässig ermittelbar.":"Deckt deine berechneten Kosten. Kein Gewinn.")}
     ${step("work","Kalkulierter Arbeitspreis",data.calculatedWorkPrice,data.calculatedWorkPrice===null?"Für dieses ältere Projekt nicht eindeutig ermittelbar.":data.totalSurcharges===0?"Keine zusätzlichen Zuschläge aktiv.":`Enthält deine Kosten sowie Grundpauschale, Aufwand, Risiko und aktive Zuschläge.`,surchargeDetails)}
     ${step(data.status==="positive"?"recommended":data.status==="negative"?"negative":"neutral","Empfohlener Verkaufspreis",data.recommendedSalePrice,"",profitText+warning)}
+    ${renderAgreementPriceSummary(data)}
   </section>`;
 }
