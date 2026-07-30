@@ -1,4 +1,10 @@
-Daniels Laser Art Kalkulator V4.15.3
+Daniels Laser Art Kalkulator V4.15.4
+
+4.15.4 – Preisvereinbarung in der Preisleiter
+-----------------------------------------------
+- Der vereinbarte Verkaufspreis erscheint bei vorhandenem Wert direkt unter der unveränderten Preisleiter mit lila Statuspunkt.
+- Die zusätzliche Auswertung zeigt den aktuellen Gewinn oder Verlust sowie die klassische Gewinnmarge bezogen auf den vereinbarten Verkaufspreis.
+- Die Anzeige aktualisiert sich im Hauptrechner sofort, behandelt 0,00 € ohne Division durch null und unterstützt bestehende Projekte defensiv, ohne gespeicherte Preise zu verändern.
 
 4.15.3 – Einheitliche Preisleiter
 ----------------------------------
@@ -225,4 +231,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.15.3
+https://danielslaserart.de/Intern/?v=4.15.4
