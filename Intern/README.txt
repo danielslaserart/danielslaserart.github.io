@@ -1,4 +1,11 @@
-Daniels Laser Art Kalkulator V4.15.1
+Daniels Laser Art Kalkulator V4.15.2
+
+4.15.2 – Projektansicht und Kostendeckung
+------------------------------------------
+- Projektansicht bereinigt: interne Feldnamen und doppelte Kalkulationsdaten werden nicht mehr ungefiltert angezeigt.
+- Neuer kostendeckender Mindestpreis in Rechner, Angebotsassistent und Projekten.
+- Vereinbarte Preise erhalten eine verständliche Kostendeckungs- und Empfehlungsbewertung mit Warnung bei Preisen unter den Selbstkosten.
+- „Minimal“ im Angebotsassistenten heißt jetzt sichtbar „Niedrige Preisempfehlung“; die Berechnung blieb unverändert.
 
 4.15.1 – Preisvereinbarung vollständig bearbeitbar
 ---------------------------------------------------
@@ -211,4 +218,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.15.1
+https://danielslaserart.de/Intern/?v=4.15.2
