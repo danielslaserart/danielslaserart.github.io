@@ -8,6 +8,7 @@ import { appAlert, appConfirm, appForm } from "./dialogs.js";
 import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js";
 import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js";
 import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
+import { renderWorkshopAnalysis } from "./workshop-analysis.js";
 function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
@@ -52,6 +53,7 @@ export function renderProjects(){
   document.querySelectorAll('[data-del-project]').forEach(b=>b.onclick=async e=>{e.stopPropagation();if(await appConfirm('Projekt löschen?',"Projekt löschen","Löschen")){state.projects=state.projects.filter(p=>p.id!==b.dataset.delProject);save();renderProjects();updateHome()}});
   renderStatisticsCharts();
   renderCustomerObjectStatistics();
+  renderWorkshopAnalysis();
   document.dispatchEvent(new CustomEvent("dla:projects-rendered"));
 }
 function renderCustomerObjectStatistics(){
