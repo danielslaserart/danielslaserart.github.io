@@ -2,7 +2,7 @@ import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, cat
 import { state, save } from "./storage.js";
 import { calculate } from "./calculator.js";
 import { appAlert, appConfirm, appForm } from "./dialogs.js";
-import { renderMaterialProfileSections, renderProcessingProfileManager } from "./processing-profiles.js";
+import { renderMaterialProfileSections, renderMaterialProfileEditor, renderProcessingProfileManager } from "./processing-profiles.js";
 const dialog=$("materialDialog");
 $("newMaterialBtn").onclick=()=>openMaterial();
 $("closeMaterialBtn").onclick=()=>dialog.close();
@@ -88,7 +88,7 @@ function renderMaterialVariantRows(){
   box.innerHTML=editingMaterialVariants.length?editingMaterialVariants.map((v,i)=>{
     syncVariantTitleImage(v);
     const gallery=v.images.length?`<div class="variant-image-gallery">${v.images.map((img,j)=>`<div class="variant-gallery-item ${j===0?"is-title":""}"><img src="${img}" alt="Bild ${j+1} von ${esc(v.name||"Variante")}">${j===0?`<span class="title-image-badge">Titelbild</span>`:`<button class="ghost tiny set-variant-title" data-set-v-title="${i}:${j}" type="button">Als Titel</button>`}<button class="image-remove-mini" data-remove-v-gallery="${i}:${j}" type="button" aria-label="Bild entfernen">×</button></div>`).join("")}</div>`:`<div class="variant-edit-thumb variant-image-placeholder">🖼️</div>`;
-    return `<div class="variant-row" data-variant-row="${i}">
+    return `<div class="variant-row" data-variant-row="${i}" data-variant-id="${esc(v.id)}">
     <div class="variant-image-editor">
       ${gallery}
       <div class="variant-image-actions">
@@ -151,8 +151,25 @@ function toggleFavorite(materialId,variantId=""){
   const m=state.materials.find(x=>x.id===materialId);if(!m)return;const target=variantId?(m.variants||[]).find(v=>v.id===variantId):m;if(!target)return;target.favorite=!target.favorite;save();renderMaterials();
 }
 
-function openMaterial(m=null){
-  $("materialDialogTitle").textContent=m?"Material bearbeiten":"Material hinzufügen";
+function scrollToMaterialEditor(variantId=""){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const target=variantId?dialog.querySelector(`[data-variant-id="${CSS.escape(variantId)}"]`):dialog.querySelector(".dialog-card");
+    if(!target)return;
+    target.scrollIntoView({behavior:"smooth",block:"start"});
+    target.classList.add("material-editor-target");
+    setTimeout(()=>target.classList.remove("material-editor-target"),1400);
+  }));
+}
+export function openMaterialEditor(materialId="",variantId=""){
+  const material=materialId?state.materials.find(item=>item.id===materialId):null;
+  if(materialId&&!material){appAlert("Das ausgewählte Material wurde nicht gefunden. Es wurden keine Daten geöffnet oder verändert.","Material nicht gefunden");return}
+  const variant=variantId?(material?.variants||[]).find(item=>item.id===variantId):null;
+  if(variantId&&!variant){appAlert("Die ausgewählte Variante wurde nicht gefunden. Es wurde keine andere Variante geöffnet.","Variante nicht gefunden");return}
+  openMaterial(material,{variantId});
+}
+function openMaterial(m=null,{variantId=""}={}){
+  const variant=variantId?(m?.variants||[]).find(item=>item.id===variantId):null;
+  $("materialDialogTitle").textContent=variant?`${m.name} – ${variant.name} bearbeiten`:m?"Material bearbeiten":"Material hinzufügen";
   $("materialId").value=m?.id||"";
   $("materialName").value=m?.name||"";
   $("materialArea").value=m?.area||"3D-Druck";
@@ -172,6 +189,10 @@ function openMaterial(m=null){
   $("materialUnit").value=m?.unit||"g";
   $("materialNote").value=m?.note||"";
   editingMaterialVariants=(m?.variants||[]).map(v=>normalizeVariant(v,m));renderMaterialVariantRows();toggleMaterialFamilyMode();
+  if(variantId){
+    const index=editingMaterialVariants.findIndex(item=>item.id===variantId);
+    $("materialVariantRows").querySelector(`[data-variant-row="${index}"]`)?.setAttribute("data-variant-id",variantId);
+  }
   $("materialMainRole").checked=m?m.mainRole!==false:true;
   $("materialConsumableRole").checked=m?Boolean(m.consumableRole):false;
   $("materialWorkshopUnit").value=m?.workshopUnit||m?.unit||"";
@@ -186,7 +207,11 @@ function openMaterial(m=null){
   document.querySelectorAll("[data-consumable-module]").forEach(cb=>cb.checked=modules.includes(cb.value));
   toggleConsumableFields();toggleMaterialAreaBox();updateMaterialAreaHint();
   previewUnit();updateWorkshopUnitSentence();
+  renderMaterialProfileEditor(variantId||m?.id||"");
+  $("materialEditorDangerZone").classList.toggle("hidden",!m);
+  $("deleteMaterialInEditorBtn").dataset.materialId=m?.id||"";
   dialog.showModal();
+  scrollToMaterialEditor(variantId);
 }
 function previewUnit(){
   const q=num($("materialQuantity").value),p=num($("materialPrice").value);
@@ -240,14 +265,13 @@ export function renderMaterials(){
           <div class="material-main"><div class="item-title">${m.favorite?"★ ":""}${esc(m.name)}</div><div class="item-meta">${esc(m.area)}${m.supplier?" · "+esc(m.supplier):""}${m.note?" · "+esc(m.note):""}</div><div class="material-role-tags">${(m.variants||[]).length?'<span>Materialfamilie</span>':''}${m.mainRole!==false?'<span>Hauptmaterial</span>':''}${m.consumableRole?'<span>Verbrauch</span>':''}${m.lastUsed?`<span>Zuletzt ${new Date(m.lastUsed).toLocaleDateString("de-DE")}</span>`:""}</div>
           ${(m.variants||[]).length?`<div class="variant-list">${m.variants.map(v=>`<div class="variant-card-mini">${v.image?`<img class="variant-mini-thumb" src="${v.image}" alt="">`:`<div class="variant-mini-thumb variant-image-placeholder">🖼️</div>`}<div><strong>${v.favorite?"★ ":""}${esc(v.name)}</strong><small>${euro(v.unitPrice)}/${esc(v.unit)}${v.trackStock?` · ${num(v.stock)} Stk.${num(v.stock)<=num(v.minStock)?' ⚠️':''}`:""}${v.properties?` · ${esc(v.properties)}`:""}${v.location?` · ${esc(v.location)}`:""}</small></div></div>`).join("")}</div>`:""}</div>
           <div class="material-price-block"><strong>${(m.variants||[]).length?`${m.variants.length} Varianten`:euro(m.unitPrice)}</strong><small>${(m.variants||[]).length?"":`/${esc(m.unit)}`}</small></div>
-          <div class="material-compact-actions"><button data-favorite-material="${m.id}" class="favorite-toggle" title="Favorit">${m.favorite?"★":"☆"}</button>${!(m.variants||[]).length&&m.trackStock?`<button data-stock-material="${m.id}">± Bestand (${num(m.stock)})</button>`:""}<button data-edit="${m.id}">Bearbeiten</button><button data-delete="${m.id}" class="danger">Löschen</button></div>
-          ${(m.variants||[]).length?`<div class="material-variant-actions">${m.variants.map(v=>`<div class="variant-action-group"><div class="variant-action-row"><button data-favorite-variant="${m.id}::${v.id}" class="ghost small" title="${esc(v.name)} als Favorit markieren">${v.favorite?"★":"☆"} ${esc(v.name)}</button><button data-stock-variant="${m.id}::${v.id}" class="ghost small" ${v.trackStock?"":'disabled title="Bestandsverwaltung ist für diese Variante nicht aktiv"'}>± Bestand (${num(v.stock)})</button><button data-edit-variant="${m.id}::${v.id}" class="ghost small">Bearbeiten</button></div><div class="material-processing-profiles variant-profile-section" data-material-profile-section="${v.id}"></div></div>`).join("")}</div>`:""}
+          ${!(m.variants||[]).length?`<div class="material-action-row"><button data-favorite-material="${m.id}" class="ghost small">${m.favorite?"★":"☆"} ${esc(m.name)}</button><button data-stock-material="${m.id}" class="ghost small" ${m.trackStock?"":'disabled title="Bestandsverwaltung ist für dieses Material nicht aktiv"'}>± Bestand (${num(m.stock)})</button><button data-edit="${m.id}" class="ghost small">Bearbeiten</button></div>`:""}
+          ${(m.variants||[]).length?`<div class="material-variant-actions">${m.variants.map(v=>`<div class="variant-action-group"><div class="variant-action-row"><button data-favorite-variant="${m.id}::${v.id}" class="ghost small">${v.favorite?"★":"☆"} ${esc(v.name)}</button><button data-stock-variant="${m.id}::${v.id}" class="ghost small" ${v.trackStock?"":'disabled title="Bestandsverwaltung ist für diese Variante nicht aktiv"'}>± Bestand (${num(v.stock)})</button><button data-edit-variant="${m.id}::${v.id}" class="ghost small">Bearbeiten</button></div><div class="material-processing-profiles variant-profile-section" data-material-profile-section="${v.id}"></div></div>`).join("")}</div>`:""}
           <div class="material-processing-profiles" data-material-profile-section="${m.id}"></div>
         </article>`).join("")}</div>
     </details>`).join(""):`<div class="empty-state">Keine passenden Materialien gefunden.</div>`;
-  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openMaterial(state.materials.find(m=>m.id===b.dataset.edit)));
-  document.querySelectorAll("[data-edit-variant]").forEach(b=>b.onclick=()=>{const [materialId]=b.dataset.editVariant.split("::");openMaterial(state.materials.find(m=>m.id===materialId))});
-  document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=async()=>{if(await appConfirm("Material wirklich löschen?","Material löschen","Löschen")){state.materials=state.materials.filter(m=>m.id!==b.dataset.delete);save();renderMaterials()}});
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openMaterialEditor(b.dataset.edit));
+  document.querySelectorAll("[data-edit-variant]").forEach(b=>b.onclick=()=>{const [materialId,variantId]=b.dataset.editVariant.split("::");openMaterialEditor(materialId,variantId)});
   document.querySelectorAll("[data-favorite-material]").forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.favoriteMaterial));
   document.querySelectorAll("[data-favorite-variant]").forEach(b=>b.onclick=()=>{const [m,v]=b.dataset.favoriteVariant.split("::");toggleFavorite(m,v)});
   document.querySelectorAll("[data-stock-material]").forEach(b=>b.onclick=()=>adjustStock(b.dataset.stockMaterial));
@@ -265,3 +289,9 @@ export function renderMaterials(){
   });
   if($("toggleMaterialGroupsBtn")) $("toggleMaterialGroupsBtn").textContent=allMaterialGroupsOpen?"Alle einklappen":"Alle ausklappen";
 }
+$("deleteMaterialInEditorBtn").onclick=async()=>{
+  const materialId=$("deleteMaterialInEditorBtn").dataset.materialId;
+  if(!materialId||!await appConfirm("Material wirklich löschen?","Material löschen","Löschen"))return;
+  state.materials=state.materials.filter(material=>material.id!==materialId);
+  save();dialog.close();renderMaterials();
+};

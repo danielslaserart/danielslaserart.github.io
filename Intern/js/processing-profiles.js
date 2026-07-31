@@ -123,14 +123,11 @@ export function renderMaterialProfileSections(root=document){
     const isFamily=family.id===materialId&&(family.variants||[]).length>0;
     const own=state.processingProfiles.filter(p=>p.scope==="material"&&p.materialId===materialId);
     const inherited=state.processingProfiles.filter(p=>p.scope==="family"&&p.familyId===family.id);
-    const ownCount=own.length,familyCount=inherited.length;
     if(isFamily){
-      box.innerHTML=familyCount?`<span class="profile-availability">✓ ${familyCount} ${familyCount===1?"Familienprofil":"Familienprofile"} vorhanden</span>`:"";
+      box.innerHTML=inherited.length?`<span class="profile-availability">✓ ${inherited.length} ${inherited.length===1?"Familienprofil":"Familienprofile"} vorhanden</span>`:"";
     }else{
-      const notices=[];
-      if(ownCount)notices.push(`<span class="profile-availability">✓ ${ownCount} ${ownCount===1?"Bearbeitungsprofil":"Bearbeitungsprofile"} vorhanden</span>`);
-      if(familyCount)notices.push(`<span class="profile-availability inherited">✓ ${familyCount} ${familyCount===1?"Familienprofil":"Familienprofile"} vorhanden</span>`);
-      box.innerHTML=notices.join("");
+      const total=own.length+inherited.length;
+      box.innerHTML=total?`<span class="profile-availability">✓ ${total} ${total===1?"Bearbeitungsprofil":"Bearbeitungsprofile"} vorhanden</span>`:"";
     }
     box.classList.toggle("is-empty",!box.innerHTML);
   });
@@ -213,6 +210,28 @@ function updateTechnicalFields(){
     field.classList.toggle("hidden",!visible);
     field.querySelectorAll("input,select,textarea").forEach(control=>{control.disabled=!visible;if(!visible){if(control.type==="checkbox")control.checked=false;else control.value=""}});
   });
+}
+
+export function renderMaterialProfileEditor(materialId=""){
+  const host=$("materialEditorProfileHost");if(!host)return;
+  contextMaterialId=materialId;
+  if(!materialId){host.innerHTML="";return}
+  const family=familyForMaterialId(materialId);
+  if(!family){host.innerHTML='<p class="profile-editor-error">Bearbeitungsprofile konnten für dieses Material nicht geladen werden.</p>';return}
+  const isFamily=family.id===materialId&&(family.variants||[]).length>0;
+  const own=state.processingProfiles.filter(profile=>profile.scope==="material"&&profile.materialId===materialId);
+  const inherited=state.processingProfiles.filter(profile=>profile.scope==="family"&&profile.familyId===family.id);
+  const profiles=isFamily?inherited:own;
+  const count=profiles.length;
+  host.innerHTML=`<details class="material-editor-profiles">
+    <summary><span><b>Bearbeitungsprofile</b><small>${count?`${count} ${count===1?"Profil":"Profile"} vorhanden`:"Keine Profile vorhanden"}</small></span></summary>
+    <div class="material-editor-profile-body">
+      ${count?`<div class="processing-profile-list">${sorted(profiles).map(profile=>profileCard(profile,{materialId})).join("")}</div>`:'<p class="profile-empty-hint">Für dieses Material sind noch keine eigenen Bearbeitungsprofile vorhanden.</p>'}
+      ${!isFamily&&inherited.length?`<div class="inherited-profile-editor"><b>${inherited.length} ${inherited.length===1?"Familienprofil":"Familienprofile"} verfügbar</b><div class="processing-profile-list">${sorted(inherited).map(profile=>profileCard(profile,{inherited:true,materialId,editable:false})).join("")}</div></div>`:""}
+      <button type="button" class="secondary small add-profile-in-editor" data-add-profile="${materialId}">＋ Profil erstellen</button>
+    </div>
+  </details>`;
+  bindProfileActions(host);
 }
 function setFormValue(id,value){const el=$(id);if(!el)return;if(el.type==="checkbox")el.checked=value===true;else el.value=value??""}
 function fillProfileForm(profile=null,materialId=""){
@@ -310,6 +329,7 @@ async function viewProfile(id){
 }
 function renderEverywhere(){
   renderProcessingProfileManager();renderMaterialProfileSections();renderCalculatorProfiles();renderMotifProfiles();
+  if(contextMaterialId)renderMaterialProfileEditor(contextMaterialId);
 }
 
 function recommendationMarkup(profiles,materialId){
