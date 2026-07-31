@@ -1,4 +1,4 @@
-const CACHE="dla-kalkulator-v5-0-20260731";
+const CACHE="dla-kalkulator-v5-0-profiles-20260731";
 const FALLBACK="./index.html?v=5.0";
 const ASSETS=["./?v=5.0","./index.html?v=5.0","./style.css?v=5.0","./js/app.js?v=5.0","./js/calculator.js?v=5.0","./js/design.js?v=5.0","./js/materials.js?v=5.0","./js/machines.js?v=5.0","./js/estimator.js?v=5.0","./js/learning.js?v=5.0","./js/projects.js?v=5.0","./js/offer-pdf.js?v=5.0","./js/statistics.js?v=5.0","./js/workshop-analysis.js?v=5.0","./js/storage.js?v=5.0","./js/settings.js?v=5.0","./js/ui.js?v=5.0","./js/utils.js?v=5.0","./js/dialogs.js?v=5.0","./js/processing-profiles.js?v=5.0","./js/customer-price-history.js?v=5.0","./js/project-detail-formatting.js?v=5.0","./js/price-ladder.js?v=5.0","./assets/vendor/pdf-lib.min.js?v=5.0","./assets/pdf/briefpapier-daniels-laser-art.pdf?v=5.0","./manifest.json?v=5.0","./icon-192.png?v=5.0","./icon-512.png?v=5.0","./icon-maskable-512.png?v=5.0","./briefkopf-logo.png?v=5.0","/assets/images/hero/background.webp"];
 self.addEventListener("install",event=>{self.skipWaiting();event.waitUntil(caches.open(CACHE).then(cache=>Promise.allSettled(ASSETS.map(asset=>cache.add(asset)))))});

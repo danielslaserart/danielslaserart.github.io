@@ -1,5 +1,11 @@
 Daniels Laser Art Kalkulator V5.0
 
+5.0 – Profilzählung und Profilvererbung systemweit korrigiert
+- Eigene und geerbte Profile werden für alle Materialfamilien, Hauptmaterialien und Varianten zentral zusammengefasst und nicht doppelt gezählt.
+- Familienprofile sind aus der Bearbeiten-Ansicht direkt erreichbar.
+- Die globale Profilverwaltung wurde für Mobilgeräte korrigiert.
+- Preisarten in Projektkarten werden vollständig als umbrechbares Badge dargestellt.
+
 5.0 – Materialverwaltung final bereinigt
 -----------------------------------------
 - Doppelte Hauptmaterial-Aktionen entfernt und Varianten kompakt angeordnet.
