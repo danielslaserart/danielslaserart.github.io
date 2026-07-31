@@ -1,4 +1,11 @@
-Daniels Laser Art Kalkulator V5.0
+Daniels Laser Art Kalkulator V5.1
+
+5.1 – Profilhinweise in der Materialübersicht bereinigt
+--------------------------------------------------------
+- Doppelte Profilhinweise in der Materialübersicht entfernt.
+- Profilhinweise werden systemweit nur einmal, kompakt und grün dargestellt.
+- Materialien mit Varianten zeigen den Hinweis ausschließlich an der jeweiligen Variante, Materialien ohne Varianten am Hauptmaterial.
+- Profilberechnung, Profile, Profilzuordnungen, Materialien und Varianten bleiben unverändert.
 
 5.0 – Profilzählung und Profilvererbung systemweit korrigiert
 - Eigene und geerbte Profile werden für alle Materialfamilien, Hauptmaterialien und Varianten zentral zusammengefasst und nicht doppelt gezählt.
@@ -262,4 +269,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=5.0
+https://danielslaserart.de/Intern/?v=5.1

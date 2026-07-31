@@ -967,6 +967,9 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .material-processing-profiles.is-empty{display:none}
 .variant-profile-section{margin:0;padding:0;border-left:0}
 .profile-availability{display:block;padding:2px 3px;color:#91c99a;font:700 .72rem system-ui,sans-serif}
+.material-profile-summary{width:100%;max-width:100%;min-width:0;margin:8px 0 0;padding:0;border:0;background:transparent;color:#91c99a;font:600 .84rem/1.25 system-ui,sans-serif;box-sizing:border-box;overflow-wrap:break-word}
+.material-profile-summary .profile-summary-main{color:inherit;font:inherit}
+.material-profile-summary .profile-summary-detail{margin-top:2px;color:#78ad82;font-size:.76rem;line-height:1.25}
 .profile-summary-main,.profile-summary-detail{display:block;max-width:100%;overflow-wrap:anywhere}
 .profile-summary-detail{margin-top:2px;color:var(--muted);font-size:.68rem}
 .material-editor-profile-host{margin:16px 0}
