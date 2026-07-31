@@ -162,7 +162,17 @@ export function updateHome(){
 function renderRecentProjects(){
   const box=$("homeRecentProjects");if(!box)return;
   const items=getRealProjects().slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created)).slice(0,3);
-  box.innerHTML=items.length?items.map(p=>`<button class="recent-project" type="button" data-recent-id="${p.id}"><div><b>${esc(p.title)}</b><small>${esc(p.customer||p.type||"")} · ${new Date(p.updated||p.created).toLocaleDateString("de-DE")}</small></div><strong>${euro(p.sale)}</strong></button>`).join(""):`<div class="empty-state">Noch keine Projekte gespeichert.</div>`;
+  const priceDetails=p=>{
+    const hasAgreement=p.agreementPrice!=null&&p.agreementPrice!=="";
+    const recommended=num(p.sale);
+    const finalSale=hasAgreement?num(p.agreementPrice):recommended;
+    const profit=finalSale-num(p.cost);
+    const margin=finalSale>0?profit/finalSale*100:0;
+    const difference=hasAgreement?finalSale-recommended:0;
+    const deviation=difference===0?"":`<span class="recent-project-deviation ${difference>0?"above":"below"}">${difference>0?"🟢":"🟠"} ${difference>0?"+":"−"}${euro(Math.abs(difference))} ${difference>0?"über":"unter"} Empfehlung</span>`;
+    return `<div class="recent-project-prices"><strong>${euro(recommended)}</strong><span class="recent-project-recommendation">Empfehlung</span>${hasAgreement?`<span class="recent-project-agreement">💜 Vereinbart: ${euro(finalSale)}</span>`:""}<span class="recent-project-profit ${profit<0?"negative":"positive"}">📈 Gewinn: ${euro(profit)} (${margin.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %)</span>${deviation}</div>`;
+  };
+  box.innerHTML=items.length?items.map(p=>`<button class="recent-project" type="button" data-recent-id="${p.id}"><div class="recent-project-main"><b>${esc(p.title)}</b><small>${esc(p.customer||p.type||"")} · ${new Date(p.updated||p.created).toLocaleDateString("de-DE")}</small></div>${priceDetails(p)}</button>`).join(""):`<div class="empty-state">Noch keine Projekte gespeichert.</div>`;
   box.querySelectorAll("[data-recent-id]").forEach(btn=>btn.onclick=()=>viewProject(btn.dataset.recentId));
 }
 if($("dashboardSearch")) $("dashboardSearch").oninput=e=>{
