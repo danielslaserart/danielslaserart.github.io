@@ -164,8 +164,17 @@ function bindProfileActions(root=document){
 }
 
 export function renderMaterialProfileSections(root=document){
+  const renderedTargets=new Set();
   root.querySelectorAll("[data-material-profile-section]").forEach(box=>{
     const materialId=box.dataset.materialProfileSection;
+    box.innerHTML="";
+    box.classList.add("material-profile-summary");
+    box.dataset.profileSummaryFor=materialId;
+    if(renderedTargets.has(materialId)){
+      box.classList.add("is-empty");
+      return;
+    }
+    renderedTargets.add(materialId);
     const summary=getProfileSummary(materialId);
     box.innerHTML=renderProfileSummary(summary);
     box.classList.toggle("is-empty",!box.innerHTML);
