@@ -15,6 +15,10 @@ function projectStatusLabel(status){
 }
 function projectStatusClass(status){return `status-${["offer","progress","waiting","done","billed"].includes(status)?status:"offer"}`;}
 function orderTypeLabel(type){return ({own:"Eigenes Produkt",customerObject:"Kundenobjekt",service:"Dienstleistung",design:"🖥️ Design"})[type]||"Eigenes Produkt";}
+function priceTypeLabel(type,isPreferred=false){
+  if(isPreferred)return "★ Stammkunde";
+  return ({regularCustomer:"★ Stammkunde",special:"★ Sonderpreis",promotion:"★ Aktionspreis",repeatOrder:"★ Folgebestellung",other:"★ Sonstiges"})[type]||"";
+}
 export function renderProjects(){
   const realProjects=getRealProjects();
   const term=($('projectSearch')?.value||'').trim().toLowerCase();
@@ -39,7 +43,7 @@ export function renderProjects(){
   $('projectList').innerHTML=list.length?list.map(p=>`
     <article class="card project-item" data-project-card="${p.id}">
       ${(p.images||[])[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${p.images[0]}" alt=""></button>`:''}
-      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="item-price">${euro(p.sale)}${p.agreementPrice!=null?`<small>Vereinbart: ${euro(p.agreementPrice)}${p.isPreferredRepeatPrice?" · ⭐ Stammkundenpreis":""}</small>`:""}</div></div>
+      <div class="item-top"><div class="project-title-block"><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div><div class="project-price-summary"><div><span>Empfohlener Preis</span><strong>${euro(p.sale)}</strong></div>${p.agreementPrice!=null?`<div><span>Vereinbarter Preis</span><strong>${euro(p.agreementPrice)}</strong></div>`:""}${priceTypeLabel(p.priceType,p.isPreferredRepeatPrice)?`<span class="project-price-type">${esc(priceTypeLabel(p.priceType,p.isPreferredRepeatPrice))}</span>`:""}</div></div>
       <div class="project-status-row"><span class="order-badge ${p.orderType||"own"}">${orderTypeLabel(p.orderType)}</span><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
       ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
       <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button>${p.estimatorData?`<button type="button" data-reference-project="${p.id}">Als Lerndaten nutzen</button>`:""}<button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>

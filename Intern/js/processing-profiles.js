@@ -123,13 +123,17 @@ export function renderMaterialProfileSections(root=document){
     const isFamily=family.id===materialId&&(family.variants||[]).length>0;
     const own=state.processingProfiles.filter(p=>p.scope==="material"&&p.materialId===materialId);
     const inherited=state.processingProfiles.filter(p=>p.scope==="family"&&p.familyId===family.id);
-    box.innerHTML=isFamily
-      ? `<div class="profile-section-head"><div><b>Bearbeitungsprofile der Familie</b><small>${inherited.length} Familienprofile</small></div><button type="button" class="secondary small" data-add-profile="${materialId}">＋ Profil</button></div>${inherited.length?`<details><summary>Familienprofile (${inherited.length})</summary><div class="processing-profile-list">${sorted(inherited).map(p=>profileCard(p,{materialId})).join("")}</div></details>`:""}`
-      : `<div class="profile-section-head"><div><b>Bearbeitungsprofile</b><small>${own.length} eigene · ${inherited.length} aus Familie</small></div><button type="button" class="secondary small" data-add-profile="${materialId}">＋ Profil</button></div>
-        ${own.length?`<details><summary>Eigene Bearbeitungsprofile (${own.length})</summary><div class="processing-profile-list">${sorted(own).map(p=>profileCard(p,{materialId})).join("")}</div></details>`:""}
-        ${inherited.length?`<details><summary>Profile der Materialfamilie (${inherited.length})</summary><div class="processing-profile-list">${sorted(inherited).map(p=>profileCard(p,{inherited:true,materialId,editable:false})).join("")}</div></details>`:""}`;
+    const ownCount=own.length,familyCount=inherited.length;
+    if(isFamily){
+      box.innerHTML=familyCount?`<span class="profile-availability">✓ ${familyCount} ${familyCount===1?"Familienprofil":"Familienprofile"} vorhanden</span>`:"";
+    }else{
+      const notices=[];
+      if(ownCount)notices.push(`<span class="profile-availability">✓ ${ownCount} ${ownCount===1?"Bearbeitungsprofil":"Bearbeitungsprofile"} vorhanden</span>`);
+      if(familyCount)notices.push(`<span class="profile-availability inherited">✓ ${familyCount} ${familyCount===1?"Familienprofil":"Familienprofile"} vorhanden</span>`);
+      box.innerHTML=notices.join("");
+    }
+    box.classList.toggle("is-empty",!box.innerHTML);
   });
-  bindProfileActions(root);
 }
 
 function profileMatchesFilters(profile){
