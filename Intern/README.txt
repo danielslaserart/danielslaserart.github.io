@@ -1,4 +1,8 @@
-Daniels Laser Art Kalkulator V5.1
+Daniels Laser Art Kalkulator V6.0
+
+6.0 – Informativere Projektvorschau auf der Startseite
+
+- Version 6.0: Die Projektvorschau auf der Startseite zeigt jetzt neben dem empfohlenen Verkaufspreis auch Preisvereinbarungen, den tatsächlichen Gewinn sowie die Abweichung zur Preisempfehlung übersichtlich und farblich hervorgehoben an.
 
 5.1 – Profilhinweise in der Materialübersicht bereinigt
 --------------------------------------------------------
@@ -269,4 +273,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=5.1
+https://danielslaserart.de/Intern/?v=6.0
