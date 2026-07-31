@@ -9,6 +9,7 @@ import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-
 import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js";
 import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js";
+import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js";
 function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
@@ -291,7 +292,7 @@ export function viewProject(id){
     save();renderProjects();updateHome();
   };
   $("projectViewEditBtn").onclick=()=>{dialog.close();loadProject(id,false)};
-  $("offerPdfBtn").onclick=async()=>{let price=p.sale;if(p.agreementPrice!=null){const choice=await appForm({title:"Preis für Kunden-PDF",message:"Interne Notizen und Preis-Historie werden nicht im PDF ausgegeben.",fields:[{name:"priceSource",label:"Endpreis verwenden",type:"select",value:"project",options:[{value:"project",label:`Bisheriger Projektpreis (${euro(p.sale)})`},{value:"agreement",label:`Vereinbarter Verkaufspreis (${euro(p.agreementPrice)})`}]}],acceptText:"PDF erstellen"});if(!choice)return;price=choice.priceSource==="agreement"?p.agreementPrice:p.sale}printOffer(p,price)};
+  $("offerPdfBtn").onclick=async()=>{let price=p.sale;if(p.agreementPrice!=null){const choice=await appForm({title:"Preis für Kunden-PDF",message:"Interne Notizen und Preis-Historie werden nicht im PDF ausgegeben.",fields:[{name:"priceSource",label:"Endpreis verwenden",type:"select",value:"project",options:[{value:"project",label:`Bisheriger Projektpreis (${euro(p.sale)})`},{value:"agreement",label:`Vereinbarter Verkaufspreis (${euro(p.agreementPrice)})`}]}],acceptText:"PDF erstellen"});if(!choice)return;price=choice.priceSource==="agreement"?p.agreementPrice:p.sale}await printOffer(p,price)};
   $("closeProjectViewBtn").onclick=()=>dialog.close();
   dialog.onclick=e=>{if(e.target===dialog)dialog.close()};
   $("projectImageInput")?.addEventListener("change",async e=>{
@@ -309,7 +310,25 @@ export function viewProject(id){
   try{if(!dialog.open)dialog.showModal()}catch(err){console.error(err);dialog.setAttribute("open","")}
 }
 
-function printOffer(p,selectedPrice=p.sale){
+async function printOffer(p,selectedPrice=p.sale){
+  if(OFFER_PDF_TEMPLATE==="legacy"){printOfferLegacy(p,selectedPrice);return}
+  const today=new Date();
+  const created=new Date(p.created||p.updated||Date.now());
+  const offerNo=`A-${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,"0")}${String(created.getDate()).padStart(2,"0")}-${String((p.id||"").replace(/\D/g,"").slice(-3)||"001").padStart(3,"0")}`;
+  const qty=Math.max(1,num(p.qty)||1),totalPrice=num(selectedPrice),unitPrice=totalPrice/qty;
+  const address=(p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
+  if(address.split(/\r?\n/).filter(Boolean).length<3)await appAlert("Für einen Fensterbriefumschlag fehlt eine vollständige Kundenanschrift. Das Angebot wird trotzdem erstellt.");
+  try{
+    const offerData={offerNumber:offerNo,date:today.toLocaleDateString("de-DE"),projectName:p.title||p.type||"Individuelle Anfertigung",address,positions:[{description:p.title||p.type||"Individuelle Anfertigung",quantity:qty,unit:"Stk.",unitPrice,total:totalPrice}],total:totalPrice};
+    const bytes=await createOfferPdf(offerData);
+    downloadOfferPdf(bytes,offerPdfFilename(offerData));
+  }catch(error){
+    console.error("Angebots-PDF konnte nicht erstellt werden",error);
+    await appAlert("Das Angebots-PDF konnte nicht erstellt werden. Bitte die App einmal online neu laden und erneut versuchen.");
+  }
+}
+
+function printOfferLegacy(p,selectedPrice=p.sale){
   const today=new Date();
   const date=today.toLocaleDateString("de-DE");
   const created=new Date(p.created||p.updated||Date.now());

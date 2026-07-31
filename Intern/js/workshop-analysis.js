@@ -134,12 +134,12 @@ export function buildWorkshopAnalysis(projects=getRealProjects(),period="all"){
     ...(state.learningRecords||[]),
     ...(state.projects||[]).filter(project=>project.recordType==="reference"||project.isReference===true)
   ].filter((row,index,array)=>index===array.findIndex(other=>(other.id||other.projectId)===(row.id||row.projectId)));
-  const learning={total:learningRows.filter(row=>row.reference!==false).length,excluded:learningRows.filter(row=>row.reference===false).length,timeDeviations:[],priceDeviations:[],materialDeviations:[],exact:0,withActualTime:0,withActualPrice:0,errorCauses:new Map(),qualities:new Map(),satisfaction:[]};
+  const learning={total:learningRows.filter(row=>row.reference!==false).length,excluded:learningRows.filter(row=>row.reference===false).length,timeDeviations:[],priceDeviations:[],materialDeviations:[],withActualTime:0,withActualPrice:0,errorCauses:new Map(),qualities:new Map(),satisfaction:[]};
   learningRows.forEach(row=>{
     if(row.reference===false)return;
     const estimatedTime=finite(row.estimatedTotalTime)?num(row.estimatedTotalTime):num(row.estimatedCutTime)+num(row.estimatedEngravingTime);
     const actualTime=finite(row.actualTotalTime)?num(row.actualTotalTime):finite(row.actualMinutes)?num(row.actualMinutes):null;
-    if(actualTime!==null){learning.withActualTime++;if(estimatedTime>0){const deviation=actualTime-estimatedTime;learning.timeDeviations.push(deviation);if(Math.abs(deviation/estimatedTime*100)<=10)learning.exact++;}}
+    if(actualTime!==null){learning.withActualTime++;if(estimatedTime>0)learning.timeDeviations.push(actualTime-estimatedTime);}
     if(finite(row.actualPrice)){learning.withActualPrice++;if(finite(row.estimatedPrice)&&num(row.estimatedPrice)>0)learning.priceDeviations.push(num(row.actualPrice)-num(row.estimatedPrice));}
     const estimatedConsumption=row.estimatedConsumption??row.estimatedMaterialConsumption;
     const actualConsumption=row.actualConsumption??row.actualMaterialConsumption;
@@ -211,7 +211,7 @@ function renderAnalysis(data){
       ${metric("Geeignete Lernprojekte",String(learning.total),"Referenzen mit aktivem Lernstatus","blue")}
       ${metric("Ausgeschlossene Projekte",String(learning.excluded),"Nicht in Lernwerten verwendet","orange")}
       ${metric("Ø Zeitabweichung",timeDeviation==null?"–":`${timeDeviation>0?"+":""}${minutesText(timeDeviation)}`,timeDeviation==null?"Keine vergleichbaren Werte":timeDeviation>0?"Tatsächlich länger als geschätzt":"Tatsächlich kürzer als geschätzt","blue")}
-      ${metric("Anteil genauer Schätzungen",percentText(percent(learning.exact,learning.timeDeviations.length)),`${learning.exact} innerhalb ±10 %`,"green")}
+      ${metric("Anteil genauer Schätzungen","–","Keine bestehende Lerntoleranz gespeichert","blue")}
       ${metric("Ø Preisabweichung",priceDeviation==null?"–":`${priceDeviation>0?"+":""}${euro(priceDeviation)}`,"Ist-/Referenzpreis gegen Schätzung","blue")}
       ${metric("Ø Materialabweichung",learning.materialDeviations.length?num(average(learning.materialDeviations)).toLocaleString("de-DE",{maximumFractionDigits:2}):"–","Nur identische Einheiten","blue")}
       ${metric("Mit echtem Zeitwert",String(learning.withActualTime),"Vorhandene Referenzwerte","blue")}
