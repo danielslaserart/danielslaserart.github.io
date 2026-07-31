@@ -1,4 +1,12 @@
-Daniels Laser Art Kalkulator V4.16.1
+Daniels Laser Art Kalkulator V5.0
+
+5.0 – Materialverwaltung final bereinigt
+-----------------------------------------
+- Doppelte Hauptmaterial-Aktionen entfernt und Varianten kompakt angeordnet.
+- Bearbeiten-Buttons springen über stabile Material- und Varianten-IDs direkt zum richtigen Editor.
+- Bearbeitungsprofile werden ausschließlich innerhalb der Bearbeiten-Ansicht über einen standardmäßig geschlossenen Bereich verwaltet.
+- Der globale Bereich „Material-Bearbeitungsprofile“ entspricht optisch den Materialfamilien-Karten und ist standardmäßig geschlossen.
+- Keine Material-, Varianten-, Bestands-, Preis-, Bild-, Favoriten- oder Profildaten wurden migriert oder verändert.
 
 4.16.1 – Offizielles Briefpapier für Angebots-PDFs
 ---------------------------------------------------
@@ -248,4 +256,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.16.1
+https://danielslaserart.de/Intern/?v=5.0
