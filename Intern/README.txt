@@ -1,4 +1,13 @@
-Daniels Laser Art Kalkulator V4.16.0
+Daniels Laser Art Kalkulator V4.16.1
+
+4.16.1 – Offizielles Briefpapier für Angebots-PDFs
+---------------------------------------------------
+- Angebots-PDFs verwenden die unveränderte Original-PDF des offiziellen Daniels-Laser-Art-Briefpapiers als direkt eingebetteten Seitenhintergrund.
+- Anschriftfeld, Dokumentüberschrift, Angebotsdaten und Positionstabelle sind für DIN A4 und DIN-lang-Fensterumschläge neu ausgerichtet.
+- Eine dezente Falzmarke bei 105 mm unterstützt das korrekte Falten.
+- Mehrseitige Angebote wiederholen Briefpapier, Tabellenkopf, Angebotsnummer und Seitenzahl ohne Inhalte im Kopf- oder Fußbereich.
+- Die bisherige Druckansicht bleibt über die zentrale Template-Konstante als Rückfalloption erhalten.
+- Preisformeln, Projektdaten, Preisvereinbarungen, Lernsystem, Statistik und Authentifizierung bleiben unverändert.
 
 4.16.0 – Werkstatt-Analyse
 ---------------------------
@@ -239,4 +248,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=4.16.0
+https://danielslaserart.de/Intern/?v=4.16.1
