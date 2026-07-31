@@ -73,6 +73,52 @@ function fullSettings(profile){
 function sorted(profiles){
   return [...profiles].sort((a,b)=>(b.isDefault-a.isDefault)||((a.scope==="material"?0:1)-(b.scope==="material"?0:1))||a.name.localeCompare(b.name,"de"));
 }
+function profileIdentity(profile,source=""){
+  const stableId=profile?.profileId||profile?.familyProfileId||profile?.sourceProfileId||profile?.inheritedProfileId||profile?.materialProfileId||profile?.id;
+  if(stableId)return `id:${stableId}`;
+  return ["fallback",source,profile?.scope||"",profile?.familyId||"",profile?.materialId||"",profile?.machineId||"",profile?.processType||"",profile?.name||""].join("|");
+}
+function uniqueProfiles(profiles,source=""){
+  const unique=new Map();
+  (Array.isArray(profiles)?profiles:[]).filter(Boolean).forEach(profile=>{
+    const key=profileIdentity(profile,source);
+    if(!unique.has(key))unique.set(key,profile);
+  });
+  return [...unique.values()];
+}
+function profileSources(target){
+  return [
+    state.processingProfiles,
+    target?.processingProfiles,target?.profiles,target?.allProfiles,target?.ownProfiles,
+    target?.inheritedProfiles,target?.inheritedFamilyProfiles,target?.familyProfiles,
+    target?.profileSnapshots
+  ].filter(Array.isArray).flat();
+}
+export function getProfileSummary(target){
+  const materialId=typeof target==="string"?target:target?.materialId||target?.variantId||target?.id||"";
+  const family=familyForMaterialId(materialId);
+  if(!family)return {ownProfiles:[],inheritedFamilyProfiles:[],uniqueOwnProfiles:[],uniqueInheritedProfiles:[],ownProfileCount:0,familyProfileCount:0,totalUniqueProfileCount:0};
+  const concreteTarget=typeof target==="object"?target:(family.id===materialId?family:(family.variants||[]).find(variant=>variant.id===materialId));
+  const sources=profileSources(concreteTarget);
+  const ownProfiles=sources.filter(profile=>profile?.scope==="material"&&profile.materialId===materialId);
+  const inheritedFamilyProfiles=sources.filter(profile=>profile?.scope==="family"&&profile.familyId===family.id);
+  const uniqueOwnProfiles=uniqueProfiles(ownProfiles,"material");
+  const ownIds=new Set(uniqueOwnProfiles.map(profile=>profileIdentity(profile,"material")));
+  const uniqueInheritedProfiles=uniqueProfiles(inheritedFamilyProfiles,"family").filter(profile=>!ownIds.has(profileIdentity(profile,"family")));
+  return {
+    ownProfiles,inheritedFamilyProfiles,uniqueOwnProfiles,uniqueInheritedProfiles,
+    ownProfileCount:uniqueOwnProfiles.length,
+    familyProfileCount:uniqueInheritedProfiles.length,
+    totalUniqueProfileCount:uniqueOwnProfiles.length+uniqueInheritedProfiles.length
+  };
+}
+export function renderProfileSummary(summary){
+  const own=summary?.ownProfileCount||0,family=summary?.familyProfileCount||0,total=summary?.totalUniqueProfileCount||0;
+  if(!total)return "";
+  if(!own)return `<span class="profile-summary-main">✓ ${family} ${family===1?"Bearbeitungsprofil":"Bearbeitungsprofile"} aus der Familie vorhanden</span>`;
+  if(!family)return `<span class="profile-summary-main">✓ ${own} ${own===1?"eigenes Bearbeitungsprofil":"eigene Bearbeitungsprofile"} vorhanden</span>`;
+  return `<span class="profile-summary-main">✓ ${total} Bearbeitungsprofile vorhanden</span><small class="profile-summary-detail">${own} ${own===1?"eigenes":"eigene"} · ${family} aus der Familie</small>`;
+}
 
 export function effectiveProfiles(materialId,{machineId="",laserSource="",processType=""}={}){
   if(!materialId)return [];
@@ -98,12 +144,12 @@ export function processTypeFromMotif(){
 }
 
 function profileCard(profile,{inherited=false,materialId="",editable=true}={}){
-  return `<article class="processing-profile-card${profile.isDefault?" is-default":""}">
+  return `<article class="processing-profile-card${profile.isDefault?" is-default":""}" data-profile-card-id="${esc(profile.id)}">
     <div class="processing-profile-card-head"><div><h4>${esc(profile.name)}</h4><p>${inherited?`Geerbt aus Familie ${esc(familyLabel(profile.familyId))}`:profile.scope==="family"?`Familienprofil: ${esc(familyLabel(profile.familyId))}`:`Materialprofil: ${esc(materialLabel(profile.materialId))}`}</p></div>${profile.isDefault?'<span class="profile-badge default">Standard</span>':""}</div>
     <div class="profile-tags"><span>${esc(machineLabel(profile.machineId))}</span><span>${esc(SOURCE_LABELS[profile.laserSource]||profile.laserSource||"–")}</span><span>${esc(PROCESS_LABELS[profile.processType]||profile.processType)}</span><span>${esc(STATUS_LABELS[profile.status]||profile.status)}</span>${profile.rating?`<span>${"★".repeat(profile.rating)}</span>`:""}</div>
     <p class="profile-settings-summary">${esc(compactSettings(profile))}</p>
     <details><summary>Alle Einstellungen</summary><div class="profile-detail-grid">${fullSettings(profile)}</div>${profile.notes?`<p class="profile-notes">${esc(profile.notes)}</p>`:""}</details>
-    <div class="profile-actions"><button type="button" class="ghost small" data-profile-view="${profile.id}">Ansehen</button>${editable?`<button type="button" class="ghost small" data-profile-edit="${profile.id}">Bearbeiten</button><button type="button" class="ghost small" data-profile-duplicate="${profile.id}">Duplizieren</button>${!profile.isDefault?`<button type="button" class="ghost small" data-profile-default="${profile.id}">Als Standard</button>`:""}<button type="button" class="danger small" data-profile-delete="${profile.id}">Löschen</button>`:inherited?`<button type="button" class="secondary small" data-profile-adopt="${profile.id}" data-profile-material="${materialId}">Als eigenes Profil übernehmen</button>`:""}</div>
+    <div class="profile-actions"><button type="button" class="ghost small" data-profile-view="${profile.id}">Ansehen</button>${editable?`<button type="button" class="ghost small" data-profile-edit="${profile.id}">Bearbeiten</button><button type="button" class="ghost small" data-profile-duplicate="${profile.id}">Duplizieren</button>${!profile.isDefault?`<button type="button" class="ghost small" data-profile-default="${profile.id}">Als Standard</button>`:""}<button type="button" class="danger small" data-profile-delete="${profile.id}">Löschen</button>`:inherited?`<button type="button" class="ghost small" data-family-profile-edit="${profile.id}" data-profile-family="${profile.familyId}">Familienprofil bearbeiten</button><button type="button" class="secondary small" data-profile-adopt="${profile.id}" data-profile-material="${materialId}">Als eigenes Profil übernehmen</button>`:""}</div>
   </article>`;
 }
 function bindProfileActions(root=document){
@@ -113,22 +159,15 @@ function bindProfileActions(root=document){
   root.querySelectorAll("[data-profile-default]").forEach(b=>b.onclick=()=>setDefaultProfile(b.dataset.profileDefault));
   root.querySelectorAll("[data-profile-delete]").forEach(b=>b.onclick=()=>deleteProfile(b.dataset.profileDelete));
   root.querySelectorAll("[data-profile-adopt]").forEach(b=>b.onclick=()=>adoptProfile(b.dataset.profileAdopt,b.dataset.profileMaterial));
+  root.querySelectorAll("[data-family-profile-edit]").forEach(b=>b.onclick=()=>document.dispatchEvent(new CustomEvent("dla:open-family-profile",{detail:{familyId:b.dataset.profileFamily,profileId:b.dataset.familyProfileEdit}})));
   root.querySelectorAll("[data-add-profile]").forEach(b=>b.onclick=()=>openProfileDialog({materialId:b.dataset.addProfile||""}));
 }
 
 export function renderMaterialProfileSections(root=document){
   root.querySelectorAll("[data-material-profile-section]").forEach(box=>{
     const materialId=box.dataset.materialProfileSection;
-    const family=familyForMaterialId(materialId);if(!family)return;
-    const isFamily=family.id===materialId&&(family.variants||[]).length>0;
-    const own=state.processingProfiles.filter(p=>p.scope==="material"&&p.materialId===materialId);
-    const inherited=state.processingProfiles.filter(p=>p.scope==="family"&&p.familyId===family.id);
-    if(isFamily){
-      box.innerHTML=inherited.length?`<span class="profile-availability">✓ ${inherited.length} ${inherited.length===1?"Familienprofil":"Familienprofile"} vorhanden</span>`:"";
-    }else{
-      const total=own.length+inherited.length;
-      box.innerHTML=total?`<span class="profile-availability">✓ ${total} ${total===1?"Bearbeitungsprofil":"Bearbeitungsprofile"} vorhanden</span>`:"";
-    }
+    const summary=getProfileSummary(materialId);
+    box.innerHTML=renderProfileSummary(summary);
     box.classList.toggle("is-empty",!box.innerHTML);
   });
 }
@@ -219,14 +258,14 @@ export function renderMaterialProfileEditor(materialId=""){
   const family=familyForMaterialId(materialId);
   if(!family){host.innerHTML='<p class="profile-editor-error">Bearbeitungsprofile konnten für dieses Material nicht geladen werden.</p>';return}
   const isFamily=family.id===materialId&&(family.variants||[]).length>0;
-  const own=state.processingProfiles.filter(profile=>profile.scope==="material"&&profile.materialId===materialId);
-  const inherited=state.processingProfiles.filter(profile=>profile.scope==="family"&&profile.familyId===family.id);
-  const profiles=isFamily?inherited:own;
-  const count=profiles.length;
+  const summary=getProfileSummary(materialId);
+  const profiles=isFamily?summary.uniqueInheritedProfiles:summary.uniqueOwnProfiles;
+  const inherited=isFamily?[]:summary.uniqueInheritedProfiles;
+  const count=profiles.length+inherited.length;
   host.innerHTML=`<details class="material-editor-profiles">
     <summary><span><b>Bearbeitungsprofile</b><small>${count?`${count} ${count===1?"Profil":"Profile"} vorhanden`:"Keine Profile vorhanden"}</small></span></summary>
     <div class="material-editor-profile-body">
-      ${count?`<div class="processing-profile-list">${sorted(profiles).map(profile=>profileCard(profile,{materialId})).join("")}</div>`:'<p class="profile-empty-hint">Für dieses Material sind noch keine eigenen Bearbeitungsprofile vorhanden.</p>'}
+      ${profiles.length?`<div class="processing-profile-list">${sorted(profiles).map(profile=>profileCard(profile,{materialId})).join("")}</div>`:!inherited.length?'<p class="profile-empty-hint">Für dieses Material sind noch keine eigenen Bearbeitungsprofile vorhanden.</p>':""}
       ${!isFamily&&inherited.length?`<div class="inherited-profile-editor"><b>${inherited.length} ${inherited.length===1?"Familienprofil":"Familienprofile"} verfügbar</b><div class="processing-profile-list">${sorted(inherited).map(profile=>profileCard(profile,{inherited:true,materialId,editable:false})).join("")}</div></div>`:""}
       <button type="button" class="secondary small add-profile-in-editor" data-add-profile="${materialId}">＋ Profil erstellen</button>
     </div>
@@ -239,6 +278,7 @@ function fillProfileForm(profile=null,materialId=""){
   const contextIsFamily=family?.id===materialId&&(family?.variants||[]).length>0;
   editingId=profile?.id||"";originalScope=profile?.scope||"";contextMaterialId=materialId||profile?.materialId||"";
   $("profileDialogTitle").textContent=profile?"Bearbeitungsprofil bearbeiten":"Bearbeitungsprofil hinzufügen";
+  $("familyProfileEditNotice")?.classList.toggle("hidden",profile?.scope!=="family");
   setFormValue("profileName",profile?.name||"");setFormValue("profileScope",profile?.scope||(materialId&&!contextIsFamily?"material":"family"));
   $("profileFamily").innerHTML=familyOptions(profile?.familyId||family?.id||"");
   $("profileMaterial").innerHTML=materialOptions(profile?.materialId||materialId||"",profile?.familyId||family?.id||"");
@@ -316,7 +356,7 @@ function duplicateProfile(id){
 }
 function adoptProfile(id,materialId){
   const source=state.processingProfiles.find(p=>p.id===id);if(!source)return;
-  const now=new Date().toISOString(),copy=normalizeProcessingProfile({...structuredClone(source),id:uid(),scope:"material",materialId,familyId:source.familyId,name:`${source.name} – eigenes Profil`,isDefault:false,createdAt:now,updatedAt:now});
+  const now=new Date().toISOString(),copy=normalizeProcessingProfile({...structuredClone(source),id:uid(),sourceProfileId:source.id,scope:"material",materialId,familyId:source.familyId,name:`${source.name} – eigenes Profil`,isDefault:false,createdAt:now,updatedAt:now});
   state.processingProfiles.unshift(copy);save();renderEverywhere();openProfileDialog({profileId:copy.id});
 }
 function setDefaultProfile(id){

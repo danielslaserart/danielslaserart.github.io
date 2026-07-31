@@ -160,6 +160,23 @@ function scrollToMaterialEditor(variantId=""){
     setTimeout(()=>target.classList.remove("material-editor-target"),1400);
   }));
 }
+function scrollToFamilyProfile(profileId=""){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const section=$("materialEditorProfileHost")?.querySelector(".material-editor-profiles");
+    if(!section)return;
+    section.open=true;
+    requestAnimationFrame(()=>{
+      const target=section.querySelector(`[data-profile-card-id="${CSS.escape(profileId)}"]`);
+      if(!target){
+        appAlert("Das ausgewählte Familienprofil wurde nicht gefunden. Es wurde kein anderes Profil geöffnet.","Profil nicht gefunden");
+        return;
+      }
+      target.scrollIntoView({behavior:"smooth",block:"start"});
+      target.classList.add("material-editor-target");
+      setTimeout(()=>target.classList.remove("material-editor-target"),1400);
+    });
+  }));
+}
 export function openMaterialEditor(materialId="",variantId=""){
   const material=materialId?state.materials.find(item=>item.id===materialId):null;
   if(materialId&&!material){appAlert("Das ausgewählte Material wurde nicht gefunden. Es wurden keine Daten geöffnet oder verändert.","Material nicht gefunden");return}
@@ -167,9 +184,21 @@ export function openMaterialEditor(materialId="",variantId=""){
   if(variantId&&!variant){appAlert("Die ausgewählte Variante wurde nicht gefunden. Es wurde keine andere Variante geöffnet.","Variante nicht gefunden");return}
   openMaterial(material,{variantId});
 }
+export function openFamilyProfileEditor(familyId="",profileId=""){
+  const family=state.materials.find(material=>material.id===familyId);
+  const profile=state.processingProfiles.find(item=>item.id===profileId&&item.scope==="family"&&item.familyId===familyId);
+  if(!family){appAlert("Die zugehörige Materialfamilie wurde nicht gefunden. Es wurden keine Daten geöffnet oder verändert.","Materialfamilie nicht gefunden");return}
+  if(!profile){appAlert("Das ausgewählte Familienprofil wurde nicht gefunden. Es wurde kein anderes Profil geöffnet.","Profil nicht gefunden");return}
+  openMaterial(family);
+  scrollToFamilyProfile(profileId);
+}
+document.addEventListener("dla:open-family-profile",event=>{
+  const {familyId="",profileId=""}=event.detail||{};
+  openFamilyProfileEditor(familyId,profileId);
+});
 function openMaterial(m=null,{variantId=""}={}){
   const variant=variantId?(m?.variants||[]).find(item=>item.id===variantId):null;
-  $("materialDialogTitle").textContent=variant?`${m.name} – ${variant.name} bearbeiten`:m?"Material bearbeiten":"Material hinzufügen";
+  $("materialDialogTitle").textContent=variant?`${m.name} – ${variant.name} bearbeiten`:m?`${m.name} bearbeiten`:"Material hinzufügen";
   $("materialId").value=m?.id||"";
   $("materialName").value=m?.name||"";
   $("materialArea").value=m?.area||"3D-Druck";
