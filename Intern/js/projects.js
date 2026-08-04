@@ -36,7 +36,7 @@ export function renderPriceTypeBadge(priceType,isPreferred=false){
 }
 export function renderProjectPriceBlock(project){
   const hasAgreement=project.agreementPrice!=null;
-  return `<div class="project-price-block"><strong>${euro(project.sale)}</strong>${hasAgreement?`<span class="project-agreed-price">Vereinbart: ${euro(project.agreementPrice)}</span>${renderPriceTypeBadge(project.priceType,project.isPreferredRepeatPrice)}`:""}</div>`;
+  return `<div class="project-price-block"><strong>${euro(project.sale)}</strong><span class="project-agreed-price">Vereinbart: ${hasAgreement?euro(project.agreementPrice):"Nicht festgelegt"}</span>${hasAgreement?renderPriceTypeBadge(project.priceType,project.isPreferredRepeatPrice):""}</div>`;
 }
 export function renderProjects(){
   const realProjects=getRealProjects();
@@ -75,10 +75,10 @@ export function renderProjects(){
       return `
     <article class="card project-item" data-project-card="${p.id}">
       ${images[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${esc(images[0])}" alt=""></button>`:''}
-      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(title)}</div><div class="item-meta">${esc(p.type||'Projekt')}${p.machineName?' · '+esc(p.machineName):''} · ${esc(customerLabel)}${hint} · ${safeDate(p.created||p.createdAt)}</div></div>${renderProjectPriceBlock(p)}</div>
+      <div class="item-top"><div class="project-card-copy"><div class="item-title">${p.pinned?"📌 ":""}${esc(title)}</div><div class="item-meta">${esc(customerLabel)}${hint}${p.machineName?' · '+esc(p.machineName):''} · ${safeDate(p.created||p.createdAt)}</div></div>${renderProjectPriceBlock(p)}</div>
       <div class="project-status-row"><span class="order-badge ${p.orderType||"own"}">${orderTypeLabel(p.orderType)}</span><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
-      ${tags.length?`<div class="tag-row">${tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
-      <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button>${p.estimatorData?`<button type="button" data-reference-project="${p.id}">Als Lerndaten nutzen</button>`:""}<button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
+      ${p.notes?`<div class="project-notes project-note-short">${esc(p.notes)}</div>`:''}
+      <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button><details class="project-more-actions"><summary>Mehr Aktionen</summary><div>${p.estimatorData?`<button type="button" data-reference-project="${p.id}">Als Lerndaten nutzen</button>`:""}<button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div></details></div>
     </article>`;
     }catch(error){
       console.error('Projektkarte konnte nur vereinfacht angezeigt werden:',p?.id,error);
@@ -87,7 +87,7 @@ export function renderProjects(){
   };
   $('projectList').innerHTML=list.length?list.map(renderProjectCard).join(''):`<div class="empty-state">Keine passenden Projekte gefunden.</div>`;
   document.querySelectorAll('[data-view-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();viewProject(b.dataset.viewProject)});
-  document.querySelectorAll('[data-project-card]').forEach(card=>card.onclick=e=>{if(!e.target.closest('button'))viewProject(card.dataset.projectCard)});
+  document.querySelectorAll('[data-project-card]').forEach(card=>card.onclick=e=>{if(!e.target.closest('button, details, summary'))viewProject(card.dataset.projectCard)});
   document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.editProject);if(p?.orderType==="design"||p?.projectType==="design")document.dispatchEvent(new CustomEvent("dla:load-design",{detail:{project:p,duplicate:false}}));else loadProject(b.dataset.editProject,false)});
   document.querySelectorAll('[data-duplicate-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.duplicateProject);if(p?.orderType==="design"||p?.projectType==="design")document.dispatchEvent(new CustomEvent("dla:load-design",{detail:{project:p,duplicate:true}}));else loadProject(b.dataset.duplicateProject,true)});
   document.querySelectorAll('[data-pin-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.pinProject);if(p){p.pinned=!p.pinned;p.updated=new Date().toISOString();save();renderProjects();}});
