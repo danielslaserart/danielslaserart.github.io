@@ -1,4 +1,8 @@
-Daniels Laser Art Kalkulator V6.2.1
+Daniels Laser Art Kalkulator V6.3
+
+6.3 – Moderne Kundenverwaltung
+
+- Version 6.3: Die Kundenakte besitzt jetzt einen kompakten Kundenkopf und die fünf echten Tabs Übersicht, Projekte, Preise, Notizen und Chronik. Pro Ansicht wird ausschließlich der ausgewählte Inhalt dargestellt. Bearbeitungen werden weiterhin über die vorhandenen Dialoge vorgenommen; Preisberechnung, Projektlogik und Kundendatenstruktur bleiben unverändert.
 
 6.2.1 – Abwärtskompatible Projektübersicht
 
@@ -285,4 +289,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.2.1
+https://danielslaserart.de/Intern/?v=6.3
