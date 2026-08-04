@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.3.2";
+const APP_VERSION = "6.3.3";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -94,8 +94,19 @@ export const defaults = {
     {id:"anycubic-kobra2plus",name:"Anycubic Kobra 2 Plus",type:"3d",hourlyRate:0.50,active:true}
   ]
 };
+export function normalizeCustomerRecord(customer={}){
+  if(!customer||typeof customer!=="object")return null;
+  const rawRating=customer.rating;
+  const parsedRating=rawRating===""||rawRating===null||rawRating===undefined?0:Number(rawRating);
+  const rating=Number.isFinite(parsedRating)?Math.min(5,Math.max(0,Math.round(parsedRating))):0;
+  return {...customer,rating};
+}
+function normalizeCustomers(customers){
+  return (Array.isArray(customers)?customers:[]).map(normalizeCustomerRecord).filter(Boolean);
+}
+
 export let state = load();
-state.customers=Array.isArray(state.customers)?state.customers:[];
+state.customers=normalizeCustomers(state.customers);
 state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
 state.templates=Array.isArray(state.templates)?state.templates:[];
 state.projects=(Array.isArray(state.projects)?state.projects:[]).map(normalizeProjectRecord).filter(Boolean);
@@ -137,7 +148,7 @@ export function load(){
     merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
     merged.processingProfiles=normalizeProcessingProfiles(merged.processingProfiles);
     merged.projects=(merged.projects||[]).map(normalizeProjectRecord);
-    merged.customers=Array.isArray(merged.customers)?merged.customers:[];
+    merged.customers=normalizeCustomers(merged.customers);
     migrateEmbeddedReferences(merged);
     return merged;
   }catch{return structuredClone(defaults)}
@@ -319,6 +330,7 @@ function migrateEmbeddedReferences(container){
   });
 }
 export function save(){
+  state.customers=normalizeCustomers(state.customers);
   localStorage.setItem(KEY,JSON.stringify(state));
   document.dispatchEvent(new CustomEvent('dla:state-saved'));
   scheduleCloudSave();
@@ -337,6 +349,7 @@ function scheduleCloudSave(){
 }
 async function saveCloudState(){
   if(!currentUser)return;
+  state.customers=normalizeCustomers(state.customers);
   const client=await createSupabaseClient();
   const { error } = await client.from("app_state").upsert({
     user_id: currentUser.id,
@@ -365,6 +378,7 @@ export async function loadCloudState(){
     state.projects=(Array.isArray(state.projects)?state.projects:[]).map(normalizeProjectRecord).filter(Boolean);
     state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
     state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
+    state.customers=normalizeCustomers(state.customers);
     migrateEmbeddedReferences(state);
     state.timer={...defaults.timer,...(state.timer||{})};
     state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
