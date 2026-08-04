@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.2";
+const APP_VERSION = "6.2.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -98,7 +98,7 @@ export let state = load();
 state.customers=Array.isArray(state.customers)?state.customers:[];
 state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
 state.templates=Array.isArray(state.templates)?state.templates:[];
-state.projects=(state.projects||[]).map(normalizeProjectRecord);
+state.projects=(Array.isArray(state.projects)?state.projects:[]).map(normalizeProjectRecord).filter(Boolean);
 state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
 migrateEmbeddedReferences(state);
 localStorage.setItem(KEY,JSON.stringify(state));
@@ -212,7 +212,8 @@ export function normalizeOrderType(value,project={}){
   return customerHints?"customerObject":"own";
 }
 export function normalizeProjectRecord(project={}){
-  const clearlyGeneratedReference=project.reference===true&&project.estimatorData&&(
+  if(!project||typeof project!=="object")return null;
+  const clearlyGeneratedReference=project.reference===true&&project.estimatorData&&project.actualPrice==null&&project.agreementPrice==null&&(
     project.notes==="Aus Angebotsassistent erstellt"||
     (project.tags||[]).includes("Schätzer")
   );
@@ -224,6 +225,8 @@ export function normalizeProjectRecord(project={}){
   return {
     ...project,
     customerId:project.customerId?String(project.customerId):null,
+    title:String(project.title||project.projectName||project.name||"Unbenanntes Projekt"),
+    customerName:String(project.customerName||project.customer||""),
     agreementPrice:(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===null||(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===undefined||(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===""?null:num(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice),
     priceAgreementDate:(project.priceAgreementDate??project.agreementPriceDate)&&!Number.isNaN(new Date(project.priceAgreementDate??project.agreementPriceDate).getTime())?project.priceAgreementDate??project.agreementPriceDate:null,
     isPreferredRepeatPrice:(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==null&&(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==undefined&&(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==""&&Boolean(project.isPreferredRepeatPrice??project.isPreferredCustomerPrice),
@@ -253,9 +256,9 @@ export function normalizeProjectRecord(project={}){
     materialCost:project.materialCost??project.estimatorData?.materialCost??null,
     sale:recordType==="project"?num(actualPrice):num(project.sale),
     pinned:Boolean(project.pinned),
-    status:recordType==="project"?normalizeProjectStatus(project.status):null,
+    status:recordType==="project"?normalizeProjectStatus(project.status||"offer"):null,
     tags:Array.isArray(project.tags)?project.tags:(project.tags?String(project.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),
-    images:Array.isArray(project.images)?project.images:(project.image?[project.image]:[]),
+    images:Array.isArray(project.images)?project.images.filter(Boolean):(project.image?[project.image]:[]),
     priceHistory:Array.isArray(project.priceHistory)?project.priceHistory:[],
     workSeconds:num(project.workSeconds)
   };
@@ -284,7 +287,7 @@ export function normalizeLearningRecord(record={}){
 }
 export function isRealProject(record){return record?.recordType!=="reference";}
 export function isReferenceRecord(record){return record?.recordType==="reference";}
-export function getRealProjects(){return state.projects.filter(isRealProject);}
+export function getRealProjects(){return state.projects.filter(Boolean).filter(isRealProject);}
 export function getReferenceProjects(){return state.projects.filter(isReferenceRecord);}
 export function mergeSettings(settings={}){
   return {
@@ -359,7 +362,7 @@ export async function loadCloudState(){
   if(data?.data){
     replaceState({...defaults,...data.data,settings:mergeSettings(data.data.settings)});
     state.templates=Array.isArray(state.templates)?state.templates:[];
-    state.projects=(state.projects||[]).map(normalizeProjectRecord);
+    state.projects=(Array.isArray(state.projects)?state.projects:[]).map(normalizeProjectRecord).filter(Boolean);
     state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
     state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
     migrateEmbeddedReferences(state);

@@ -11,6 +11,17 @@ import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js";
 import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js";
 import { customerNameById } from "./customers.js";
+function existingCustomer(project){
+  const id=project?.customerId?String(project.customerId):null;
+  return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
+}
+export function filterProjectsByCustomer(projects,selectedCustomerId){
+  if(!selectedCustomerId||selectedCustomerId==='all')return projects;
+  if(selectedCustomerId==='none'||selectedCustomerId==='unassigned')return projects.filter(project=>!existingCustomer(project));
+  return projects.filter(project=>String(project?.customerId||'')===String(selectedCustomerId));
+}
+function safeDate(value){const date=new Date(value||0);return Number.isNaN(date.getTime())?'Datum unbekannt':date.toLocaleDateString('de-DE');}
+function projectTimestamp(project,field){const date=new Date(project?.[field]||project?.created||0);return Number.isNaN(date.getTime())?0:date.getTime();}
 function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
@@ -33,32 +44,48 @@ export function renderProjects(){
   const filter=$('projectStatusFilter')?.value||'all';
   const customerFilter=$('projectCustomerFilter')?.value||'all';
   const sort=$('projectSort')?.value||'updated';
-  const list=realProjects.filter(p=>{
-    const customerName=customerNameById(p.customerId)||p.customer||'';
-    const matchesText=!term||`${p.title} ${customerName} ${p.type||''} ${p.machineName||''} ${p.notes||''} ${(p.tags||[]).join(' ')}`.toLowerCase().includes(term);
+  const customerFiltered=filterProjectsByCustomer(realProjects,customerFilter);
+  const list=customerFiltered.filter(p=>{
+    const customerName=customerNameById(p.customerId)||p.customerName||p.customer||'';
+    const tags=Array.isArray(p.tags)?p.tags:[];
+    const matchesText=!term||`${p.title||p.projectName||p.name||''} ${customerName} ${p.type||''} ${p.machineName||''} ${p.notes||''} ${tags.join(' ')}`.toLowerCase().includes(term);
     const matchesStatus=filter==='all'||(p.status||'offer')===filter;
-    const matchesCustomer=customerFilter==='all'||(customerFilter==='none'?!p.customerId:p.customerId===customerFilter);
-    return matchesText&&matchesStatus&&matchesCustomer;
+    return matchesText&&matchesStatus;
   }).sort((a,b)=>{
     if(Boolean(a.pinned)!==Boolean(b.pinned))return a.pinned?-1:1;
     if(sort==='name')return String(a.title||'').localeCompare(String(b.title||''),'de');
     if(sort==='customer')return customerNameById(a.customerId).localeCompare(customerNameById(b.customerId),'de');
     if(sort==='price')return num(b.sale)-num(a.sale);
-    if(sort==='created')return new Date(b.created)-new Date(a.created);
-    return new Date(b.updated||b.created)-new Date(a.updated||a.created);
+    if(sort==='created')return projectTimestamp(b,'created')-projectTimestamp(a,'created');
+    return projectTimestamp(b,'updated')-projectTimestamp(a,'updated');
   });
   const totalProfit=realProjects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   if($('projectStatCount'))$('projectStatCount').textContent=realProjects.length;
   if($('projectStatProfit'))$('projectStatProfit').textContent=euro(totalProfit);
   if($('projectStatAverage'))$('projectStatAverage').textContent=realProjects.length?euro(realProjects.reduce((sum,p)=>sum+num(p.sale),0)/realProjects.length):euro(0);
-  $('projectList').innerHTML=list.length?list.map(p=>`
+  const renderProjectCard=p=>{
+    try{
+      const title=p.title||p.projectName||p.name||'Unbenanntes Projekt';
+      const customer=existingCustomer(p);
+      const legacyCustomerHint=p.customerName||p.customer||'';
+      const customerLabel=customer?.companyName||(p.customerId?'Kunde nicht mehr vorhanden':'Ohne Kundenzuordnung');
+      const hint=!customer&&legacyCustomerHint?` · Hinweis: ${esc(legacyCustomerHint)}`:'';
+      const images=Array.isArray(p.images)?p.images:[];
+      const tags=Array.isArray(p.tags)?p.tags:[];
+      return `
     <article class="card project-item" data-project-card="${p.id}">
-      ${(p.images||[])[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${p.images[0]}" alt=""></button>`:''}
-      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${customerNameById(p.customerId)?' · '+esc(customerNameById(p.customerId)):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div>${renderProjectPriceBlock(p)}</div>
+      ${images[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${esc(images[0])}" alt=""></button>`:''}
+      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(title)}</div><div class="item-meta">${esc(p.type||'Projekt')}${p.machineName?' · '+esc(p.machineName):''} · ${esc(customerLabel)}${hint} · ${safeDate(p.created||p.createdAt)}</div></div>${renderProjectPriceBlock(p)}</div>
       <div class="project-status-row"><span class="order-badge ${p.orderType||"own"}">${orderTypeLabel(p.orderType)}</span><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
-      ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
+      ${tags.length?`<div class="tag-row">${tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
       <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button>${p.estimatorData?`<button type="button" data-reference-project="${p.id}">Als Lerndaten nutzen</button>`:""}<button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
-    </article>`).join(''):`<div class="empty-state">Keine passenden Projekte gefunden.</div>`;
+    </article>`;
+    }catch(error){
+      console.error('Projektkarte konnte nur vereinfacht angezeigt werden:',p?.id,error);
+      return `<article class="card project-item"><div class="item-title">${esc(p?.title||p?.projectName||p?.name||'Unbenanntes Projekt')}</div><div class="item-meta">Unvollständiger älterer Datensatz · Ohne Kundenzuordnung</div></article>`;
+    }
+  };
+  $('projectList').innerHTML=list.length?list.map(renderProjectCard).join(''):`<div class="empty-state">Keine passenden Projekte gefunden.</div>`;
   document.querySelectorAll('[data-view-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();viewProject(b.dataset.viewProject)});
   document.querySelectorAll('[data-project-card]').forEach(card=>card.onclick=e=>{if(!e.target.closest('button'))viewProject(card.dataset.projectCard)});
   document.querySelectorAll('[data-edit-project]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=realProjects.find(x=>x.id===b.dataset.editProject);if(p?.orderType==="design"||p?.projectType==="design")document.dispatchEvent(new CustomEvent("dla:load-design",{detail:{project:p,duplicate:false}}));else loadProject(b.dataset.editProject,false)});
