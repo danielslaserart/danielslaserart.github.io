@@ -1,4 +1,8 @@
-Daniels Laser Art Kalkulator V6.3
+Daniels Laser Art Kalkulator V6.3.1
+
+6.3.1 – Kompakte Projektkarten und sichtbare Kundenwarnungen
+
+- Version 6.3.1: Kundenwarnungen und Sperrstatus sind direkt in der Kundenliste sichtbar, Bewertungen unterstützen 0 bis 5 Sterne und Projektkarten bündeln Zusatzaktionen kompakt unter „Mehr Aktionen“.
 
 6.3 – Moderne Kundenverwaltung
 
@@ -289,4 +293,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.3
+https://danielslaserart.de/Intern/?v=6.3.1
