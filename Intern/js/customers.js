@@ -86,7 +86,46 @@ function renderDetail(){
   box.classList.remove("hidden");$("customerList").classList.add("hidden");$("customerDetail").scrollIntoView({block:"start"});bindDetail(customer);
 }
 
-async function editCustomer(customer){const result=await appForm({title:customer?"Kundenakte bearbeiten":"Kundenakte anlegen",fields:[{name:"companyName",label:"Firmenname",value:customer?.companyName||""},{name:"contactPerson",label:"Ansprechpartner",value:customer?.contactPerson||""},{name:"rating",label:"Bewertung",type:"select",value:String(safeRating(customer?.rating)),options:[0,1,2,3,4,5].map(x=>({value:String(x),label:x===0?"0 Sterne – keine Bewertung":`${x} Stern${x===1?"":"e"}`}))},{name:"regular",label:"Stammkunde",type:"checkbox",value:customer?.regular},{name:"vip",label:"VIP",type:"checkbox",value:customer?.vip},{name:"blocked",label:"Gesperrt",type:"checkbox",value:customer?.blocked},{name:"discountType",label:"Standardrabatt als",type:"select",value:customer?.standardDiscount?.type||"percent",options:[{value:"percent",label:"Prozent"},{value:"amount",label:"Euro"}]},{name:"discountValue",label:"Standardrabatt",value:customer?.standardDiscount?.value||"",inputmode:"decimal"},{name:"minimumFee",label:"Individuelle Mindestpauschale (€)",value:customer?.minimumFee??"",inputmode:"decimal"},{name:"priceReason",label:"Preisbegründung",type:"select",value:customer?.priceReason||"regular",options:Object.entries(REASON_LABELS).map(([value,label])=>({value,label}))},{name:"priceReasonText",label:"Ergänzende Begründung",type:"textarea",value:customer?.priceReasonText||"",rows:3}],acceptText:"Speichern",validate:v=>!v.companyName.trim()?"Bitte einen Firmennamen eingeben.":allCustomers().some(c=>c.id!==customer?.id&&key(c.companyName)===key(v.companyName))?"Für diesen Firmennamen existiert bereits eine Kundenakte.":""});if(!result)return null;const rawRating=result.rating;const normalizedRating=safeRating(rawRating);const target=customer||normalizeCustomer({});Object.assign(target,{companyName:result.companyName.trim(),contactPerson:result.contactPerson.trim(),rating:normalizedRating,regular:Boolean(result.regular),vip:Boolean(result.vip),blocked:Boolean(result.blocked),standardDiscount:{type:result.discountType,value:num(result.discountValue)},minimumFee:result.minimumFee===""?null:num(result.minimumFee),priceReason:result.priceReason,priceReasonText:result.priceReasonText.trim(),updatedAt:now()});if(!customer){addTimeline(target,"system","Kundenakte erstellt");state.customers.unshift(target);}else addTimeline(target,"system","Kundendaten oder Preisinfo geändert");selectedCustomerId=target.id;save();await flushCloudSave();renderCustomers();renderDetail();return target;}
+async function editCustomer(customer){
+  const editingCustomerId=customer?.id??null;
+  let savedCustomer=null;
+  const result=await appForm({title:customer?"Kundenakte bearbeiten":"Kundenakte anlegen",fields:[{name:"companyName",label:"Firmenname",value:customer?.companyName||""},{name:"contactPerson",label:"Ansprechpartner",value:customer?.contactPerson||""},{name:"rating",label:"Bewertung",type:"select",value:String(safeRating(customer?.rating)),options:[0,1,2,3,4,5].map(x=>({value:String(x),label:x===0?"0 Sterne – keine Bewertung":`${x} Stern${x===1?"":"e"}`}))},{name:"regular",label:"Stammkunde",type:"checkbox",value:customer?.regular},{name:"vip",label:"VIP",type:"checkbox",value:customer?.vip},{name:"blocked",label:"Gesperrt",type:"checkbox",value:customer?.blocked},{name:"discountType",label:"Standardrabatt als",type:"select",value:customer?.standardDiscount?.type||"percent",options:[{value:"percent",label:"Prozent"},{value:"amount",label:"Euro"}]},{name:"discountValue",label:"Standardrabatt",value:customer?.standardDiscount?.value||"",inputmode:"decimal"},{name:"minimumFee",label:"Individuelle Mindestpauschale (€)",value:customer?.minimumFee??"",inputmode:"decimal"},{name:"priceReason",label:"Preisbegründung",type:"select",value:customer?.priceReason||"regular",options:Object.entries(REASON_LABELS).map(([value,label])=>({value,label}))},{name:"priceReasonText",label:"Ergänzende Begründung",type:"textarea",value:customer?.priceReasonText||"",rows:3}],acceptText:"Speichern",validate:v=>!v.companyName.trim()?"Bitte einen Firmennamen eingeben.":allCustomers().some(c=>c.id!==editingCustomerId&&key(c.companyName)===key(v.companyName))?"Für diesen Firmennamen existiert bereits eine Kundenakte.":"",onSubmit:async formValues=>{
+    const rating=safeRating(formValues.rating);
+    const updates={companyName:formValues.companyName.trim(),contactPerson:formValues.contactPerson.trim(),rating,regular:Boolean(formValues.regular),vip:Boolean(formValues.vip),blocked:Boolean(formValues.blocked),standardDiscount:{type:formValues.discountType,value:num(formValues.discountValue)},minimumFee:formValues.minimumFee===""?null:num(formValues.minimumFee),priceReason:formValues.priceReason,priceReasonText:formValues.priceReasonText.trim(),updatedAt:now()};
+    console.log("Kunden-ID:",editingCustomerId);
+    console.log("Formularwerte:",formValues);
+    console.log("Bewertung:",formValues.rating);
+    console.log("Gesperrt:",formValues.blocked);
+    if(editingCustomerId){
+      const customerIndex=state.customers.findIndex(item=>String(item.id)===String(editingCustomerId));
+      if(customerIndex===-1)throw new Error("Zu bearbeitender Kunde wurde nicht gefunden.");
+      const existingCustomer=normalizeCustomer(state.customers[customerIndex]);
+      savedCustomer={...existingCustomer,...updates,id:existingCustomer.id};
+      addTimeline(savedCustomer,"system","Kundendaten oder Preisinfo geändert");
+      state.customers[customerIndex]=savedCustomer;
+    }else{
+      savedCustomer={...normalizeCustomer({}),...updates};
+      addTimeline(savedCustomer,"system","Kundenakte erstellt");
+      state.customers.unshift(savedCustomer);
+    }
+    selectedCustomerId=savedCustomer.id;
+    save();
+    try{
+      const data=await flushCloudSave();
+      console.log("Supabase-Ergebnis:",data);
+      console.log("Supabase-Fehler:",null);
+    }catch(error){
+      console.log("Supabase-Ergebnis:",null);
+      console.log("Supabase-Fehler:",error);
+      throw new Error(`Kunde konnte nicht gespeichert werden: ${error?.message||"Unbekannter Fehler"}`);
+    }
+  }});
+  if(!result)return null;
+  renderCustomers();
+  renderDetail();
+  await appAlert("Die Kundenakte wurde erfolgreich gespeichert.","Gespeichert");
+  return savedCustomer;
+}
 
 function bindDetail(customer){
   $("customerDetail").querySelector("[data-customer-close]").onclick=()=>{selectedCustomerId=null;$("customerDetail").classList.add("hidden");$("customerList").classList.remove("hidden");renderList();};

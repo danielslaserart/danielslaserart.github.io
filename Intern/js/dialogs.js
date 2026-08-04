@@ -33,11 +33,23 @@ function openDialog(options={}){
     accept.textContent=options.acceptText||"OK";
     const finish=value=>{dialog.close();resolve(value)};
     cancel.onclick=()=>finish(null);
-    accept.onclick=()=>{
+    accept.onclick=async()=>{
       const values={};
       fields.querySelectorAll("[data-dialog-field]").forEach(el=>values[el.dataset.dialogField]=el.type==="checkbox"?el.checked:el.value);
       const validation=options.validate?.(values,parseDecimal);
       if(validation){error.textContent=validation;return;}
+      if(options.onSubmit){
+        accept.disabled=true;
+        try{
+          await options.onSubmit(values);
+        }catch(submitError){
+          console.error("Formular konnte nicht gespeichert werden:",submitError);
+          error.textContent=submitError?.message||"Die Änderungen konnten nicht gespeichert werden.";
+          accept.disabled=false;
+          return;
+        }
+        accept.disabled=false;
+      }
       finish(options.fields?values:true);
     };
     dialog.onclick=e=>{if(e.target===dialog&&options.cancelText!==null)finish(null)};

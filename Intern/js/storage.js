@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.3.4";
+const APP_VERSION = "6.3.5";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -349,7 +349,7 @@ function scheduleCloudSave(){
   if(!cloudReady || !currentUser)return;
   clearTimeout(saveTimer);
   setSyncStatus("Speichert …","busy");
-  saveTimer=setTimeout(saveCloudState,500);
+  saveTimer=setTimeout(()=>saveCloudState().catch(()=>{}),500);
 }
 async function saveCloudState(){
   if(!currentUser)return;
@@ -359,24 +359,26 @@ async function saveCloudState(){
     customers:state.customers.map(customer=>({...customer,rating:Number(customer.rating??0)}))
   };
   const client=await createSupabaseClient();
-  const { error } = await client.from("app_state").upsert({
+  const { data, error } = await client.from("app_state").upsert({
     user_id: currentUser.id,
     data: payload,
     updated_at: new Date().toISOString()
-  }, { onConflict: "user_id" });
+  }, { onConflict: "user_id" }).select().single();
   if(error){
-    console.error(error);
+    console.error("Kunde konnte nicht gespeichert werden:",error);
     setSyncStatus("Fehler","error");
+    throw error;
   }else{
     setSyncStatus("Gespeichert","ok");
+    return data;
   }
 }
 export async function flushCloudSave(){
-  if(!cloudReady||!currentUser)return;
+  if(!cloudReady||!currentUser)return null;
   clearTimeout(saveTimer);
   saveTimer=null;
   setSyncStatus("Speichert …","busy");
-  await saveCloudState();
+  return saveCloudState();
 }
 export async function loadCloudState(){
   const client=await createSupabaseClient();
