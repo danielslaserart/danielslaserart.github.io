@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.3.3";
+const APP_VERSION = "6.3.4";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -101,8 +101,12 @@ export function normalizeCustomerRecord(customer={}){
   const rating=Number.isFinite(parsedRating)?Math.min(5,Math.max(0,Math.round(parsedRating))):0;
   return {...customer,rating};
 }
+function customerPayload(customer={}){
+  const normalized=normalizeCustomerRecord(customer)||{...customer,rating:0};
+  return {...normalized,rating:Number(normalized.rating??0)};
+}
 function normalizeCustomers(customers){
-  return (Array.isArray(customers)?customers:[]).map(normalizeCustomerRecord).filter(Boolean);
+  return (Array.isArray(customers)?customers:[]).map(customerPayload).filter(Boolean);
 }
 
 export let state = load();
@@ -350,10 +354,14 @@ function scheduleCloudSave(){
 async function saveCloudState(){
   if(!currentUser)return;
   state.customers=normalizeCustomers(state.customers);
+  const payload={
+    ...state,
+    customers:state.customers.map(customer=>({...customer,rating:Number(customer.rating??0)}))
+  };
   const client=await createSupabaseClient();
   const { error } = await client.from("app_state").upsert({
     user_id: currentUser.id,
-    data: state,
+    data: payload,
     updated_at: new Date().toISOString()
   }, { onConflict: "user_id" });
   if(error){
@@ -362,6 +370,13 @@ async function saveCloudState(){
   }else{
     setSyncStatus("Gespeichert","ok");
   }
+}
+export async function flushCloudSave(){
+  if(!cloudReady||!currentUser)return;
+  clearTimeout(saveTimer);
+  saveTimer=null;
+  setSyncStatus("Speichert …","busy");
+  await saveCloudState();
 }
 export async function loadCloudState(){
   const client=await createSupabaseClient();
