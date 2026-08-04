@@ -80,7 +80,7 @@ $("designForm")?.addEventListener("submit",async event=>{
     ...agreementFields,
     id:existing?.id||uid(),recordType:"project",isReference:false,reference:false,
     orderType:"design",projectType:"design",module:"design",type:$("designServiceType").value,
-    title,customer:$("designCustomer").value.trim(),status:"offer",
+    title,customerId:$("designCustomerId")?.value||null,customer:"",status:"offer",
     designServiceType:$("designServiceType").value,designMinutes:result.totalMinutes,
     designHourlyRate:num($("designHourlyRate").value),designMinimumFee:num($("designMinimumFee").value),
     designExtraCosts:result.extra,notes:$("designNotes").value.trim(),
@@ -102,6 +102,7 @@ document.addEventListener("dla:load-design",event=>{
   document.querySelector('[data-screen="design"]')?.click();
   $("designProjectName").value=event.detail?.duplicate?`${source.title||"Designauftrag"} – Kopie`:source.title||"";
   $("designCustomer").value=source.customer||"";
+  if($("designCustomerId"))$("designCustomerId").value=source.customerId||"";
   $("designServiceType").value=source.designServiceType||source.type||"Sonstiges";
   const total=num(source.designMinutes??source.actualTotalTime);
   $("designHours").value=Math.floor(total/60)||"";

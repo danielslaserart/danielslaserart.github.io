@@ -8,6 +8,7 @@ import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, 
 import { appAlert, appPrompt } from "./dialogs.js";
 import { applyDesignDefaults } from "./design.js";
 import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js";
+const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
   if(current)sessionStorage.setItem(`dla-scroll-${current}`,String(window.scrollY));
@@ -80,12 +81,16 @@ export function loadCalculatorData(source={},options={}){
   if(options.blankCustomer){
     $("projectName").value="";
     $("customerName").value="";
+    if($("projectCustomerId"))$("projectCustomerId").value="";
+    $("projectCustomerId")?.dispatchEvent(new Event("change",{bubbles:true}));
     if($("customerAddress"))$("customerAddress").value="";
     if($("projectStatus"))$("projectStatus").value="offer";
     if($("projectTags"))$("projectTags").value="";
   }else{
     $("projectName").value=options.duplicate?`${source.title||source.name||"Projekt"} – Kopie`:(source.title||"");
     $("customerName").value=source.customer||"";
+    if($("projectCustomerId"))$("projectCustomerId").value=source.customerId||"";
+    $("projectCustomerId")?.dispatchEvent(new Event("change",{bubbles:true}));
     if($("customerAddress"))$("customerAddress").value=source.customerAddress||source.fields?.customerAddress||"";
     if($("projectStatus"))$("projectStatus").value=source.status||"offer";
     if($("projectTags"))$("projectTags").value=(source.tags||[]).join(", ");
@@ -156,7 +161,8 @@ export function updateHome(){
   const continueBtn=$("continueLastProjectBtn"),continueText=$("continueLastProjectText");
   if(continueBtn&&continueText){
     continueBtn.disabled=!latest;
-    continueText.textContent=latest?`${latest.title}${latest.customer?" · "+latest.customer:""}`:"Noch kein Projekt vorhanden";
+    const customerName=latest?projectCustomerName(latest):"";
+    continueText.textContent=latest?`${latest.title}${customerName?" · "+customerName:""}`:"Noch kein Projekt vorhanden";
     continueBtn.onclick=latest?()=>viewProject(latest.id):null;
   }
 }
@@ -173,7 +179,7 @@ function renderRecentProjects(){
     const deviation=difference===0?"":`<span class="recent-project-deviation ${difference>0?"above":"below"}">${difference>0?"🟢":"🟠"} ${difference>0?"+":"−"}${euro(Math.abs(difference))} ${difference>0?"über":"unter"} Empfehlung</span>`;
     return `<div class="recent-project-prices"><strong>${euro(recommended)}</strong><span class="recent-project-recommendation">Empfehlung</span>${hasAgreement?`<span class="recent-project-agreement">💜 Vereinbart: ${euro(finalSale)}</span>`:""}<span class="recent-project-profit ${profit<0?"negative":"positive"}">📈 Gewinn: ${euro(profit)} (${margin.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %)</span>${deviation}</div>`;
   };
-  box.innerHTML=items.length?items.map(p=>`<button class="recent-project" type="button" data-recent-id="${p.id}"><div class="recent-project-main"><b>${esc(p.title)}</b><small>${esc(p.customer||p.type||"")} · ${new Date(p.updated||p.created).toLocaleDateString("de-DE")}</small></div>${priceDetails(p)}</button>`).join(""):`<div class="empty-state">Noch keine Projekte gespeichert.</div>`;
+  box.innerHTML=items.length?items.map(p=>`<button class="recent-project" type="button" data-recent-id="${p.id}"><div class="recent-project-main"><b>${esc(p.title)}</b><small>${esc(projectCustomerName(p)||p.type||"")} · ${new Date(p.updated||p.created).toLocaleDateString("de-DE")}</small></div>${priceDetails(p)}</button>`).join(""):`<div class="empty-state">Noch keine Projekte gespeichert.</div>`;
   box.querySelectorAll("[data-recent-id]").forEach(btn=>btn.onclick=()=>viewProject(btn.dataset.recentId));
 }
 if($("dashboardSearch")) $("dashboardSearch").oninput=e=>{

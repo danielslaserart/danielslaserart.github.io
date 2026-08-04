@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.1";
+const APP_VERSION = "6.2";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -223,6 +223,7 @@ export function normalizeProjectRecord(project={}){
   const orderType=normalizeOrderType(project.orderType,{...project,customerObjectProcess:project.customerObjectProcess||(inferredCustomerObject?"engrave":null)});
   return {
     ...project,
+    customerId:project.customerId?String(project.customerId):null,
     agreementPrice:(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===null||(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===undefined||(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===""?null:num(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice),
     priceAgreementDate:(project.priceAgreementDate??project.agreementPriceDate)&&!Number.isNaN(new Date(project.priceAgreementDate??project.agreementPriceDate).getTime())?project.priceAgreementDate??project.agreementPriceDate:null,
     isPreferredRepeatPrice:(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==null&&(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==undefined&&(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==""&&Boolean(project.isPreferredRepeatPrice??project.isPreferredCustomerPrice),

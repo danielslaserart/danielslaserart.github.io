@@ -10,6 +10,7 @@ import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCos
 import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js";
 import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js";
+import { customerNameById } from "./customers.js";
 function projectStatusLabel(status){
   return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
@@ -30,15 +31,18 @@ export function renderProjects(){
   const realProjects=getRealProjects();
   const term=($('projectSearch')?.value||'').trim().toLowerCase();
   const filter=$('projectStatusFilter')?.value||'all';
+  const customerFilter=$('projectCustomerFilter')?.value||'all';
   const sort=$('projectSort')?.value||'updated';
   const list=realProjects.filter(p=>{
-    const matchesText=!term||`${p.title} ${p.customer||''} ${p.type||''} ${p.machineName||''} ${p.notes||''} ${(p.tags||[]).join(' ')}`.toLowerCase().includes(term);
+    const customerName=customerNameById(p.customerId)||p.customer||'';
+    const matchesText=!term||`${p.title} ${customerName} ${p.type||''} ${p.machineName||''} ${p.notes||''} ${(p.tags||[]).join(' ')}`.toLowerCase().includes(term);
     const matchesStatus=filter==='all'||(p.status||'offer')===filter;
-    return matchesText&&matchesStatus;
+    const matchesCustomer=customerFilter==='all'||(customerFilter==='none'?!p.customerId:p.customerId===customerFilter);
+    return matchesText&&matchesStatus&&matchesCustomer;
   }).sort((a,b)=>{
     if(Boolean(a.pinned)!==Boolean(b.pinned))return a.pinned?-1:1;
     if(sort==='name')return String(a.title||'').localeCompare(String(b.title||''),'de');
-    if(sort==='customer')return String(a.customer||'').localeCompare(String(b.customer||''),'de');
+    if(sort==='customer')return customerNameById(a.customerId).localeCompare(customerNameById(b.customerId),'de');
     if(sort==='price')return num(b.sale)-num(a.sale);
     if(sort==='created')return new Date(b.created)-new Date(a.created);
     return new Date(b.updated||b.created)-new Date(a.updated||a.created);
@@ -50,7 +54,7 @@ export function renderProjects(){
   $('projectList').innerHTML=list.length?list.map(p=>`
     <article class="card project-item" data-project-card="${p.id}">
       ${(p.images||[])[0]?`<button class="project-thumb" type="button" data-view-project="${p.id}" aria-label="Projekt ansehen"><img src="${p.images[0]}" alt=""></button>`:''}
-      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${p.customer?' · '+esc(p.customer):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div>${renderProjectPriceBlock(p)}</div>
+      <div class="item-top"><div><div class="item-title">${p.pinned?"📌 ":""}${esc(p.title)}</div><div class="item-meta">${esc(p.type)}${p.machineName?' · '+esc(p.machineName):''}${customerNameById(p.customerId)?' · '+esc(customerNameById(p.customerId)):''} · ${new Date(p.created).toLocaleDateString('de-DE')}</div></div>${renderProjectPriceBlock(p)}</div>
       <div class="project-status-row"><span class="order-badge ${p.orderType||"own"}">${orderTypeLabel(p.orderType)}</span><span class="project-status ${projectStatusClass(p.status)}">${projectStatusLabel(p.status)}</span></div>
       ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join('')}</div>`:''}${p.notes?`<div class="project-notes">${esc(p.notes)}</div>`:''}
       <div class="item-actions project-actions"><button type="button" data-view-project="${p.id}" class="primary">Ansehen</button><button type="button" data-edit-project="${p.id}">Bearbeiten</button>${p.estimatorData?`<button type="button" data-reference-project="${p.id}">Als Lerndaten nutzen</button>`:""}<button type="button" data-pin-project="${p.id}">${p.pinned?"Lösen":"Anheften"}</button><button type="button" data-template-project="${p.id}">Als Vorlage</button><button type="button" data-duplicate-project="${p.id}">Duplizieren</button><button type="button" data-del-project="${p.id}" class="danger">Löschen</button></div>
@@ -273,8 +277,8 @@ export function viewProject(id){
       <div><span>Auftragstyp</span><strong>${esc(orderTypeLabel(p.orderType))}</strong></div><div><span>Datum</span><strong>${new Date(p.created||p.updated).toLocaleDateString("de-DE")}</strong></div>
       <div><span>Status</span><strong>${esc(projectStatusLabel(p.status))}</strong></div>
     </div>
-    ${(p.customer||p.customerAddress||p.fields?.customerEmail||p.fields?.customerPhone)?`<h3>Kundendaten</h3><div class="project-view-details">
-      ${p.customer?`<div><span>Kunde / Firma</span><strong>${esc(p.customer)}</strong></div>`:""}
+    ${(customerNameById(p.customerId)||p.customer||p.customerAddress||p.fields?.customerEmail||p.fields?.customerPhone)?`<h3>Kundendaten</h3><div class="project-view-details">
+      ${customerNameById(p.customerId)||p.customer?`<div><span>Kunde / Firma</span><strong>${esc(customerNameById(p.customerId)||p.customer)}</strong></div>`:""}
       ${p.customerAddress?`<div><span>Kundenadresse</span><strong>${esc(p.customerAddress)}</strong></div>`:""}
       ${p.fields?.customerEmail?`<div><span>E-Mail</span><strong>${esc(p.fields.customerEmail)}</strong></div>`:""}
       ${p.fields?.customerPhone?`<div><span>Telefon</span><strong>${esc(p.fields.customerPhone)}</strong></div>`:""}
@@ -413,7 +417,10 @@ function loadProject(id,duplicate=false){
 $("clearProjectsBtn").onclick=async()=>{const real=getRealProjects();if(real.length&&await appConfirm("Wirklich alle echten Kundenprojekte löschen? Referenz- und Lerndaten bleiben erhalten.","Kundenprojekte löschen","Alle löschen")){const ids=new Set(real.map(p=>p.id));state.projects=state.projects.filter(p=>!ids.has(p.id));save();renderProjects()}};
 $("projectSearch").oninput=renderProjects;
 if($("projectStatusFilter"))$("projectStatusFilter").onchange=renderProjects;
+if($("projectCustomerFilter"))$("projectCustomerFilter").onchange=renderProjects;
 if($("projectSort"))$("projectSort").onchange=renderProjects;
+document.addEventListener("dla:filter-projects-by-customer",renderProjects);
+document.addEventListener("dla:view-project",event=>viewProject(event.detail?.projectId));
 if($("newOrderBtn"))$("newOrderBtn").onclick=()=>startNewOrder("3d");
 if($("projectNewBtn"))$("projectNewBtn").onclick=()=>startNewOrder("3d");
 if($("manageTemplatesBtn"))$("manageTemplatesBtn").onclick=async()=>{if(!(state.templates||[]).length){await appAlert("Noch keine Vorlagen vorhanden. Erstelle eine Vorlage über ein gespeichertes Projekt.");return;}const result=await appForm({title:"Vorlagen verwalten",fields:[{name:"template",label:"Zu löschende Vorlage",type:"select",options:state.templates.map(t=>({value:t.id,label:t.name}))}],cancelText:"Abbrechen",acceptText:"Vorlage löschen"});if(result&&await appConfirm("Vorlage wirklich löschen?","Vorlage löschen","Löschen")){state.templates=state.templates.filter(t=>t.id!==result.template);save();updateHome();}};
