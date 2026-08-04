@@ -1,4 +1,8 @@
-Daniels Laser Art Kalkulator V6.2
+Daniels Laser Art Kalkulator V6.2.1
+
+6.2.1 – Abwärtskompatible Projektübersicht
+
+- Version 6.2.1: Ältere Projekte ohne neue Kunden-, Status-, Preis-, Bild- oder Metadatenfelder bleiben sichtbar. Der Kundenfilter behandelt fehlende und ungültige Kunden-IDs als „Ohne Kundenzuordnung“. Einzelne unvollständige Datensätze können das Rendern der Projektliste nicht mehr abbrechen.
 
 6.2 – Kunden- und Projektverknüpfung
 
@@ -281,4 +285,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.2
+https://danielslaserart.de/Intern/?v=6.2.1
