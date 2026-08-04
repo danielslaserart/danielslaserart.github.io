@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.0";
+const APP_VERSION = "6.1";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -85,7 +85,7 @@ export const defaults = {
       risks:{under50:0,from50To100:3,from100To250:5,from250To500:8,over500:12}
     }
   },
-  materials:[],processingProfiles:[],projects:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
+  materials:[],processingProfiles:[],projects:[],customers:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[
     {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:300,active:true},
     {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:0,active:true},
@@ -95,6 +95,7 @@ export const defaults = {
   ]
 };
 export let state = load();
+state.customers=Array.isArray(state.customers)?state.customers:[];
 state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
 state.templates=Array.isArray(state.templates)?state.templates:[];
 state.projects=(state.projects||[]).map(normalizeProjectRecord);
@@ -136,6 +137,7 @@ export function load(){
     merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
     merged.processingProfiles=normalizeProcessingProfiles(merged.processingProfiles);
     merged.projects=(merged.projects||[]).map(normalizeProjectRecord);
+    merged.customers=Array.isArray(merged.customers)?merged.customers:[];
     migrateEmbeddedReferences(merged);
     return merged;
   }catch{return structuredClone(defaults)}

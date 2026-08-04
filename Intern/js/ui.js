@@ -16,6 +16,7 @@ export function setScreen(id){
   document.querySelectorAll(".bottom-nav [data-screen]").forEach(b=>b.classList.toggle("active",b.dataset.screen===id||(b.dataset.screen==="learning"&&learningScreens.includes(id))));
   if(id==="materials") renderMaterials();
   if(id==="projects") renderProjects();
+  if(id==="customers") document.dispatchEvent(new CustomEvent("dla:customers-opened"));
   if(id==="references") renderReferenceProjects();
   if(id==="experience") renderExperienceValues();
   if(id==="learningStats") renderLearningStatistics();

@@ -1,0 +1,85 @@
+import { $, esc, euro, num, uid } from "./utils.js";
+import { state, save, getRealProjects } from "./storage.js";
+import { appAlert, appConfirm, appForm } from "./dialogs.js";
+
+const WARNING_CATEGORIES=["Information","Positiv","Rabatt","Rechnung","Mahnung","Reklamation","Vorkasse","Problemkunde","Sonstiges"];
+const PAYMENT_LABELS={immediate:"Zahlt sofort",punctual:"Zahlt pünktlich",late:"Zahlt verspätet",prepayment:"Nur Vorkasse",problematic:"Rechnung problematisch",unknown:"Nicht bewertet"};
+const REASON_LABELS={regular:"Stammkundenpreis",family:"Familienrabatt",ownMaterial:"Eigenes Material",goodwill:"Kulanz",promotion:"Werbegeschenk",test:"Testauftrag",complaint:"Reklamation",other:"Sonstiges"};
+let selectedCustomerId=null;
+
+const now=()=>new Date().toISOString();
+const key=value=>String(value||"").trim().toLocaleLowerCase("de-DE").replace(/\s+/g," ");
+const dateTime=value=>new Date(value).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"});
+const customerProjects=customer=>getRealProjects().filter(p=>p.customerId===customer.id||(!p.customerId&&key(p.customer)===key(customer.companyName)));
+const activeWarnings=customer=>(customer.warnings||[]).filter(w=>w.active!==false);
+const projectFinalPrice=p=>p.agreementPrice!=null?num(p.agreementPrice):num(p.actualPrice??p.sale);
+const recommendedPrice=p=>num(p.estimatedPrice??p.calculationSnapshot?.results?.calculatedPrice??p.sale);
+
+function normalizeCustomer(customer={}){
+  return {...customer,id:String(customer.id||uid()),companyName:String(customer.companyName||""),contactPerson:String(customer.contactPerson||""),regular:Boolean(customer.regular),vip:Boolean(customer.vip),blocked:Boolean(customer.blocked),rating:Math.min(5,Math.max(1,Math.round(num(customer.rating)||3))),standardDiscount:{type:customer.standardDiscount?.type==="amount"?"amount":"percent",value:num(customer.standardDiscount?.value)},minimumFee:customer.minimumFee==null?null:num(customer.minimumFee),priceReason:customer.priceReason||"other",priceReasonText:String(customer.priceReasonText||""),warnings:Array.isArray(customer.warnings)?customer.warnings:[],notes:Array.isArray(customer.notes)?customer.notes:[],timeline:Array.isArray(customer.timeline)?customer.timeline:[],payment:{status:customer.payment?.status||"unknown",notes:String(customer.payment?.notes||"")},createdAt:customer.createdAt||now(),updatedAt:customer.updatedAt||now(),extensions:customer.extensions&&typeof customer.extensions==="object"?customer.extensions:{attachments:[],images:[],phoneNotes:[],emails:[],reminders:[]}};
+}
+
+function allCustomers(){state.customers=(state.customers||[]).map(normalizeCustomer);return state.customers;}
+function addTimeline(customer,type,title,description=""){customer.timeline.unshift({id:uid(),type,title,description,createdAt:now(),manual:type==="manual"});}
+function derivedTimeline(customer){return customerProjects(customer).flatMap(p=>{const rows=[{id:`project:${p.id}`,type:"project",title:"Projekt erstellt",description:p.title,createdAt:p.created||p.updated}];if(p.status==="offer")rows.push({id:`offer:${p.id}`,type:"project",title:"Angebot erstellt",description:p.title,createdAt:p.updated||p.created});if(["done","billed"].includes(p.status))rows.push({id:`done:${p.id}`,type:"project",title:"Projekt abgeschlossen",description:p.title,createdAt:p.updated||p.created});if(p.status==="billed")rows.push({id:`invoice:${p.id}`,type:"project",title:"Rechnung erstellt",description:p.title,createdAt:p.updated||p.created});return rows;});}
+function priceStats(customer){
+  const projects=customerProjects(customer).slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
+  const agreements=projects.filter(p=>p.agreementPrice!=null),last=projects[0];
+  const discounts=agreements.map(p=>{const rec=recommendedPrice(p),actual=projectFinalPrice(p);return rec>0?(rec-actual)/rec*100:0;});
+  return {projects,lastRecommended:last?recommendedPrice(last):null,lastAgreed:agreements[0]?projectFinalPrice(agreements[0]):null,averageDiscount:discounts.length?discounts.reduce((a,b)=>a+b,0)/discounts.length:null};
+}
+function stars(rating){return `<span class="customer-stars" aria-label="${rating} von 5 Sternen">${"★".repeat(rating)}${"☆".repeat(5-rating)}</span>`;}
+function badges(customer){return `${customer.regular?'<span class="customer-badge regular">🤝 Stammkunde</span>':""}${customer.vip?'<span class="customer-badge vip">◆ VIP</span>':""}${customer.blocked?'<span class="customer-badge blocked">⛔ Gesperrt</span>':""}`;}
+
+export function renderCustomerSummaryForName(name){
+  const host=$("customerCrmSummary");if(!host)return;
+  const customer=allCustomers().find(c=>key(c.companyName)===key(name));
+  if(!customer){host.classList.add("hidden");host.innerHTML="";return;}
+  const prices=priceStats(customer),warnings=activeWarnings(customer),danger=customer.blocked||warnings.some(w=>["Problemkunde","Mahnung","Vorkasse"].includes(w.category));
+  host.className=`customer-project-summary ${danger?"danger":""}`;
+  host.innerHTML=`<div><strong>${esc(customer.companyName)}</strong>${stars(customer.rating)}</div><div class="customer-badges">${badges(customer)}</div>${prices.lastAgreed!=null?`<p>Letzter vereinbarter Preis: <b>${euro(prices.lastAgreed)}</b> <small>Nur Information – wird nicht übernommen.</small></p>`:""}${warnings.length?`<div><b>${danger?"⚠️ Achtung":"Hinweise"}</b><ul>${warnings.slice(0,3).map(w=>`<li>${esc(w.title)}</li>`).join("")}</ul></div>`:""}${customer.payment.status!=="unknown"?`<p><b>Empfehlung:</b> ${esc(PAYMENT_LABELS[customer.payment.status])}${customer.payment.notes?` – ${esc(customer.payment.notes)}`:""}</p>`:""}`;
+  host.classList.remove("hidden");
+}
+
+function renderList(){
+  const box=$("customerList");if(!box)return;
+  const term=key($("customerSearch")?.value),filter=$("customerFilter")?.value||"all";
+  const rows=allCustomers().filter(c=>{const warnings=activeWarnings(c);const hay=key([c.companyName,c.contactPerson,c.priceReasonText,c.payment.notes,...warnings.flatMap(w=>[w.title,w.description,w.category]),...(c.notes||[]).map(n=>n.text),...(c.timeline||[]).flatMap(t=>[t.title,t.description])].join(" "));const matches=!term||hay.includes(term);const filtered=filter==="all"||(filter==="regular"&&c.regular)||(filter==="vip"&&c.vip)||(filter==="warning"&&warnings.length)||(filter==="problem"&&(c.blocked||warnings.some(w=>w.category==="Problemkunde")||c.payment.status==="problematic"));return matches&&filtered;}).sort((a,b)=>a.companyName.localeCompare(b.companyName,"de"));
+  box.innerHTML=rows.length?rows.map(c=>{const stats=priceStats(c),warning=activeWarnings(c).length;return `<button type="button" class="customer-row card" data-customer-id="${esc(c.id)}"><div class="customer-row-main"><strong>${esc(c.companyName)}</strong><small>${esc(c.contactPerson||"Kein Ansprechpartner")}</small></div>${stars(c.rating)}<span>${c.regular?"Ja":"–"}</span><span>${c.vip?"Ja":"–"}</span><span class="customer-warning-symbol">${warning||c.blocked?"⚠️":"–"}</span><b>${stats.lastAgreed!=null?euro(stats.lastAgreed):"–"}</b><span>${stats.projects.length}</span></button>`;}).join(""):`<div class="empty-state">Keine passende Kundenakte.</div>`;
+  box.querySelectorAll("[data-customer-id]").forEach(btn=>btn.onclick=()=>{selectedCustomerId=btn.dataset.customerId;renderDetail();});
+}
+
+function renderDetail(){
+  const customer=allCustomers().find(c=>c.id===selectedCustomerId),box=$("customerDetail");if(!box)return;
+  if(!customer){box.classList.add("hidden");return;}const stats=priceStats(customer),warnings=activeWarnings(customer),timeline=[...(customer.timeline||[]),...derivedTimeline(customer)].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  box.innerHTML=`<div class="section-head"><div><div class="eyebrow">KUNDENAKTE</div><h2>${esc(customer.companyName)}</h2>${stars(customer.rating)}</div><button type="button" class="ghost" data-customer-close>← Übersicht</button></div><div class="customer-badges">${badges(customer)}</div>
+  <div class="customer-actions"><button type="button" data-customer-edit>Stammdaten &amp; Preise</button><button type="button" data-warning-add>Warnhinweis</button><button type="button" data-note-add>Notiz</button><button type="button" data-timeline-add>Chronikeintrag</button><button type="button" data-payment-edit>Zahlungsverhalten</button></div>
+  <div class="crm-grid"><section class="card crm-card"><h3>Preisvereinbarungen</h3><dl><div><dt>Standardrabatt</dt><dd>${customer.standardDiscount.value?`${customer.standardDiscount.value.toLocaleString("de-DE")} ${customer.standardDiscount.type==="percent"?"%":"€"}`:"–"}</dd></div><div><dt>Individuelle Mindestpauschale</dt><dd>${customer.minimumFee!=null?euro(customer.minimumFee):"–"}</dd></div><div><dt>Letzte Empfehlung</dt><dd>${stats.lastRecommended!=null?euro(stats.lastRecommended):"–"}</dd></div><div><dt>Letzter vereinbarter Preis</dt><dd>${stats.lastAgreed!=null?euro(stats.lastAgreed):"–"}</dd></div><div><dt>Ø gewährter Nachlass</dt><dd>${stats.averageDiscount!=null?`${stats.averageDiscount.toLocaleString("de-DE",{maximumFractionDigits:1})} %`:"–"}</dd></div><div><dt>Begründung</dt><dd>${esc(REASON_LABELS[customer.priceReason]||"Sonstiges")}${customer.priceReasonText?` – ${esc(customer.priceReasonText)}`:""}</dd></div></dl><p class="crm-information">Nur Information: Diese Werte beeinflussen keine neue Kalkulation.</p></section>
+  <section class="card crm-card"><h3>Zahlungsverhalten</h3><strong>${esc(PAYMENT_LABELS[customer.payment.status]||PAYMENT_LABELS.unknown)}</strong><p>${esc(customer.payment.notes||"Keine ergänzende Notiz.")}</p></section></div>
+  <section class="card crm-card"><h3>Warnhinweise</h3>${customer.warnings.length?customer.warnings.map(w=>`<article class="warning-row ${w.active===false?"inactive":""}"><div><b>${esc(w.title)}</b><small>${esc(w.category)} · ${dateTime(w.createdAt)} · ${w.active===false?"Inaktiv":"Aktiv"}</small><p>${esc(w.description)}</p></div><button type="button" data-warning-toggle="${esc(w.id)}">${w.active===false?"Aktivieren":"Deaktivieren"}</button></article>`).join(""):'<p class="muted">Keine Warnhinweise.</p>'}</section>
+  <section class="card crm-card"><h3>Interne Notizen</h3>${customer.notes.length?customer.notes.map(n=>`<article class="note-row"><small>${dateTime(n.createdAt)}</small><p>${esc(n.text)}</p></article>`).join(""):'<p class="muted">Keine Notizen.</p>'}</section>
+  <section class="card crm-card"><h3>Kundenchronik</h3>${timeline.length?timeline.map(t=>`<article class="timeline-row"><i></i><div><b>${esc(t.title)}</b><small>${dateTime(t.createdAt)}</small>${t.description?`<p>${esc(t.description)}</p>`:""}</div></article>`).join(""):'<p class="muted">Noch keine Ereignisse.</p>'}</section>`;
+  box.classList.remove("hidden");$("customerList").classList.add("hidden");$("customerDetail").scrollIntoView({block:"start"});bindDetail(customer);
+}
+
+async function editCustomer(customer){const result=await appForm({title:customer?"Kundenakte bearbeiten":"Kundenakte anlegen",fields:[{name:"companyName",label:"Firmenname",value:customer?.companyName||""},{name:"contactPerson",label:"Ansprechpartner",value:customer?.contactPerson||""},{name:"rating",label:"Bewertung",type:"select",value:String(customer?.rating||3),options:[1,2,3,4,5].map(x=>({value:String(x),label:`${x} Stern${x===1?"":"e"}`}))},{name:"regular",label:"Stammkunde",type:"checkbox",value:customer?.regular},{name:"vip",label:"VIP",type:"checkbox",value:customer?.vip},{name:"blocked",label:"Gesperrt",type:"checkbox",value:customer?.blocked},{name:"discountType",label:"Standardrabatt als",type:"select",value:customer?.standardDiscount?.type||"percent",options:[{value:"percent",label:"Prozent"},{value:"amount",label:"Euro"}]},{name:"discountValue",label:"Standardrabatt",value:customer?.standardDiscount?.value||"",inputmode:"decimal"},{name:"minimumFee",label:"Individuelle Mindestpauschale (€)",value:customer?.minimumFee??"",inputmode:"decimal"},{name:"priceReason",label:"Preisbegründung",type:"select",value:customer?.priceReason||"regular",options:Object.entries(REASON_LABELS).map(([value,label])=>({value,label}))},{name:"priceReasonText",label:"Ergänzende Begründung",type:"textarea",value:customer?.priceReasonText||"",rows:3}],acceptText:"Speichern",validate:v=>!v.companyName.trim()?"Bitte einen Firmennamen eingeben.":allCustomers().some(c=>c.id!==customer?.id&&key(c.companyName)===key(v.companyName))?"Für diesen Firmennamen existiert bereits eine Kundenakte.":""});if(!result)return;const target=customer||normalizeCustomer({});Object.assign(target,{companyName:result.companyName.trim(),contactPerson:result.contactPerson.trim(),rating:Number(result.rating),regular:Boolean(result.regular),vip:Boolean(result.vip),blocked:Boolean(result.blocked),standardDiscount:{type:result.discountType,value:num(result.discountValue)},minimumFee:result.minimumFee===""?null:num(result.minimumFee),priceReason:result.priceReason,priceReasonText:result.priceReasonText.trim(),updatedAt:now()});if(!customer){addTimeline(target,"system","Kundenakte erstellt");state.customers.unshift(target);}else addTimeline(target,"system","Kundendaten oder Preisinfo geändert");selectedCustomerId=target.id;save();renderCustomers();renderDetail();}
+
+function bindDetail(customer){
+  $("customerDetail").querySelector("[data-customer-close]").onclick=()=>{selectedCustomerId=null;$("customerDetail").classList.add("hidden");$("customerList").classList.remove("hidden");renderList();};
+  $("customerDetail").querySelector("[data-customer-edit]").onclick=()=>editCustomer(customer);
+  $("customerDetail").querySelector("[data-warning-add]").onclick=async()=>{const r=await appForm({title:"Warnhinweis erstellen",fields:[{name:"title",label:"Titel"},{name:"category",label:"Kategorie",type:"select",options:WARNING_CATEGORIES.map(value=>({value,label:value}))},{name:"description",label:"Beschreibung",type:"textarea",rows:4}],acceptText:"Speichern",validate:v=>!v.title.trim()?"Bitte einen Titel eingeben.":""});if(r){customer.warnings.unshift({id:uid(),title:r.title.trim(),category:r.category,description:r.description.trim(),active:true,createdAt:now()});addTimeline(customer,"warning","Warnhinweis erstellt",r.title.trim());save();renderDetail();}};
+  $("customerDetail").querySelectorAll("[data-warning-toggle]").forEach(btn=>btn.onclick=()=>{const w=customer.warnings.find(x=>x.id===btn.dataset.warningToggle);if(w){w.active=!w.active;save();renderDetail();}});
+  $("customerDetail").querySelector("[data-note-add]").onclick=async()=>{const r=await appForm({title:"Interne Notiz",fields:[{name:"text",label:"Notiz",type:"textarea",rows:5}],acceptText:"Speichern",validate:v=>!v.text.trim()?"Bitte eine Notiz eingeben.":""});if(r){customer.notes.unshift({id:uid(),text:r.text.trim(),createdAt:now()});addTimeline(customer,"note","Notiz erstellt");save();renderDetail();}};
+  $("customerDetail").querySelector("[data-timeline-add]").onclick=async()=>{const r=await appForm({title:"Chronikeintrag",fields:[{name:"title",label:"Titel"},{name:"description",label:"Beschreibung",type:"textarea",rows:4}],acceptText:"Eintragen",validate:v=>!v.title.trim()?"Bitte einen Titel eingeben.":""});if(r){addTimeline(customer,"manual",r.title.trim(),r.description.trim());save();renderDetail();}};
+  $("customerDetail").querySelector("[data-payment-edit]").onclick=async()=>{const r=await appForm({title:"Zahlungsverhalten",fields:[{name:"status",label:"Merkmal",type:"select",value:customer.payment.status,options:Object.entries(PAYMENT_LABELS).map(([value,label])=>({value,label}))},{name:"notes",label:"Ergänzende Beschreibung",type:"textarea",value:customer.payment.notes,rows:4}],acceptText:"Speichern"});if(r){customer.payment={status:r.status,notes:r.notes.trim()};addTimeline(customer,"payment","Zahlungsverhalten geändert",PAYMENT_LABELS[r.status]);save();renderDetail();}};
+}
+
+export function renderCustomers(){renderList();if(selectedCustomerId)renderDetail();}
+export function initializeCustomers(){
+  if($("customerAddBtn"))$("customerAddBtn").onclick=()=>editCustomer(null);
+  if($("customerSearch"))$("customerSearch").oninput=renderList;
+  if($("customerFilter"))$("customerFilter").onchange=renderList;
+  const input=$("customerName");if(input){const list=document.createElement("datalist");list.id="crmCustomerNames";document.body.append(list);input.setAttribute("list",list.id);const refreshNames=()=>{list.innerHTML=allCustomers().map(c=>`<option value="${esc(c.companyName)}"></option>`).join("");};refreshNames();const host=document.createElement("section");host.id="customerCrmSummary";host.className="customer-project-summary hidden";input.closest(".card")?.prepend(host);input.addEventListener("input",()=>renderCustomerSummaryForName(input.value));input.addEventListener("change",()=>renderCustomerSummaryForName(input.value));document.addEventListener("dla:state-saved",()=>{refreshNames();renderCustomerSummaryForName(input.value);});}
+  document.addEventListener("dla:customers-opened",renderCustomers);
+  document.addEventListener("dla:state-loaded",renderCustomers);
+}
