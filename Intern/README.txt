@@ -1,4 +1,8 @@
-Daniels Laser Art Kalkulator V6.1
+Daniels Laser Art Kalkulator V6.2
+
+6.2 – Kunden- und Projektverknüpfung
+
+- Version 6.2: Projekte können optional und ausschließlich über eine eindeutige customerId mit einer Kundenakte verknüpft werden. Kundenakten zeigen die zugehörige Projekthistorie, automatisch berechnete Kundenstatistiken und Entscheidungshinweise. Projektübersicht, Suche und Filter wurden um die Kundenzuordnung erweitert. Bestehende Projekte bleiben unzugeordnet; es erfolgt keine automatische Namenszuordnung.
 
 6.1 – Kundenakte (CRM Light)
 
@@ -29,7 +33,7 @@ Daniels Laser Art Kalkulator V6.1
 - Der globale Bereich „Material-Bearbeitungsprofile“ entspricht optisch den Materialfamilien-Karten und ist standardmäßig geschlossen.
 - Keine Material-, Varianten-, Bestands-, Preis-, Bild-, Favoriten- oder Profildaten wurden migriert oder verändert.
 
-4.16.1 – Offizielles Briefpapier für Angebots-PDFs
+4.16.2 – Offizielles Briefpapier für Angebots-PDFs
 ---------------------------------------------------
 - Angebots-PDFs verwenden die unveränderte Original-PDF des offiziellen Daniels-Laser-Art-Briefpapiers als direkt eingebetteten Seitenhintergrund.
 - Anschriftfeld, Dokumentüberschrift, Angebotsdaten und Positionstabelle sind für DIN A4 und DIN-lang-Fensterumschläge neu ausgerichtet.
@@ -277,4 +281,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.1
+https://danielslaserart.de/Intern/?v=6.2
