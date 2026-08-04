@@ -1,7 +1,7 @@
 {
-  "name": "Daniels Laser Art Kalkulator 6.3.3",
+  "name": "Daniels Laser Art Kalkulator 6.3.4",
   "short_name": "DLA Kalkulator",
-  "start_url": "./?v=6.3.3",
+  "start_url": "./?v=6.3.4",
   "scope": "./",
   "display": "standalone",
   "background_color": "#120b07",
@@ -9,24 +9,24 @@
   "description": "Daniels Laser Art Kalkulator mit Maschinenprofilen und Projektarchiv",
   "icons": [
     {
-      "src": "icon-192.png?v=6.3.3",
+      "src": "icon-192.png?v=6.3.4",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png?v=6.3.3",
+      "src": "icon-512.png?v=6.3.4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-maskable-512.png?v=6.3.3",
+      "src": "icon-maskable-512.png?v=6.3.4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
-  "version": "6.3.3"
+  "version": "6.3.4"
 }
 
