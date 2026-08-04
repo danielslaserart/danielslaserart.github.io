@@ -1,4 +1,8 @@
-Daniels Laser Art Kalkulator V6.0
+Daniels Laser Art Kalkulator V6.1
+
+6.1 – Kundenakte (CRM Light)
+
+- Version 6.1: Neue Kundenakte mit Stammdaten, Bewertungen, Preisinfos, Warnhinweisen, internen Notizen, Kundenchronik, Zahlungsverhalten, erweiterten Filtern und Volltextsuche. Preisvereinbarungen dienen ausschließlich als Information und werden nie automatisch auf neue Projekte angewendet.
 
 6.0 – Informativere Projektvorschau auf der Startseite
 
@@ -273,4 +277,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.0
+https://danielslaserart.de/Intern/?v=6.1
