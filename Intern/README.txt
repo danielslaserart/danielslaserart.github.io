@@ -1,12 +1,12 @@
-Daniels Laser Art Kalkulator V6.3.4
+Daniels Laser Art Kalkulator V6.3.5
 
-6.3.4 – Gezielte Fehlerbehebung: 0-Sterne-Bewertung
+6.3.5 – Kritische Fehlerbehebung: Kundenformular speichert Änderungen nicht
 
-- Version 6.3.4: Die Kundenbewertung wird vom Formular bis zur lokalen und Supabase-Speicherung zentral als Zahl von 0 bis 5 behandelt. Der gültige Wert 0 bleibt beim Laden, Zusammenführen, Speichern und erneuten Bearbeiten erhalten und wird als ☆☆☆☆☆ angezeigt.
-
-6.3.4 – Gezielte Fehlerbehebung
-
-- Version 6.3.4: „Mehr Aktionen“ ist im geschlossenen Zustand kompakt, lässt sich zuverlässig ein- und ausklappen und zeigt geöffnet alle vorhandenen Zusatzaktionen. Kundenbewertungen speichern und laden den Zahlenwert 0 ohne Fallback auf einen höheren Wert.
+- Bestehende Kunden werden jetzt eindeutig anhand ihrer Kunden-ID im lokalen Datenbestand ersetzt.
+- Die Kundenbewertung 0 und deaktivierte Checkboxen werden ausdrücklich als gültige Werte übernommen.
+- Der Speicherdialog wartet auf lokales Speichern und den Supabase-Upsert.
+- Bei einem Speicherfehler bleibt das Formular geöffnet und zeigt eine sichtbare Fehlermeldung.
+- Die Erfolgsmeldung erscheint erst nach einem bestätigten Speichervorgang.
 
 6.3 – Moderne Kundenverwaltung
 
@@ -297,4 +297,4 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.3.4
+https://danielslaserart.de/Intern/?v=6.3.5
