@@ -1,4 +1,4 @@
-Daniels Laser Art Kalkulator V6.4
+Daniels Laser Art Kalkulator V6.4.1
 
 6.4 – Kritische Fehlerbehebung: Kundenformular speichert Änderungen nicht
 
@@ -297,7 +297,14 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.4
+https://danielslaserart.de/Intern/?v=6.4.1
+Version 6.4.1 – Projektpositionen sichtbar und neutraler Start
+
+- Projektpositionen sind direkt in der normalen Berechnungsmaske sichtbar und bedienbar.
+- Neue Berechnungen starten ohne Positionen und ohne automatisch eingefügte Zusatzartikel.
+- Die alte Einzelmaterial-Auswahl wird bei bestehenden Projekten als erste Position übernommen.
+- Verbrauchsmittel werden ausschließlich bewusst als eigene Position hinzugefügt.
+
 Version 6.4 – Projektpositionen
 
 - Projekte können beliebig viele getrennte Positionen enthalten.

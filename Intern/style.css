@@ -1085,6 +1085,7 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .project-more-actions:not([open])>div{display:none}
 .project-more-actions[open]>div{display:grid}
 .project-positions{margin:1.5rem 0;padding-top:1rem;border-top:1px solid rgba(176,141,87,.25)}
+.form-card>#moduleFields,.form-card>.product-size-section,.form-card>.consumables-section{display:none!important}
 .project-positions .section-head{align-items:center;margin-bottom:.75rem}
 .position-legacy-hint{padding:.75rem;border-radius:10px;background:rgba(176,141,87,.1);color:var(--muted);font-size:.88rem}
 .project-position-list{display:grid;gap:.65rem}
