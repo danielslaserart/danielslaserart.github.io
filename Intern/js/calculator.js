@@ -6,7 +6,9 @@ import { renderProjects } from "./projects.js";
 import { appConfirm } from "./dialogs.js";
 import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js";
 import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js";
 let editingProjectId=null;
+let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
 function getCustomerSettings(){return state.settings.customerObject||defaults.settings.customerObject;}
 export function suggestedRiskSurcharge(value,settings=getCustomerSettings()){
@@ -163,20 +165,24 @@ document.querySelectorAll('input[name="orderType"]').forEach(input=>input.addEve
 $("customerObjectProcess")?.addEventListener("change",()=>{const fields=captureCalculatorFields();renderCalculator(false);applyCalculatorFields(fields)});
 export function workshopUnit(mat){return mat?.workshopUnit||mat?.unit||"Einheit";}
 function workshopCost(mat,quantity){return (mat?.unitPrice||0)*(num(mat?.workshopUnitAmount)||1)*num(quantity);}
-function autoConsumables(type=state.activeModule){
-  return state.materials.filter(m=>m.consumableRole&&m.autoAdd&&moduleApplies(m,type)).sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name));
-}
 function initializeConsumables(force=false){
   if(force)consumableSelections=[];
-  const existing=new Map(consumableSelections.map(r=>[r.materialId,r]));
-  autoConsumables().forEach(mat=>{
-    if(!existing.has(mat.id))consumableSelections.push({materialId:mat.id,quantity:defaultQty(mat),auto:true});
-  });
-  consumableSelections=consumableSelections.filter(r=>{
-    const mat=state.materials.find(m=>m.id===r.materialId);
-    return !r.auto || (mat&&mat.autoAdd&&moduleApplies(mat));
-  });
+  consumableSelections=consumableSelections.filter(row=>row.materialId&&num(row.quantity)>0).map(row=>({...row,auto:false}));
 }
+
+function renderCalculatorProjectPositions(){
+  const host=$("calculatorProjectPositions");if(!host)return;
+  host.innerHTML=renderProjectPositions(calculatorPositionProject);
+  host.querySelectorAll("button").forEach(button=>button.type="button");
+  bindProjectPositions(host,calculatorPositionProject,()=>{renderCalculatorProjectPositions();calculate()});
+}
+export function setCalculatorPositions(source=null){
+  if(Array.isArray(source?.positions))calculatorPositionProject={positions:source.positions.map((row,index)=>normalizePosition(row,index))};
+  else if(source?.id)calculatorPositionProject={positions:projectPositions(source,true).map((row,index)=>normalizePosition({...row,order:index},index))};
+  else calculatorPositionProject={positions:[]};
+  renderCalculatorProjectPositions();
+}
+export function getCalculatorPositions(){return calculatorPositionProject.positions.map((row,index)=>normalizePosition({...row,order:index},index));}
 function consumableOptions(selectedId=""){
   const items=state.materials.filter(m=>m.consumableRole&&moduleApplies(m)).sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name));
   return `<option value="">Verbrauchsmaterial auswählen</option>`+items.map(m=>`<option value="${m.id}" ${m.id===selectedId?"selected":""}>${m.favorite?"★ ":""}${esc(m.name)} – ${euro(m.unitPrice)}/${esc(m.unit)}</option>`).join("");
@@ -349,6 +355,7 @@ export function renderCalculator(clear=false){
     </div>`;
 
   $("moduleFields").innerHTML=html;
+  renderCalculatorProjectPositions();
   updateOrderAssistantUI();
   renderConsumables();
   document.querySelectorAll("#calcForm input:not(.agreement-field),#calcForm select:not(.agreement-field)").forEach(el=>el.oninput=calculate);
@@ -433,6 +440,9 @@ export function calculate(){
     extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
 
+  const totals=positionTotals(calculatorPositionProject);
+  material=totals.material;machine=totals.machine;work=totals.work;extra=totals.other;
+
   const settings=getCustomerSettings(),difficultyKey=$("difficulty")?.value||"normal";
   const breakdown=computePriceBreakdown({
     orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
@@ -491,7 +501,7 @@ $("calcForm").onsubmit=async e=>{
   const selectedCustomerId=$("projectCustomerId")?.value||"";
   const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",customerAddress:$("customerAddress")?.value.trim()||"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   // Projektpositionen gehören zur Projektakte und bleiben beim erneuten Kalkulieren vollständig erhalten.
-  if(existingProject&&Array.isArray(existingProject.positions))project.positions=existingProject.positions;
+  project.positions=getCalculatorPositions();
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
   const usedKeys=[project.fields?.matMain,project.fields?.matTransfer,...project.consumables.map(r=>r.materialId)].filter(Boolean);
@@ -510,6 +520,7 @@ $("calcForm").onsubmit=async e=>{
 export function resetCalculatorState(){
   editingProjectId=null;
   consumableSelections=[];
+  calculatorPositionProject={positions:[]};
   productSize="medium";
 }
 export function setEditingProjectId(id){ editingProjectId=id; }

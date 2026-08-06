@@ -4,7 +4,7 @@ import { renderMaterials } from "./materials.js";
 import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js";
 import { fillSettings } from "./settings.js";
 import { renderTools, resetTool } from "./statistics.js";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, getCalculatorProductSize, getOrderType } from "./calculator.js";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType } from "./calculator.js";
 import { appAlert, appPrompt } from "./dialogs.js";
 import { applyDesignDefaults } from "./design.js";
 import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js";
@@ -50,6 +50,7 @@ function resetCalculator(module="3d"){
   state.activeModule=module||"3d";
   setEditingProjectId(null);
   setCalculatorConsumables([]);
+  setCalculatorPositions(null);
   setCalculatorProductSize("medium");
   state.timer={running:false,startedAt:null,elapsed:0};
   renderCalculator(true);
@@ -75,6 +76,7 @@ export function loadCalculatorData(source={},options={}){
   renderCalculator(false);
   document.querySelectorAll("[data-product-size]").forEach(b=>b.classList.toggle("active",b.dataset.productSize===getCalculatorProductSize()));
   setCalculatorConsumables((source.consumables||[]).map(r=>({materialId:r.materialId||"",quantity:num(r.quantity),auto:false})));
+  setCalculatorPositions(source);
   renderConsumables();
   applyCalculatorFields(source.fields||{});
   if(source.machineId&&$("machineSelect"))$("machineSelect").value=source.machineId;
