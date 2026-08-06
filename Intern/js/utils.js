@@ -15,6 +15,24 @@ export const MATERIAL_CATEGORIES={
   "Textilfolie":["Textilfolie","Spezialfolie","Textilien","Rohlinge","Sonstiges"],
   "Sonstiges":["Kleber","Reinigung","Schleifen","Farbe & Finish","Abkleben","Wartung","Verpackung","Sonstiges"]
 };
+export const MATERIAL_USE_CATEGORIES=[
+  ["work","Werkmaterial"],["print","Druckmaterial"],["plot","Plottermaterial"],
+  ["consumable","Verbrauchsmittel"],["packaging","Verpackung"],["accessory","Zubehör"],
+  ["customer","Kundengegenstand"]
+];
+export function inferMaterialUseCategory(m={}){
+  if(MATERIAL_USE_CATEGORIES.some(([value])=>value===m.useCategory))return m.useCategory;
+  const name=String(m.name||"").toLowerCase(),category=String(m.category||m.consumableCategory||"").toLowerCase();
+  if(m.consumableRole){
+    if(category.includes("verpack")||/karton|schachtel|versand|verpack/.test(name))return "packaging";
+    if(/magnet|öse|haken|schraub|band|zubehör/.test(name))return "accessory";
+    return "consumable";
+  }
+  if(/kundengegenstand|kundenmaterial|fremdartikel/.test(name))return "customer";
+  if(m.area==="3D-Druck")return "print";
+  if(["Vinylfolie","Übertragungsfolie","Textilfolie"].includes(m.area))return "plot";
+  return "work";
+}
 export function inferMaterialCategory(m){
   if(m.category)return m.category;
   if(m.consumableRole)return m.consumableCategory||"Sonstiges";

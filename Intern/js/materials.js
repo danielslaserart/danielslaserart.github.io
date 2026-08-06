@@ -1,4 +1,4 @@
-import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, categoryOptions, compressProjectImage } from "./utils.js";
+import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, categoryOptions, compressProjectImage } from "./utils.js";
 import { state, save } from "./storage.js";
 import { calculate } from "./calculator.js";
 import { appAlert, appConfirm, appForm } from "./dialogs.js";
@@ -202,6 +202,7 @@ function openMaterial(m=null,{variantId=""}={}){
   $("materialId").value=m?.id||"";
   $("materialName").value=m?.name||"";
   $("materialArea").value=m?.area||"3D-Druck";
+  $("materialUseCategory").value=inferMaterialUseCategory(m||{area:"3D-Druck"});
   renderMaterialCategorySelect(m?.category||inferMaterialCategory(m||{area:"3D-Druck",name:""}));
   $("materialSupplier").value=m?.supplier||"";
   $("materialManufacturer").value=m?.manufacturer||"";
@@ -229,7 +230,7 @@ function openMaterial(m=null,{variantId=""}={}){
   $("consumptionSmall").value=m?.consumptionLevels?.small??(m?.scaleWithSize?num(m?.defaultConsumption)*(num(m?.sizeFactors?.small)||0.5):m?.defaultConsumption??"");
   $("consumptionMedium").value=m?.consumptionLevels?.medium??m?.defaultConsumption??"";
   $("consumptionLarge").value=m?.consumptionLevels?.large??(m?.scaleWithSize?num(m?.defaultConsumption)*(num(m?.sizeFactors?.large)||2):m?.defaultConsumption??"");
-  $("materialAutoAdd").checked=m?Boolean(m.autoAdd):false;
+  $("materialAutoAdd").checked=false;
   $("materialFavorite").checked=m?Boolean(m.favorite):false;
   $("materialConsumableCategory").value=m?.consumableCategory||"Sonstiges";
   const modules=m?.consumableModules||["3d","laser","vinyl","textil"];
@@ -258,14 +259,14 @@ $("materialForm").onsubmit=e=>{
   }
   const modules=[...document.querySelectorAll("[data-consumable-module]:checked")].map(cb=>cb.value);
   const item={
-    id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",supplier:$("materialSupplier").value.trim(),manufacturer:$("materialManufacturer").value.trim(),color:$("materialColor").value.trim(),location:$("materialLocation").value.trim(),image:hasVariants?"":materialImageData,
+    id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",useCategory:$("materialUseCategory").value||inferMaterialUseCategory({area:$("materialArea").value,name}),supplier:$("materialSupplier").value.trim(),manufacturer:$("materialManufacturer").value.trim(),color:$("materialColor").value.trim(),location:$("materialLocation").value.trim(),image:hasVariants?"":materialImageData,
     width:hasVariants?0:num($("materialWidth").value),height:hasVariants?0:num($("materialHeight").value),dimensionUnit:$("materialDimensionUnit").value,sheetCount:hasVariants?1:Math.max(1,num($("materialSheetCount").value)),
     price:hasVariants?0:price,quantity:hasVariants?1:quantity,unit:$("materialUnit").value,salePrice:num($("materialSalePrice").value),stock:num($("materialStock").value),minStock:num($("materialMinStock").value),trackStock:num($("materialStock").value)>0||num($("materialMinStock").value)>0,qrCode:$("materialQrCode").value.trim(),
     note:$("materialNote").value.trim(),unitPrice:hasVariants?0:price/quantity,variants:editingMaterialVariants.filter(v=>v.name.trim()).map(v=>normalizeVariant(v,{unit:$("materialUnit").value})),stockHistory:state.materials.find(x=>x.id===$("materialId").value)?.stockHistory||[],mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
     consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("consumptionMedium").value),
     workshopUnit:$("materialWorkshopUnit").value.trim()||$("materialUnit").value,workshopUnitAmount:num($("materialWorkshopUnitAmount").value)||1,
     consumptionLevels:{small:num($("consumptionSmall").value),medium:num($("consumptionMedium").value),large:num($("consumptionLarge").value)},
-    autoAdd:$("materialAutoAdd").checked,favorite:$("materialFavorite").checked,scaleWithSize:true,
+    autoAdd:false,favorite:$("materialFavorite").checked,scaleWithSize:true,
     consumableModules:modules.length?modules:["3d","laser","vinyl","textil"],
     sizeFactors:{small:1,medium:1,large:1}
   };

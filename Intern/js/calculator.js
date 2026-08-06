@@ -173,13 +173,17 @@ function initializeConsumables(force=false){
 function renderCalculatorProjectPositions(){
   const host=$("calculatorProjectPositions");if(!host)return;
   host.innerHTML=renderProjectPositions(calculatorPositionProject);
+  const single=calculatorPositionProject.positions.length===1;
+  host.querySelector(".project-positions")?.classList.toggle("single-position-mode",single);
+  if(single)host.querySelector(".project-position-card")?.setAttribute("open","");
+  const add=host.querySelector("[data-position-add]");if(add)add.textContent=single?"＋ Weiteres Material / Arbeitsschritt":"＋ Weitere Position hinzufügen";
   host.querySelectorAll("button").forEach(button=>button.type="button");
   bindProjectPositions(host,calculatorPositionProject,()=>{renderCalculatorProjectPositions();calculate()});
 }
 export function setCalculatorPositions(source=null){
   if(Array.isArray(source?.positions))calculatorPositionProject={positions:source.positions.map((row,index)=>normalizePosition(row,index))};
   else if(source?.id)calculatorPositionProject={positions:projectPositions(source,true).map((row,index)=>normalizePosition({...row,order:index},index))};
-  else calculatorPositionProject={positions:[]};
+  else calculatorPositionProject={positions:[normalizePosition({id:uid(),label:"Neue Position",activity:state.activeModule==="3d"?"print3d":state.activeModule==="vinyl"||state.activeModule==="textil"?"plot":"engrave",materialSource:"managed",quantity:1,unit:"Stück"},0)]};
   renderCalculatorProjectPositions();
 }
 export function getCalculatorPositions(){return calculatorPositionProject.positions.map((row,index)=>normalizePosition({...row,order:index},index));}
