@@ -1,6 +1,6 @@
-Daniels Laser Art Kalkulator V6.3.5
+Daniels Laser Art Kalkulator V6.4
 
-6.3.5 – Kritische Fehlerbehebung: Kundenformular speichert Änderungen nicht
+6.4 – Kritische Fehlerbehebung: Kundenformular speichert Änderungen nicht
 
 - Bestehende Kunden werden jetzt eindeutig anhand ihrer Kunden-ID im lokalen Datenbestand ersetzt.
 - Die Kundenbewertung 0 und deaktivierte Checkboxen werden ausdrücklich als gültige Werte übernommen.
@@ -297,4 +297,14 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.3.5
+https://danielslaserart.de/Intern/?v=6.4
+Version 6.4 – Projektpositionen
+
+- Projekte können beliebig viele getrennte Positionen enthalten.
+- Jede Position besitzt eigenes Material, Variante, Tätigkeit, Maschine, Zeiten und Kosten.
+- Unterstützte Tätigkeiten: Gravieren, Schneiden, kombiniert, 3D-Druck, Plotten, Kleben, Montieren, Verpacken, Nur Material und Sonstiges.
+- Materialien können aus der Materialverwaltung, einmalig manuell oder als kundeneigenes Material mit 0 Euro gewählt werden.
+- Positionen sind kompakt aufklappbar und können bearbeitet, dupliziert, gelöscht und verschoben werden.
+- Material-, Maschinen-, Arbeits- und sonstige Kosten werden getrennt sowie als Gesamtkalkulation summiert.
+- Lagerbestände werden beim Projektabschluss je Position höchstens einmal reduziert.
+- Alte Projekte bleiben unverändert erhalten und werden zunächst nur als virtuelle erste Position dargestellt.
