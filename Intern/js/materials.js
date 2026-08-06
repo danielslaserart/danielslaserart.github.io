@@ -1,4 +1,4 @@
-import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, categoryOptions, compressProjectImage } from "./utils.js";
+import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, inferMaterialActivities, categoryOptions, compressProjectImage } from "./utils.js";
 import { state, save } from "./storage.js";
 import { calculate } from "./calculator.js";
 import { appAlert, appConfirm, appForm } from "./dialogs.js";
@@ -203,6 +203,8 @@ function openMaterial(m=null,{variantId=""}={}){
   $("materialName").value=m?.name||"";
   $("materialArea").value=m?.area||"3D-Druck";
   $("materialUseCategory").value=inferMaterialUseCategory(m||{area:"3D-Druck"});
+  const suitableActivities=inferMaterialActivities(m||{area:"3D-Druck"});
+  document.querySelectorAll("[data-material-activity]").forEach(cb=>cb.checked=suitableActivities.includes(cb.value));
   renderMaterialCategorySelect(m?.category||inferMaterialCategory(m||{area:"3D-Druck",name:""}));
   $("materialSupplier").value=m?.supplier||"";
   $("materialManufacturer").value=m?.manufacturer||"";
@@ -258,8 +260,9 @@ $("materialForm").onsubmit=e=>{
     if(invalid){appAlert("Bitte bei jeder Variante eine gültige gekaufte Menge eingeben.");return}
   }
   const modules=[...document.querySelectorAll("[data-consumable-module]:checked")].map(cb=>cb.value);
+  const suitableActivities=[...document.querySelectorAll("[data-material-activity]:checked")].map(cb=>cb.value);
   const item={
-    id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",useCategory:$("materialUseCategory").value||inferMaterialUseCategory({area:$("materialArea").value,name}),supplier:$("materialSupplier").value.trim(),manufacturer:$("materialManufacturer").value.trim(),color:$("materialColor").value.trim(),location:$("materialLocation").value.trim(),image:hasVariants?"":materialImageData,
+    id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",useCategory:$("materialUseCategory").value||inferMaterialUseCategory({area:$("materialArea").value,name}),suitableActivities,supplier:$("materialSupplier").value.trim(),manufacturer:$("materialManufacturer").value.trim(),color:$("materialColor").value.trim(),location:$("materialLocation").value.trim(),image:hasVariants?"":materialImageData,
     width:hasVariants?0:num($("materialWidth").value),height:hasVariants?0:num($("materialHeight").value),dimensionUnit:$("materialDimensionUnit").value,sheetCount:hasVariants?1:Math.max(1,num($("materialSheetCount").value)),
     price:hasVariants?0:price,quantity:hasVariants?1:quantity,unit:$("materialUnit").value,salePrice:num($("materialSalePrice").value),stock:num($("materialStock").value),minStock:num($("materialMinStock").value),trackStock:num($("materialStock").value)>0||num($("materialMinStock").value)>0,qrCode:$("materialQrCode").value.trim(),
     note:$("materialNote").value.trim(),unitPrice:hasVariants?0:price/quantity,variants:editingMaterialVariants.filter(v=>v.name.trim()).map(v=>normalizeVariant(v,{unit:$("materialUnit").value})),stockHistory:state.materials.find(x=>x.id===$("materialId").value)?.stockHistory||[],mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,

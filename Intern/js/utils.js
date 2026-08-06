@@ -33,6 +33,19 @@ export function inferMaterialUseCategory(m={}){
   if(["Vinylfolie","Übertragungsfolie","Textilfolie"].includes(m.area))return "plot";
   return "work";
 }
+export function inferMaterialActivities(m={}){
+  if(Array.isArray(m.suitableActivities)&&m.suitableActivities.length)return [...new Set(m.suitableActivities.map(String))];
+  const use=inferMaterialUseCategory(m),name=String(m.name||"").toLowerCase(),category=String(m.category||m.consumableCategory||"").toLowerCase();
+  if(use==="customer")return ["engrave","cut","both","material","other"];
+  if(use==="work")return ["engrave","cut","both","assemble","material","other"];
+  if(use==="print")return ["print3d","material","other"];
+  if(use==="plot")return ["plot","material","other"];
+  if(use==="packaging")return ["pack","material","other"];
+  if(use==="accessory")return ["assemble","material","other"];
+  if(/leim|kleber|klebstoff|sekundenkleber/.test(`${name} ${category}`))return ["glue","assemble","material","other"];
+  if(/reinig|isoprop|alkohol|aceton|entfett/.test(`${name} ${category}`))return ["other","material"];
+  return ["assemble","material","other"];
+}
 export function inferMaterialCategory(m){
   if(m.category)return m.category;
   if(m.consumableRole)return m.consumableCategory||"Sonstiges";

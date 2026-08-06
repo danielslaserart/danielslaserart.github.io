@@ -4,7 +4,7 @@ import { renderMaterials } from "./materials.js";
 import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js";
 import { fillSettings } from "./settings.js";
 import { renderTools, resetTool } from "./statistics.js";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType } from "./calculator.js";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js";
 import { appAlert, appPrompt } from "./dialogs.js";
 import { applyDesignDefaults } from "./design.js";
 import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js";
@@ -44,7 +44,7 @@ function renderLearningStatistics(){
   const active=records.filter(r=>r.reference!==false).length;
   box.innerHTML=`<div class="stats learning-stat-grid"><div class="card stat"><span>Erfahrungswerte</span><strong>${records.length}</strong></div><div class="card stat"><span>Aktiv im Lernsystem</span><strong>${active}</strong></div><div class="card stat"><span>Ø Zeitabweichung</span><strong>${timeDeviation==null?"–":timeDeviation.toLocaleString("de-DE",{maximumFractionDigits:1})+" %"}</strong></div><div class="card stat"><span>Ø Preisabweichung</span><strong>${priceDeviation==null?"–":priceDeviation.toLocaleString("de-DE",{maximumFractionDigits:1})+" %"}</strong></div></div><div class="card learning-progress-card"><h3>Lernfortschritt</h3><p>${records.length<3?"Noch wenige Vergleichswerte. Mit jedem gepflegten Ist-Wert werden die Schätzungen zuverlässiger.":records.length<10?"Gute Grundlage. Weitere tatsächliche Zeiten und Verkaufspreise verbessern die Trefferquote.":"Das Lernsystem verfügt über eine solide Datenbasis."}</p><div class="learning-progress"><i style="width:${Math.min(100,records.length*10)}%"></i></div></div>`;
 }
-document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=getOrderType()==="own"?b.dataset.tab:"laser";save();renderCalculator()});
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=getOrderType()==="own"?b.dataset.tab:"laser";syncAutomaticFirstPosition(state.activeModule);save();renderCalculator()});
 
 function resetCalculator(module="3d"){
   state.activeModule=module||"3d";
