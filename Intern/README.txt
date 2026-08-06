@@ -1,6 +1,6 @@
-Daniels Laser Art Kalkulator V6.4.2
+Daniels Laser Art Kalkulator V6.4.3
 
-Version 6.4.2 – Kompakte Projektpositionen und gefilterte Materialauswahl
+Version 6.4.3 – Kompakte Projektpositionen und gefilterte Materialauswahl
 
 - Neue Berechnungen starten mit genau einer neutralen Position im Kompaktmodus.
 - Erst eine weitere Position aktiviert die einklappbare Mehrpositionsansicht.
@@ -308,8 +308,8 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.4.2
-Version 6.4.2 – Projektpositionen sichtbar und neutraler Start
+https://danielslaserart.de/Intern/?v=6.4.3
+Version 6.4.3 – Projektpositionen sichtbar und neutraler Start
 
 - Projektpositionen sind direkt in der normalen Berechnungsmaske sichtbar und bedienbar.
 - Neue Berechnungen starten ohne Positionen und ohne automatisch eingefügte Zusatzartikel.
