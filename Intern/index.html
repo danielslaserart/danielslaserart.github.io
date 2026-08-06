@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=6.4.1">
-  <link rel="apple-touch-icon" href="icon-192.png?v=6.4.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.4.1">
-  <link rel="stylesheet" href="style.css?v=6.4.1">
+  <link rel="manifest" href="manifest.json?v=6.4.2">
+  <link rel="apple-touch-icon" href="icon-192.png?v=6.4.2">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.4.2">
+  <link rel="stylesheet" href="style.css?v=6.4.2">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -63,7 +63,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V6.4.1</span>
+      <span class="version-badge">V6.4.2</span>
     </div>
 
     <div class="dashboard-actions">
@@ -912,6 +912,12 @@
       <label>Kategorie
         <select id="materialCategory"></select>
       </label>
+      <label>Verwendungskategorie
+        <select id="materialUseCategory">
+          <option value="work">Werkmaterial</option><option value="print">Druckmaterial</option><option value="plot">Plottermaterial</option>
+          <option value="consumable">Verbrauchsmittel</option><option value="packaging">Verpackung</option><option value="accessory">Zubehör</option><option value="customer">Kundengegenstand</option>
+        </select>
+      </label>
       <label>Lieferant<input id="materialSupplier" placeholder="optional, z. B. Hornbach"></label>
       <label>Hersteller<input id="materialManufacturer" placeholder="optional"></label>
       <label>Farbe<input id="materialColor" placeholder="optional"></label>
@@ -975,7 +981,7 @@
           </select>
         </label>
       </div>
-      <label class="check-row"><input id="materialAutoAdd" type="checkbox"><span>Automatisch zu passenden Kalkulationen hinzufügen</span></label>
+      <input id="materialAutoAdd" type="hidden" value="">
       <label class="check-row"><input id="materialFavorite" type="checkbox"><span>Als Favorit oben anzeigen</span></label>
       <div class="subgroup-label">Verbrauch je Produktgröße</div>
       <div class="factor-grid">
@@ -1031,7 +1037,7 @@
 <script id="supabaseScript" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
-<script src="assets/vendor/pdf-lib.min.js?v=6.4.1"></script>
-<script type="module" src="js/app.js?v=6.4.1"></script>
+<script src="assets/vendor/pdf-lib.min.js?v=6.4.2"></script>
+<script type="module" src="js/app.js?v=6.4.2"></script>
 </body>
 </html>
