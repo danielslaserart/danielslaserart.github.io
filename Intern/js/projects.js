@@ -11,6 +11,7 @@ import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js";
 import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js";
 import { customerNameById } from "./customers.js";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock } from "./project-positions.js";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -310,6 +311,7 @@ export function viewProject(id){
       ${p.fields?.customerEmail?`<div><span>E-Mail</span><strong>${esc(p.fields.customerEmail)}</strong></div>`:""}
       ${p.fields?.customerPhone?`<div><span>Telefon</span><strong>${esc(p.fields.customerPhone)}</strong></div>`:""}
     </div>`:""}
+    ${renderProjectPositions(p)}
     ${projectProcessingDetails(p)}
     ${customerCalculationOverview(p)}
     ${p.orderType==="customerObject"?"":`<h3>Tatsächliche Kosten</h3><div class="project-view-details">
@@ -329,7 +331,9 @@ export function viewProject(id){
   const statusSelect=$("projectViewStatusSelect");
   statusSelect.value=p.status||"offer";
   statusSelect.onchange=()=>{
+    const previousStatus=p.status;
     p.status=statusSelect.value;
+    if(!["done","billed"].includes(previousStatus)&&["done","billed"].includes(p.status))deductPositionStock(p);
     p.updated=new Date().toISOString();
     save();renderProjects();updateHome();
   };
@@ -349,6 +353,7 @@ export function viewProject(id){
     if(await appConfirm("Dieses Projektbild löschen?","Bild löschen","Löschen")){p.images.splice(Number(btn.dataset.deleteImage),1);p.updated=new Date().toISOString();save();renderProjects();dialog.close();viewProject(id)}
   });
   bindPriceAgreementActions(dialog,p,{refresh:()=>{renderProjects();dialog.close();viewProject(id)},openProject:otherId=>{dialog.close();viewProject(otherId)}});
+  bindProjectPositions(dialog,p,()=>{renderProjects();dialog.close();viewProject(id)});
   try{if(!dialog.open)dialog.showModal()}catch(err){console.error(err);dialog.setAttribute("open","")}
 }
 

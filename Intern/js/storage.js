@@ -59,7 +59,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.3.5";
+const APP_VERSION = "6.4";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -275,7 +275,12 @@ export function normalizeProjectRecord(project={}){
     tags:Array.isArray(project.tags)?project.tags:(project.tags?String(project.tags).split(",").map(x=>x.trim()).filter(Boolean):[]),
     images:Array.isArray(project.images)?project.images.filter(Boolean):(project.image?[project.image]:[]),
     priceHistory:Array.isArray(project.priceHistory)?project.priceHistory:[],
-    workSeconds:num(project.workSeconds)
+    workSeconds:num(project.workSeconds),
+    positions:Array.isArray(project.positions)?project.positions.map((position,index)=>({
+      ...position,id:String(position.id||uid()),order:Number.isFinite(Number(position.order))?Number(position.order):index,
+      quantity:Math.max(0,num(position.quantity)),materialCost:position.materialSource==="customer"?0:Math.max(0,num(position.materialCost)),
+      machineMinutes:Math.max(0,num(position.machineMinutes)),machineCost:Math.max(0,num(position.machineCost)),workMinutes:Math.max(0,num(position.workMinutes)),workCost:Math.max(0,num(position.workCost)),otherCost:Math.max(0,num(position.otherCost)),materialConsumption:Math.max(0,num(position.materialConsumption)),printGrams:Math.max(0,num(position.printGrams)),stockDeducted:Boolean(position.stockDeducted),stockDeductedAmount:Math.max(0,num(position.stockDeductedAmount))
+    })):undefined
   };
 }
 export function normalizeLearningRecord(record={}){

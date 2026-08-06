@@ -62,7 +62,7 @@ export function initializeApp(){
   initializeCustomers();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.3.5",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.4",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
