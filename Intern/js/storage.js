@@ -1,5 +1,5 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js";
-import { appConfirm } from "./dialogs.js";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.4.4";
+import { appConfirm } from "./dialogs.js?v=6.4.4";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -11,6 +11,12 @@ let logoutRequested = false;
 let authInitializing = false;
 let authListenerRegistered = false;
 let enteringApp = false;
+let securityState = "checking-session";
+let cloudRecordLoaded = false;
+let confirmedInitialTransfer = false;
+let cloudUpdatedAt = null;
+let legacyLocalState = null;
+let loadedCloudState = null;
 
 function withTimeout(promise,milliseconds,message){
   let timer;
@@ -59,7 +65,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.4.3";
+const APP_VERSION = "6.4.4";
 const VERSION_KEY = "dla_app_version";
 if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
   if ("caches" in window) {
@@ -75,24 +81,18 @@ if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
 
 export const defaults = {
   settings:{
-    profit:30,hourly:0,machine3d:0.5,laserGravur:0.1,laserSchnitt:0.15,
-    plotter:0.1,presse:0.15,reserve:5,packaging:0,rounding:0.1,
-    overhead:0,electricity:0.35,defaultMachine:"",defaultMaterial:"",
-    design:{hourlyRate:35,minimumFee:0},
+    profit:0,hourly:0,machine3d:0,laserGravur:0,laserSchnitt:0,
+    plotter:0,presse:0,reserve:0,packaging:0,rounding:0,
+    overhead:0,electricity:0,defaultMachine:"",defaultMaterial:"",
+    design:{hourlyRate:0,minimumFee:0},
     customerObject:{
-      baseFee:15,minimumPrice:15,expressFee:0,
-      difficulties:{veryEasy:0,easy:5,normal:10,hard:20,veryHard:35},
-      risks:{under50:0,from50To100:3,from100To250:5,from250To500:8,over500:12}
+      baseFee:0,minimumPrice:0,expressFee:0,
+      difficulties:{veryEasy:0,easy:0,normal:0,hard:0,veryHard:0},
+      risks:{under50:0,from50To100:0,from100To250:0,from250To500:0,over500:0}
     }
   },
   materials:[],processingProfiles:[],projects:[],customers:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
-  machines:[
-    {id:"xtool-f2-diode",name:"xTool F2 – Diode",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:300,active:true},
-    {id:"xtool-f2-ir",name:"xTool F2 – IR",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:0,active:true},
-    {id:"atomstack-x70",name:"Atomstack X70 Pro",type:"laser",engraveRate:0.10,cutRate:0.15,engraveSpeed:6000,cutSpeed:500,active:true},
-    {id:"anycubic-k3",name:"Anycubic K3 Combo",type:"3d",hourlyRate:0.50,active:true},
-    {id:"anycubic-kobra2plus",name:"Anycubic Kobra 2 Plus",type:"3d",hourlyRate:0.50,active:true}
-  ]
+  machines:[]
 };
 export function normalizeCustomerRecord(customer={}){
   if(!customer||typeof customer!=="object")return null;
@@ -109,21 +109,13 @@ function normalizeCustomers(customers){
   return (Array.isArray(customers)?customers:[]).map(customerPayload).filter(Boolean);
 }
 
-export let state = load();
-state.customers=normalizeCustomers(state.customers);
-state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
-state.templates=Array.isArray(state.templates)?state.templates:[];
-state.projects=(Array.isArray(state.projects)?state.projects:[]).map(normalizeProjectRecord).filter(Boolean);
-state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
-migrateEmbeddedReferences(state);
-localStorage.setItem(KEY,JSON.stringify(state));
-state.timer={...defaults.timer,...(state.timer||{})};
-state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
-state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.id===m.id)||{};return {...d,...m,engraveSpeed:num(m.engraveSpeed)||num(d.engraveSpeed),cutSpeed:num(m.cutSpeed)||num(d.cutSpeed)};});
+export let state = structuredClone(defaults);
 
 export function load(){
+  return structuredClone(defaults);
+}
+function normalizeLoadedState(saved){
   try{
-    const saved=JSON.parse(localStorage.getItem(KEY));
     const merged={...defaults,...saved,settings:mergeSettings(saved?.settings)};
     merged.learningRecords=(Array.isArray(merged.learningRecords)?merged.learningRecords:[]).map(normalizeLearningRecord);
     merged.materials=(merged.materials||[]).map(m=>({
@@ -149,7 +141,7 @@ export function load(){
       },
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
-    merged.machines=Array.isArray(merged.machines)&&merged.machines.length?merged.machines:structuredClone(defaults.machines);
+    merged.machines=Array.isArray(merged.machines)?merged.machines:[];
     merged.processingProfiles=normalizeProcessingProfiles(merged.processingProfiles);
     merged.projects=(merged.projects||[]).map(normalizeProjectRecord);
     merged.customers=normalizeCustomers(merged.customers);
@@ -339,10 +331,14 @@ function migrateEmbeddedReferences(container){
   });
 }
 export function save(){
+  if(!canWriteCloud()){
+    setSyncStatus("Gesperrt","error");
+    return false;
+  }
   state.customers=normalizeCustomers(state.customers);
-  localStorage.setItem(KEY,JSON.stringify(state));
   document.dispatchEvent(new CustomEvent('dla:state-saved'));
   scheduleCloudSave();
+  return true;
 }
 export function setSyncStatus(text, kind=""){
   const el=$("syncStatus");
@@ -351,17 +347,32 @@ export function setSyncStatus(text, kind=""){
   el.className="sync-status "+kind;
 }
 function scheduleCloudSave(){
-  if(!cloudReady || !currentUser)return;
+  if(!canWriteCloud())return;
   clearTimeout(saveTimer);
   setSyncStatus("Speichert …","busy");
   saveTimer=setTimeout(()=>saveCloudState().catch(()=>{}),500);
 }
-async function saveCloudState(){
-  if(!currentUser)return;
-  state.customers=normalizeCustomers(state.customers);
+function isNeutralState(value){
+  return !value||(
+    !(value.customers?.length)&&!(value.projects?.length)&&!(value.materials?.length)&&
+    !(value.machines?.length)&&!(value.processingProfiles?.length)&&!(value.templates?.length)&&
+    !(value.learningRecords?.length)&&Object.values(value.settings||{}).every(item=>
+      item&&typeof item==="object"?Object.values(item).every(nested=>nested&&typeof nested==="object"?Object.values(nested).every(v=>!v):!nested):!item
+    )
+  );
+}
+function canWriteCloud(){
+  return Boolean(currentUser&&cloudReady&&cloudRecordLoaded&&securityState==="ready"&&!isNeutralState(state));
+}
+async function saveCloudState(payloadOverride=null,{confirmedMigration=false}={}){
+  const payloadSource=payloadOverride||state;
+  const migrationAllowed=confirmedMigration&&confirmedInitialTransfer&&currentUser&&securityState==="migrating";
+  if(!canWriteCloud()&&!migrationAllowed)throw new Error("Cloud-Speicherung ist aus Sicherheitsgründen gesperrt.");
+  if(isNeutralState(payloadSource))throw new Error("Ein neutraler oder leerer Zustand darf nicht gespeichert werden.");
+  payloadSource.customers=normalizeCustomers(payloadSource.customers);
   const payload={
-    ...state,
-    customers:state.customers.map(customer=>({...customer,rating:Number(customer.rating??0)}))
+    ...payloadSource,
+    customers:payloadSource.customers.map(customer=>({...customer,rating:Number(customer.rating??0)}))
   };
   const client=await createSupabaseClient();
   const { data, error } = await client.from("app_state").upsert({
@@ -379,7 +390,7 @@ async function saveCloudState(){
   }
 }
 export async function flushCloudSave(){
-  if(!cloudReady||!currentUser)return null;
+  if(!canWriteCloud())return null;
   clearTimeout(saveTimer);
   saveTimer=null;
   setSyncStatus("Speichert …","busy");
@@ -388,54 +399,139 @@ export async function flushCloudSave(){
 export async function loadCloudState(){
   const client=await createSupabaseClient();
   setSyncStatus("Synchronisiert …","busy");
-  const { data, error } = await client.from("app_state").select("data").eq("user_id",currentUser.id).maybeSingle();
+  const { data, error } = await client.from("app_state").select("data,updated_at").eq("user_id",currentUser.id).maybeSingle();
   if(error){
-    console.error(error);
-    setSyncStatus("DB-Fehler","error");
-    return false;
+    throw error;
   }
   if(data?.data){
-    replaceState({...defaults,...data.data,settings:mergeSettings(data.data.settings)});
-    state.templates=Array.isArray(state.templates)?state.templates:[];
-    state.projects=(Array.isArray(state.projects)?state.projects:[]).map(normalizeProjectRecord).filter(Boolean);
-    state.learningRecords=(Array.isArray(state.learningRecords)?state.learningRecords:[]).map(normalizeLearningRecord);
-    state.processingProfiles=normalizeProcessingProfiles(state.processingProfiles);
-    state.customers=normalizeCustomers(state.customers);
-    migrateEmbeddedReferences(state);
-    state.timer={...defaults.timer,...(state.timer||{})};
-    state.motifEstimator={...defaults.motifEstimator,...(state.motifEstimator||{})};
-state.machines=(state.machines||[]).map(m=>{const d=defaults.machines.find(x=>x.id===m.id)||{};return {...d,...m,engraveSpeed:num(m.engraveSpeed)||num(d.engraveSpeed),cutSpeed:num(m.cutSpeed)||num(d.cutSpeed)};});
-    state.materials=(state.materials||[]).map(m=>({
-      ...m,mainRole:m.mainRole!==false,consumableRole:Boolean(m.consumableRole||m.area==="Sonstiges"),
-      consumableCategory:m.consumableCategory||"Sonstiges",defaultConsumption:num(m.defaultConsumption),autoAdd:Boolean(m.autoAdd),favorite:Boolean(m.favorite),
-      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",supplier:v.supplier||"",properties:v.properties||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
-      stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
-      category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
-      consumableModules:Array.isArray(m.consumableModules)&&m.consumableModules.length?m.consumableModules:["3d","laser","vinyl","textil"],
-      scaleWithSize:Boolean(m.scaleWithSize),
-      workshopUnit:m.workshopUnit||m.unit||"Einheit",
-      workshopUnitAmount:num(m.workshopUnitAmount)||1,
-      consumptionLevels:{
-        small:num(m.consumptionLevels?.small)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.small)||0.5):num(m.defaultConsumption)),
-        medium:num(m.consumptionLevels?.medium)||num(m.defaultConsumption),
-        large:num(m.consumptionLevels?.large)||(Boolean(m.scaleWithSize)?num(m.defaultConsumption)*(num(m.sizeFactors?.large)||2):num(m.defaultConsumption))
-      },
-      sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
-    }));
-    state.machines=Array.isArray(state.machines)&&state.machines.length?state.machines:structuredClone(defaults.machines);
-    localStorage.setItem(KEY,JSON.stringify(state));
-  }else{
-    await saveCloudState();
+    loadedCloudState=structuredClone(data.data);
+    cloudUpdatedAt=data.updated_at||null;
+    return {exists:true,data:loadedCloudState,updatedAt:cloudUpdatedAt};
   }
-  document.dispatchEvent(new CustomEvent('dla:state-loaded'));
-  setSyncStatus("Gespeichert","ok");
-  return true;
+  loadedCloudState=null;
+  cloudUpdatedAt=null;
+  return {exists:false,data:null,updatedAt:null};
 }
 
 
 
 export function replaceState(nextState){
   state = nextState;
+}
+
+const COMPARE_AREAS=[
+  ["settings","Einstellungen"],["customers","Kunden"],["projects","Projekte"],
+  ["materials","Materialien inkl. Varianten"],["machines","Maschinen"],
+  ["processingProfiles","Bearbeitungsprofile"],["templates","Vorlagen"],
+  ["learningRecords","Lern- und Referenzdaten"],["motifEstimator","Motivschätzer"],
+  ["other","Sonstige Geschäftsdaten"]
+];
+const COMPARED_KEYS=new Set(COMPARE_AREAS.filter(([key])=>key!=="other").map(([key])=>key));
+// Flüchtige Laufzeitwerte werden absichtlich ignoriert: timer, lastPrice, activeModule.
+const VOLATILE_KEYS=new Set(["timer","lastPrice","activeModule"]);
+function readLegacyState(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    const parsed=raw?JSON.parse(raw):null;
+    return parsed&&typeof parsed==="object"?parsed:null;
+  }catch{return null;}
+}
+function stableValue(value){
+  if(Array.isArray(value))return value.map(stableValue);
+  if(value&&typeof value==="object")return Object.keys(value).sort().reduce((result,key)=>{
+    if(!VOLATILE_KEYS.has(key))result[key]=stableValue(value[key]);
+    return result;
+  },{});
+  return value;
+}
+function areaValue(source,key){
+  if(key!=="other")return stableValue(source?.[key]??(Array.isArray(defaults[key])?[]:{}));
+  return stableValue(Object.keys(source||{}).sort().reduce((result,name)=>{
+    if(!COMPARED_KEYS.has(name)&&!VOLATILE_KEYS.has(name))result[name]=source[name];
+    return result;
+  },{}));
+}
+function countArea(value,key){
+  if(key==="materials")return (Array.isArray(value)?value.length:0)+(Array.isArray(value)?value.reduce((sum,item)=>sum+(item.variants?.length||0),0):0);
+  if(Array.isArray(value))return value.length;
+  return value&&typeof value==="object"?Object.keys(value).length:0;
+}
+async function checksum(value){
+  const bytes=new TextEncoder().encode(JSON.stringify(stableValue(value)));
+  const digest=await crypto.subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(digest)).map(byte=>byte.toString(16).padStart(2,"0")).join("").slice(0,12);
+}
+async function compareStates(localData,cloudData){
+  const rows=[];
+  for(const [key,label] of COMPARE_AREAS){
+    const localValue=areaValue(localData,key);
+    const cloudValue=areaValue(cloudData,key);
+    const [localHash,cloudHash]=await Promise.all([checksum(localValue),checksum(cloudValue)]);
+    rows.push({key,label,localCount:countArea(localValue,key),cloudCount:countArea(cloudValue,key),localHash,cloudHash,equal:localHash===cloudHash});
+  }
+  return rows;
+}
+function backupFilename(source){
+  const now=new Date();
+  const stamp=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}-${String(now.getHours()).padStart(2,"0")}${String(now.getMinutes()).padStart(2,"0")}`;
+  return `DLA-Kalkulator-${source}-${stamp}.json`;
+}
+function downloadBackup(source,data){
+  if(!data)return;
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;link.download=backupFilename(source);link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function resetActiveState(){
+  clearTimeout(saveTimer);saveTimer=null;
+  replaceState(structuredClone(defaults));
+  document.dispatchEvent(new CustomEvent("dla:security-reset"));
+}
+function showSecurityView({headline,text,error="",mode="login",rows=[]}={}){
+  const gate=$("authGate");
+  gate.classList.remove("hidden","auth-pending");
+  $("authHeadline").textContent=headline||"Interner Kalkulator";
+  $("authText").textContent=text||"";
+  $("authError").textContent=error;
+  $("loginForm").classList.toggle("hidden",mode!=="login");
+  $("authRetryBtn").classList.toggle("hidden",mode!=="error");
+  $("securityActions").classList.toggle("hidden",!["compare","missing"].includes(mode));
+  $("comparisonWrap").classList.toggle("hidden",mode!=="compare");
+  $("useCloudBtn").classList.toggle("hidden",mode!=="compare");
+  $("uploadLocalBtn").classList.toggle("hidden",!legacyLocalState||!["compare","missing"].includes(mode));
+  $("downloadCloudBtn").classList.toggle("hidden",!loadedCloudState);
+  $("downloadLocalBtn").classList.toggle("hidden",!legacyLocalState);
+  $("cancelMigrationBtn").classList.toggle("hidden",!["compare","missing"].includes(mode));
+  $("securityLogoutBtn").classList.toggle("hidden",!currentUser);
+  if(mode==="compare")renderComparison(rows);
+  $("logoutBtn").classList.toggle("hidden",!currentUser);
+}
+function renderComparison(rows){
+  const body=$("comparisonBody");
+  body.innerHTML=rows.map(row=>`<tr><td>${row.label}</td><td>${row.localCount}<small>${row.localHash}</small></td><td>${row.cloudCount}<small>${row.cloudHash}</small></td><td class="${row.equal?"comparison-ok":"comparison-diff"}">${row.equal?"gleich":"abweichend"}</td></tr>`).join("");
+  $("cloudUpdatedAt").textContent=cloudUpdatedAt?new Date(cloudUpdatedAt).toLocaleString("de-DE"):"nicht verfügbar";
+}
+function openReady(cloudData){
+  replaceState(normalizeLoadedState(structuredClone(cloudData)));
+  cloudRecordLoaded=true;cloudReady=true;securityState="ready";
+  $("authGate").classList.add("hidden");
+  setSyncStatus("Gespeichert","ok");
+  document.dispatchEvent(new CustomEvent("dla:state-loaded"));
+}
+async function evaluateLoadedCloud(result){
+  legacyLocalState=readLegacyState();
+  if(!result.exists){
+    securityState="missing-cloud-record";
+    showSecurityView({mode:"missing",headline:"Noch kein Supabase-Datenstand",text:legacyLocalState?"Ein lokaler Altbestand wurde gefunden. Sichere ihn zuerst und übertrage ihn nur nach sorgfältiger Prüfung.":"Es gibt weder einen Cloud-Datensatz noch einen lokalen Altbestand. Die App bleibt geschlossen, bis die Ersteinrichtung bewusst vorgenommen wird."});
+    return;
+  }
+  if(!legacyLocalState){openReady(result.data);return;}
+  const rows=await compareStates(legacyLocalState,result.data);
+  if(rows.every(row=>row.equal)){openReady(result.data);return;}
+  securityState="migration-required";
+  showSecurityView({mode:"compare",rows,headline:"Datenbestände weichen ab",text:"Bitte lade zuerst beide Sicherungen herunter. Danach entscheidest du bewusst, welcher Datenstand verwendet werden soll."});
 }
 
 export async function initializeAuth(){
@@ -445,16 +541,11 @@ export async function initializeAuth(){
   const authText=$("authText");
   const authError=$("authError");
   const retryBtn=$("authRetryBtn");
-  const showLogin=(message="",headline="Melde dich an, damit deine Daten sicher in Supabase gespeichert werden.")=>{
-    gate.classList.remove("auth-pending","hidden");
-    authText.textContent=headline;
-    authError.textContent=message;
-    retryBtn?.classList.toggle("hidden",!message);
-    $("logoutBtn").classList.add("hidden");
-  };
+  const showLogin=(message="",headline="Melde dich an, damit deine Daten sicher aus Supabase geladen werden.")=>showSecurityView({mode:message?"error":"login",headline:"Interner Kalkulator",text:headline,error:message});
   try{
     gate.classList.remove("hidden");
     gate.classList.add("auth-pending");
+    securityState="checking-session";
     authText.textContent="Anmeldung wird geprüft …";
     authError.textContent="";
     retryBtn?.classList.add("hidden");
@@ -477,7 +568,8 @@ export async function initializeAuth(){
       }
       if(event==="SIGNED_OUT"&&logoutRequested){
         logoutRequested=false;
-        currentUser=null;cloudReady=false;
+        currentUser=null;cloudReady=false;cloudRecordLoaded=false;confirmedInitialTransfer=false;loadedCloudState=null;securityState="signed-out";
+        resetActiveState();
         showLogin();
         setSyncStatus("Offline","");
       }
@@ -498,16 +590,19 @@ async function enterApp(user){
   if(enteringApp)return;
   enteringApp=true;
   currentUser=user;
-  $("authGate").classList.remove("auth-pending");
-  $("authGate").classList.add("hidden");
+  securityState="loading-cloud";
+  showSecurityView({mode:"loading",headline:"Supabase-Daten werden geladen",text:"Die Anwendung bleibt bis zum erfolgreichen Laden sicher geschlossen."});
   $("logoutBtn").classList.remove("hidden");
-  cloudReady=false;
+  cloudReady=false;cloudRecordLoaded=false;
   try{
-    cloudReady=await loadCloudState();
+    const result=await loadCloudState();
+    await evaluateLoadedCloud(result);
   }catch(error){
     console.error("Cloud-Daten konnten nicht geladen werden:",error);
-    cloudReady=false;
-    setSyncStatus("Offline – lokale Daten verfügbar","error");
+    cloudReady=false;cloudRecordLoaded=false;securityState="cloud-error";
+    resetActiveState();
+    setSyncStatus("Cloud-Fehler","error");
+    showSecurityView({mode:"error",headline:"Supabase-Daten konnten nicht geladen werden",text:"Es wurden keine lokalen Ersatzdaten aktiviert.",error:"Bitte Internetverbindung prüfen und erneut versuchen oder abmelden."});
   }finally{
     enteringApp=false;
   }
@@ -533,14 +628,38 @@ $("loginForm").onsubmit=async e=>{
 };
 $("logoutBtn").onclick=async()=>{
   if(await appConfirm("Wirklich abmelden?","Abmelden","Abmelden")){
-    logoutRequested=true;
-    const client=await createSupabaseClient();
-    const { error }=await client.auth.signOut();
-    if(error){
-      logoutRequested=false;
-      console.error("Abmelden fehlgeschlagen:",error);
-      setSyncStatus("Abmelden fehlgeschlagen","error");
-    }
+    await performLogout();
   }
 };
-window.__dlaRetryAuth=()=>initializeAuth();
+async function performLogout(){
+  clearTimeout(saveTimer);saveTimer=null;cloudReady=false;cloudRecordLoaded=false;securityState="signing-out";resetActiveState();
+  logoutRequested=true;
+  const client=await createSupabaseClient();
+  const {error}=await client.auth.signOut();
+  if(error){logoutRequested=false;showSecurityView({mode:"error",headline:"Abmelden fehlgeschlagen",text:"Die Anwendung bleibt sicher geschlossen.",error:"Bitte erneut versuchen."});}
+}
+$("securityLogoutBtn").onclick=performLogout;
+$("downloadLocalBtn").onclick=()=>downloadBackup("lokal",legacyLocalState);
+$("downloadCloudBtn").onclick=()=>downloadBackup("supabase",loadedCloudState);
+$("cancelMigrationBtn").onclick=()=>showSecurityView({mode:"loading",headline:"Migration abgebrochen",text:"Es wurden keine Daten verändert. Du kannst die Seite neu laden oder dich abmelden."});
+$("useCloudBtn").onclick=()=>openReady(loadedCloudState);
+$("uploadLocalBtn").onclick=async()=>{
+  if(!legacyLocalState||isNeutralState(legacyLocalState))return showSecurityView({mode:"missing",headline:"Übertragung gesperrt",text:"Der lokale Datenstand ist leer oder offensichtlich unvollständig."});
+  const confirmed=await appConfirm("Der vorhandene Supabase-Datensatz wird vollständig durch den lokalen Altbestand ersetzt. Hast du beide verfügbaren Sicherungen heruntergeladen und möchtest du wirklich fortfahren?","Lokale Daten übertragen","Ja, ersetzen");
+  if(!confirmed)return;
+  securityState="migrating";confirmedInitialTransfer=true;cloudReady=false;
+  showSecurityView({mode:"loading",headline:"Migration läuft",text:"Daten werden übertragen und anschließend vollständig erneut geprüft."});
+  try{
+    await saveCloudState(structuredClone(legacyLocalState),{confirmedMigration:true});
+    const verified=await loadCloudState();
+    if(!verified.exists)throw new Error("Der Datensatz konnte nach der Übertragung nicht erneut gelesen werden.");
+    const rows=await compareStates(legacyLocalState,verified.data);
+    if(!rows.every(row=>row.equal))throw new Error("Prüfsummen oder Anzahlen stimmen nach der Übertragung nicht überein.");
+    loadedCloudState=verified.data;cloudUpdatedAt=verified.updatedAt;confirmedInitialTransfer=false;
+    openReady(verified.data);
+  }catch(error){
+    console.error("Migration fehlgeschlagen:",error);confirmedInitialTransfer=false;cloudReady=false;cloudRecordLoaded=false;securityState="migration-error";resetActiveState();
+    showSecurityView({mode:"error",headline:"Migration nicht freigegeben",text:"Die App bleibt geschlossen; der lokale Altbestand wurde nicht gelöscht.",error:error.message||"Die Überprüfung ist fehlgeschlagen."});
+  }
+};
+window.__dlaRetryAuth=()=>{authInitializing=false;enteringApp=false;initializeAuth();};

@@ -1,15 +1,15 @@
-import { initializeAuth, state } from "./storage.js";
-import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js";
-import { renderCalculator } from "./calculator.js";
-import { renderTools } from "./statistics.js";
-import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js";
-import { renderProjects } from "./projects.js";
-import { fillSettings } from "./settings.js";
-import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js";
-import { applyDesignDefaults, renderDesignStatistics } from "./design.js";
-import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js";
-import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js";
-import { initializeCustomers, renderCustomers } from "./customers.js";
+import { initializeAuth, state } from "./storage.js?v=6.4.4";
+import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.4.4";
+import { renderCalculator } from "./calculator.js?v=6.4.4";
+import { renderTools } from "./statistics.js?v=6.4.4";
+import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.4.4";
+import { renderProjects } from "./projects.js?v=6.4.4";
+import { fillSettings } from "./settings.js?v=6.4.4";
+import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.4.4";
+import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.4.4";
+import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.4.4";
+import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.4.4";
+import { initializeCustomers, renderCustomers } from "./customers.js?v=6.4.4";
 
 function renderAll(){
   updateHome();
@@ -29,10 +29,22 @@ function renderAll(){
   renderWorkshopAnalysis();
   renderCustomers();
 }
+let appBindingsInitialized=false;
+function initializeBusinessModules(){
+  if(appBindingsInitialized)return;
+  appBindingsInitialized=true;
+  initializeProcessingProfiles();
+  initializeWorkshopAnalysis();
+  initializeCustomers();
+}
 
 document.addEventListener("dla:state-saved", updateHome);
 document.addEventListener("dla:projects-rendered", renderDesignStatistics);
-document.addEventListener("dla:state-loaded", renderAll);
+document.addEventListener("dla:state-loaded",()=>{initializeBusinessModules();renderAll();});
+document.addEventListener("dla:security-reset",()=>{
+  document.querySelectorAll(".screen").forEach(screen=>screen.classList.toggle("active",screen.id==="home"));
+  if(appBindingsInitialized)renderAll();
+});
 document.addEventListener("dla:new-order",event=>startNewOrder(event.detail?.module||"3d"));
 document.addEventListener("dla:estimator-transfer",event=>{
   const data=event.detail||{};
@@ -54,15 +66,9 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 });
 
 export function initializeApp(){
-  renderCalculator(true);
-  renderTools();
-  renderMaterialCategoryFilter();
-  initializeProcessingProfiles();
-  initializeWorkshopAnalysis();
-  initializeCustomers();
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.4.3",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.4.4",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 

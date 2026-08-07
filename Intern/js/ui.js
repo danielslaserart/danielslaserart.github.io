@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js";
-import { state, save, defaults, getRealProjects } from "./storage.js";
-import { renderMaterials } from "./materials.js";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js";
-import { fillSettings } from "./settings.js";
-import { renderTools, resetTool } from "./statistics.js";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js";
-import { appAlert, appPrompt } from "./dialogs.js";
-import { applyDesignDefaults } from "./design.js";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.4.4";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=6.4.4";
+import { renderMaterials } from "./materials.js?v=6.4.4";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.4.4";
+import { fillSettings } from "./settings.js?v=6.4.4";
+import { renderTools, resetTool } from "./statistics.js?v=6.4.4";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.4.4";
+import { appAlert, appPrompt } from "./dialogs.js?v=6.4.4";
+import { applyDesignDefaults } from "./design.js?v=6.4.4";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.4.4";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;

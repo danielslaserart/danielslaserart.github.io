@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js";
-import { state, save, defaults } from "./storage.js";
-import { materialSelections, resolveMaterialSelection } from "./materials.js";
-import { renderCalculatorProfiles } from "./processing-profiles.js";
-import { renderProjects } from "./projects.js";
-import { appConfirm } from "./dialogs.js";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.4.4";
+import { state, save, defaults } from "./storage.js?v=6.4.4";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.4.4";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.4.4";
+import { renderProjects } from "./projects.js?v=6.4.4";
+import { appConfirm } from "./dialogs.js?v=6.4.4";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.4.4";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.4";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.4.4";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
