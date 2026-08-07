@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090d14">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=6.4.3">
-  <link rel="apple-touch-icon" href="icon-192.png?v=6.4.3">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.4.3">
-  <link rel="stylesheet" href="style.css?v=6.4.3">
+  <link rel="manifest" href="manifest.json?v=6.4.4">
+  <link rel="apple-touch-icon" href="icon-192.png?v=6.4.4">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.4.4">
+  <link rel="stylesheet" href="style.css?v=6.4.4">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -30,7 +31,7 @@
 <div id="authGate" class="auth-gate auth-pending">
   <div class="auth-card card">
     <div class="eyebrow">DANIELS LASER ART</div>
-    <h2>Interner Kalkulator</h2>
+    <h2 id="authHeadline">Interner Kalkulator</h2>
     <p id="authText">Anmeldung wird geprüft …</p>
     <form id="loginForm">
       <label>E-Mail-Adresse
@@ -42,8 +43,21 @@
       <button class="primary wide" type="submit">Anmelden</button>
     </form>
     <div id="authError" class="auth-error"></div>
+    <div id="comparisonWrap" class="comparison-wrap hidden">
+      <p class="comparison-meta">Letzte Supabase-Aktualisierung: <strong id="cloudUpdatedAt">–</strong></p>
+      <div class="comparison-scroll"><table class="comparison-table"><thead><tr><th>Bereich</th><th>Lokal</th><th>Supabase</th><th>Status</th></tr></thead><tbody id="comparisonBody"></tbody></table></div>
+      <p class="comparison-note">Beim Vergleich ausgeschlossen: laufender Timer, zuletzt angezeigter Preis und aktuell geöffneter Hauptbereich.</p>
+    </div>
+    <div id="securityActions" class="security-actions hidden">
+      <button id="downloadLocalBtn" class="secondary wide" type="button">Lokale Sicherung herunterladen</button>
+      <button id="downloadCloudBtn" class="secondary wide" type="button">Supabase-Sicherung herunterladen</button>
+      <button id="useCloudBtn" class="primary wide" type="button">Supabase-Daten verwenden</button>
+      <button id="uploadLocalBtn" class="danger wide" type="button">Lokale Daten nach Supabase übertragen</button>
+      <button id="cancelMigrationBtn" class="ghost wide" type="button">Migration abbrechen</button>
+    </div>
     <button id="authRetryBtn" class="secondary wide hidden" type="button"
       onclick="window.__dlaRetryAuth ? window.__dlaRetryAuth() : location.reload()">Erneut prüfen</button>
+    <button id="securityLogoutBtn" class="ghost wide hidden" type="button">Abmelden</button>
   </div>
 </div>
 <header class="app-header">
@@ -63,7 +77,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V6.4.3</span>
+      <span class="version-badge">V6.4.4</span>
     </div>
 
     <div class="dashboard-actions">
@@ -1052,7 +1066,7 @@
 <script id="supabaseScript" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
-<script src="assets/vendor/pdf-lib.min.js?v=6.4.3"></script>
-<script type="module" src="js/app.js?v=6.4.3"></script>
+<script src="assets/vendor/pdf-lib.min.js?v=6.4.4"></script>
+<script type="module" src="js/app.js?v=6.4.4"></script>
 </body>
 </html>
