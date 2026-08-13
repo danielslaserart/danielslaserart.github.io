@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.4.7";
-import { state, save, defaults } from "./storage.js?v=6.4.7";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.4.7";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.4.7";
-import { renderProjects } from "./projects.js?v=6.4.7";
-import { appConfirm } from "./dialogs.js?v=6.4.7";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.4.7";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.7";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.4.7";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.4.8";
+import { state, save, defaults } from "./storage.js?v=6.4.8";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.4.8";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.4.8";
+import { renderProjects } from "./projects.js?v=6.4.8";
+import { appConfirm } from "./dialogs.js?v=6.4.8";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.4.8";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.8";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.4.8";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -305,7 +305,6 @@ export function renderCalculator(clear=false){
   if(type==="laser"&&orderType!=="own"){
     const customer=orderType==="customerObject",settings=getCustomerSettings(),process=$("customerObjectProcess")?.value||"engrave";
     html=`
-      <div class="group-title" id="customerObjectSurchargesTitle">${customer?"KUNDENOBJEKT & ZUSCHLÄGE":"DIENSTLEISTUNG & MASCHINE"}</div>
       <label>Laser auswählen<select id="machineSelect">${machineOptions("laser")}</select></label>
       <div class="field-grid customer-object-fields">
         ${customer?`<label>Material des Kundenobjekts (nur Bezeichnung)<input id="objectMaterial" placeholder="z. B. versilbert, Edelstahl, Holz"></label>
@@ -376,9 +375,10 @@ export function renderCalculator(clear=false){
   const showCustomerObjectFields=orderType==="customerObject";
   const customerSection=$("customerObjectSurcharges");
   const customerFields=$("customerObjectFields");
+  const keepOpen=showCustomerObjectFields&&!customerSection.classList.contains("hidden")&&customerSection.open;
   customerFields.innerHTML=showCustomerObjectFields?html:"";
   customerSection.classList.toggle("hidden",!showCustomerObjectFields);
-  customerSection.setAttribute("aria-hidden",String(!showCustomerObjectFields));
+  customerSection.open=Boolean(keepOpen);
   // Alte Modulfelder bleiben ausgeblendet. Die Kundenobjekt-Kalkulation besitzt
   // bewusst einen eigenen Platz in der Hauptkalkulation vor den Positionen.
   $("moduleFields").innerHTML="";
@@ -494,6 +494,11 @@ export function calculate(){
   $("resMachine").textContent=euro(breakdown.machine);$("resWork").textContent=euro(breakdown.work);$("resExtra").textContent=euro(breakdown.extra);$("resReserve").textContent=euro(breakdown.reserve);
   $("resDifficulty").textContent=euro(breakdown.difficulty);$("resRisk").textContent=euro(breakdown.risk);$("resExpress").textContent=euro(breakdown.express);$("resCalculated").textContent=euro(breakdown.calculated);$("resMinimum").textContent=euro(breakdown.minimum);
   if($("resFurtherSurcharges"))$("resFurtherSurcharges").textContent=euro(breakdown.furtherSurcharges);
+  if($("customerObjectCompactSummary")&&customerObject){
+    const difficultyLabels={veryEasy:"Sehr einfach",easy:"Einfach",normal:"Normal",hard:"Schwer",veryHard:"Sehr schwer"};
+    const surchargeTotal=num(breakdown.baseFee)+num(breakdown.furtherSurcharges)+num(breakdown.difficulty)+num(breakdown.risk)+num(breakdown.express);
+    $("customerObjectCompactSummary").textContent=`Wert: ${euro($("objectValue")?.value)} · ${difficultyLabels[difficultyKey]||"Normal"} · Risiko: ${euro(breakdown.risk)} · Grundpauschale: ${euro(breakdown.baseFee)} · Zuschläge: ${euro(surchargeTotal)}`;
+  }
   const roundingDifference=breakdown.sale-breakdown.calculated;
   const actualProfit=breakdown.sale-breakdown.cost;
   const margin=breakdown.sale>0?actualProfit/breakdown.sale*100:0;

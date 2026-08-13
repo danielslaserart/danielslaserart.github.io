@@ -1,15 +1,15 @@
-import { initializeAuth, state } from "./storage.js?v=6.4.7";
-import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.4.7";
-import { renderCalculator } from "./calculator.js?v=6.4.7";
-import { renderTools } from "./statistics.js?v=6.4.7";
-import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.4.7";
-import { renderProjects } from "./projects.js?v=6.4.7";
-import { fillSettings } from "./settings.js?v=6.4.7";
-import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.4.7";
-import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.4.7";
-import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.4.7";
-import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.4.7";
-import { initializeCustomers, renderCustomers } from "./customers.js?v=6.4.7";
+import { initializeAuth, state } from "./storage.js?v=6.4.8";
+import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.4.8";
+import { renderCalculator } from "./calculator.js?v=6.4.8";
+import { renderTools } from "./statistics.js?v=6.4.8";
+import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.4.8";
+import { renderProjects } from "./projects.js?v=6.4.8";
+import { fillSettings } from "./settings.js?v=6.4.8";
+import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.4.8";
+import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.4.8";
+import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.4.8";
+import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.4.8";
+import { initializeCustomers, renderCustomers } from "./customers.js?v=6.4.8";
 
 function renderAll(){
   updateHome();
@@ -68,7 +68,7 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 export function initializeApp(){
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.4.7",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.4.8",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
