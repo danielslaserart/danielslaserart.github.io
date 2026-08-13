@@ -1,8 +1,19 @@
-Daniels Laser Art Kalkulator V6.4.6
+Daniels Laser Art Kalkulator V6.4.7
 
-Version 6.4.6 – Kundenobjekt-Zuschläge wieder bearbeitbar
+Version 6.4.7 – Kundenobjekt-Kalkulation in der Hauptansicht wiederhergestellt
 
-FEHLERBEHEBUNG 6.4.6
+FEHLERBEHEBUNG 6.4.7
+
+- Der Bereich „Kundenobjekt & Zuschläge“ besitzt nun einen eigenen festen Platz in der Hauptkalkulation direkt vor den Projektpositionen.
+- Der Bereich ist ohne Öffnen oder Bearbeiten der Position „Kundenobjekt“ erreichbar.
+- Die frühere Kundenobjekt-Logik für Objektwert, automatische Risikovorgabe, manuell änderbaren Risikoaufschlag, Schwierigkeit und Grundpauschale wird weiterverwendet.
+- Beratung, Einrichtung, Positionierung, Fokus, Probelauf, Nachkontrolle, Reinigung, Verpackung, Express und weitere Zuschläge bleiben direkt bearbeitbar.
+- Sämtliche Eingaben werden im Kalkulations-Snapshot und in den Projektfeldern gespeichert und beim erneuten Öffnen wiederhergestellt.
+- Auch ältere Kundenobjekt-Projekte ohne vollständigen Snapshot erhalten Objektwert, Risiko, Schwierigkeit, Grundpauschale und Express aus ihren bisherigen Projektwerten zurück.
+- Projektposition und Kundenobjekt-Zuschlagskalkulation bleiben strikt getrennt.
+- Das Kundenobjekt selbst bleibt Materialquelle „kundeneigen“ mit 0,00 € Materialkosten; zusätzliche eigene Materialien werden über weitere Positionen addiert.
+
+FEHLERBEHEBUNG 6.4.7
 
 - Ursache behoben: Die vorhandenen Kundenobjekt-Eingaben lagen in einem ausgeblendeten Rechnerbereich.
 - Bei „Kundenobjekt bearbeiten“ erscheint nun der editierbare Bereich „Kundenobjekt & Zuschläge“.
@@ -12,7 +23,7 @@ FEHLERBEHEBUNG 6.4.6
 - Zusätzlich verwendetes eigenes Material wird weiterhin ausschließlich über Projektpositionen kalkuliert.
 - Die Preisübersicht bleibt eine getrennte Ergebnisanzeige.
 
-STABILISIERUNG 6.4.6
+STABILISIERUNG 6.4.7
 
 - Bereits abgeschlossene Datenvergleiche blockieren den Start nicht erneut.
 - Die Migrationsentscheidung wird nur als technische, benutzergebundene Abschlussmarkierung gespeichert.
@@ -22,7 +33,7 @@ STABILISIERUNG 6.4.6
 - Das Kundenobjekt selbst bleibt kundeneigen mit 0 € Materialkosten.
 - Zusätzliche eigene Materialien und Arbeitsschritte werden über Projektpositionen normal kalkuliert.
 
-SICHERHEITSUMSTELLUNG 6.4.6
+SICHERHEITSUMSTELLUNG 6.4.7
 - Geschäftsdaten werden erst nach gültiger Anmeldung und erfolgreichem Laden von app_state aktiviert.
 - Der lokale Altbestand dla_kalkulator_v3 wird nicht mehr als aktive Datenquelle oder Offline-Ersatz verwendet.
 - Bei Abweichungen werden nur Anzahlen, stabile SHA-256-Kurzprüfsummen und der Vergleichsstatus angezeigt.
@@ -340,8 +351,8 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.4.6
-Version 6.4.6 – Projektpositionen sichtbar und neutraler Start
+https://danielslaserart.de/Intern/?v=6.4.7
+Version 6.4.7 – Projektpositionen sichtbar und neutraler Start
 
 - Projektpositionen sind direkt in der normalen Berechnungsmaske sichtbar und bedienbar.
 - Neue Berechnungen starten ohne Positionen und ohne automatisch eingefügte Zusatzartikel.
