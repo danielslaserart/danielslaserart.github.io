@@ -1,0 +1,47 @@
+DANIELS LASER ART KALKULATOR 6.4.7 – TESTANLEITUNG
+
+Vorbereitung
+
+1. Die bisherige ZIP von Version 6.4.5 als Rückfallsicherung aufbewahren.
+2. Die neue ZIP entpacken und nur die enthaltenen Dateien an den angegebenen GitHub-Pfaden ersetzen.
+3. Warten, bis GitHub Pages erfolgreich veröffentlicht hat.
+4. https://danielslaserart.de/Intern/?v=6.4.7 öffnen.
+5. Eine installierte App gegebenenfalls vollständig schließen und neu öffnen.
+
+Startprüfung
+
+6. Mit dem vorhandenen Konto anmelden beziehungsweise die bestehende Sitzung laden lassen.
+7. Nach erfolgreichem Supabase-Laden muss der Kalkulator normal öffnen.
+8. Ein bereits abgeschlossener Vergleich darf nicht erneut bei jedem Start blockieren.
+9. Erscheint bei einem Konto ohne abgeschlossene Migration berechtigt ein Vergleich, zuerst beide Sicherungen herunterladen und nichts vorschnell übertragen.
+10. Niemals einen leeren oder offensichtlich unvollständigen Stand nach Supabase übertragen. Bei Unsicherheit abbrechen.
+
+Test "Leeren"
+
+11. Testweise Projektname, Kunde, Anschrift, Status, Tags, Notizen, Zeiten, Preis, Zusatzartikel und mehrere Positionen eintragen.
+12. "Leeren" drücken und bestätigen.
+13. Prüfen: Alle genannten Eingaben sind leer beziehungsweise neutral, der Timer steht auf 00:00:00 und es existiert genau eine neutrale erste Position passend zum aktuell gewählten Hauptbereich.
+14. Prüfen: Keine alten Zusatzartikel oder Positionen wurden übernommen.
+
+Test Kundenobjekt
+
+15. "Kundenobjekt bearbeiten" wählen.
+16. OHNE die Position „Kundenobjekt“ zu öffnen prüfen: Direkt vor den Projektpositionen erscheint der Bereich „KUNDENOBJEKT & ZUSCHLÄGE“.
+17. Prüfen: Wert, Grundpauschale, Schwierigkeit, Risiko, Beratung, Einrichtung, Positionierung, Fokus, Probelauf, Nachkontrolle, Reinigung, Verpackung, Express und sonstiger Zuschlag sind vorhanden und bearbeitbar.
+18. Objektwert 100 €, Risiko 8 €, Schwierigkeit „Schwer“ und Grundpauschale 20 € eintragen. Die Ergebnisübersicht muss Grundpauschale, Risiko und Schwierigkeit unmittelbar neu berechnen.
+19. Prüfen: Die erste Position heißt "Kundenobjekt", ist kundeneigen und hat 0 € Materialkosten.
+20. Über "+ Weiteres Material / Arbeitsschritt" eigenes Holz, PLA, Kleber, Magnete oder Verpackungsmaterial testweise ergänzen.
+21. Prüfen: Diese zusätzlichen Materialien erhöhen die Kalkulation normal, das Kundenobjekt selbst bleibt bei 0 € Materialkosten.
+22. Ein Testprojekt speichern, neu öffnen und prüfen, ob alle Kundenobjekt-Felder und Projektpositionen erhalten sind.
+
+Speicher- und Abmeldetest
+
+21. Eine harmlose Teständerung speichern, die Seite neu laden und prüfen, ob sie erhalten bleibt.
+22. Abmelden und prüfen, dass keine Geschäftsdaten sichtbar bleiben.
+23. Wieder anmelden und prüfen, dass Supabase normal geladen wird.
+
+Rückkehr bei Fehlern
+
+24. Keine lokalen Browserdaten löschen und keine Migration erzwingen.
+25. Die Dateien der aufbewahrten 6.4.5-ZIP wieder an denselben GitHub-Pfaden hochladen.
+26. Veröffentlichung abwarten und https://danielslaserart.de/Intern/?v=6.4.5 öffnen.

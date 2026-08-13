@@ -1,0 +1,36 @@
+DANIELS LASER ART KALKULATOR 6.4.7 – ENTHALTENE DATEIEN
+
+1. Intern/README.txt
+2. Intern/index.html
+3. Intern/manifest.json
+4. Intern/sw.js
+5. Intern/js/app.js
+6. Intern/js/calculator.js
+7. Intern/js/customer-price-history.js
+8. Intern/js/customers.js
+9. Intern/js/design.js
+10. Intern/js/dialogs.js
+11. Intern/js/estimator.js
+12. Intern/js/learning.js
+13. Intern/js/machines.js
+14. Intern/js/materials.js
+15. Intern/js/price-ladder.js
+16. Intern/js/processing-profiles.js
+17. Intern/js/project-detail-formatting.js
+18. Intern/js/project-positions.js
+19. Intern/js/projects.js
+20. Intern/js/settings.js
+21. Intern/js/statistics.js
+22. Intern/js/storage.js
+23. Intern/js/ui.js
+24. Intern/js/workshop-analysis.js
+25. UPLOAD-ANLEITUNG.txt
+26. TEST-UND-MIGRATIONSANLEITUNG.txt
+27. DATEILISTE-6.4.7.txt
+
+Bewusst nicht enthalten:
+- unveränderte Bilder und Assets
+- SUPABASE_EINRICHTUNG.sql (keine Datenbankänderung notwendig)
+- Intern/style.css (keine Designänderung)
+- Intern/js/offer-pdf.js und Intern/js/utils.js (gegenüber 6.4.6 inhaltlich unverändert; bestehende Dateien bleiben erhalten)
+- öffentliche Website-Dateien außerhalb von Intern/

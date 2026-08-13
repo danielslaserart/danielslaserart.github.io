@@ -1,0 +1,29 @@
+DANIELS LASER ART KALKULATOR 6.4.7 – UPLOAD
+
+1. Die ZIP-Datei lokal entpacken. Die ZIP selbst nicht bei GitHub hochladen.
+2. Jede enthaltene Datei unter demselben Pfad im Repository ersetzen.
+3. Dateien im ZIP-Ordner "Intern" gehören in den Repository-Ordner "Intern".
+4. Die beiden Anleitungsdateien dienen nur zur Hilfe und müssen nicht auf GitHub hochgeladen werden.
+5. Keine Programmdateien aus einer älteren Änderungs-ZIP beimischen. Ausgangspunkt muss der vollständig hochgeladene Stand 6.4.6 sein.
+6. Nach dem Upload unter GitHub "Actions" beziehungsweise "Deployments" warten, bis GitHub Pages erfolgreich veröffentlicht wurde.
+7. Anschließend https://danielslaserart.de/Intern/?v=6.4.7 öffnen.
+8. Die installierte App bei Bedarf vollständig schließen und neu öffnen.
+
+WICHTIG:
+- Nur die in dieser ZIP enthaltenen Programmdateien ersetzen.
+- SUPABASE_EINRICHTUNG.sql, Bilder, Assets und öffentliche Website-Dateien werden nicht geändert.
+- Bestehende Browserdaten und den localStorage-Schlüssel dla_kalkulator_v3 nicht löschen.
+
+DATEILISTE UND ZIELPFADE
+
+Die vollständige Liste steht zusätzlich in DATEILISTE-6.4.7.txt. Für jede Datei gilt:
+- ZIP-Datei "Intern/<Pfad>"
+- auf GitHub ersetzen unter "Intern/<Pfad>"
+
+UPLOAD-REIHENFOLGE
+
+1. Dateien unter Intern/js/
+2. Intern/index.html
+3. Intern/manifest.json
+4. Intern/README.txt
+5. Intern/sw.js zuletzt
