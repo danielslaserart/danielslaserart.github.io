@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.4.6";
-import { state, save, defaults } from "./storage.js?v=6.4.6";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.4.6";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.4.6";
-import { renderProjects } from "./projects.js?v=6.4.6";
-import { appConfirm } from "./dialogs.js?v=6.4.6";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.4.6";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.6";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.4.6";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.4.7";
+import { state, save, defaults } from "./storage.js?v=6.4.7";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.4.7";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.4.7";
+import { renderProjects } from "./projects.js?v=6.4.7";
+import { appConfirm } from "./dialogs.js?v=6.4.7";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.4.7";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.7";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.4.7";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -130,7 +130,7 @@ function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,custome
 }
 export function applyCalculatorFields(fields={}){
   Object.entries(fields).forEach(([id,value])=>{const el=$(id);if(el)el.value=value;});
-  if($("riskSurcharge")&&fields.riskSurcharge!=="")$("riskSurcharge").dataset.manual="true";
+  if($("riskSurcharge")&&fields.riskSurcharge!==""&&fields.riskSurcharge!=null)$("riskSurcharge").dataset.manual="true";
   calculate();
 }
 export const titles={ "3d":"3D-Druck","laser":"Laser","vinyl":"Vinylfolie","textil":"Textilfolie" };
@@ -305,7 +305,7 @@ export function renderCalculator(clear=false){
   if(type==="laser"&&orderType!=="own"){
     const customer=orderType==="customerObject",settings=getCustomerSettings(),process=$("customerObjectProcess")?.value||"engrave";
     html=`
-      <div class="group-title">${customer?"KUNDENOBJEKT & ZUSCHLÄGE":"DIENSTLEISTUNG & MASCHINE"}</div>
+      <div class="group-title" id="customerObjectSurchargesTitle">${customer?"KUNDENOBJEKT & ZUSCHLÄGE":"DIENSTLEISTUNG & MASCHINE"}</div>
       <label>Laser auswählen<select id="machineSelect">${machineOptions("laser")}</select></label>
       <div class="field-grid customer-object-fields">
         ${customer?`<label>Material des Kundenobjekts (nur Bezeichnung)<input id="objectMaterial" placeholder="z. B. versilbert, Edelstahl, Holz"></label>
@@ -373,11 +373,15 @@ export function renderCalculator(clear=false){
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
     </div>`;
 
-  const moduleFields=$("moduleFields");
-  moduleFields.innerHTML=html;
   const showCustomerObjectFields=orderType==="customerObject";
-  moduleFields.classList.toggle("hidden",!showCustomerObjectFields);
-  moduleFields.setAttribute("aria-hidden",String(!showCustomerObjectFields));
+  const customerSection=$("customerObjectSurcharges");
+  const customerFields=$("customerObjectFields");
+  customerFields.innerHTML=showCustomerObjectFields?html:"";
+  customerSection.classList.toggle("hidden",!showCustomerObjectFields);
+  customerSection.setAttribute("aria-hidden",String(!showCustomerObjectFields));
+  // Alte Modulfelder bleiben ausgeblendet. Die Kundenobjekt-Kalkulation besitzt
+  // bewusst einen eigenen Platz in der Hauptkalkulation vor den Positionen.
+  $("moduleFields").innerHTML="";
   renderCalculatorProjectPositions();
   updateOrderAssistantUI();
   renderConsumables();
