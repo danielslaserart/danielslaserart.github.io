@@ -1,8 +1,18 @@
-Daniels Laser Art Kalkulator V6.4.4
+Daniels Laser Art Kalkulator V6.4.5
 
-Version 6.4.4 – Sicherer Supabase-Start und kontrollierte Datenmigration
+Version 6.4.5 – Stabilisierung
 
-SICHERHEITSUMSTELLUNG 6.4.4
+STABILISIERUNG 6.4.5
+
+- Bereits abgeschlossene Datenvergleiche blockieren den Start nicht erneut.
+- Die Migrationsentscheidung wird nur als technische, benutzergebundene Abschlussmarkierung gespeichert.
+- Der lokale Altbestand und der Supabase-Datensatz werden dabei weder gelöscht noch automatisch überschrieben.
+- "Leeren" setzt die vollständige aktuelle Berechnung zurück und erzeugt genau eine neutrale Startposition im gewählten Hauptbereich.
+- Die Kundenobjekt-Kalkulation enthält wieder Wert, Grundpauschale, Schwierigkeit, Risiko, Beratung, Einrichtung, Positionierung, Fokus, Probelauf, Nachkontrolle, Reinigung, Verpackung, Express und sonstige Zuschläge.
+- Das Kundenobjekt selbst bleibt kundeneigen mit 0 € Materialkosten.
+- Zusätzliche eigene Materialien und Arbeitsschritte werden über Projektpositionen normal kalkuliert.
+
+SICHERHEITSUMSTELLUNG 6.4.5
 - Geschäftsdaten werden erst nach gültiger Anmeldung und erfolgreichem Laden von app_state aktiviert.
 - Der lokale Altbestand dla_kalkulator_v3 wird nicht mehr als aktive Datenquelle oder Offline-Ersatz verwendet.
 - Bei Abweichungen werden nur Anzahlen, stabile SHA-256-Kurzprüfsummen und der Vergleichsstatus angezeigt.
@@ -320,8 +330,8 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.4.4
-Version 6.4.4 – Projektpositionen sichtbar und neutraler Start
+https://danielslaserart.de/Intern/?v=6.4.5
+Version 6.4.5 – Projektpositionen sichtbar und neutraler Start
 
 - Projektpositionen sind direkt in der normalen Berechnungsmaske sichtbar und bedienbar.
 - Neue Berechnungen starten ohne Positionen und ohne automatisch eingefügte Zusatzartikel.
