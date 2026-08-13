@@ -1,8 +1,18 @@
-Daniels Laser Art Kalkulator V6.4.5
+Daniels Laser Art Kalkulator V6.4.6
 
-Version 6.4.5 – Stabilisierung
+Version 6.4.6 – Kundenobjekt-Zuschläge wieder bearbeitbar
 
-STABILISIERUNG 6.4.5
+FEHLERBEHEBUNG 6.4.6
+
+- Ursache behoben: Die vorhandenen Kundenobjekt-Eingaben lagen in einem ausgeblendeten Rechnerbereich.
+- Bei „Kundenobjekt bearbeiten“ erscheint nun der editierbare Bereich „Kundenobjekt & Zuschläge“.
+- Bearbeitbar sind Kundenobjekt-Wert, Grundpauschale, Schwierigkeit, Risiko, Beratung, Einrichtung, Positionierung, Fokus, Probelauf, Nachkontrolle, Reinigung, Verpackung, Express und sonstige Zuschläge.
+- Der Kundenobjekt-Wert dient nur der Risiko-/Haftungsbewertung und bleibt unabhängig von Materialkosten.
+- Das Kundenobjekt selbst bleibt kundeneigen mit 0,00 € Materialkosten.
+- Zusätzlich verwendetes eigenes Material wird weiterhin ausschließlich über Projektpositionen kalkuliert.
+- Die Preisübersicht bleibt eine getrennte Ergebnisanzeige.
+
+STABILISIERUNG 6.4.6
 
 - Bereits abgeschlossene Datenvergleiche blockieren den Start nicht erneut.
 - Die Migrationsentscheidung wird nur als technische, benutzergebundene Abschlussmarkierung gespeichert.
@@ -12,7 +22,7 @@ STABILISIERUNG 6.4.5
 - Das Kundenobjekt selbst bleibt kundeneigen mit 0 € Materialkosten.
 - Zusätzliche eigene Materialien und Arbeitsschritte werden über Projektpositionen normal kalkuliert.
 
-SICHERHEITSUMSTELLUNG 6.4.5
+SICHERHEITSUMSTELLUNG 6.4.6
 - Geschäftsdaten werden erst nach gültiger Anmeldung und erfolgreichem Laden von app_state aktiviert.
 - Der lokale Altbestand dla_kalkulator_v3 wird nicht mehr als aktive Datenquelle oder Offline-Ersatz verwendet.
 - Bei Abweichungen werden nur Anzahlen, stabile SHA-256-Kurzprüfsummen und der Vergleichsstatus angezeigt.
@@ -330,8 +340,8 @@ Neu in V3.2.1:
 Installation:
 Alle Dateien in /Intern ersetzen.
 Danach öffnen:
-https://danielslaserart.de/Intern/?v=6.4.5
-Version 6.4.5 – Projektpositionen sichtbar und neutraler Start
+https://danielslaserart.de/Intern/?v=6.4.6
+Version 6.4.6 – Projektpositionen sichtbar und neutraler Start
 
 - Projektpositionen sind direkt in der normalen Berechnungsmaske sichtbar und bedienbar.
 - Neue Berechnungen starten ohne Positionen und ohne automatisch eingefügte Zusatzartikel.
