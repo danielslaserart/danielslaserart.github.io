@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.4.8";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=6.4.8";
-import { renderMaterials } from "./materials.js?v=6.4.8";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.4.8";
-import { fillSettings } from "./settings.js?v=6.4.8";
-import { renderTools, resetTool } from "./statistics.js?v=6.4.8";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.4.8";
-import { appAlert, appPrompt } from "./dialogs.js?v=6.4.8";
-import { applyDesignDefaults } from "./design.js?v=6.4.8";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.4.8";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.5";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=6.5";
+import { renderMaterials } from "./materials.js?v=6.5";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.5";
+import { fillSettings } from "./settings.js?v=6.5";
+import { renderTools, resetTool } from "./statistics.js?v=6.5";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.5";
+import { appAlert, appPrompt } from "./dialogs.js?v=6.5";
+import { applyDesignDefaults } from "./design.js?v=6.5";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.5";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
@@ -61,7 +61,6 @@ function resetCalculator(module="3d"){
   if($("projectCustomerId"))$("projectCustomerId").value="";
   $("projectCustomerId")?.dispatchEvent(new Event("change",{bubbles:true}));
   if($("customerName"))$("customerName").value="";
-  if($("customerAddress"))$("customerAddress").value="";
   if($("projectNotes"))$("projectNotes").value="";
   if($("projectStatus"))$("projectStatus").value="offer";
   if($("projectTags"))$("projectTags").value="";
@@ -103,7 +102,6 @@ export function loadCalculatorData(source={},options={}){
     $("customerName").value="";
     if($("projectCustomerId"))$("projectCustomerId").value="";
     $("projectCustomerId")?.dispatchEvent(new Event("change",{bubbles:true}));
-    if($("customerAddress"))$("customerAddress").value="";
     if($("projectStatus"))$("projectStatus").value="offer";
     if($("projectTags"))$("projectTags").value="";
   }else{
@@ -111,7 +109,6 @@ export function loadCalculatorData(source={},options={}){
     $("customerName").value=source.customer||"";
     if($("projectCustomerId"))$("projectCustomerId").value=source.customerId||"";
     $("projectCustomerId")?.dispatchEvent(new Event("change",{bubbles:true}));
-    if($("customerAddress"))$("customerAddress").value=source.customerAddress||source.fields?.customerAddress||"";
     if($("projectStatus"))$("projectStatus").value=source.status||"offer";
     if($("projectTags"))$("projectTags").value=(source.tags||[]).join(", ");
   }

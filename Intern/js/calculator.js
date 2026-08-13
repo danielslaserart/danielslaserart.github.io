@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.4.8";
-import { state, save, defaults } from "./storage.js?v=6.4.8";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.4.8";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.4.8";
-import { renderProjects } from "./projects.js?v=6.4.8";
-import { appConfirm } from "./dialogs.js?v=6.4.8";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.4.8";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.8";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.4.8";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.5";
+import { state, save, defaults } from "./storage.js?v=6.5";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.5";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.5";
+import { renderProjects } from "./projects.js?v=6.5";
+import { appConfirm } from "./dialogs.js?v=6.5";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.5";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.5";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.5";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -249,7 +249,6 @@ export function renderCalculator(clear=false){
   $("customerName").value=clear?"":$("customerName").value;
   if(clear){
     editingProjectId=null;
-    if($("customerAddress")) $("customerAddress").value="";
     if($("projectNotes")) $("projectNotes").value="";
     if($("projectStatus")) $("projectStatus").value="offer";
     if($("projectTags")) $("projectTags").value="";
@@ -541,7 +540,10 @@ $("calcForm").onsubmit=async e=>{
   let agreementFields;try{agreementFields=readAgreementForm(existingProject||{})}catch(error){await appConfirm(error.message,"Preisvereinbarung prüfen","OK");return}
   if(!await confirmUnderCostAgreement({agreementPrice:agreementFields.agreementPrice,selfCosts:costNow,previousAgreementPrice:existingProject?normalizeAgreementFields(existingProject).agreementPrice:null}))return;
   const selectedCustomerId=$("projectCustomerId")?.value||"";
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",customerAddress:$("customerAddress")?.value.trim()||"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  // Neue Projekte speichern keine Adresskopie. Altprojekt-Anschriften bleiben unverändert als historischer Rückfall erhalten.
+  if(existingProject?.customerAddress)project.customerAddress=existingProject.customerAddress;else delete project.customerAddress;
+  if(existingProject?.fields?.customerAddress)project.fields.customerAddress=existingProject.fields.customerAddress;
   // Die automatisch angelegte erste Position bildet bei Kundenobjekten immer das kundeneigene Objekt mit 0 € ab.
   syncAutomaticFirstPosition(state.activeModule);
   // Projektpositionen gehören zur Projektakte und bleiben beim erneuten Kalkulieren vollständig erhalten.

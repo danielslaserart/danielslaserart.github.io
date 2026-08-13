@@ -1,17 +1,17 @@
-import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.4.8";
-import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.4.8";
-import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.4.8";
-import { resolveMaterialSelection } from "./materials.js?v=6.4.8";
-import { workshopUnit } from "./calculator.js?v=6.4.8";
-import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.4.8";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.4.8";
-import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.4.8";
-import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.4.8";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.8";
-import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.4.8";
-import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.4.8";
-import { customerNameById } from "./customers.js?v=6.4.8";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock } from "./project-positions.js?v=6.4.8";
+import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.5";
+import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.5";
+import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.5";
+import { resolveMaterialSelection } from "./materials.js?v=6.5";
+import { workshopUnit } from "./calculator.js?v=6.5";
+import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.5";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.5";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.5";
+import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.5";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.5";
+import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
+import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.5";
+import { customerNameById, customerAddressById } from "./customers.js?v=6.5";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock } from "./project-positions.js?v=6.5";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -363,7 +363,7 @@ async function printOffer(p,selectedPrice=p.sale){
   const created=new Date(p.created||p.updated||Date.now());
   const offerNo=`A-${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,"0")}${String(created.getDate()).padStart(2,"0")}-${String((p.id||"").replace(/\D/g,"").slice(-3)||"001").padStart(3,"0")}`;
   const qty=Math.max(1,num(p.qty)||1),totalPrice=num(selectedPrice),unitPrice=totalPrice/qty;
-  const address=(p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
+  const address=(customerAddressById(p.customerId)||p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
   if(address.split(/\r?\n/).filter(Boolean).length<3)await appAlert("Für einen Fensterbriefumschlag fehlt eine vollständige Kundenanschrift. Das Angebot wird trotzdem erstellt.");
   try{
     const offerData={offerNumber:offerNo,date:today.toLocaleDateString("de-DE"),projectName:p.title||p.type||"Individuelle Anfertigung",address,positions:[{description:p.title||p.type||"Individuelle Anfertigung",quantity:qty,unit:"Stk.",unitPrice,total:totalPrice}],total:totalPrice};
@@ -383,7 +383,7 @@ function printOfferLegacy(p,selectedPrice=p.sale){
   const service=esc(p.title||p.type||"Individuelle Anfertigung");
   const qty=Math.max(1,num(p.qty)||1);
   const pdfPrice=num(selectedPrice),unitPrice=pdfPrice/qty;
-  const address=(p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
+  const address=(customerAddressById(p.customerId)||p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
   const addressHtml=address?address.split(/\r?\n/).map(esc).join("<br>"):"Kundenanschrift";
   const logoUrl=new URL("briefkopf-logo.png",window.location.href).href;
 
