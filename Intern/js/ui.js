@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.4.4";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=6.4.4";
-import { renderMaterials } from "./materials.js?v=6.4.4";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.4.4";
-import { fillSettings } from "./settings.js?v=6.4.4";
-import { renderTools, resetTool } from "./statistics.js?v=6.4.4";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.4.4";
-import { appAlert, appPrompt } from "./dialogs.js?v=6.4.4";
-import { applyDesignDefaults } from "./design.js?v=6.4.4";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.4.4";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.4.5";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=6.4.5";
+import { renderMaterials } from "./materials.js?v=6.4.5";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.4.5";
+import { fillSettings } from "./settings.js?v=6.4.5";
+import { renderTools, resetTool } from "./statistics.js?v=6.4.5";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.4.5";
+import { appAlert, appPrompt } from "./dialogs.js?v=6.4.5";
+import { applyDesignDefaults } from "./design.js?v=6.4.5";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.4.5";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
@@ -48,16 +48,25 @@ document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeMo
 
 function resetCalculator(module="3d"){
   state.activeModule=module||"3d";
+  $("calcForm")?.reset();
   setEditingProjectId(null);
   setCalculatorConsumables([]);
-  setCalculatorPositions(null);
   setCalculatorProductSize("medium");
   state.timer={running:false,startedAt:null,elapsed:0};
-  renderCalculator(true);
   const orderRadio=document.querySelector('input[name="orderType"][value="own"]');
   if(orderRadio)orderRadio.checked=true;
   if($("customerObjectProcess"))$("customerObjectProcess").value="engrave";
-  renderCalculator(false);
+  setCalculatorPositions(null);
+  renderCalculator(true);
+  if($("projectCustomerId"))$("projectCustomerId").value="";
+  $("projectCustomerId")?.dispatchEvent(new Event("change",{bubbles:true}));
+  if($("customerName"))$("customerName").value="";
+  if($("customerAddress"))$("customerAddress").value="";
+  if($("projectNotes"))$("projectNotes").value="";
+  if($("projectStatus"))$("projectStatus").value="offer";
+  if($("projectTags"))$("projectTags").value="";
+  clearAgreementForm();
+  calculate();
 }
 export function loadCalculatorData(source={},options={}){
   const snapshot=source.calculationSnapshot?.sourceModule==="calculator"?source.calculationSnapshot:null;
@@ -105,7 +114,6 @@ export function loadCalculatorData(source={},options={}){
 }
 export function startNewOrder(module="3d"){
   resetCalculator(module);
-  clearAgreementForm();
   save();
   setScreen("calculator");
 }

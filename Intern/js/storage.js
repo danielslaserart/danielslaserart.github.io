@@ -1,5 +1,5 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.4.4";
-import { appConfirm } from "./dialogs.js?v=6.4.4";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.4.5";
+import { appConfirm } from "./dialogs.js?v=6.4.5";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -65,9 +65,11 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.4.4";
+const APP_VERSION = "6.4.5";
 const VERSION_KEY = "dla_app_version";
-if (localStorage.getItem(VERSION_KEY) !== APP_VERSION) {
+const MIGRATION_ACK_KEY = "dla_migration_completed_v1";
+const PREVIOUS_APP_VERSION = localStorage.getItem(VERSION_KEY);
+if (PREVIOUS_APP_VERSION !== APP_VERSION) {
   if ("caches" in window) {
     caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).catch(() => {});
   }
@@ -436,6 +438,13 @@ function readLegacyState(){
     return parsed&&typeof parsed==="object"?parsed:null;
   }catch{return null;}
 }
+function migrationWasCompleted(){
+  try{return JSON.parse(localStorage.getItem(MIGRATION_ACK_KEY)||"null")?.userId===currentUser?.id;}catch{return false;}
+}
+function rememberCompletedMigration(){
+  if(!currentUser)return;
+  localStorage.setItem(MIGRATION_ACK_KEY,JSON.stringify({userId:currentUser.id,completedAt:new Date().toISOString()}));
+}
 function stableValue(value){
   if(Array.isArray(value))return value.map(stableValue);
   if(value&&typeof value==="object")return Object.keys(value).sort().reduce((result,key)=>{
@@ -528,6 +537,11 @@ async function evaluateLoadedCloud(result){
     return;
   }
   if(!legacyLocalState){openReady(result.data);return;}
+  if(migrationWasCompleted()||PREVIOUS_APP_VERSION==="6.4.4"){
+    rememberCompletedMigration();
+    openReady(result.data);
+    return;
+  }
   const rows=await compareStates(legacyLocalState,result.data);
   if(rows.every(row=>row.equal)){openReady(result.data);return;}
   securityState="migration-required";
@@ -642,7 +656,7 @@ $("securityLogoutBtn").onclick=performLogout;
 $("downloadLocalBtn").onclick=()=>downloadBackup("lokal",legacyLocalState);
 $("downloadCloudBtn").onclick=()=>downloadBackup("supabase",loadedCloudState);
 $("cancelMigrationBtn").onclick=()=>showSecurityView({mode:"loading",headline:"Migration abgebrochen",text:"Es wurden keine Daten verändert. Du kannst die Seite neu laden oder dich abmelden."});
-$("useCloudBtn").onclick=()=>openReady(loadedCloudState);
+$("useCloudBtn").onclick=()=>{rememberCompletedMigration();openReady(loadedCloudState);};
 $("uploadLocalBtn").onclick=async()=>{
   if(!legacyLocalState||isNeutralState(legacyLocalState))return showSecurityView({mode:"missing",headline:"Übertragung gesperrt",text:"Der lokale Datenstand ist leer oder offensichtlich unvollständig."});
   const confirmed=await appConfirm("Der vorhandene Supabase-Datensatz wird vollständig durch den lokalen Altbestand ersetzt. Hast du beide verfügbaren Sicherungen heruntergeladen und möchtest du wirklich fortfahren?","Lokale Daten übertragen","Ja, ersetzen");
@@ -656,6 +670,7 @@ $("uploadLocalBtn").onclick=async()=>{
     const rows=await compareStates(legacyLocalState,verified.data);
     if(!rows.every(row=>row.equal))throw new Error("Prüfsummen oder Anzahlen stimmen nach der Übertragung nicht überein.");
     loadedCloudState=verified.data;cloudUpdatedAt=verified.updatedAt;confirmedInitialTransfer=false;
+    rememberCompletedMigration();
     openReady(verified.data);
   }catch(error){
     console.error("Migration fehlgeschlagen:",error);confirmedInitialTransfer=false;cloudReady=false;cloudRecordLoaded=false;securityState="migration-error";resetActiveState();
