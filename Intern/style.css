@@ -1124,3 +1124,12 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .customer-object-surcharges[open] .customer-object-summary-arrow{transform:translateY(-50%) rotate(180deg)}
 .customer-object-fields-content{padding:0 16px 16px;border-top:1px solid rgba(212,175,55,.2)}
 .customer-object-fields-content>label:first-child{margin-top:16px}
+
+/* V6.5: zentrale Kundendaten kompakt in Liste und Kundenakten-Kopf */
+.customer-list-address{color:#cbbda8!important}
+.customer-list-rating{display:grid;justify-items:end;gap:5px}
+.customer-list-rating .customer-badges{justify-content:flex-end;margin:0}
+.customer-project-count-inline{color:var(--gold2);white-space:nowrap}
+.crm-customer-contact{display:grid;gap:2px;margin:0 0 7px;color:var(--muted);font-size:.78rem}
+.crm-customer-contact b{color:var(--text)}
+@media(max-width:760px){.customer-list-rating{justify-items:start}.customer-list-rating .customer-badges{justify-content:flex-start}.customer-project-count-inline{grid-column:2}}
