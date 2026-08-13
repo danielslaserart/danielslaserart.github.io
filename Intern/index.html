@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#090d14">
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=6.4.7">
-  <link rel="apple-touch-icon" href="icon-192.png?v=6.4.7">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.4.7">
-  <link rel="stylesheet" href="style.css?v=6.4.7">
+  <link rel="manifest" href="manifest.json?v=6.4.8">
+  <link rel="apple-touch-icon" href="icon-192.png?v=6.4.8">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.4.8">
+  <link rel="stylesheet" href="style.css?v=6.4.8">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -77,7 +77,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V6.4.7</span>
+      <span class="version-badge">V6.4.8</span>
     </div>
 
     <div class="dashboard-actions">
@@ -233,9 +233,14 @@
         <div class="timer-actions"><button id="timerToggleBtn" class="secondary small" type="button">▶ Start</button><button id="timerResetBtn" class="ghost small" type="button">Zurücksetzen</button></div>
       </div>
 
-      <section id="customerObjectSurcharges" class="hidden" aria-hidden="true" aria-labelledby="customerObjectSurchargesTitle">
-        <div id="customerObjectFields"></div>
-      </section>
+      <details id="customerObjectSurcharges" class="customer-object-surcharges hidden">
+        <summary>
+          <span class="customer-object-summary-title">KUNDENOBJEKT &amp; ZUSCHLÄGE</span>
+          <span id="customerObjectCompactSummary" class="customer-object-compact-summary">Wert: 0,00 € · Normal · Risiko: 0,00 € · Grundpauschale: 0,00 € · Zuschläge: 0,00 €</span>
+          <span class="customer-object-summary-arrow" aria-hidden="true">▾</span>
+        </summary>
+        <div id="customerObjectFields" class="customer-object-fields-content"></div>
+      </details>
       <div id="calculatorProjectPositions" aria-live="polite"></div>
       <div id="moduleFields" class="hidden" aria-hidden="true"></div>
       <label>Projekt-Notizen<textarea id="projectNotes" rows="3" placeholder="z. B. Materialfarbe, Kundenwunsch oder besondere Einstellungen"></textarea></label>
@@ -1069,7 +1074,7 @@
 <script id="supabaseScript" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
-<script src="assets/vendor/pdf-lib.min.js?v=6.4.7"></script>
-<script type="module" src="js/app.js?v=6.4.7"></script>
+<script src="assets/vendor/pdf-lib.min.js?v=6.4.8"></script>
+<script type="module" src="js/app.js?v=6.4.8"></script>
 </body>
 </html>

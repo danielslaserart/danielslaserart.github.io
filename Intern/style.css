@@ -1115,3 +1115,12 @@ textarea:focus{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(201,151,69,.1
 .position-editor{width:min(760px,calc(100vw - 1.2rem));max-height:92vh;overflow:auto}.position-source-options{display:flex;flex-wrap:wrap;gap:.8rem}.position-source-options label{display:flex;align-items:center;gap:.35rem}.position-editor textarea{min-height:76px}
 .single-position-mode{margin-top:.65rem;padding-top:0;border-top:0}.single-position-mode .section-head>div{display:none}.single-position-mode .section-head{justify-content:flex-end;margin-bottom:.45rem}.single-position-mode .project-position-card{border-color:rgba(176,141,87,.16)}.single-position-mode .project-position-card>summary{padding:.65rem}.single-position-mode .position-details{padding:.65rem}.single-position-mode [data-position-duplicate],.single-position-mode [data-position-up],.single-position-mode [data-position-down],.single-position-mode [data-position-delete]{display:none}
 @media(max-width:600px){.project-position-card>summary{grid-template-columns:1fr}.position-compact-cost{text-align:left;grid-template-columns:repeat(3,auto);justify-content:start;gap:.45rem}.position-details,.position-totals{grid-template-columns:1fr}.position-totals>div{grid-column:1}.position-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.position-actions button:last-child{grid-column:1/-1}}
+.customer-object-surcharges{margin:16px 0;border:1px solid rgba(212,175,55,.45);border-radius:14px;background:rgba(16,16,16,.72);overflow:hidden}
+.customer-object-surcharges>summary{position:relative;display:grid;gap:5px;padding:15px 44px 15px 16px;cursor:pointer;list-style:none;user-select:none}
+.customer-object-surcharges>summary::-webkit-details-marker{display:none}
+.customer-object-summary-title{color:var(--gold);font-size:.82rem;font-weight:800;letter-spacing:.08em}
+.customer-object-compact-summary{color:var(--muted);font-size:.83rem;line-height:1.45}
+.customer-object-summary-arrow{position:absolute;right:17px;top:50%;color:var(--gold);font-size:1.1rem;transform:translateY(-50%);transition:transform .2s ease}
+.customer-object-surcharges[open] .customer-object-summary-arrow{transform:translateY(-50%) rotate(180deg)}
+.customer-object-fields-content{padding:0 16px 16px;border-top:1px solid rgba(212,175,55,.2)}
+.customer-object-fields-content>label:first-child{margin-top:16px}
