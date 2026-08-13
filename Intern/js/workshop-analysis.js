@@ -1,6 +1,6 @@
-import { $, euro, esc, inferMaterialCategory, num } from "./utils.js?v=6.4.5";
-import { state, getRealProjects } from "./storage.js?v=6.4.5";
-import { getPriceLadderData } from "./price-ladder.js?v=6.4.5";
+import { $, euro, esc, inferMaterialCategory, num } from "./utils.js?v=6.4.6";
+import { state, getRealProjects } from "./storage.js?v=6.4.6";
+import { getPriceLadderData } from "./price-ladder.js?v=6.4.6";
 
 export const FEATURE_FLAGS=Object.freeze({
   legacyStatisticsVisible:false,

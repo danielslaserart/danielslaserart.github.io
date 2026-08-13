@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.4.5";
-import { state, save, defaults } from "./storage.js?v=6.4.5";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.4.5";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.4.5";
-import { renderProjects } from "./projects.js?v=6.4.5";
-import { appConfirm } from "./dialogs.js?v=6.4.5";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.4.5";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.5";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.4.5";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.4.6";
+import { state, save, defaults } from "./storage.js?v=6.4.6";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.4.6";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.4.6";
+import { renderProjects } from "./projects.js?v=6.4.6";
+import { appConfirm } from "./dialogs.js?v=6.4.6";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.4.6";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.4.6";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.4.6";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -28,16 +28,17 @@ export function computePriceBreakdown(parts={}){
     const work=Math.max(0,num(parts.work));
     const risk=Math.max(0,num(parts.risk));
     const express=Math.max(0,num(parts.express));
+    const furtherSurcharges=Math.max(0,num(parts.furtherSurcharges));
     const difficultyPercent=Math.max(0,num(parts.difficultyPercent));
     const extra=Math.max(0,num(parts.extra));
-    const difficulty=(baseFee+material+machine+work+extra)*difficultyPercent/100;
-    const calculated=baseFee+material+machine+work+extra+difficulty+risk+express;
+    const difficulty=(baseFee+furtherSurcharges+material+machine+work+extra)*difficultyPercent/100;
+    const calculated=baseFee+furtherSurcharges+material+machine+work+extra+difficulty+risk+express;
     const minimum=Math.max(0,num(parts.minimumPrice));
     const minimumApplied=calculated<minimum;
     const minimumAdjusted=Math.max(calculated,minimum);
     const recommended=calculated<=minimum?minimum:Math.max(minimum,Math.ceil(minimumAdjusted)+.9);
     const cost=material+machine+work+extra;
-    return {material,consumables:0,baseFee,machine,work,extra,reserve:0,difficulty,risk,express,calculated,minimum,minimumApplied,cost,sale:recommended,profit:Math.max(0,recommended-cost)};
+    return {material,consumables:0,baseFee,furtherSurcharges,machine,work,extra,reserve:0,difficulty,risk,express,calculated,minimum,minimumApplied,cost,sale:recommended,profit:Math.max(0,recommended-cost)};
   }
   const material=Math.max(0,num(parts.material)),consumables=Math.max(0,num(parts.consumables)),machine=Math.max(0,num(parts.machine)),work=Math.max(0,num(parts.work)),extra=Math.max(0,num(parts.extra));
   const direct=material+consumables+machine+work+extra;
@@ -304,7 +305,7 @@ export function renderCalculator(clear=false){
   if(type==="laser"&&orderType!=="own"){
     const customer=orderType==="customerObject",settings=getCustomerSettings(),process=$("customerObjectProcess")?.value||"engrave";
     html=`
-      <div class="group-title">${customer?"KUNDENOBJEKT":"DIENSTLEISTUNG"} & MASCHINE</div>
+      <div class="group-title">${customer?"KUNDENOBJEKT & ZUSCHLÄGE":"DIENSTLEISTUNG & MASCHINE"}</div>
       <label>Laser auswählen<select id="machineSelect">${machineOptions("laser")}</select></label>
       <div class="field-grid customer-object-fields">
         ${customer?`<label>Material des Kundenobjekts (nur Bezeichnung)<input id="objectMaterial" placeholder="z. B. versilbert, Edelstahl, Holz"></label>
@@ -372,7 +373,11 @@ export function renderCalculator(clear=false){
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
     </div>`;
 
-  $("moduleFields").innerHTML=html;
+  const moduleFields=$("moduleFields");
+  moduleFields.innerHTML=html;
+  const showCustomerObjectFields=orderType==="customerObject";
+  moduleFields.classList.toggle("hidden",!showCustomerObjectFields);
+  moduleFields.setAttribute("aria-hidden",String(!showCustomerObjectFields));
   renderCalculatorProjectPositions();
   updateOrderAssistantUI();
   renderConsumables();
@@ -463,7 +468,7 @@ export function calculate(){
     material=totals.material;
     machine+=totals.machine;
     work+=totals.work;
-    extra=totals.other+num($("packaging")?.value)+num($("otherCosts")?.value);
+    extra=totals.other+num($("packaging")?.value);
   }else{
     material=totals.material;machine=totals.machine;work=totals.work;extra=totals.other;
   }
@@ -472,7 +477,9 @@ export function calculate(){
   const breakdown=computePriceBreakdown({
     orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
     overheadPercent:state.settings.overhead,reservePercent:num($("reserve")?.value),profitPercent:num($("profit")?.value),roundFn:rounded,
-    baseFee:orderType==="customerObject"?num($("customerBaseFee")?.value)+num($("consultationFee")?.value)+num($("setupFee")?.value)+num($("positioningFee")?.value)+num($("focusFee")?.value)+num($("testRunFee")?.value)+num($("inspectionFee")?.value)+num($("cleaningFee")?.value):settings.baseFee,minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:num($("expressSurcharge")?.value)
+    baseFee:orderType==="customerObject"?num($("customerBaseFee")?.value):settings.baseFee,
+    furtherSurcharges:orderType==="customerObject"?num($("consultationFee")?.value)+num($("setupFee")?.value)+num($("positioningFee")?.value)+num($("focusFee")?.value)+num($("testRunFee")?.value)+num($("inspectionFee")?.value)+num($("cleaningFee")?.value)+num($("otherCosts")?.value):0,
+    minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:num($("expressSurcharge")?.value)
   });
   const customerObject=orderType==="customerObject";
   ["resCostHeading","resPricePartsHeading","resRoundingHeading","resActualProfitHeading","resCustomerMaterialRow","resOtherActualCostsRow","resFurtherSurchargesRow","resRoundingRow","resActualProfitRow","resMarginRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
@@ -482,6 +489,7 @@ export function calculate(){
   $("resMaterial").textContent=euro(breakdown.material);$("resConsumables").textContent=euro(breakdown.consumables);$("resBaseFee").textContent=euro(breakdown.baseFee);
   $("resMachine").textContent=euro(breakdown.machine);$("resWork").textContent=euro(breakdown.work);$("resExtra").textContent=euro(breakdown.extra);$("resReserve").textContent=euro(breakdown.reserve);
   $("resDifficulty").textContent=euro(breakdown.difficulty);$("resRisk").textContent=euro(breakdown.risk);$("resExpress").textContent=euro(breakdown.express);$("resCalculated").textContent=euro(breakdown.calculated);$("resMinimum").textContent=euro(breakdown.minimum);
+  if($("resFurtherSurcharges"))$("resFurtherSurcharges").textContent=euro(breakdown.furtherSurcharges);
   const roundingDifference=breakdown.sale-breakdown.calculated;
   const actualProfit=breakdown.sale-breakdown.cost;
   const margin=breakdown.sale>0?actualProfit/breakdown.sale*100:0;
