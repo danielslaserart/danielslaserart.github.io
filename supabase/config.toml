@@ -1,0 +1,2 @@
+[functions.order-monitor-read]
+verify_jwt = false
