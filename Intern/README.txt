@@ -1,3 +1,14 @@
+Daniels Laser Art Kalkulator V6.6
+
+Version 6.6 – datensparsame Auftragsprüfung
+
+- Bei jeder erfolgreichen Cloud-Speicherung wird zusätzlich ein getrennter Prüfdatensatz aktualisiert.
+- Enthalten sind nur Projektname, Kunde/Firma, Status, Termine, Preise, Selbstkosten, Gewinn, Risiko, Schwierigkeit und bereinigte interne Hinweise.
+- Anschrift, PLZ, Ort, Telefonnummer, E-Mail, Ansprechpartner und Bilder werden nicht übernommen.
+- E-Mail-Adressen, Telefonnummern und typische Anschriften in Freitext-Hinweisen werden vor der Übernahme maskiert.
+- Der Prüfdatensatz bleibt per Supabase RLS ausschließlich dem angemeldeten Eigentümer zugänglich.
+- Vor dem Test ist SUPABASE_AUFTRAGSPRUEFUNG_6.6.sql einmalig im Supabase SQL Editor auszuführen.
+
 Daniels Laser Art Kalkulator V6.5
 
 Version 6.5 – Kundendaten zentral in der Kundenakte

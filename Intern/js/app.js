@@ -68,7 +68,7 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 export function initializeApp(){
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.5",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
