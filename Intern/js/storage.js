@@ -1,5 +1,6 @@
 import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.5";
 import { appConfirm } from "./dialogs.js?v=6.5";
+import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -65,7 +66,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "6.5";
+const APP_VERSION = "6.6";
 const VERSION_KEY = "dla_app_version";
 const MIGRATION_ACK_KEY = "dla_migration_completed_v1";
 const PREVIOUS_APP_VERSION = localStorage.getItem(VERSION_KEY);
@@ -387,9 +388,21 @@ async function saveCloudState(payloadOverride=null,{confirmedMigration=false}={}
     setSyncStatus("Fehler","error");
     throw error;
   }else{
+    await saveMonitoringSnapshot(client,payload).catch(monitoringError=>{
+      console.warn("Datensparsame Auftragsprüfung konnte nicht aktualisiert werden:",monitoringError);
+    });
     setSyncStatus("Gespeichert","ok");
     return data;
   }
+}
+
+async function saveMonitoringSnapshot(client,payload){
+  const snapshot=buildMonitoringSnapshot(payload,currentUser?.id);
+  if(monitoringSnapshotHasPrivateFields(snapshot))throw new Error("Der Prüfdatensatz enthält gesperrte Kundendaten.");
+  const {error}=await client.from("order_monitor_state").upsert({
+    user_id:currentUser.id,data:snapshot,updated_at:new Date().toISOString()
+  },{onConflict:"user_id"});
+  if(error)throw error;
 }
 export async function flushCloudSave(){
   if(!canWriteCloud())return null;
