@@ -10,6 +10,7 @@ import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.5";
 import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.5";
 import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
 import { initializeCustomers, renderCustomers } from "./customers.js?v=6.5";
+import "./position-profile-fix.js?v=6.6.1";
 
 function renderAll(){
   updateHome();
