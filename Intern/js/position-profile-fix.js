@@ -1,6 +1,5 @@
 import { state } from "./storage.js?v=6.5";
 import { resolveMaterialSelection } from "./materials.js?v=6.5";
-import { effectiveProfiles } from "./processing-profiles.js?v=6.5";
 
 const clamp=value=>Math.max(0,Number.isFinite(Number(value))?Number(value):0);
 const processType=activity=>activity==="cut"?"cutting":activity==="engrave"?"vectorEngraving":"";
@@ -8,9 +7,11 @@ const processType=activity=>activity==="cut"?"cutting":activity==="engrave"?"vec
 function selectionInfo(form){
   const raw=form.elements.managedMaterial?.value||"";
   const selection=resolveMaterialSelection(raw);
-  const familyId=selection?.baseMaterial?.id||selection?.materialId||selection?.id||raw.split("::")[0]||"";
+  const family=selection?.baseMaterial||state.materials?.find(m=>m.id===selection?.materialId)||selection||null;
+  const familyId=family?.id||selection?.materialId||raw.split("::")[0]||"";
   const materialId=selection?.variantId||selection?.materialId||selection?.id||raw.split("::").pop()||"";
-  return {selection,familyId,materialId};
+  const variant=family?.variants?.find(v=>v.id===materialId)||null;
+  return {selection,family,variant,familyId,materialId};
 }
 
 function ratePerMinute(machine,activity){
@@ -27,29 +28,58 @@ function refreshCost(form){
   if(form.elements.machineCost)form.elements.machineCost.value=(rate*minutes).toFixed(2);
 }
 
+function collectProfiles(form){
+  const {selection,family,variant}=selectionInfo(form);
+  const sources=[
+    state.processingProfiles,
+    selection?.processingProfiles,selection?.profiles,selection?.allProfiles,selection?.ownProfiles,
+    selection?.inheritedProfiles,selection?.inheritedFamilyProfiles,selection?.familyProfiles,selection?.profileSnapshots,
+    variant?.processingProfiles,variant?.profiles,variant?.allProfiles,variant?.ownProfiles,
+    variant?.inheritedProfiles,variant?.inheritedFamilyProfiles,variant?.familyProfiles,variant?.profileSnapshots,
+    family?.processingProfiles,family?.profiles,family?.allProfiles,family?.ownProfiles,
+    family?.inheritedProfiles,family?.inheritedFamilyProfiles,family?.familyProfiles,family?.profileSnapshots
+  ].filter(Array.isArray).flat().filter(Boolean);
+  const unique=new Map();
+  sources.forEach((profile,index)=>{
+    const id=String(profile.id||profile.profileId||profile.familyProfileId||profile.sourceProfileId||`embedded-${index}`);
+    const key=[id,profile.name||"",profile.machineId||"",profile.processType||"",profile.materialId||"",profile.familyId||""].join("|");
+    if(!unique.has(key))unique.set(key,{...profile,id});
+  });
+  return [...unique.values()].filter(p=>p.name&&p.status!=="obsolete");
+}
+
 function profileCandidates(form){
   const activity=form.elements.activity?.value;
   const machineId=form.elements.machineId?.value||"";
   const wantedProcess=processType(activity);
   const {familyId,materialId}=selectionInfo(form);
-  const strict=effectiveProfiles(materialId,{machineId,processType:wantedProcess});
-  if(strict.length)return strict;
+  const all=collectProfiles(form);
 
-  const all=(state.processingProfiles||[]).filter(p=>p&&p.id&&p.name&&p.status!=="obsolete");
-  const machineProcess=all.filter(p=>(!machineId||p.machineId===machineId)&&(!wantedProcess||p.processType===wantedProcess));
-  const related=machineProcess.filter(p=>
+  const processMatches=p=>!wantedProcess||!p.processType||p.processType===wantedProcess;
+  const machineMatches=p=>!machineId||!p.machineId||p.machineId===machineId;
+  const materialMatches=p=>
     (p.scope==="material"&&(p.materialId===materialId||p.materialId===familyId))||
-    (p.scope==="family"&&p.familyId===familyId)
-  );
-  if(related.length)return related;
-  return machineProcess;
+    (p.scope==="family"&&p.familyId===familyId)||
+    (!p.scope&&(!p.materialId||p.materialId===materialId||p.materialId===familyId)&&(!p.familyId||p.familyId===familyId));
+
+  const exact=all.filter(p=>processMatches(p)&&machineMatches(p)&&materialMatches(p));
+  if(exact.length)return exact;
+  const machineProcess=all.filter(p=>processMatches(p)&&machineMatches(p));
+  if(machineProcess.length)return machineProcess;
+  const processOnly=all.filter(processMatches);
+  if(processOnly.length)return processOnly;
+  return all;
 }
 
 function profileLabel(profile,form){
   const {familyId,materialId}=selectionInfo(form);
-  const exact=(profile.scope==="material"&&(profile.materialId===materialId||profile.materialId===familyId))||(profile.scope==="family"&&profile.familyId===familyId);
-  const suffix=exact?"":" · anderes Material";
-  return `${profile.name}${suffix}`;
+  const exact=(profile.scope==="material"&&(profile.materialId===materialId||profile.materialId===familyId))||(profile.scope==="family"&&profile.familyId===familyId)||(!profile.scope&&(!profile.materialId||profile.materialId===materialId||profile.materialId===familyId));
+  const machine=form.elements.machineId?.value||"";
+  const machineOk=!profile.machineId||!machine||profile.machineId===machine;
+  const suffix=[];
+  if(!exact)suffix.push("anderes Material");
+  if(!machineOk)suffix.push("andere Maschine");
+  return `${profile.name}${suffix.length?` · ${suffix.join(" / ")}`:""}`;
 }
 
 function refreshProfiles(form,keep=true){
