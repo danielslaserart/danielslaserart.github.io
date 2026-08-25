@@ -1,5 +1,11 @@
 (() => {
   const money = value => (Math.max(0, Number(value) || 0)).toFixed(2);
+  let pendingAdd=false;
+
+  document.addEventListener('click',event=>{
+    if(event.target.closest?.('[data-position-add]')) pendingAdd=true;
+    else if(event.target.closest?.('[data-position-edit]')) pendingAdd=false;
+  },true);
 
   function installStyles(){
     if(document.getElementById('positionUiFixStyles')) return;
@@ -68,12 +74,13 @@
     if(!form || form.dataset.positionUiFix) return;
     form.dataset.positionUiFix='1';
 
-    const heading=form.closest('dialog')?.querySelector('h2')?.textContent||'';
-    const isAdding=/hinzufügen/i.test(heading);
     const label=form.elements.label;
-    if(isAdding && label && /^Position\s*1$/i.test(label.value.trim())){
+    const heading=form.closest('dialog')?.querySelector('h2');
+    if(pendingAdd && label){
       label.value=nextAutomaticLabel();
+      if(heading) heading.textContent='Position hinzufügen';
     }
+    pendingAdd=false;
 
     const quantity=form.elements.quantity;
     const materialCost=form.elements.materialCost;
@@ -100,6 +107,7 @@
       const q=Math.max(0,Number(quantity.value)||0);
       const total=Math.max(0,Number(materialCost.value)||0);
       unitPrice=(source()==='manual' && q>0) ? total/q : total;
+      if(source()==='manual') materialCost.value=money(unitPrice);
     };
     initializeUnitPrice();
 
@@ -129,6 +137,7 @@
         const q=Math.max(0,Number(quantity.value)||0);
         const total=Math.max(0,Number(materialCost.value)||0);
         unitPrice=q>0?total/q:total;
+        materialCost.value=money(unitPrice);
       }
       refreshManualUi();
     }));
