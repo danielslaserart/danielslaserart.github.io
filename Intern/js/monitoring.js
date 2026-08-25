@@ -1,4 +1,4 @@
-const MONITORING_SCHEMA_VERSION = 1;
+const MONITORING_SCHEMA_VERSION = 2;
 const MAX_NOTE_LENGTH = 1000;
 
 const numberOrNull=value=>{
@@ -28,6 +28,37 @@ const recommendedPrice=project=>numberOrNull(project?.pricingBreakdown?.recommen
 const selfCosts=project=>numberOrNull(project?.pricingBreakdown?.selfCosts??project?.pricingBreakdown?.cost??project?.calculationSnapshot?.cost??project?.cost);
 const deadline=project=>project?.dueDate||project?.deadline||project?.deliveryDate||project?.targetDate||null;
 
+function monitoringPositions(project){
+  if(!Array.isArray(project?.positions))return [];
+  return project.positions.map((position,index)=>{
+    const quantity=numberOrNull(position?.quantity)??1;
+    const materialCost=numberOrNull(position?.materialCost)??0;
+    const machineCost=numberOrNull(position?.machineCost)??0;
+    const workCost=numberOrNull(position?.workCost)??0;
+    const otherCost=numberOrNull(position?.otherCost)??0;
+    return {
+      order:numberOrNull(position?.order)??index,
+      label:String(position?.label||position?.materialName||`Position ${index+1}`).trim().slice(0,200),
+      activity:String(position?.activity||""),
+      materialSource:String(position?.materialSource||""),
+      materialName:String(position?.materialName||"").trim().slice(0,200),
+      quantity,
+      unit:String(position?.unit||"Stück").trim().slice(0,60),
+      unitPrice:quantity>0?materialCost/quantity:null,
+      materialCost,
+      machineName:String(position?.machineName||"").trim().slice(0,160),
+      profileName:String(position?.profileName||"").trim().slice(0,200),
+      machineMinutes:numberOrNull(position?.machineMinutes)??0,
+      machineCost,
+      workMinutes:numberOrNull(position?.workMinutes)??0,
+      workCost,
+      otherCost,
+      totalCost:materialCost+machineCost+workCost+otherCost,
+      note:redactFreeText(position?.note||"")
+    };
+  });
+}
+
 function projectWarnings(project,cost,price,recommended){
   const warnings=[];
   if(cost!==null&&price!==null&&price<cost)warnings.push("Preis unter Selbstkosten");
@@ -50,7 +81,9 @@ export function buildMonitoringSnapshot(sourceState={},userId=""){
         updatedAt:project.updated||project.created||null,deadline:deadline(project),recommendedPrice:recommended,
         agreedPrice:price,selfCosts:cost,profit:price!==null&&cost!==null?price-cost:null,
         riskSurcharge:numberOrNull(project.riskSurcharge),difficulty:String(project.difficulty||""),
-        notes:redactFreeText(project.notes||project.agreementPriceNote||""),
+        agreementNote:redactFreeText(project.agreementPriceNote||""),
+        notes:redactFreeText(project.notes||""),
+        positions:monitoringPositions(project),
         warnings:projectWarnings(project,cost,price,recommended)
       };
     });
@@ -58,7 +91,7 @@ export function buildMonitoringSnapshot(sourceState={},userId=""){
 }
 
 export function monitoringSnapshotHasPrivateFields(snapshot){
-  const forbidden=new Set(["street","postalCode","city","phone","email","contactPerson","images","image"]);
+  const forbidden=new Set(["street","postalCode","city","phone","email","contactPerson","images","image","attachment","attachmentName"]);
   const visit=value=>{
     if(!value||typeof value!=="object")return false;
     return Object.entries(value).some(([key,child])=>forbidden.has(key)||visit(child));
