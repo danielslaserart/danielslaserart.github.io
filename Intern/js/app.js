@@ -12,6 +12,9 @@ import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-a
 import { initializeCustomers, renderCustomers } from "./customers.js?v=6.5";
 import "./position-profile-fix.js?v=6.6.4";
 
+const loadPositionUiFix=()=>import("./position-ui-fix.js?v=6.6.6").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadPositionUiFix,{once:true});else loadPositionUiFix();
+
 function renderAll(){
   updateHome();
   renderCalculator();
