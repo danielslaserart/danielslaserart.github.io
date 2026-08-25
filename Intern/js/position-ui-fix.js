@@ -70,6 +70,38 @@
     return `Position ${count+1}`;
   }
 
+  function parseDeNumber(text=''){
+    const cleaned=String(text).replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.');
+    const value=Number(cleaned);
+    return Number.isFinite(value)?value:0;
+  }
+
+  function enhancePositionCards(){
+    document.querySelectorAll('.project-position-card').forEach(card=>{
+      const details=card.querySelector('.position-details');
+      if(!details || details.querySelector('[data-position-unit-price]')) return;
+
+      const rows=[...details.children].filter(el=>el.matches?.('div'));
+      const quantityRow=rows.find(row=>row.querySelector('span')?.textContent.trim()==='Menge');
+      if(!quantityRow) return;
+
+      const quantity=parseDeNumber(quantityRow.querySelector('strong')?.textContent||'');
+      const materialText=card.querySelector('.position-compact-cost span')?.textContent||'';
+      const materialTotal=parseDeNumber(materialText);
+      if(quantity<=0 || materialTotal<=0) return;
+
+      const unitPrice=materialTotal/quantity;
+      const row=document.createElement('div');
+      row.dataset.positionUnitPrice='1';
+      const label=document.createElement('span');
+      label.textContent='Einzelpreis';
+      const value=document.createElement('strong');
+      value.textContent=`${unitPrice.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})} € / ${quantityRow.querySelector('strong')?.textContent.trim().replace(/^[-+]?\d+(?:[.,]\d+)?\s*/,'')||'Stück'}`;
+      row.append(label,value);
+      quantityRow.insertAdjacentElement('afterend',row);
+    });
+  }
+
   function enhanceEditor(form){
     if(!form || form.dataset.positionUiFix) return;
     form.dataset.positionUiFix='1';
@@ -155,6 +187,7 @@
   function scan(){
     installStyles();
     enhanceEditor(document.getElementById('positionEditorForm'));
+    enhancePositionCards();
   }
 
   const start=()=>{
