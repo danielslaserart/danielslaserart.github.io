@@ -11,6 +11,7 @@ import { initializeProcessingProfiles, renderProcessingProfileManager, renderCal
 import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
 import { initializeCustomers, renderCustomers } from "./customers.js?v=6.5";
 import "./position-profile-fix.js?v=6.6.4";
+import "./position-editor-fix.js?v=6.6.5";
 
 function renderAll(){
   updateHome();
