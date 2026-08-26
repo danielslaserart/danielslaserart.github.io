@@ -166,12 +166,8 @@ window.GALLERIES = {
         text: "Individuell geplottete Öffnungszeiten für eine Geschäftstür – übersichtlich und farblich passend umgesetzt."
       },
       {
-        src: "assets/images/folien-textildesign/tier-1.jpg",
-        text: "Folien- oder Textildesign mit sauber umgesetztem Tiermotiv."
-      },
-      {
-        src: "assets/images/folien-textildesign/tier-2.jpg",
-        text: "Feine Linien und individuelles Design für kreative Projekte."
+        src: "assets/images/folien-textildesign/heckscheibenbeschriftung.webp",
+        text: "Persönlicher Schriftzug aus weißer Plotterfolie – passgenau für die Heckscheibe angefertigt."
       }
     ]
   },
