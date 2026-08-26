@@ -20,17 +20,14 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter(Boolean);
 
       img.addEventListener("click", () => {
-        if (projectImages?.length) {
-          Lightbox?.open?.(projectImages, 0);
-          return;
-        }
-
         Lightbox?.open?.(images, index);
       });
 
       card.querySelector("[data-customer-photo-button]")?.addEventListener("click", () => {
-        if (projectImages?.length) {
-          Lightbox?.open?.(projectImages, Math.min(1, projectImages.length - 1));
+        const customerPhoto = projectImages?.[1];
+
+        if (customerPhoto) {
+          Lightbox?.open?.([customerPhoto], 0);
         }
       });
 
