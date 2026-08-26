@@ -79,6 +79,10 @@ window.GALLERIES = {
     description: "Persönliche Geschenkideen mit Namen, Datum, Botschaft oder besonderem Anlass.",
     images: [
       {
+        src: "assets/images/personalisierte-geschenke/woelfe-wappenschild.webp",
+        text: "Persönliches Wappenschild aus Holz – individuell nach Kundenvorlage gefertigt."
+      },
+      {
         src: "assets/images/personalisierte-geschenke/brettchen-Anna.webp",
         text: "Personalisiertes Brettchen mit Namen als schöne Geschenkidee."
       },

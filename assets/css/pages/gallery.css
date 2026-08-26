@@ -266,6 +266,33 @@
   margin: 0;
 }
 
+.customer-photo-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(176, 141, 87, 0.72);
+  border-radius: 999px;
+  background: rgba(176, 141, 87, 0.12);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.customer-photo-button:hover,
+.customer-photo-button:focus-visible {
+  border-color: #b08d57;
+  background: rgba(176, 141, 87, 0.24);
+  transform: translateY(-1px);
+  outline: none;
+}
+
 .gallery-actions {
   display: flex;
   align-items: center;
