@@ -162,6 +162,10 @@ window.GALLERIES = {
     description: "Folienplots, Aufkleber, Beschriftungen und Textildesigns nach Wunsch.",
     images: [
       {
+        src: "assets/images/folien-textildesign/oeffnungszeiten-plotterfolie.webp",
+        text: "Individuell geplottete Öffnungszeiten für eine Geschäftstür – übersichtlich und farblich passend umgesetzt."
+      },
+      {
         src: "assets/images/folien-textildesign/tier-1.jpg",
         text: "Folien- oder Textildesign mit sauber umgesetztem Tiermotiv."
       },
