@@ -11,7 +11,7 @@ import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.5";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
 import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.5";
 import { customerNameById, customerAddressById } from "./customers.js?v=6.5";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock } from "./project-positions.js?v=6.5";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock } from "./project-positions.js?v=6.5.1";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
