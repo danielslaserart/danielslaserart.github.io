@@ -11,7 +11,7 @@ import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.5.1
 import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
 import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.5";
 import { customerNameById, customerAddressById } from "./customers.js?v=6.5";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock } from "./project-positions.js?v=6.5.2";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.5.3";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -259,35 +259,25 @@ function signedEuro(value){
 }
 function customerCalculationOverview(p){
   if(p.orderType!=="customerObject")return "";
-  const breakdown=p.pricingBreakdown||p.calculationSnapshot?.pricingBreakdown||p.estimatorData?.pricingBreakdown||{};
+  const storedBreakdown=p.pricingBreakdown||p.calculationSnapshot?.pricingBreakdown||p.estimatorData?.pricingBreakdown||{};
   const results=p.calculationSnapshot?.results||{};
-  const selfCosts=num(p.cost??results.calculatedSelfCosts??breakdown.cost);
-  const calculated=num(breakdown.calculated??results.calculatedPrice??p.estimatedPrice??p.sale);
-  const recommended=num(breakdown.sale??results.optimalPrice??p.estimatedPrice??p.sale);
-  const finalSale=num(p.actualPrice??p.sale??recommended);
-  const actualProfit=finalSale-selfCosts;
-  const margin=finalSale>0?actualProfit/finalSale*100:0;
+  const totals=positionTotals(p),material=Math.max(num(storedBreakdown.material),totals.material),machine=Math.max(num(storedBreakdown.machine??results.machineCosts),totals.machine),work=Math.max(num(storedBreakdown.work??results.workCosts),totals.work),extra=Math.max(num(storedBreakdown.extra??results.additionalCosts),totals.other);
+  const baseFee=num(storedBreakdown.baseFee),furtherSurcharges=num(storedBreakdown.furtherSurcharges),risk=num(storedBreakdown.risk??p.riskSurcharge),express=num(storedBreakdown.express??p.expressSurcharge),difficultyPercent=num(p.difficultyPercent??p.calculationSnapshot?.pricingSettings?.difficultyPercent);
+  const componentsChanged=machine!==num(storedBreakdown.machine??results.machineCosts)||work!==num(storedBreakdown.work??results.workCosts)||material!==num(storedBreakdown.material)||extra!==num(storedBreakdown.extra??results.additionalCosts);
+  const difficulty=componentsChanged&&difficultyPercent>0?(baseFee+furtherSurcharges+material+machine+work+extra)*difficultyPercent/100:num(storedBreakdown.difficulty);
+  const selfCosts=material+machine+work+extra;
+  const calculated=componentsChanged?baseFee+furtherSurcharges+selfCosts+difficulty+risk+express:num(storedBreakdown.calculated??results.calculatedPrice??p.estimatedPrice??p.sale);
+  const minimum=num(storedBreakdown.minimum),recommended=componentsChanged?(calculated<=minimum?minimum:Math.max(minimum,Math.ceil(calculated)+.9)):num(storedBreakdown.sale??results.optimalPrice??p.estimatedPrice??p.sale);
+  const breakdown={...storedBreakdown,material,machine,work,extra,baseFee,furtherSurcharges,risk,express,difficulty,cost:selfCosts,calculated,sale:recommended};
+  const row=(label,value)=>num(value)!==0?`<div><span>${label}</span><strong>${euro(value)}</strong></div>`:"";
+  const costRows=`${row("Materialkosten",breakdown.material)}${row("Maschinenkosten",breakdown.machine??results.machineCosts)}${row("Arbeitskosten",breakdown.work??results.workCosts)}${row("Sonstige echte Kosten",breakdown.extra??results.additionalCosts)}`;
+  const surchargeRows=`${row("Grundpauschale",breakdown.baseFee)}${row("Schwierigkeitsaufschlag",breakdown.difficulty)}${row("Risikoaufschlag",breakdown.risk??p.riskSurcharge)}${row("Expresszuschlag",breakdown.express??p.expressSurcharge)}${row("Weitere Zuschläge",breakdown.furtherSurcharges)}`;
   return `<div class="project-calculation-overview">
-    <h4>TATSÄCHLICHE KOSTEN</h4>
-    <div><span>Materialkosten</span><strong>${euro(breakdown.material||0)}</strong></div>
-    <div><span>Maschinenkosten</span><strong>${euro(breakdown.machine??results.machineCosts)}</strong></div>
-    <div><span>Arbeitskosten</span><strong>${euro(breakdown.work??results.workCosts)}</strong></div>
-    <div><span>Sonstige echte Kosten</span><strong>${euro(breakdown.extra??results.additionalCosts)}</strong></div>
+    ${costRows?`<h4>TATSÄCHLICHE KOSTEN</h4>${costRows}`:""}
     <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
-    <h4>PREISBESTANDTEILE UND ZUSCHLÄGE</h4>
-    <div><span>Grundpauschale</span><strong>${euro(breakdown.baseFee)}</strong></div>
-    <div><span>Schwierigkeitsaufschlag</span><strong>${euro(breakdown.difficulty)}</strong></div>
-    <div><span>Risikoaufschlag</span><strong>${euro(breakdown.risk??p.riskSurcharge)}</strong></div>
-    <div><span>Expresszuschlag</span><strong>${euro(breakdown.express??p.expressSurcharge)}</strong></div>
-    <div><span>Weitere Zuschläge</span><strong>0,00 €</strong></div>
-    <h4>RUNDUNG</h4>
-    <div><span>Rundungsdifferenz</span><strong>${signedEuro(recommended-calculated)}</strong></div>
-    ${renderPriceLadder(getPriceLadderData(p),{heading:true,details:true})}
-    ${finalSale!==recommended?`<div><span>Tatsächlicher Verkaufspreis</span><strong>${euro(finalSale)}</strong></div>`:""}
-    <h4>TATSÄCHLICHER GEWINN</h4>
-    <div><span>Tatsächlicher Gewinn</span><strong>${euro(actualProfit)}</strong><small>${euro(finalSale)} − ${euro(selfCosts)}</small></div>
-    <div><span>Gewinnmarge vom Verkaufspreis</span><strong>${margin.toLocaleString("de-DE",{maximumFractionDigits:1})} %</strong></div>
-    ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}
+    ${surchargeRows?`<h4>PREISBESTANDTEILE UND ZUSCHLÄGE</h4>${surchargeRows}`:""}
+    ${Math.abs(recommended-calculated)>=.005?`<h4>RUNDUNG</h4><div><span>Rundungsdifferenz</span><strong>${signedEuro(recommended-calculated)}</strong></div>`:""}
+    ${renderPriceLadder(getPriceLadderData({...p,cost:selfCosts,pricingBreakdown:breakdown}),{heading:true,details:true})}
   </div>`;
 }
 export function viewProject(id){
