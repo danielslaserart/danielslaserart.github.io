@@ -5,7 +5,7 @@ import { resolveMaterialSelection } from "./materials.js?v=6.5";
 import { workshopUnit } from "./calculator.js?v=6.5";
 import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.5";
 import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.5";
-import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.5";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.5.1";
 import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.5";
 import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.5.1";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
@@ -257,8 +257,8 @@ function signedEuro(value){
   const clean=Math.abs(value)<.005?0:value;
   return `${clean>0?"+":""}${euro(clean)}`;
 }
-function customerCalculationOverview(p){
-  if(p.orderType!=="customerObject")return "";
+function currentCustomerCalculation(p){
+  if(p.orderType!=="customerObject")return null;
   const storedBreakdown=p.pricingBreakdown||p.calculationSnapshot?.pricingBreakdown||p.estimatorData?.pricingBreakdown||{};
   const results=p.calculationSnapshot?.results||{};
   const totals=positionTotals(p),material=Math.max(num(storedBreakdown.material),totals.material),machine=Math.max(num(storedBreakdown.machine??results.machineCosts),totals.machine),work=Math.max(num(storedBreakdown.work??results.workCosts),totals.work),extra=Math.max(num(storedBreakdown.extra??results.additionalCosts),totals.other);
@@ -269,6 +269,13 @@ function customerCalculationOverview(p){
   const calculated=componentsChanged?baseFee+furtherSurcharges+selfCosts+difficulty+risk+express:num(storedBreakdown.calculated??results.calculatedPrice??p.estimatedPrice??p.sale);
   const minimum=num(storedBreakdown.minimum),recommended=componentsChanged?(calculated<=minimum?minimum:Math.max(minimum,Math.ceil(calculated)+.9)):num(storedBreakdown.sale??results.optimalPrice??p.estimatedPrice??p.sale);
   const breakdown={...storedBreakdown,material,machine,work,extra,baseFee,furtherSurcharges,risk,express,difficulty,cost:selfCosts,calculated,sale:recommended};
+  const source={...p,cost:selfCosts,selfCosts,costCoveringMinimumPrice:selfCosts,calculatedWorkPrice:calculated,recommendedSalePrice:recommended,recommendedPrice:recommended,pricingBreakdown:breakdown};
+  return {breakdown,selfCosts,calculated,recommended,results,source};
+}
+function customerCalculationOverview(p){
+  const current=currentCustomerCalculation(p);
+  if(!current)return "";
+  const {breakdown,selfCosts,calculated,recommended,results,source}=current;
   const row=(label,value)=>num(value)!==0?`<div><span>${label}</span><strong>${euro(value)}</strong></div>`:"";
   const costRows=`${row("Materialkosten",breakdown.material)}${row("Maschinenkosten",breakdown.machine??results.machineCosts)}${row("Arbeitskosten",breakdown.work??results.workCosts)}${row("Sonstige echte Kosten",breakdown.extra??results.additionalCosts)}`;
   const surchargeRows=`${row("Grundpauschale",breakdown.baseFee)}${row("Schwierigkeitsaufschlag",breakdown.difficulty)}${row("Risikoaufschlag",breakdown.risk??p.riskSurcharge)}${row("Expresszuschlag",breakdown.express??p.expressSurcharge)}${row("Weitere Zuschläge",breakdown.furtherSurcharges)}`;
@@ -277,7 +284,7 @@ function customerCalculationOverview(p){
     <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
     ${surchargeRows?`<h4>PREISBESTANDTEILE UND ZUSCHLÄGE</h4>${surchargeRows}`:""}
     ${Math.abs(recommended-calculated)>=.005?`<h4>RUNDUNG</h4><div><span>Rundungsdifferenz</span><strong>${signedEuro(recommended-calculated)}</strong></div>`:""}
-    ${renderPriceLadder(getPriceLadderData({...p,cost:selfCosts,pricingBreakdown:breakdown}),{heading:true,details:true})}
+    ${renderPriceLadder(getPriceLadderData(source),{heading:true,details:true})}
   </div>`;
 }
 export function viewProject(id){
@@ -312,7 +319,7 @@ export function viewProject(id){
       <div><span>Tatsächlicher Gewinn</span><strong>${euro(num(p.sale)-selfCosts)}</strong></div>
       <div><span>Gewinnmarge</span><strong>${num(p.sale)>0?`${((num(p.sale)-selfCosts)/num(p.sale)*100).toLocaleString("de-DE",{maximumFractionDigits:1})} %`:"0,0 %"}</strong></div>
     </div>`}
-    ${priceAgreementHtml(p)}
+    ${priceAgreementHtml(p,p.orderType==="customerObject"?getPriceLadderData(currentCustomerCalculation(p).source):null)}
     ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}
     ${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}
     ${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}
