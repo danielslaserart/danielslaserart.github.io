@@ -17,10 +17,6 @@ export function renderTools(){
     const old=$("qcMaterial").value;
     $("qcMaterial").innerHTML=allMaterialOptions();
     if([...$("qcMaterial").options].some(o=>o.value===old)) $("qcMaterial").value=old;
-    $("qcHourly").value=state.settings.hourly;
-    $("qcReserve").value=state.settings.reserve;
-    $("qcProfitPercent").value=state.settings.profit;
-    $("qcPackaging").value=state.settings.packaging;
   }
   calculatePriceCheck();
   calculateProfitTool();
@@ -30,16 +26,37 @@ export function renderTools(){
   calculateAreaTool();
   renderMotifEstimator();
   document.querySelectorAll(".tool-panel").forEach(panel=>{
-    if(panel.querySelector(".tool-reset-button"))return;
-    const button=document.createElement("button");button.type="button";button.className="ghost small tool-reset-button";button.textContent="Neue Kalkulation";
-    button.onclick=()=>resetTool(panel.id,true);panel.insertBefore(button,panel.firstElementChild?.nextSibling||null);
+    if(panel.querySelector(".tool-panel-head"))return;
+    const title=panel.querySelector(":scope > h3");if(!title)return;
+    const head=document.createElement("div");head.className="tool-panel-head";
+    const actions=document.createElement("div");actions.className="tool-panel-actions";
+    const remember=document.createElement("button");remember.type="button";remember.className="secondary small";remember.textContent="Merken";remember.onclick=()=>rememberTool(panel.id);
+    const load=document.createElement("button");load.type="button";load.className="ghost small tool-load-button";load.textContent="Gemerkt laden";load.onclick=()=>loadRememberedTool(panel.id);
+    const reset=document.createElement("button");reset.type="button";reset.className="ghost small tool-reset-button";reset.textContent="Neue Kalkulation";reset.onclick=()=>resetTool(panel.id,true);
+    actions.append(remember,load,reset);head.append(title,actions);panel.prepend(head);updateToolMemoryButton(panel.id);
   });
+}
+function toolFields(panel){return [...panel.querySelectorAll("input,select,textarea")].filter(el=>el.type!=="file"&&!el.readOnly&&!el.disabled&&(el.id||el.name))}
+function toolFieldKey(el){return el.id||`${el.name}:${el.type}:${el.value}`}
+function updateToolMemoryButton(id){
+  const panel=$(id),button=panel?.querySelector(".tool-load-button");if(button)button.classList.toggle("hidden",!state.toolMemories?.[id]);
+}
+async function rememberTool(id){
+  const panel=$(id);if(!panel)return;
+  const values={};toolFields(panel).forEach(el=>{values[toolFieldKey(el)]=(el.type==="checkbox"||el.type==="radio")?el.checked:el.value});
+  state.toolMemories={...(state.toolMemories||{}),[id]:values};save();updateToolMemoryButton(id);await appAlert("Die aktuellen Werte sind gemerkt. Der Rechner startet trotzdem weiterhin mit 0.","Werte gemerkt");
+}
+async function loadRememberedTool(id){
+  const panel=$(id),values=state.toolMemories?.[id];if(!panel||!values)return;
+  await resetTool(id,false);
+  toolFields(panel).forEach(el=>{const key=toolFieldKey(el);if(!(key in values))return;if(el.type==="checkbox"||el.type==="radio")el.checked=Boolean(values[key]);else el.value=values[key]??""});
+  toolFields(panel).forEach(el=>el.dispatchEvent(new Event(el.tagName==="SELECT"||el.type==="checkbox"||el.type==="radio"?"change":"input",{bubbles:true})));
 }
 export async function resetTool(id,confirmFirst=false){
   if(confirmFirst&&!await appConfirm("Neue Kalkulation starten?\nAlle nicht gespeicherten Eingaben werden gelöscht.","Neue Kalkulation","Neue Kalkulation"))return false;
   if(id==="motifCalc")return resetMotifEstimator(false);
   const panel=$(id);if(!panel)return false;
-  panel.querySelectorAll("input").forEach(input=>{if(input.type==="checkbox"||input.type==="radio")input.checked=input.defaultChecked;else input.value=""});
+  panel.querySelectorAll("input").forEach(input=>{if(input.type==="checkbox"||input.type==="radio")input.checked=input.defaultChecked;else if(input.type==="number")input.value="0";else input.value=""});
   panel.querySelectorAll("select").forEach(select=>select.selectedIndex=0);
   if(id==="priceCheck")calculatePriceCheck();if(id==="profitCalc")calculateProfitTool();if(id==="discountCalc")calculateDiscountTool();if(id==="quickCalc")calculateQuickTool();if(id==="areaCalc")calculateAreaTool();
   return true;
@@ -47,6 +64,7 @@ export async function resetTool(id,confirmFirst=false){
 document.querySelectorAll("[data-tool]").forEach(btn=>btn.onclick=()=>{
   document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b===btn));
   document.querySelectorAll(".tool-panel").forEach(p=>p.classList.toggle("active",p.id===btn.dataset.tool));
+  resetTool(btn.dataset.tool,false);
 });
 function calculatePriceCheck(){
   if(!$("pcCosts"))return;

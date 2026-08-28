@@ -328,9 +328,9 @@
       <h3>Zielpreis-Rechner</h3>
       <p class="tool-intro">Zeigt dir, wie viel Gewinn, Aufschlag und Marge bei deinem gewünschten Verkaufspreis übrig bleiben.</p>
       <div class="field-grid">
-        <label>Selbstkosten (€)<input id="pcCosts" type="number" min="0" step="any" inputmode="decimal" value="30"></label>
-        <label>Gewünschter Verkaufspreis (€)<input id="pcMaxPrice" type="number" min="0" step="any" inputmode="decimal" value="45"></label>
-        <label>Gewünschte Mindestmarge (%)<input id="pcTargetMargin" type="number" min="0" max="100" step="any" inputmode="decimal" value="25"></label>
+        <label>Selbstkosten (€)<input id="pcCosts" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+        <label>Gewünschter Verkaufspreis (€)<input id="pcMaxPrice" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+        <label>Gewünschte Mindestmarge (%)<input id="pcTargetMargin" type="number" min="0" max="100" step="any" inputmode="decimal" value="0"></label>
       </div>
       <div class="mini-results">
         <div><span>Gewinn / Verlust</span><strong id="pcProfit">0,00 €</strong></div>
@@ -345,8 +345,8 @@
       <h3>Gewinnrechner</h3>
       <p class="tool-intro">Berechnet den Verkaufspreis anhand deines Gewinnaufschlags.</p>
       <div class="field-grid">
-        <label>Einkauf / Selbstkosten (€)<input id="gcCosts" type="number" min="0" step="any" inputmode="decimal" value="4.27"></label>
-        <label>Gewinnaufschlag (%)<input id="gcPercent" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
+        <label>Einkauf / Selbstkosten (€)<input id="gcCosts" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+        <label>Gewinnaufschlag (%)<input id="gcPercent" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
       </div>
       <div class="mini-results">
         <div><span>Gewinnbetrag</span><strong id="gcProfit">0,00 €</strong></div>
@@ -364,8 +364,8 @@
       <div class="discount-mode-panel active" data-discount-panel="target">
         <p class="discount-mode-help">Du kennst deinen gewünschten Endpreis und den Rabatt.</p>
         <div class="field-grid">
-          <label>Gewünschter Preis nach Rabatt (€)<input id="dcTarget" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
-          <label>Rabatt (%)<input id="dcPercent" type="number" min="0" max="99.99" step="any" inputmode="decimal" value="20"></label>
+          <label>Gewünschter Preis nach Rabatt (€)<input id="dcTarget" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+          <label>Rabatt (%)<input id="dcPercent" type="number" min="0" max="99.99" step="any" inputmode="decimal" value="0"></label>
         </div>
         <div class="mini-results">
           <div><span>Rabattbetrag</span><strong id="dcAmount">0,00 €</strong></div>
@@ -375,8 +375,8 @@
       <div class="discount-mode-panel" data-discount-panel="percent">
         <p class="discount-mode-help">Du kennst den normalen Preis und deinen tatsächlichen Verkaufspreis.</p>
         <div class="field-grid">
-          <label>Normalpreis (€)<input id="dpOriginal" type="number" min="0" step="any" inputmode="decimal" value="50"></label>
-          <label>Verkaufspreis (€)<input id="dpSale" type="number" min="0" step="any" inputmode="decimal" value="35"></label>
+          <label>Normalpreis (€)<input id="dpOriginal" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+          <label>Verkaufspreis (€)<input id="dpSale" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
         </div>
         <button id="dpSwapBtn" class="ghost small discount-swap" type="button">⇄ Preise tauschen</button>
         <div class="mini-results">
@@ -394,8 +394,8 @@
         <select id="qcMaterial"></select>
       </label>
       <div class="field-grid">
-        <label>Materialverbrauch<input id="qcUsage" type="number" min="0" step="any" inputmode="decimal" value="1"></label>
-        <label>Arbeitszeit (Minuten)<input id="qcMinutes" type="number" min="0" step="any" inputmode="decimal" value="10"></label>
+        <label>Materialverbrauch<input id="qcUsage" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+        <label>Arbeitszeit (Minuten)<input id="qcMinutes" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
         <label>Maschinen-/Zusatzkosten (€)<input id="qcExtra" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
         <label>Verpackung (€)<input id="qcPackaging" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
         <label>Stundenlohn (€/Stunde)<input id="qcHourly" type="number" min="0" step="any" inputmode="decimal"></label>
@@ -554,18 +554,18 @@
         </label>
       </div>
       <div id="acRectangleFields" class="field-grid">
-        <label>Breite<input id="acWidth" type="number" min="0" step="any" inputmode="decimal" value="30"></label>
-        <label>Höhe<input id="acHeight" type="number" min="0" step="any" inputmode="decimal" value="18"></label>
+        <label>Breite<input id="acWidth" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+        <label>Höhe<input id="acHeight" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
       </div>
       <div id="acSquareFields" class="field-grid hidden">
-        <label>Seitenlänge<input id="acSide" type="number" min="0" step="any" inputmode="decimal" value="10"></label>
+        <label>Seitenlänge<input id="acSide" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
       </div>
       <div id="acCircleFields" class="field-grid hidden">
-        <label>Durchmesser<input id="acDiameter" type="number" min="0" step="any" inputmode="decimal" value="10"></label>
+        <label>Durchmesser<input id="acDiameter" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
       </div>
       <div class="field-grid">
-        <label>Stückzahl<input id="acQuantity" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
-        <label>Verschnitt / Reserve (%)<input id="acWaste" type="number" min="0" step="any" inputmode="decimal" value="5"></label>
+        <label>Stückzahl<input id="acQuantity" type="number" min="1" step="1" inputmode="numeric" value="0"></label>
+        <label>Verschnitt / Reserve (%)<input id="acWaste" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
       </div>
       <div class="mini-results">
         <div><span>Fläche je Teil</span><strong id="acPerPiece">0 cm²</strong></div>

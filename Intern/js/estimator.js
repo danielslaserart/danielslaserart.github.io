@@ -160,16 +160,16 @@ export async function resetMotifEstimator(confirmFirst=true){
   if(confirmFirst&&!await appConfirm("Neue Kalkulation starten?\nAlle nicht gespeicherten Eingaben werden gelöscht.","Neue Kalkulation","Neue Kalkulation"))return false;
   editingEstimatorProjectId=null;
   estimatorCustomerPricing=null;
-  ["mcWidth","mcHeight","mcLayers","mcCutSpeed","mcEngraveSpeed","mcExtraCost","mcBaseWork","mcActualSalePrice","mcActualTime","mcActualCutTime","mcActualEngravingTime"].forEach(id=>{if($(id))$(id).value=""});
+  ["mcWidth","mcHeight","mcLayers","mcCutSpeed","mcEngraveSpeed","mcExtraCost","mcBaseWork","mcActualSalePrice","mcActualTime","mcActualCutTime","mcActualEngravingTime"].forEach(id=>{if($(id))$(id).value="0"});
   ["mcSand","mcPaint","mcGlue"].forEach(id=>{if($(id))$(id).checked=false});
   if($("mcMaterial"))$("mcMaterial").value="";
   if($("mcComplexity"))$("mcComplexity").value="auto";
   const ownMaterial=document.querySelector('input[name="mcMaterialSource"][value="own"]');if(ownMaterial)ownMaterial.checked=true;
   const cut=document.querySelector('input[name="mcProcess"][value="cut"]');if(cut)cut.checked=true;
   motifImageDetail=null;$("mcPreview")?.removeAttribute("src");$("mcPreview")?.classList.add("hidden");$("mcPreviewPlaceholder")?.classList.remove("hidden");
-  if($("mcHourly"))$("mcHourly").value=state.settings.hourly;
-  if($("mcReserve"))$("mcReserve").value=state.settings.reserve;
-  if($("mcProfit"))$("mcProfit").value=state.settings.profit;
+  if($("mcHourly"))$("mcHourly").value="0";
+  if($("mcReserve"))$("mcReserve").value="0";
+  if($("mcProfit"))$("mcProfit").value="0";
   applyMotifMachineSpeeds(true);updateMotifProcessUI();calculateMotifEstimator();return true;
 }
 ['mcWidth','mcHeight','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcGlue','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});

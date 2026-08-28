@@ -27,6 +27,10 @@ export function setScreen(id){
   if(id==="design") applyDesignDefaults();
   const saved=Number(sessionStorage.getItem(`dla-scroll-${id}`)||0);
   requestAnimationFrame(()=>window.scrollTo({top:saved,behavior:"auto"}));
+  if(id==="tools"&&current!=="tools"){
+    const activeTool=document.querySelector(".tool-tabs [data-tool].active")?.dataset.tool||"priceCheck";
+    resetTool(activeTool,false);
+  }
 }
 document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>{
   if(b.dataset.screen==="calculator") startNewOrder(); else setScreen(b.dataset.screen);
