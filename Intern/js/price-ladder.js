@@ -81,6 +81,13 @@ export function getPriceLadderData(source={}){
   );
   const selfAvailable=hasValue(selfRaw);
   const selfCosts=selfAvailable?money(selfRaw):null;
+  const costItems=[
+    ["Materialkosten",component(source,["material"])],
+    ["Verbrauchsmaterial",component(source,["consumables"])],
+    ["Maschinenkosten",component(source,["machine"])],
+    ["Arbeitskosten",component(source,["work"])],
+    ["Sonstige Kosten",component(source,["extra"])]
+  ];
   const surchargeItems=[
     ["Grundpauschale",component(source,["baseFee"])],
     ["Schwierigkeitsaufschlag",component(source,["difficulty","difficultySurcharge"])],
@@ -108,10 +115,10 @@ export function getPriceLadderData(source={}){
     estimator.recommendedSalePrice,estimator.estimatedPrice,source.estimatedPrice,source.sale
   );
   const recommendedSalePrice=hasValue(recommendedRaw)?money(recommendedRaw):null;
-  const companyProfit=calculatedWorkPrice!==null&&recommendedSalePrice!==null
-    ?money(recommendedSalePrice-calculatedWorkPrice):null;
-  const companyProfitPercent=companyProfit!==null&&cents(calculatedWorkPrice)!==0
-    ?companyProfit/calculatedWorkPrice*100:null;
+  const companyProfit=selfCosts!==null&&recommendedSalePrice!==null
+    ?money(recommendedSalePrice-selfCosts):null;
+  const companyProfitPercent=companyProfit!==null&&cents(recommendedSalePrice)!==0
+    ?companyProfit/recommendedSalePrice*100:null;
   const status=companyProfit===null?"unknown":cents(companyProfit)>0?"positive":cents(companyProfit)<0?"negative":"neutral";
   const agreementPrice=getAgreementPrice(source);
   const agreementProfit=getAgreementProfit({agreementPrice,selfCosts});
@@ -119,7 +126,7 @@ export function getPriceLadderData(source={}){
   const agreementStatus=getAgreementPriceStatus({
     agreementPrice,selfCosts,calculatedWorkPrice,recommendedSalePrice
   });
-  return {selfCosts,costCoveringMinimumPrice:selfCosts,surchargeItems,totalSurcharges,
+  return {selfCosts,costCoveringMinimumPrice:selfCosts,costItems,surchargeItems,totalSurcharges,
     calculatedWorkPrice,recommendedSalePrice,companyProfit,companyProfitPercent,status,
     agreementPrice,agreementProfit,agreementMargin,agreementStatus};
 }
@@ -136,14 +143,21 @@ function signedPercent(value){
 }
 
 export function renderAgreementPriceSummary(data={}){
-  if(data.agreementPrice===null||data.agreementPrice===undefined)return "";
+  if(data.agreementPrice===null||data.agreementPrice===undefined)return `<div class="price-ladder-agreement" aria-label="Preisvereinbarung">
+    <span class="price-step-dot price-step-dot--agreement" aria-hidden="true"></span>
+    <div class="price-ladder-content">
+      <span class="price-ladder-label price-ladder-label--agreement">Preisvereinbarung</span>
+      <strong>Nicht festgelegt</strong>
+      <small>Trage oben einen vereinbarten Verkaufspreis ein, um Gewinn oder Verlust zu sehen.</small>
+    </div>
+  </div>`;
   const profit=data.agreementProfit;
   const profitState=profit===null?"unknown":cents(profit)<0?"negative":cents(profit)>0?"positive":"neutral";
   let result;
   if(profit===null){
     result=`<small class="agreement-result agreement-result--unknown">Aktueller Gewinn bei diesem älteren Projekt nicht vollständig ermittelbar.</small>`;
   }else{
-    const label=cents(profit)<0?"aktueller Verlust":"aktueller Gewinn";
+    const label=cents(profit)<0?"Verlust nach Abzug der Selbstkosten":"Gewinn nach Abzug der Selbstkosten";
     result=`<small class="agreement-result agreement-result--${profitState}">${signedMoney(profit)} ${label}</small>`;
     result+=cents(data.agreementPrice)===0
       ?`<small class="agreement-margin">Gewinnmarge: nicht berechenbar</small>`
@@ -166,6 +180,12 @@ export function renderPriceLadder(data,{heading=true,details=true}={}){
     <div class="price-ladder-content"><span class="price-ladder-label">${esc(label)}</span>
     <strong>${value===null?"Nicht verfügbar":euro(value)}</strong>${description?`<small>${esc(description)}</small>`:""}${extra}</div>
   </div>`;
+  const visibleCosts=(data.costItems||[]).filter(item=>cents(item[1])!==0);
+  const costDetails=data.selfCosts!==null&&details&&visibleCosts.length?`<details class="price-ladder-details">
+    <summary>Selbstkosten anzeigen</summary><div>
+      ${visibleCosts.map(item=>`<p><span>${esc(item[0])}</span><strong>${euro(item[1])}</strong></p>`).join("")}
+      <p class="price-ladder-details-total"><span>Selbstkosten gesamt</span><strong>${euro(data.selfCosts)}</strong></p>
+    </div></details>`:"";
   const surchargeDetails=data.calculatedWorkPrice!==null&&details?`<details class="price-ladder-details">
     <summary>Zuschläge anzeigen</summary><div>
       ${data.selfCosts!==null?`<p><span>Selbstkosten</span><strong>${euro(data.selfCosts)}</strong></p>`:""}
@@ -177,14 +197,15 @@ export function renderPriceLadder(data,{heading=true,details=true}={}){
   let warning="";
   if(data.companyProfit!==null){
     const percent=data.companyProfitPercent===null?"":` (${data.companyProfitPercent.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %)`;
-    profitText=`<small class="company-profit ${data.status==="negative"?"company-profit--negative":""}">${signedMoney(data.companyProfit)} Unternehmensgewinn${percent}</small>`;
-    if(data.status==="negative")warning=`<small class="price-ladder-warning">Der empfohlene Verkaufspreis liegt unter dem kalkulierten Arbeitspreis.</small>`;
-    if(data.status==="neutral")warning=`<small>Kein zusätzlicher Unternehmensgewinn eingeplant.</small>`;
+    const label=cents(data.companyProfit)<0?"Verlust nach Abzug der Selbstkosten":"Gewinn nach Abzug der Selbstkosten";
+    profitText=`<small class="company-profit ${data.status==="negative"?"company-profit--negative":""}">${signedMoney(data.companyProfit)} ${label}${percent}</small>`;
+    if(data.status==="negative")warning=`<small class="price-ladder-warning">Der empfohlene Verkaufspreis liegt unter den Selbstkosten.</small>`;
+    if(data.status==="neutral")warning=`<small>Die Selbstkosten sind exakt gedeckt. Kein Gewinn.</small>`;
   }else if(data.recommendedSalePrice!==null){
     profitText=`<small>Unternehmensgewinn bei diesem älteren Projekt nicht vollständig ermittelbar.</small>`;
   }
-  return `<section class="price-ladder" aria-label="Preisleiter">${heading?`<h4>PREISLEITER</h4>`:""}
-    ${step("minimum","Kostendeckender Mindestpreis",data.costCoveringMinimumPrice,data.costCoveringMinimumPrice===null?"Für dieses ältere Projekt nicht zuverlässig ermittelbar.":"Deckt deine berechneten Kosten. Kein Gewinn.")}
+  return `<section class="price-ladder" aria-label="Preisübersicht">${heading?`<h4>PREISÜBERSICHT</h4>`:""}
+    ${step("minimum","Selbstkosten",data.costCoveringMinimumPrice,data.costCoveringMinimumPrice===null?"Für dieses ältere Projekt nicht zuverlässig ermittelbar.":"Diese Kosten werden von beiden Verkaufspreisen abgezogen.",costDetails)}
     ${step("work","Kalkulierter Arbeitspreis",data.calculatedWorkPrice,data.calculatedWorkPrice===null?"Für dieses ältere Projekt nicht eindeutig ermittelbar.":data.totalSurcharges===0?"Keine zusätzlichen Zuschläge aktiv.":`Enthält deine Kosten sowie Grundpauschale, Aufwand, Risiko und aktive Zuschläge.`,surchargeDetails)}
     ${step(data.status==="positive"?"recommended":data.status==="negative"?"negative":"neutral","Empfohlener Verkaufspreis",data.recommendedSalePrice,"",profitText+warning)}
     ${renderAgreementPriceSummary(data)}
