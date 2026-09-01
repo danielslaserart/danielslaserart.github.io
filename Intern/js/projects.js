@@ -7,7 +7,7 @@ import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.5";
 import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.5";
 import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.5.1";
 import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.5";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.5.1";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.1";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
 import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.5";
 import { customerNameById, customerAddressById } from "./customers.js?v=6.5";
@@ -263,14 +263,24 @@ function currentCustomerCalculation(p){
   const results=p.calculationSnapshot?.results||{};
   const totals=positionTotals(p),material=Math.max(num(storedBreakdown.material),totals.material),machine=Math.max(num(storedBreakdown.machine??results.machineCosts),totals.machine),work=Math.max(num(storedBreakdown.work??results.workCosts),totals.work),extra=Math.max(num(storedBreakdown.extra??results.additionalCosts),totals.other);
   const baseFee=num(storedBreakdown.baseFee),furtherSurcharges=num(storedBreakdown.furtherSurcharges),risk=num(storedBreakdown.risk??p.riskSurcharge),express=num(storedBreakdown.express??p.expressSurcharge),difficultyPercent=num(p.difficultyPercent??p.calculationSnapshot?.pricingSettings?.difficultyPercent);
-  const componentsChanged=machine!==num(storedBreakdown.machine??results.machineCosts)||work!==num(storedBreakdown.work??results.workCosts)||material!==num(storedBreakdown.material)||extra!==num(storedBreakdown.extra??results.additionalCosts);
-  const difficulty=componentsChanged&&difficultyPercent>0?(baseFee+furtherSurcharges+material+machine+work+extra)*difficultyPercent/100:num(storedBreakdown.difficulty);
+  const difficulty=(baseFee+furtherSurcharges)*difficultyPercent/100;
   const selfCosts=material+machine+work+extra;
-  const calculated=componentsChanged?baseFee+furtherSurcharges+selfCosts+difficulty+risk+express:num(storedBreakdown.calculated??results.calculatedPrice??p.estimatedPrice??p.sale);
-  const minimum=num(storedBreakdown.minimum),recommended=componentsChanged?(calculated<=minimum?minimum:Math.max(minimum,Math.ceil(calculated)+.9)):num(storedBreakdown.sale??results.optimalPrice??p.estimatedPrice??p.sale);
-  const breakdown={...storedBreakdown,material,machine,work,extra,baseFee,furtherSurcharges,risk,express,difficulty,cost:selfCosts,calculated,sale:recommended};
-  const source={...p,cost:selfCosts,selfCosts,costCoveringMinimumPrice:selfCosts,calculatedWorkPrice:calculated,recommendedSalePrice:recommended,recommendedPrice:recommended,pricingBreakdown:breakdown};
-  return {breakdown,selfCosts,calculated,recommended,results,source};
+  const calculatedWorkPrice=baseFee+furtherSurcharges+difficulty+risk+express;
+  const subtotalBeforeMinimum=selfCosts+calculatedWorkPrice;
+  const minimum=num(storedBreakdown.minimum??p.calculationSnapshot?.pricingSettings?.minimumPrice);
+  const subtotal=Math.max(subtotalBeforeMinimum,minimum);
+  const profitPercent=Math.max(0,num(p.fields?.profit??storedBreakdown.profitPercent??state.settings?.profit??30));
+  const profitMarkup=subtotal*profitPercent/100;
+  const calculated=subtotal+profitMarkup;
+  const rounding=Math.max(.01,num(p.calculationSnapshot?.pricingSettings?.rounding??state.settings?.rounding??.1));
+  const recommended=Math.ceil((calculated-1e-9)/rounding)*rounding;
+  const breakdown={...storedBreakdown,material,machine,work,extra,baseFee,furtherSurcharges,risk,express,difficulty,
+    cost:selfCosts,calculatedWorkPrice,subtotalBeforeMinimum,subtotal,priceBeforeProfit:subtotal,
+    profitPercent,profitMarkup,calculated,minimum,minimumApplied:subtotalBeforeMinimum<minimum,sale:recommended};
+  const source={...p,cost:selfCosts,selfCosts,costCoveringMinimumPrice:selfCosts,calculatedWorkPrice,subtotal,
+    priceBeforeProfit:subtotal,profitPercent,profitMarkup,recommendedSalePrice:recommended,recommendedPrice:recommended,
+    pricingBreakdown:breakdown};
+  return {breakdown,selfCosts,calculatedWorkPrice,subtotal,profitMarkup,profitPercent,calculated,recommended,results,source};
 }
 function customerCalculationOverview(p){
   const current=currentCustomerCalculation(p);
