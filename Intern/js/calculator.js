@@ -104,7 +104,7 @@ export function captureCalculatorFields(){
   document.querySelectorAll("#calcForm input,#calcForm select,#calcForm textarea").forEach(el=>{if(el.id)fields[el.id]=el.value;});
   return fields;
 }
-function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,customerProcess}){
+function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,customerProcess,fields,positions}){
   const customerSettings=getCustomerSettings();
   return {
     version:1,
@@ -116,7 +116,8 @@ function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,custome
     customerObjectProcess:customerProcess,
     machineId:machine?.id||"",
     materialId:$("matMain")?.value||"",
-    fields:captureCalculatorFields(),
+    fields:structuredClone(fields||captureCalculatorFields()),
+    positions:structuredClone(positions||getCalculatorPositions()),
     consumables:structuredClone(consumableSelections),
     productSize,
     workSeconds:getTimerSeconds(),
@@ -125,7 +126,8 @@ function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,custome
       rounding:num(state.settings.rounding),
       baseFee:num(customerSettings.baseFee),
       minimumPrice:num(customerSettings.minimumPrice),
-      difficultyPercent:num(customerSettings.difficulties?.[$("difficulty")?.value||"normal"])
+      difficultyPercent:num(customerSettings.difficulties?.[$("difficulty")?.value||"normal"]),
+      profitPercent:num((fields||{})?.profit??$("profit")?.value??state.settings.profit)
     },
     results:{
       materialCosts:num(breakdown.material),
@@ -322,7 +324,7 @@ export function renderCalculator(clear=false){
         <label>Grundpauschale (€)<input id="customerBaseFee" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.baseFee)}"></label>
         <label>Schwierigkeitsgrad<select id="difficulty"><option value="veryEasy">Sehr einfach (${num(settings.difficulties.veryEasy)} %)</option><option value="easy">Einfach (${num(settings.difficulties.easy)} %)</option><option value="normal" selected>Normal (${num(settings.difficulties.normal)} %)</option><option value="hard">Schwer (${num(settings.difficulties.hard)} %)</option><option value="veryHard">Sehr schwer (${num(settings.difficulties.veryHard)} %)</option></select></label>
         <div class="risk-field-wrap"><label>Risikoaufschlag (€)<input id="riskSurcharge" type="number" min="0" step="any" inputmode="decimal" value="0"></label><button id="resetRiskSuggestion" class="ghost small" type="button">Automatisch</button></div>`:""}
-        ${customer?`<label>Expresszuschlag (€)<input id="expressSurcharge" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.expressFee)}"></label>`:""}
+        ${customer?`<label>Expresszuschlag (€)<input id="expressSurcharge" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.expressFee)}"></label><label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${num(state.settings.profit)}"></label>`:""}
         ${customer?`<label>Beratung (€)<input id="consultationFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Einrichtung (€)<input id="setupFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Positionierung (€)<input id="positioningFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Fokus (€)<input id="focusFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Probelauf (€)<input id="testRunFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Nachkontrolle (€)<input id="inspectionFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Reinigung (€)<input id="cleaningFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${num(state.settings.packaging)}"></label><label>Sonstiger Zuschlag (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value="0"></label>`:""}
         <label class="${customer&&process==="cut"?"hidden":""}">Gravurdauer (Minuten)<input id="engraveMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
         <label class="${customer&&process==="engrave"?"hidden":""}">Schnittdauer (Minuten)<input id="cutMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
@@ -554,18 +556,20 @@ $("calcForm").onsubmit=async e=>{
     actualCutTime:null,actualEngravingTime:null,actualTotalTime:null,estimatedPrice:saleNow,actualPrice:saleNow,materialCost:0,cost:costNow,
     objectValue:num($("objectValue")?.value),riskSurcharge:num($("riskSurcharge")?.value),expressSurcharge:num($("expressSurcharge")?.value),difficulty,difficultyPercent:num(customerSettings.difficulties?.[difficulty])
   }:(existingProject?.estimatorData||null);
-  const calculationSnapshot=buildCalculationSnapshot({breakdown,sale:saleNow,cost:costNow,machine,orderType,customerProcess});
+  const savedFields=captureCalculatorFields();
+  const savedPositions=getCalculatorPositions();
+  const calculationSnapshot=buildCalculationSnapshot({breakdown,sale:saleNow,cost:costNow,machine,orderType,customerProcess,fields:savedFields,positions:savedPositions});
   let agreementFields;try{agreementFields=readAgreementForm(existingProject||{})}catch(error){await appConfirm(error.message,"Preisvereinbarung prüfen","OK");return}
   if(!await confirmUnderCostAgreement({agreementPrice:agreementFields.agreementPrice,selfCosts:costNow,previousAgreementPrice:existingProject?normalizeAgreementFields(existingProject).agreementPrice:null}))return;
   const selectedCustomerId=$("projectCustomerId")?.value||"";
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:captureCalculatorFields(),created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:$("projectStatus")?.value||"offer",tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??null),actualPrice:saleNow,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:saleNow,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   // Neue Projekte speichern keine Adresskopie. Altprojekt-Anschriften bleiben unverändert als historischer Rückfall erhalten.
   if(existingProject?.customerAddress)project.customerAddress=existingProject.customerAddress;else delete project.customerAddress;
   if(existingProject?.fields?.customerAddress)project.fields.customerAddress=existingProject.fields.customerAddress;
   // Die automatisch angelegte erste Position bildet bei Kundenobjekten immer das kundeneigene Objekt mit 0 € ab.
   syncAutomaticFirstPosition(state.activeModule);
   // Projektpositionen gehören zur Projektakte und bleiben beim erneuten Kalkulieren vollständig erhalten.
-  project.positions=getCalculatorPositions();
+  project.positions=savedPositions;
   const idx=state.projects.findIndex(p=>p.id===project.id);
   if(idx>=0)state.projects[idx]=project;else state.projects.unshift(project);
   const usedKeys=[project.fields?.matMain,project.fields?.matTransfer,...project.consumables.map(r=>r.materialId)].filter(Boolean);
