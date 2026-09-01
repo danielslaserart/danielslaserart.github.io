@@ -1,9 +1,9 @@
 import { initializeAuth, state } from "./storage.js?v=6.5";
 import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.5";
-import { renderCalculator } from "./calculator.js?v=6.6.2";
+import { renderCalculator } from "./calculator.js?v=6.6.3";
 import { renderTools } from "./statistics.js?v=6.5";
 import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.5";
-import { renderProjects } from "./projects.js?v=6.6.2";
+import { renderProjects } from "./projects.js?v=6.6.3";
 import { fillSettings } from "./settings.js?v=6.5";
 import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.5";
 import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.5";
