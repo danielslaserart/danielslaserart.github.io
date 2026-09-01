@@ -2,10 +2,10 @@ import { $, num, euro, uid, esc } from "./utils.js?v=6.5";
 import { state, save, defaults } from "./storage.js?v=6.5";
 import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.5";
 import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.5";
-import { renderProjects } from "./projects.js?v=6.5.1";
+import { renderProjects } from "./projects.js?v=6.6.1";
 import { appConfirm } from "./dialogs.js?v=6.5";
 import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.5.1";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.5.1";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.1";
 import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.5.4";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
@@ -31,14 +31,20 @@ export function computePriceBreakdown(parts={}){
     const furtherSurcharges=Math.max(0,num(parts.furtherSurcharges));
     const difficultyPercent=Math.max(0,num(parts.difficultyPercent));
     const extra=Math.max(0,num(parts.extra));
-    const difficulty=(baseFee+furtherSurcharges+material+machine+work+extra)*difficultyPercent/100;
-    const calculated=baseFee+furtherSurcharges+material+machine+work+extra+difficulty+risk+express;
-    const minimum=Math.max(0,num(parts.minimumPrice));
-    const minimumApplied=calculated<minimum;
-    const minimumAdjusted=Math.max(calculated,minimum);
-    const recommended=calculated<=minimum?minimum:Math.max(minimum,Math.ceil(minimumAdjusted)+.9);
+    const difficulty=(baseFee+furtherSurcharges)*difficultyPercent/100;
     const cost=material+machine+work+extra;
-    return {material,consumables:0,baseFee,furtherSurcharges,machine,work,extra,reserve:0,difficulty,risk,express,calculated,minimum,minimumApplied,cost,sale:recommended,profit:Math.max(0,recommended-cost)};
+    const calculatedWorkPrice=baseFee+furtherSurcharges+difficulty+risk+express;
+    const subtotalBeforeMinimum=cost+calculatedWorkPrice;
+    const minimum=Math.max(0,num(parts.minimumPrice));
+    const minimumApplied=subtotalBeforeMinimum<minimum;
+    const subtotal=Math.max(subtotalBeforeMinimum,minimum);
+    const profitPercent=Math.max(0,num(parts.profitPercent));
+    const profitMarkup=subtotal*profitPercent/100;
+    const calculated=subtotal+profitMarkup;
+    const recommended=parts.roundFn?parts.roundFn(calculated):calculated;
+    return {material,consumables:0,baseFee,furtherSurcharges,machine,work,extra,reserve:0,difficulty,risk,express,
+      cost,calculatedWorkPrice,subtotalBeforeMinimum,subtotal,priceBeforeProfit:subtotal,profitPercent,profitMarkup,
+      calculated,minimum,minimumApplied,sale:recommended,profit:Math.max(0,recommended-cost)};
   }
   const material=Math.max(0,num(parts.material)),consumables=Math.max(0,num(parts.consumables)),machine=Math.max(0,num(parts.machine)),work=Math.max(0,num(parts.work)),extra=Math.max(0,num(parts.extra));
   const direct=material+consumables+machine+work+extra;
