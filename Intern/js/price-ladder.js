@@ -117,7 +117,7 @@ export function getPriceLadderData(source={}){
     estimator.recommendedSalePrice,estimator.estimatedPrice,source.estimatedPrice,source.sale
   );
   const recommendedSalePrice=hasValue(recommendedRaw)?money(recommendedRaw):null;
-  const profitPercentRaw=firstValue(source.profitPercent,directBreakdown.profitPercent,source.fields?.profit);
+  const profitPercentRaw=firstValue(source.profitPercent,directBreakdown.profitPercent,source.fields?.profit,source.calculationSnapshot?.fields?.profit,source.calculationSnapshot?.pricingSettings?.profit);
   const profitMarkupRaw=firstValue(source.profitMarkup,directBreakdown.profitMarkup);
   const profitPercent=hasValue(profitPercentRaw)?num(profitPercentRaw):null;
   const profitMarkup=hasValue(profitMarkupRaw)?money(profitMarkupRaw)
