@@ -2,12 +2,12 @@ import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.5";
 import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.5";
 import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.5";
 import { resolveMaterialSelection } from "./materials.js?v=6.5";
-import { workshopUnit } from "./calculator.js?v=6.6.2";
+import { workshopUnit } from "./calculator.js?v=6.6.3";
 import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.5";
 import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.5";
 import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.5.1";
 import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.5";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.2";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.3";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
 import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.5";
 import { customerNameById, customerAddressById } from "./customers.js?v=6.5";
@@ -325,7 +325,7 @@ export function viewProject(id){
       <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
     </div><h3>Preisübersicht</h3><div class="project-view-details">
       ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}
-      ${renderPriceLadder(getPriceLadderData(p),{heading:false,details:true})}
+      ${renderPriceLadder(getPriceLadderData({...p,profitPercent:num(p.fields?.profit??p.calculationSnapshot?.fields?.profit??state.settings?.profit??30)}),{heading:false,details:true})}
       <div><span>Tatsächlicher Gewinn</span><strong>${euro(num(p.sale)-selfCosts)}</strong></div>
       <div><span>Gewinnmarge</span><strong>${num(p.sale)>0?`${((num(p.sale)-selfCosts)/num(p.sale)*100).toLocaleString("de-DE",{maximumFractionDigits:1})} %`:"0,0 %"}</strong></div>
     </div>`}
