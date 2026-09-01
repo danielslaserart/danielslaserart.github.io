@@ -73,7 +73,7 @@ function resetCalculator(module="3d"){
 }
 export function loadCalculatorData(source={},options={}){
   const snapshot=source.calculationSnapshot?.sourceModule==="calculator"?source.calculationSnapshot:null;
-  if(snapshot)source={...source,module:snapshot.module||source.module,orderType:snapshot.orderType||source.orderType,customerObjectProcess:snapshot.customerObjectProcess||source.customerObjectProcess,machineId:snapshot.machineId||source.machineId,productSize:snapshot.productSize||source.productSize,consumables:snapshot.consumables||source.consumables,workSeconds:snapshot.workSeconds??source.workSeconds,fields:{...(source.fields||{}),...(snapshot.fields||{})}};
+  if(snapshot)source={...source,module:snapshot.module||source.module,orderType:snapshot.orderType||source.orderType,customerObjectProcess:snapshot.customerObjectProcess||source.customerObjectProcess,machineId:snapshot.machineId||source.machineId,productSize:snapshot.productSize||source.productSize,consumables:snapshot.consumables||source.consumables,positions:snapshot.positions||source.positions,workSeconds:snapshot.workSeconds??source.workSeconds,fields:{...(source.fields||{}),...(snapshot.fields||{})}};
   const storedFields={
     objectMaterial:source.objectMaterial??source.estimatorData?.materialName??"",
     objectValue:source.objectValue??source.estimatorData?.objectValue??"",
@@ -81,6 +81,7 @@ export function loadCalculatorData(source={},options={}){
     difficulty:source.difficulty??source.estimatorData?.difficulty??"normal",
     riskSurcharge:source.riskSurcharge??source.estimatorData?.riskSurcharge??source.pricingBreakdown?.risk??"",
     expressSurcharge:source.expressSurcharge??source.estimatorData?.expressSurcharge??source.pricingBreakdown?.express??"",
+    profit:source.fields?.profit??source.calculationSnapshot?.pricingSettings?.profitPercent??source.pricingBreakdown?.profitPercent??state.settings.profit??0,
     ...(source.fields||{})
   };
   const module=source.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[source.type])||"3d";
