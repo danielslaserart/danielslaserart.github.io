@@ -2,7 +2,7 @@ import { num, euro, esc } from "./utils.js?v=6.5";
 import { state, save, getRealProjects } from "./storage.js?v=6.5";
 import { appConfirm, appForm } from "./dialogs.js?v=6.5";
 import { getCostCoveringMinimumPrice, getRecommendedPrice, toCents } from "./project-detail-formatting.js?v=6.5";
-import { getPriceLadderData } from "./price-ladder.js?v=6.6.1";
+import { getPriceLadderData } from "./price-ladder.js?v=6.6.2";
 
 const validIso=value=>Boolean(value)&&!Number.isNaN(new Date(value).getTime());
 const PRICE_TYPES=new Set(["normal","regularCustomer","special","promotion","repeatOrder","other"]);
