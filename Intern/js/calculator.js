@@ -2,10 +2,10 @@ import { $, num, euro, uid, esc } from "./utils.js?v=6.5";
 import { state, save, defaults } from "./storage.js?v=6.5";
 import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.5";
 import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.5";
-import { renderProjects } from "./projects.js?v=6.6.1";
+import { renderProjects } from "./projects.js?v=6.6.2";
 import { appConfirm } from "./dialogs.js?v=6.5";
 import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.5.1";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.1";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.2";
 import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.5.4";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
@@ -52,8 +52,13 @@ export function computePriceBreakdown(parts={}){
   const base=direct+overhead;
   const reserve=base*Math.max(0,num(parts.reservePercent))/100;
   const cost=base+reserve;
-  const sale=parts.roundFn?parts.roundFn(cost*(1+Math.max(0,num(parts.profitPercent))/100)):cost*(1+Math.max(0,num(parts.profitPercent))/100);
-  return {material,consumables,machine,work,extra,reserve,cost,sale,profit:Math.max(0,sale-cost),baseFee:0,difficulty:0,risk:0,calculated:sale,minimum:0,minimumApplied:false};
+  const profitPercent=Math.max(0,num(parts.profitPercent));
+  const profitMarkup=cost*profitPercent/100;
+  const calculated=cost+profitMarkup;
+  const sale=parts.roundFn?parts.roundFn(calculated):calculated;
+  return {material,consumables,machine,work,extra,reserve,cost,calculatedWorkPrice:0,subtotal:cost,
+    priceBeforeProfit:cost,profitPercent,profitMarkup,sale,profit:Math.max(0,sale-cost),
+    baseFee:0,difficulty:0,risk:0,calculated,minimum:0,minimumApplied:false};
 }
 export function getTimerSeconds(){
   const timer=state.timer||defaults.timer;
