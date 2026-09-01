@@ -52,19 +52,21 @@ export function getAgreementMargin({agreementPrice,selfCosts}={}){
   return getAgreementProfit({agreementPrice,selfCosts})/money(agreementPrice)*100;
 }
 
-export function getAgreementPriceStatus({agreementPrice,selfCosts,calculatedWorkPrice,recommendedSalePrice}={}){
+export function getAgreementPriceStatus({agreementPrice,selfCosts,subtotal,recommendedSalePrice}={}){
   if(!hasValue(agreementPrice))return null;
   if(!hasValue(selfCosts))return "Preisstatus nicht vollständig ermittelbar";
   const agreement=cents(agreementPrice);
   const cost=cents(selfCosts);
   if(agreement<cost)return "Unter Kostendeckung";
   if(agreement===cost)return "Selbstkosten exakt gedeckt";
-  if(hasValue(calculatedWorkPrice)&&agreement<cents(calculatedWorkPrice)){
-    return "Kosten gedeckt, Zuschläge jedoch nicht vollständig abgedeckt";
+  if(hasValue(subtotal)){
+    const subtotalCents=cents(subtotal);
+    if(agreement<subtotalCents)return "Selbstkosten gedeckt, Pauschalen und Zuschläge jedoch nicht vollständig";
+    if(agreement===subtotalCents)return "Zwischensumme exakt gedeckt";
   }
   if(hasValue(recommendedSalePrice)){
     const recommended=cents(recommendedSalePrice);
-    if(agreement<recommended)return "Arbeitspreis gedeckt, aber unter der Empfehlung";
+    if(agreement<recommended)return "Zwischensumme gedeckt, aber unter der Empfehlung";
     if(agreement===recommended)return "Entspricht der Empfehlung";
     return "Liegt über der Empfehlung";
   }
@@ -99,22 +101,27 @@ export function getPriceLadderData(source={}){
   ];
   const totalSurcharges=money(surchargeItems.reduce((sum,item)=>sum+item[1],0));
   const explicitWork=firstValue(
-    source.calculatedWorkPrice,source.priceBeforeProfit,source.preProfitPrice,
-    source.orderType==="customerObject"?source.calculated:undefined,
-    directBreakdown.calculated,estimator.calculatedWorkPrice
+    source.calculatedWorkPrice,directBreakdown.calculatedWorkPrice,estimator.calculatedWorkPrice
   );
-  let calculatedWorkPrice=hasValue(explicitWork)?money(explicitWork):null;
-  if(calculatedWorkPrice===null&&selfAvailable){
-    const canDerive=source.orderType!=="customerObject"||sources(source).length>0||
-      surchargeItems.some(item=>item[1]!==0);
-    if(canDerive)calculatedWorkPrice=money(selfCosts+totalSurcharges);
-  }
+  const calculatedWorkPrice=hasValue(explicitWork)?money(explicitWork):totalSurcharges;
+  const subtotalRaw=firstValue(
+    source.subtotal,source.priceBeforeProfit,source.preProfitPrice,
+    directBreakdown.subtotal,directBreakdown.priceBeforeProfit,estimator.subtotal
+  );
+  const subtotal=hasValue(subtotalRaw)?money(subtotalRaw)
+    :selfCosts!==null?money(selfCosts+calculatedWorkPrice):null;
   const recommendedRaw=firstValue(
     source.recommendedSalePrice,source.recommendedPrice,
     directBreakdown.sale,result.optimalPrice,result.calculatedPrice,
     estimator.recommendedSalePrice,estimator.estimatedPrice,source.estimatedPrice,source.sale
   );
   const recommendedSalePrice=hasValue(recommendedRaw)?money(recommendedRaw):null;
+  const profitPercentRaw=firstValue(source.profitPercent,directBreakdown.profitPercent,source.fields?.profit);
+  const profitMarkupRaw=firstValue(source.profitMarkup,directBreakdown.profitMarkup);
+  const profitMarkup=hasValue(profitMarkupRaw)?money(profitMarkupRaw)
+    :subtotal!==null&&recommendedSalePrice!==null?money(recommendedSalePrice-subtotal):null;
+  const profitPercent=hasValue(profitPercentRaw)?num(profitPercentRaw)
+    :profitMarkup!==null&&subtotal!==null&&cents(subtotal)!==0?profitMarkup/subtotal*100:null;
   const companyProfit=selfCosts!==null&&recommendedSalePrice!==null
     ?money(recommendedSalePrice-selfCosts):null;
   const companyProfitPercent=companyProfit!==null&&cents(recommendedSalePrice)!==0
@@ -124,11 +131,11 @@ export function getPriceLadderData(source={}){
   const agreementProfit=getAgreementProfit({agreementPrice,selfCosts});
   const agreementMargin=getAgreementMargin({agreementPrice,selfCosts});
   const agreementStatus=getAgreementPriceStatus({
-    agreementPrice,selfCosts,calculatedWorkPrice,recommendedSalePrice
+    agreementPrice,selfCosts,subtotal,recommendedSalePrice
   });
   return {selfCosts,costCoveringMinimumPrice:selfCosts,costItems,surchargeItems,totalSurcharges,
-    calculatedWorkPrice,recommendedSalePrice,companyProfit,companyProfitPercent,status,
-    agreementPrice,agreementProfit,agreementMargin,agreementStatus};
+    calculatedWorkPrice,subtotal,profitMarkup,profitPercent,recommendedSalePrice,
+    companyProfit,companyProfitPercent,status,agreementPrice,agreementProfit,agreementMargin,agreementStatus};
 }
 
 function signedMoney(value){
@@ -187,27 +194,28 @@ export function renderPriceLadder(data,{heading=true,details=true}={}){
       <p class="price-ladder-details-total"><span>Selbstkosten gesamt</span><strong>${euro(data.selfCosts)}</strong></p>
     </div></details>`:"";
   const surchargeDetails=data.calculatedWorkPrice!==null&&details?`<details class="price-ladder-details">
-    <summary>Zuschläge anzeigen</summary><div>
-      ${data.selfCosts!==null?`<p><span>Selbstkosten</span><strong>${euro(data.selfCosts)}</strong></p>`:""}
+    <summary>Pauschalen und Zuschläge anzeigen</summary><div>
       ${data.surchargeItems.filter(item=>item[1]!==0).map(item=>`<p><span>${esc(item[0])}</span><strong>${euro(item[1])}</strong></p>`).join("")}
-      ${data.totalSurcharges===0?`<small>Keine zusätzlichen Zuschläge aktiv.</small>`:""}
+      ${data.totalSurcharges===0?`<small>Keine Pauschalen oder Zuschläge aktiv.</small>`:""}
       <p class="price-ladder-details-total"><span>Kalkulierter Arbeitspreis</span><strong>${euro(data.calculatedWorkPrice)}</strong></p>
     </div></details>`:"";
   let profitText="";
   let warning="";
   if(data.companyProfit!==null){
     const percent=data.companyProfitPercent===null?"":` (${data.companyProfitPercent.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})} %)`;
-    const label=cents(data.companyProfit)<0?"Verlust nach Abzug der Selbstkosten":"Gewinn nach Abzug der Selbstkosten";
+    const label=cents(data.companyProfit)<0?"Verlust nach Abzug der Selbstkosten":"Gesamtertrag nach Abzug der Selbstkosten";
     profitText=`<small class="company-profit ${data.status==="negative"?"company-profit--negative":""}">${signedMoney(data.companyProfit)} ${label}${percent}</small>`;
     if(data.status==="negative")warning=`<small class="price-ladder-warning">Der empfohlene Verkaufspreis liegt unter den Selbstkosten.</small>`;
-    if(data.status==="neutral")warning=`<small>Die Selbstkosten sind exakt gedeckt. Kein Gewinn.</small>`;
-  }else if(data.recommendedSalePrice!==null){
-    profitText=`<small>Unternehmensgewinn bei diesem älteren Projekt nicht vollständig ermittelbar.</small>`;
+    if(data.status==="neutral")warning=`<small>Die Selbstkosten sind exakt gedeckt. Kein Ertrag.</small>`;
   }
+  const profitDescription=data.profitPercent===null?"Gewinnaufschlag vor Rundung.":`${data.profitPercent.toLocaleString("de-DE",{maximumFractionDigits:1})} % auf die Zwischensumme, vor Rundung.`;
   return `<section class="price-ladder" aria-label="Preisübersicht">${heading?`<h4>PREISÜBERSICHT</h4>`:""}
-    ${step("minimum","Selbstkosten",data.costCoveringMinimumPrice,data.costCoveringMinimumPrice===null?"Für dieses ältere Projekt nicht zuverlässig ermittelbar.":"Diese Kosten werden von beiden Verkaufspreisen abgezogen.",costDetails)}
-    ${step("work","Kalkulierter Arbeitspreis",data.calculatedWorkPrice,data.calculatedWorkPrice===null?"Für dieses ältere Projekt nicht eindeutig ermittelbar.":data.totalSurcharges===0?"Keine zusätzlichen Zuschläge aktiv.":`Enthält deine Kosten sowie Grundpauschale, Aufwand, Risiko und aktive Zuschläge.`,surchargeDetails)}
-    ${step(data.status==="positive"?"recommended":data.status==="negative"?"negative":"neutral","Empfohlener Verkaufspreis",data.recommendedSalePrice,"",profitText+warning)}
+    ${step("minimum","Selbstkosten",data.selfCosts,data.selfCosts===null?"Für dieses ältere Projekt nicht zuverlässig ermittelbar.":"Material, Maschine, Arbeitszeit und sonstige echte Kosten.",costDetails)}
+    ${step("work","Kalkulierter Arbeitspreis",data.calculatedWorkPrice,data.calculatedWorkPrice===null?"Für dieses ältere Projekt nicht eindeutig ermittelbar.":"Nur Pauschalen und Zuschläge – ohne Selbstkosten.",surchargeDetails)}
+    ${step("neutral","Zwischensumme",data.subtotal,"Selbstkosten plus kalkulierter Arbeitspreis.")}
+    ${step("work","Gewinnaufschlag",data.profitMarkup,profitDescription)}
+    ${step(data.status==="positive"?"recommended":data.status==="negative"?"negative":"neutral","Empfohlener Verkaufspreis",data.recommendedSalePrice,"Zwischensumme plus Gewinnaufschlag, anschließend gerundet.",profitText+warning)}
     ${renderAgreementPriceSummary(data)}
   </section>`;
 }
+
