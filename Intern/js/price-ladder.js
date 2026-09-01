@@ -88,7 +88,8 @@ export function getPriceLadderData(source={}){
     ["Verbrauchsmaterial",component(source,["consumables"])],
     ["Maschinenkosten",component(source,["machine"])],
     ["Arbeitskosten",component(source,["work"])],
-    ["Sonstige Kosten",component(source,["extra"])]
+    ["Sonstige Kosten",component(source,["extra"])],
+    ["Fehlerreserve",component(source,["reserve","errorReserve"])]
   ];
   const surchargeItems=[
     ["Grundpauschale",component(source,["baseFee"])],
@@ -118,10 +119,14 @@ export function getPriceLadderData(source={}){
   const recommendedSalePrice=hasValue(recommendedRaw)?money(recommendedRaw):null;
   const profitPercentRaw=firstValue(source.profitPercent,directBreakdown.profitPercent,source.fields?.profit);
   const profitMarkupRaw=firstValue(source.profitMarkup,directBreakdown.profitMarkup);
+  const profitPercent=hasValue(profitPercentRaw)?num(profitPercentRaw):null;
   const profitMarkup=hasValue(profitMarkupRaw)?money(profitMarkupRaw)
-    :subtotal!==null&&recommendedSalePrice!==null?money(recommendedSalePrice-subtotal):null;
-  const profitPercent=hasValue(profitPercentRaw)?num(profitPercentRaw)
-    :profitMarkup!==null&&subtotal!==null&&cents(subtotal)!==0?profitMarkup/subtotal*100:null;
+    :profitPercent!==null&&subtotal!==null?money(subtotal*profitPercent/100):null;
+  const preRoundedRaw=firstValue(source.calculated,directBreakdown.calculated);
+  const preRoundedPrice=hasValue(preRoundedRaw)?num(preRoundedRaw)
+    :subtotal!==null&&profitMarkup!==null?subtotal+profitMarkup:null;
+  const roundingDifference=preRoundedPrice!==null&&recommendedSalePrice!==null
+    ?money(recommendedSalePrice-preRoundedPrice):null;
   const companyProfit=selfCosts!==null&&recommendedSalePrice!==null
     ?money(recommendedSalePrice-selfCosts):null;
   const companyProfitPercent=companyProfit!==null&&cents(recommendedSalePrice)!==0
@@ -134,7 +139,7 @@ export function getPriceLadderData(source={}){
     agreementPrice,selfCosts,subtotal,recommendedSalePrice
   });
   return {selfCosts,costCoveringMinimumPrice:selfCosts,costItems,surchargeItems,totalSurcharges,
-    calculatedWorkPrice,subtotal,profitMarkup,profitPercent,recommendedSalePrice,
+    calculatedWorkPrice,subtotal,profitMarkup,profitPercent,roundingDifference,recommendedSalePrice,
     companyProfit,companyProfitPercent,status,agreementPrice,agreementProfit,agreementMargin,agreementStatus};
 }
 
@@ -214,6 +219,7 @@ export function renderPriceLadder(data,{heading=true,details=true}={}){
     ${step("work","Kalkulierter Arbeitspreis",data.calculatedWorkPrice,data.calculatedWorkPrice===null?"Für dieses ältere Projekt nicht eindeutig ermittelbar.":"Nur Pauschalen und Zuschläge – ohne Selbstkosten.",surchargeDetails)}
     ${step("neutral","Zwischensumme",data.subtotal,"Selbstkosten plus kalkulierter Arbeitspreis.")}
     ${step("work","Gewinnaufschlag",data.profitMarkup,profitDescription)}
+    ${data.roundingDifference!==null&&cents(data.roundingDifference)!==0?step("neutral","Rundung",data.roundingDifference,"Anpassung auf den eingestellten Preis-Schritt."):""}
     ${step(data.status==="positive"?"recommended":data.status==="negative"?"negative":"neutral","Empfohlener Verkaufspreis",data.recommendedSalePrice,"Zwischensumme plus Gewinnaufschlag, anschließend gerundet.",profitText+warning)}
     ${renderAgreementPriceSummary(data)}
   </section>`;
