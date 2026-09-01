@@ -1,4 +1,4 @@
-const CACHE="dla-kalkulator-v6-6-profit-percent-20260901";
+const CACHE="dla-kalkulator-v6-6-project-persistence-20260901";
 const FALLBACK="./index.html?v=6.6";
 const ASSETS=["./?v=6.5","./index.html?v=6.5","./style.css?v=6.5","./js/app.js?v=6.6.4","./js/calculator.js?v=6.6.4","./js/design.js?v=6.5","./js/materials.js?v=6.5","./js/machines.js?v=6.5","./js/estimator.js?v=6.5","./js/learning.js?v=6.5","./js/projects.js?v=6.6.4","./js/project-positions.js?v=6.5.4","./js/offer-pdf.js?v=6.5","./js/statistics.js?v=6.5","./js/workshop-analysis.js?v=6.5","./js/storage.js?v=6.5","./js/settings.js?v=6.5","./js/ui.js?v=6.6.4","./js/utils.js?v=6.5","./js/dialogs.js?v=6.5","./js/processing-profiles.js?v=6.5","./js/customer-price-history.js?v=6.6.4","./js/project-detail-formatting.js?v=6.5","./js/price-ladder.js?v=6.6.4","./js/customers.js?v=6.5","./assets/vendor/pdf-lib.min.js?v=6.5","./assets/pdf/briefpapier-daniels-laser-art.pdf?v=6.5","./manifest.json?v=6.5","./icon-192.png?v=6.5","./icon-512.png?v=6.5","./icon-maskable-512.png?v=6.5","./briefkopf-logo.png?v=6.5","/assets/images/hero/background.webp"];
 ASSETS.push("./js/monitoring.js?v=6.6");
