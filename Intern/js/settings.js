@@ -1,7 +1,7 @@
 import { $, num, esc, inferMaterialCategory, inferMaterialUseCategory } from "./utils.js?v=6.5";
 import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord, normalizeProcessingProfiles, mergeSettings } from "./storage.js?v=6.5";
 import { renderMachines } from "./machines.js?v=6.5";
-import { renderMaterials } from "./materials.js?v=6.5";
+import { renderMaterials } from "./materials.js?v=6.6.8";
 import { renderProjects } from "./projects.js?v=6.5.1";
 import { appAlert } from "./dialogs.js?v=6.5";
 export function fillSettings(){
