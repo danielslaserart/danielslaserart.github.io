@@ -1,6 +1,6 @@
 import { $, num, euro, uid, esc } from "./utils.js?v=6.5";
 import { state, save, defaults } from "./storage.js?v=6.5";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.5";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.8";
 import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.5";
 import { renderProjects } from "./projects.js?v=6.6.3";
 import { appConfirm } from "./dialogs.js?v=6.5";
