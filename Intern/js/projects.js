@@ -1,17 +1,17 @@
-import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.14";
-import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.14";
-import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.14";
-import { resolveMaterialSelection } from "./materials.js?v=6.6.14";
-import { workshopUnit } from "./calculator.js?v=6.6.14";
-import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.14";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.14";
-import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.14";
-import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.14";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.14";
-import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.14";
-import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.14";
-import { customerNameById, customerAddressById } from "./customers.js?v=6.6.14";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.14";
+import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.15";
+import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.15";
+import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.15";
+import { resolveMaterialSelection } from "./materials.js?v=6.6.15";
+import { workshopUnit } from "./calculator.js?v=6.6.15";
+import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.15";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.15";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.15";
+import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.15";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.15";
+import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.15";
+import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.15";
+import { customerNameById, customerAddressById } from "./customers.js?v=6.6.15";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.15";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -289,12 +289,18 @@ function customerCalculationOverview(p){
   const row=(label,value)=>num(value)!==0?`<div><span>${label}</span><strong>${euro(value)}</strong></div>`:"";
   const costRows=`${row("Materialkosten",breakdown.material)}${row("Maschinenkosten",breakdown.machine??results.machineCosts)}${row("Arbeitskosten",breakdown.work??results.workCosts)}${row("Sonstige echte Kosten",breakdown.extra??results.additionalCosts)}`;
   const surchargeRows=`${row("Grundpauschale",breakdown.baseFee)}${row("Schwierigkeitsaufschlag",breakdown.difficulty)}${row("Risikoaufschlag",breakdown.risk??p.riskSurcharge)}${row("Expresszuschlag",breakdown.express??p.expressSurcharge)}${row("Weitere Zuschläge",breakdown.furtherSurcharges)}`;
+  const priceStep=num(state.settings?.rounding)||.1;
+  const low=Math.ceil((Math.max(selfCosts,recommended*.9)-1e-9)/priceStep)*priceStep;
+  const premium=Math.ceil((recommended*1.2-1e-9)/priceStep)*priceStep;
   return `<div class="project-calculation-overview">
     ${costRows?`<h4>TATSÄCHLICHE KOSTEN</h4>${costRows}`:""}
     <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
     ${surchargeRows?`<h4>PREISBESTANDTEILE UND ZUSCHLÄGE</h4>${surchargeRows}`:""}
     ${Math.abs(recommended-calculated)>=.005?`<h4>RUNDUNG</h4><div><span>Rundungsdifferenz</span><strong>${signedEuro(recommended-calculated)}</strong></div>`:""}
     ${renderPriceLadder(getPriceLadderData(source),{heading:true,details:true})}
+    <div><span>Niedrige Preisempfehlung</span><strong>${euro(low)}</strong></div>
+    <div><span>Optimal</span><strong>${euro(recommended)}</strong></div>
+    <div><span>Premium</span><strong>${euro(premium)}</strong></div>
   </div>`;
 }
 export function viewProject(id){
@@ -305,6 +311,9 @@ export function viewProject(id){
   const ownProfitPercent=Math.max(0,num(p.fields?.profit??p.calculationSnapshot?.fields?.profit??p.calculationSnapshot?.pricingSettings?.profitPercent??state.settings?.profit??30));
   const ownProfitMarkup=selfCosts*ownProfitPercent/100;
   const ownCalculated=selfCosts+ownProfitMarkup;
+  const priceStep=num(state.settings?.rounding)||.1;
+  const lowPrice=Math.ceil((Math.max(selfCosts,num(p.sale)*.9)-1e-9)/priceStep)*priceStep;
+  const premiumPrice=Math.ceil((num(p.sale)*1.2-1e-9)/priceStep)*priceStep;
   const ownPriceSource={...p,selfCosts,cost:selfCosts,costCoveringMinimumPrice:selfCosts,calculatedWorkPrice:0,subtotal:selfCosts,priceBeforeProfit:selfCosts,profitPercent:ownProfitPercent,profitMarkup:ownProfitMarkup,calculated:ownCalculated,recommendedSalePrice:num(p.sale),recommendedPrice:num(p.sale),pricingBreakdown:{...(p.pricingBreakdown||{}),cost:selfCosts,calculatedWorkPrice:0,subtotal:selfCosts,priceBeforeProfit:selfCosts,profitPercent:ownProfitPercent,profitMarkup:ownProfitMarkup,calculated:ownCalculated,sale:num(p.sale)}};
   const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
   $("projectViewTitle").textContent=p.title||"Projekt";
@@ -332,6 +341,9 @@ export function viewProject(id){
       ${renderPriceLadder(getPriceLadderData(ownPriceSource),{heading:false,details:true})}
       <div><span>Tatsächlicher Gewinn</span><strong>${euro(num(p.sale)-selfCosts)}</strong></div>
       <div><span>Gewinnmarge</span><strong>${num(p.sale)>0?`${((num(p.sale)-selfCosts)/num(p.sale)*100).toLocaleString("de-DE",{maximumFractionDigits:1})} %`:"0,0 %"}</strong></div>
+      <div><span>Niedrige Preisempfehlung</span><strong>${euro(lowPrice)}</strong></div>
+      <div><span>Optimal</span><strong>${euro(p.sale)}</strong></div>
+      <div><span>Premium</span><strong>${euro(premiumPrice)}</strong></div>
     </div>`}
     ${priceAgreementHtml(p,p.orderType==="customerObject"?getPriceLadderData(currentCustomerCalculation(p).source):null)}
     ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}

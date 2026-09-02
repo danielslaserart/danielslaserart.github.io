@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.14";
-import { state, save, defaults } from "./storage.js?v=6.6.14";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.14";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.14";
-import { renderProjects } from "./projects.js?v=6.6.14";
-import { appConfirm } from "./dialogs.js?v=6.6.14";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.14";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.14";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.14";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.15";
+import { state, save, defaults } from "./storage.js?v=6.6.15";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.15";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.15";
+import { renderProjects } from "./projects.js?v=6.6.15";
+import { appConfirm } from "./dialogs.js?v=6.6.15";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.15";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.15";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.15";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -527,6 +527,8 @@ export function calculate(){
   const roundingDifference=breakdown.sale-breakdown.calculated;
   const actualProfit=breakdown.sale-breakdown.cost;
   const margin=breakdown.sale>0?actualProfit/breakdown.sale*100:0;
+  const lowPrice=rounded(Math.max(breakdown.cost,breakdown.sale*.9));
+  const premiumPrice=rounded(breakdown.sale*1.2);
   $("resCost").textContent=euro(breakdown.cost);$("resProfit").textContent=euro(breakdown.profit);$("resSale").textContent=euro(breakdown.sale);$("resSaleLabel").textContent=customerObject?"Empfohlener Verkaufspreis":"Verkaufspreis";
   $("resCostCoveringMinimum").textContent=euro(breakdown.cost);
   const agreementText=$("agreementPrice")?.value?.trim()??"";
@@ -536,6 +538,7 @@ export function calculate(){
     agreementPrice:Number.isFinite(liveAgreementPrice)?liveAgreementPrice:null
   }),{heading:true,details:true});
   $("resProfitRow").classList.toggle("hidden",customerObject);$("resProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("resProfitExplanation").textContent="";
+  $("resPriceLow").textContent=euro(lowPrice);$("resPriceOptimal").textContent=euro(breakdown.sale);$("resPricePremium").textContent=euro(premiumPrice);
   $("resRounding").textContent=signedEuro(roundingDifference);$("resActualProfit").textContent=euro(actualProfit);$("resActualProfitExplanation").textContent=`${euro(breakdown.sale)} − ${euro(breakdown.cost)}`;$("resMargin").textContent=`${margin.toLocaleString("de-DE",{maximumFractionDigits:1})} %`;
   $("resPerPiece").textContent=qty>1?`${euro(breakdown.sale/qty)} je Stück`:"";
   $("calcForm").dataset.sale=breakdown.sale;
