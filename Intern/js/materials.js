@@ -77,7 +77,7 @@ let editingMaterialVariants=[];
 function normalizeVariant(v,m={}){
   const quantity=Math.max(0.000001,num(v?.quantity)||1),price=num(v?.price);
   const images=Array.isArray(v?.images)?v.images.filter(Boolean):(v?.image?[v.image]:[]);
-  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),images,image:images[0]||"",note:v?.note||"",location:v?.location||"",supplier:v?.supplier||"",properties:v?.properties||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
+  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,width:num(v?.width),height:num(v?.height),dimensionUnit:v?.dimensionUnit||m.dimensionUnit||"cm",sheetCount:Math.max(1,num(v?.sheetCount)||1),trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),images,image:images[0]||"",note:v?.note||"",location:v?.location||"",supplier:v?.supplier||"",properties:v?.properties||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
 }
 function syncVariantTitleImage(v){
   v.images=Array.isArray(v.images)?v.images.filter(Boolean):[];
@@ -101,6 +101,12 @@ function renderMaterialVariantRows(){
     <label>Einkaufspreis (€)<input data-v-field="price" data-v-index="${i}" type="number" min="0" step="any" value="${num(v.price)}"></label>
     <label>Gekaufte Menge<input data-v-field="quantity" data-v-index="${i}" type="number" min="0.000001" step="any" value="${num(v.quantity)||1}"></label>
     <label>Einheit<select data-v-field="unit" data-v-index="${i}">${["Stück","g","kg","cm²","m²","cm","m","ml","l"].map(u=>`<option ${u===v.unit?"selected":""}>${u}</option>`).join("")}</select></label>
+    <div class="field-grid variant-sheet-dimensions">
+      <label>Plattenbreite<input data-v-field="width" data-v-index="${i}" type="number" min="0" step="any" value="${num(v.width)}" placeholder="z. B. 30"></label>
+      <label>Plattenhöhe<input data-v-field="height" data-v-index="${i}" type="number" min="0" step="any" value="${num(v.height)}" placeholder="z. B. 60"></label>
+      <label>Maßeinheit<select data-v-field="dimensionUnit" data-v-index="${i}">${["mm","cm","m"].map(u=>`<option ${u===v.dimensionUnit?"selected":""}>${u}</option>`).join("")}</select></label>
+      <label>Platten je Kauf<input data-v-field="sheetCount" data-v-index="${i}" type="number" min="1" step="1" value="${Math.max(1,num(v.sheetCount)||1)}"></label>
+    </div>
     <label>Lieferant der Variante<input data-v-field="supplier" data-v-index="${i}" value="${esc(v.supplier||"")}" placeholder="optional, sonst gilt der Lieferant oben"></label>
     <label>Lagerplatz<input data-v-field="location" data-v-index="${i}" value="${esc(v.location||"")}" placeholder="optional, z. B. Regal B3"></label>
     <label class="variant-note-field">Eigenschaften<input data-v-field="properties" data-v-index="${i}" value="${esc(v.properties||"")}" placeholder="z. B. Farbe: Schwarz · Stärke: 3 mm"></label>
@@ -263,7 +269,9 @@ $("materialForm").onsubmit=e=>{
   const suitableActivities=[...document.querySelectorAll("[data-material-activity]:checked")].map(cb=>cb.value);
   const item={
     id:$("materialId").value||uid(),name,area:$("materialArea").value,category:$("materialCategory").value||"Sonstiges",useCategory:$("materialUseCategory").value||inferMaterialUseCategory({area:$("materialArea").value,name}),suitableActivities,supplier:$("materialSupplier").value.trim(),manufacturer:$("materialManufacturer").value.trim(),color:$("materialColor").value.trim(),location:$("materialLocation").value.trim(),image:hasVariants?"":materialImageData,
-    width:hasVariants?0:num($("materialWidth").value),height:hasVariants?0:num($("materialHeight").value),dimensionUnit:$("materialDimensionUnit").value,sheetCount:hasVariants?1:Math.max(1,num($("materialSheetCount").value)),
+    // Familien behalten ihre Plattenmaße. Frühere Versionen haben diese beim
+    // Anlegen einer Variante versehentlich auf 0 gesetzt.
+    width:num($("materialWidth").value),height:num($("materialHeight").value),dimensionUnit:$("materialDimensionUnit").value,sheetCount:Math.max(1,num($("materialSheetCount").value)),
     price:hasVariants?0:price,quantity:hasVariants?1:quantity,unit:$("materialUnit").value,salePrice:num($("materialSalePrice").value),stock:num($("materialStock").value),minStock:num($("materialMinStock").value),trackStock:num($("materialStock").value)>0||num($("materialMinStock").value)>0,qrCode:$("materialQrCode").value.trim(),
     note:$("materialNote").value.trim(),unitPrice:hasVariants?0:price/quantity,variants:editingMaterialVariants.filter(v=>v.name.trim()).map(v=>normalizeVariant(v,{unit:$("materialUnit").value})),stockHistory:state.materials.find(x=>x.id===$("materialId").value)?.stockHistory||[],mainRole:$("materialMainRole").checked,consumableRole:$("materialConsumableRole").checked,
     consumableCategory:$("materialConsumableCategory").value,defaultConsumption:num($("consumptionMedium").value),
