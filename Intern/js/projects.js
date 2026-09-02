@@ -1,7 +1,7 @@
 import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.5";
 import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.5";
 import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.5";
-import { resolveMaterialSelection } from "./materials.js?v=6.5";
+import { resolveMaterialSelection } from "./materials.js?v=6.6.8";
 import { workshopUnit } from "./calculator.js?v=6.6.4";
 import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.5";
 import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.5";
