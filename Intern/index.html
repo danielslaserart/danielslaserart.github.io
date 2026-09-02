@@ -472,7 +472,7 @@
       </div>
 
       <div class="field-grid">
-        <label>Berechnete Materialkosten (€)<input id="mcMaterialCost" type="number" min="0" step="any" inputmode="decimal" readonly placeholder="Material auswählen"></label>
+        <label>Materialkosten – automatisch (€)<input id="mcMaterialCost" type="number" min="0" step="any" inputmode="decimal" readonly placeholder="Wird aus dem gewählten Material berechnet"></label>
         <label>Sonstige Kosten (€)<input id="mcExtraCost" type="number" min="0" step="any" inputmode="decimal" placeholder="0,00"></label>
         <label>Aktive Grundarbeit (Min.)<input id="mcBaseWork" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 10"></label>
         <label>Stundenlohn (€)<input id="mcHourly" type="number" min="0" step="any" inputmode="decimal"></label>
@@ -1066,6 +1066,6 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
-<script type="module" src="js/app.js?v=6.6.4"></script>
+<script type="module" src="js/app.js?v=6.6.8"></script>
 </body>
 </html>
