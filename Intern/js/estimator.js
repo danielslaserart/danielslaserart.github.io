@@ -1,6 +1,6 @@
 import { $, num, euro, esc, uid } from "./utils.js?v=6.5";
 import { state, save } from "./storage.js?v=6.5";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.5";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.8";
 import { rounded, computePriceBreakdown } from "./calculator.js?v=6.5";
 import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.5.1";
 import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.5";
@@ -32,7 +32,7 @@ function updateMotifProcessUI(){
 }
 function calculateMotifMaterialCost(width,height,layers){
   const selected=resolveMaterialSelection($('mcMaterial')?.value);if(!selected)return {cost:0,text:'–'};
-  const unitPrice=num(selected.unitPrice),mw=num(selected.width),mh=num(selected.height),dimensionUnit=selected.dimensionUnit||'cm',purchaseUnit=String(selected.unit||'Stück').toLowerCase();
+  const unitPrice=num(selected.unitPrice),mw=num(selected.width||selected.baseMaterial?.width),mh=num(selected.height||selected.baseMaterial?.height),dimensionUnit=selected.dimensionUnit||selected.baseMaterial?.dimensionUnit||'cm',purchaseUnit=String(selected.unit||'Stück').toLowerCase();
   if(width<=0||height<=0)return {cost:0,text:'Maße fehlen'};
   const neededArea=width*height*layers;
 
@@ -50,8 +50,10 @@ function calculateMotifMaterialCost(width,height,layers){
   if(dimensionUnit==='m'){sheetWidth*=100;sheetHeight*=100}
   if(sheetWidth>0&&sheetHeight>0){
     const sheetArea=sheetWidth*sheetHeight;
-    const cost=sheetArea>0?neededArea/sheetArea*unitPrice:0;
-    return {cost,text:`${neededArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² von ${sheetArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² je Platte`};
+    const purchasedSheets=Math.max(1,num(selected.sheetCount||selected.baseMaterial?.sheetCount)||1);
+    const purchasedArea=sheetArea*purchasedSheets;
+    const cost=purchasedArea>0?neededArea/purchasedArea*unitPrice:0;
+    return {cost,text:`${neededArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² von ${purchasedArea.toLocaleString('de-DE',{maximumFractionDigits:1})} cm² je Einkauf`};
   }
 
   // Ohne Maße kann bei Stückware kein Flächenanteil berechnet werden.
@@ -167,9 +169,9 @@ export async function resetMotifEstimator(confirmFirst=true){
   const ownMaterial=document.querySelector('input[name="mcMaterialSource"][value="own"]');if(ownMaterial)ownMaterial.checked=true;
   const cut=document.querySelector('input[name="mcProcess"][value="cut"]');if(cut)cut.checked=true;
   motifImageDetail=null;$("mcPreview")?.removeAttribute("src");$("mcPreview")?.classList.add("hidden");$("mcPreviewPlaceholder")?.classList.remove("hidden");
-  if($("mcHourly"))$("mcHourly").value="0";
-  if($("mcReserve"))$("mcReserve").value="0";
-  if($("mcProfit"))$("mcProfit").value="0";
+  if($("mcHourly"))$("mcHourly").value=String(num(state.settings.hourly));
+  if($("mcReserve"))$("mcReserve").value=String(num(state.settings.reserve));
+  if($("mcProfit"))$("mcProfit").value=String(num(state.settings.profit));
   applyMotifMachineSpeeds(true);updateMotifProcessUI();calculateMotifEstimator();return true;
 }
 ['mcWidth','mcHeight','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcGlue','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
