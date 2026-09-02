@@ -72,6 +72,8 @@ function resetCalculator(module="3d"){
   calculate();
 }
 export function loadCalculatorData(source={},options={}){
+  const enforcedProfitPercent=source.transferSource==="estimator"&&source.enforcedProfitPercent!==undefined&&source.enforcedProfitPercent!==null&&source.enforcedProfitPercent!==""
+    ?num(source.enforcedProfitPercent):null;
   const snapshot=source.calculationSnapshot?.sourceModule==="calculator"?source.calculationSnapshot:null;
   if(snapshot)source={...source,module:snapshot.module||source.module,orderType:snapshot.orderType||source.orderType,customerObjectProcess:snapshot.customerObjectProcess||source.customerObjectProcess,machineId:snapshot.machineId||source.machineId,productSize:snapshot.productSize||source.productSize,consumables:snapshot.consumables||source.consumables,positions:snapshot.positions||source.positions,workSeconds:snapshot.workSeconds??source.workSeconds,fields:{...(source.fields||{}),...(snapshot.fields||{})}};
   const storedFields={
@@ -101,6 +103,10 @@ export function loadCalculatorData(source={},options={}){
   setCalculatorPositions(source);
   renderConsumables();
   applyCalculatorFields(storedFields);
+  // Eine Schätzer-Übergabe hat einen verbindlichen Gewinnsatz. Nach dem
+  // mehrfachen Neuaufbau des dynamischen Rechnerformulars wird er zuletzt
+  // nochmals direkt gesetzt, damit kein leerer/alter Formularwert gewinnt.
+  if(enforcedProfitPercent!==null&&$("profit"))$("profit").value=String(enforcedProfitPercent);
   if(source.machineId&&$("machineSelect"))$("machineSelect").value=source.machineId;
   if(options.blankCustomer){
     $("projectName").value="";

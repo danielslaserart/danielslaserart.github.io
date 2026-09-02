@@ -1,6 +1,6 @@
 import { initializeAuth, state } from "./storage.js?v=6.5";
 import { num } from "./utils.js?v=6.5";
-import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.4";
+import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.5";
 import { renderCalculator } from "./calculator.js?v=6.6.5";
 import { renderTools } from "./statistics.js?v=6.5";
 import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.8";
@@ -53,11 +53,13 @@ document.addEventListener("dla:security-reset",()=>{
 document.addEventListener("dla:new-order",event=>startNewOrder(event.detail?.module||"3d"));
 document.addEventListener("dla:estimator-transfer",event=>{
   const data=event.detail||{};
-  const transferredProfit=data.profitPercent!==undefined&&data.profitPercent!==null&&data.profitPercent!==""?num(data.profitPercent):num(state.settings.profit);
+  const rawTransferredProfit=data.profitPercent??data.inputs?.mcProfit??document.getElementById("mcProfit")?.value;
+  const transferredProfit=rawTransferredProfit!==undefined&&rawTransferredProfit!==null&&rawTransferredProfit!==""?num(rawTransferredProfit):num(state.settings.profit);
   const [materialId="",variantId=""]=String(data.materialId||"").split("::");
   const activity=data.process==="both"?"both":data.process==="cut"?"cut":"engrave";
   loadCalculatorData({
     module:"laser",type:"Laser",orderType:data.orderType||"own",customerObjectProcess:data.process,machineId:data.machineId,productSize:"custom",
+    transferSource:"estimator",enforcedProfitPercent:transferredProfit,
     fields:{matMain:data.materialId,usageMain:data.area,cutMinutes:data.cutMinutes,engraveMinutes:data.engraveMinutes,workMinutes:data.workMinutes,profit:transferredProfit,difficulty:data.customerPricing?.difficultyKey||"normal",riskSurcharge:data.customerPricing?.risk??"",expressSurcharge:data.customerPricing?.express??""},
     positions:[{label:"Motiv-Schätzer",activity,materialSource:data.materialSource==="customer"?"customer":"managed",materialId,variantId,materialName:data.materialName||"",machineId:data.machineId||"",machineName:data.machineName||"",materialCost:data.materialCost||0,machineMinutes:(data.cutMinutes||0)+(data.engraveMinutes||0),machineCost:data.machineCost||0,workMinutes:data.workMinutes||0,workCost:data.workCost||0,otherCost:data.additionalCosts||0,quantity:1,unit:"Stück"}],
     notes:"Aus Angebotsassistent übernommen"
