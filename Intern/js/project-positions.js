@@ -1,7 +1,7 @@
-import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.6.12";
-import { state, save } from "./storage.js?v=6.6.12";
-import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.6.12";
-import { appAlert, appConfirm } from "./dialogs.js?v=6.6.12";
+import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.6.13";
+import { state, save } from "./storage.js?v=6.6.13";
+import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.6.13";
+import { appAlert, appConfirm } from "./dialogs.js?v=6.6.13";
 
 export const POSITION_ACTIVITIES=[
   ["engrave","Gravieren"],["cut","Schneiden"],["both","Gravieren und Schneiden"],
