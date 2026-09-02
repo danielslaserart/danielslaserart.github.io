@@ -6,7 +6,7 @@ import { appAlert, appConfirm } from "./dialogs.js?v=6.5";
 export const POSITION_ACTIVITIES=[
   ["engrave","Gravieren"],["cut","Schneiden"],["both","Gravieren und Schneiden"],
   ["print3d","3D-Druck"],["plot","Plotten"],["glue","Kleben"],["assemble","Montieren"],
-  ["pack","Verpacken"],["material","Nur Material"],["other","Sonstiges"]
+  ["paint","Lackieren / Beizen"],["pack","Verpacken"],["material","Nur Material"],["other","Sonstiges"]
 ];
 const activityLabel=value=>POSITION_ACTIVITIES.find(row=>row[0]===value)?.[1]||"Sonstiges";
 const finite=value=>Number.isFinite(Number(value))?Number(value):0;
@@ -68,6 +68,7 @@ function allowedUseCategories(activity){
   if(activity==="print3d")return ["print"];
   if(activity==="plot")return ["plot"];
   if(activity==="glue")return ["consumable"];
+  if(activity==="paint")return ["consumable","work"];
   if(activity==="pack")return ["packaging"];
   if(activity==="assemble")return ["accessory","consumable","work"];
   if(["material","other"].includes(activity))return ["consumable","packaging","accessory","work","print","plot","customer"];
@@ -76,7 +77,7 @@ function allowedUseCategories(activity){
 function materialAllowedForActivity(item,activity){
   const material=item.baseMaterial||item;
   const categoryAllowed=allowedUseCategories(activity).includes(inferMaterialUseCategory(material));
-  return categoryAllowed&&(["material","other"].includes(activity)||inferMaterialActivities(material).includes(activity));
+  return categoryAllowed&&(["material","other","paint"].includes(activity)||inferMaterialActivities(material).includes(activity));
 }
 function materialOptionHtml(activity,selected=""){
   const labels={work:"Werkmaterial",print:"Druckmaterial",plot:"Plottermaterial",consumable:"Verbrauchsmittel",packaging:"Verpackung",accessory:"Zubehör",customer:"Kundengegenstand"},groups=new Map();
