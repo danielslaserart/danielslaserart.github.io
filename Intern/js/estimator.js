@@ -1,11 +1,11 @@
-import { $, num, euro, esc, uid } from "./utils.js?v=6.6.15";
-import { state, save } from "./storage.js?v=6.6.15";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.15";
-import { rounded, computePriceBreakdown } from "./calculator.js?v=6.6.15";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.15";
-import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.15";
-import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.15";
-import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.15";
+import { $, num, euro, esc, uid } from "./utils.js?v=6.6.16";
+import { state, save } from "./storage.js?v=6.6.16";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.16";
+import { rounded, computePriceBreakdown } from "./calculator.js?v=6.6.16";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.16";
+import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.16";
+import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.16";
+import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.16";
 let motifImageDetail = null;
 let editingEstimatorProjectId=null;
 let estimatorCustomerPricing=null;
@@ -143,7 +143,7 @@ export function calculateMotifEstimator(){
   const profit=sale-finalCost,margin=sale>0?profit/sale*100:0;
   const calculatedPrice=customerBreakdown?.calculated??sale;
   const roundingDifference=sale-calculatedPrice;
-  const minimal=rounded(Math.max(finalCost,sale*.9)),premium=rounded(sale*1.2);
+  const minimal=rounded(Math.max(finalCost,sale*.8)),premium=rounded(sale*1.2);
   $('mcDetected').textContent=motifComplexityLabel(complexity);$('mcMaterialUsage').textContent=mat.text;$('mcMaterialCostResult').textContent=euro(material);
   if($("mcMaterialSourceHint"))$("mcMaterialSourceHint").textContent=materialSource==="customer"?"Kundenmaterial – keine Materialkosten berechnet":"";
   $('mcCutTime').textContent=`${Math.round(cutMinutes)} Min.`;$('mcEngraveTime').textContent=`${Math.round(engraveMinutes)} Min.`;$('mcWorkTime').textContent=`${Math.round(work)} Min.`;
