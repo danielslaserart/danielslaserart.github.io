@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.13";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.13";
-import { renderMaterials } from "./materials.js?v=6.6.13";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.13";
-import { fillSettings } from "./settings.js?v=6.6.13";
-import { renderTools, resetTool } from "./statistics.js?v=6.6.13";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.13";
-import { appAlert, appPrompt } from "./dialogs.js?v=6.6.13";
-import { applyDesignDefaults } from "./design.js?v=6.6.13";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.13";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.14";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.14";
+import { renderMaterials } from "./materials.js?v=6.6.14";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.14";
+import { fillSettings } from "./settings.js?v=6.6.14";
+import { renderTools, resetTool } from "./statistics.js?v=6.6.14";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.14";
+import { appAlert, appPrompt } from "./dialogs.js?v=6.6.14";
+import { applyDesignDefaults } from "./design.js?v=6.6.14";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.14";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;

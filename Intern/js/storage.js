@@ -1,6 +1,6 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.6.13";
-import { appConfirm } from "./dialogs.js?v=6.6.13";
-import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6.13";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.6.14";
+import { appConfirm } from "./dialogs.js?v=6.6.14";
+import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6.14";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";

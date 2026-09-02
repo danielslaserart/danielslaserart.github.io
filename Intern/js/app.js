@@ -1,19 +1,19 @@
-import { initializeAuth, state } from "./storage.js?v=6.6.13";
-import { num } from "./utils.js?v=6.6.13";
-import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.13";
-import { renderCalculator } from "./calculator.js?v=6.6.13";
-import { renderTools } from "./statistics.js?v=6.6.13";
-import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.13";
-import { renderProjects } from "./projects.js?v=6.6.13";
-import { fillSettings } from "./settings.js?v=6.6.13";
-import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.6.13";
-import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.6.13";
-import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.6.13";
-import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.13";
-import { initializeCustomers, renderCustomers } from "./customers.js?v=6.6.13";
-import "./position-profile-fix.js?v=6.6.13";
+import { initializeAuth, state } from "./storage.js?v=6.6.14";
+import { num } from "./utils.js?v=6.6.14";
+import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.14";
+import { renderCalculator } from "./calculator.js?v=6.6.14";
+import { renderTools } from "./statistics.js?v=6.6.14";
+import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.14";
+import { renderProjects } from "./projects.js?v=6.6.14";
+import { fillSettings } from "./settings.js?v=6.6.14";
+import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.6.14";
+import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.6.14";
+import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.6.14";
+import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.14";
+import { initializeCustomers, renderCustomers } from "./customers.js?v=6.6.14";
+import "./position-profile-fix.js?v=6.6.14";
 
-const loadPositionUiFix=()=>import("./position-ui-fix.js?v=6.6.13").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
+const loadPositionUiFix=()=>import("./position-ui-fix.js?v=6.6.14").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadPositionUiFix,{once:true});else loadPositionUiFix();
 
 function renderAll(){
@@ -63,7 +63,7 @@ document.addEventListener("dla:estimator-transfer",event=>{
     module:"laser",type:"Laser",orderType:data.orderType||"own",customerObjectProcess:data.process,machineId:data.machineId,productSize:"custom",
     transferSource:"estimator",enforcedProfitPercent:transferredProfit,enforcedReservePercent:transferredReserve,
     fields:{matMain:data.materialId,usageMain:data.area,cutMinutes:data.cutMinutes,engraveMinutes:data.engraveMinutes,workMinutes:data.workMinutes,reserve:transferredReserve,profit:transferredProfit,difficulty:data.customerPricing?.difficultyKey||"normal",riskSurcharge:data.customerPricing?.risk??"",expressSurcharge:data.customerPricing?.express??""},
-    positions:[{label:"Motiv-Schätzer",activity,materialSource:data.materialSource==="customer"?"customer":"managed",materialId,variantId,materialName:data.materialName||"",machineId:data.machineId||"",machineName:data.machineName||"",materialCost:data.materialCost||0,machineMinutes:(data.cutMinutes||0)+(data.engraveMinutes||0),machineCost:data.machineCost||0,workMinutes:data.workMinutes||0,workCost:data.workCost||0,otherCost:data.additionalCosts||0,quantity:1,unit:"Stück"}],
+    positions:[{label:"Motiv-Schätzer",calculationSource:"estimator",profitPercent:transferredProfit,reservePercent:transferredReserve,activity,materialSource:data.materialSource==="customer"?"customer":"managed",materialId,variantId,materialName:data.materialName||"",machineId:data.machineId||"",machineName:data.machineName||"",materialCost:data.materialCost||0,machineMinutes:(data.cutMinutes||0)+(data.engraveMinutes||0),machineCost:data.machineCost||0,workMinutes:data.workMinutes||0,workCost:data.workCost||0,otherCost:data.additionalCosts||0,quantity:1,unit:"Stück"}],
     notes:"Aus Angebotsassistent übernommen"
   },{blankCustomer:true,editingProjectId:null});
 });
@@ -81,7 +81,7 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 export function initializeApp(){
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6.13",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6.14",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 

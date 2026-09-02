@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.13";
-import { state, save, defaults } from "./storage.js?v=6.6.13";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.13";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.13";
-import { renderProjects } from "./projects.js?v=6.6.13";
-import { appConfirm } from "./dialogs.js?v=6.6.13";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.13";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.13";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.13";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.14";
+import { state, save, defaults } from "./storage.js?v=6.6.14";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.14";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.14";
+import { renderProjects } from "./projects.js?v=6.6.14";
+import { appConfirm } from "./dialogs.js?v=6.6.14";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.14";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.14";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.14";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -398,7 +398,7 @@ export function renderCalculator(clear=false){
   renderCalculatorProjectPositions();
   updateOrderAssistantUI();
   renderConsumables();
-  document.querySelectorAll("#calcForm input:not(.agreement-field),#calcForm select:not(.agreement-field)").forEach(el=>el.oninput=calculate);
+  document.querySelectorAll("#calcForm input:not(.agreement-field),#calcForm select:not(.agreement-field)").forEach(el=>el.oninput=()=>{if(el.id==="profit"||el.id==="reserve")el.dataset.userEdited="true";calculate()});
   $("agreementPrice")?.addEventListener("input",()=>{updateAgreementFormState();calculate()});
   ["machineSelect","matMain","calculatorProfileSource","profileProcessType"].forEach(id=>$(id)?.addEventListener("change",renderCalculatorProfiles));
   if($("objectValue"))$("objectValue").oninput=()=>{
@@ -493,9 +493,12 @@ export function calculate(){
   const settings=getCustomerSettings(),difficultyKey=$("difficulty")?.value||"normal";
   const enforcedProfit=$("calcForm")?.dataset.enforcedProfit;
   const enforcedReserve=$("calcForm")?.dataset.enforcedReserve;
+  const estimatorPosition=calculatorPositionProject.positions?.find(position=>position.calculationSource==="estimator");
+  const profitPercent=$("profit")?.dataset.userEdited==="true"?num($("profit")?.value):estimatorPosition?.profitPercent!==undefined?num(estimatorPosition.profitPercent):enforcedProfit!==undefined?num(enforcedProfit):num($("profit")?.value);
+  const reservePercent=$("reserve")?.dataset.userEdited==="true"?num($("reserve")?.value):estimatorPosition?.reservePercent!==undefined?num(estimatorPosition.reservePercent):enforcedReserve!==undefined?num(enforcedReserve):num($("reserve")?.value);
   const breakdown=computePriceBreakdown({
     orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
-    overheadPercent:state.settings.overhead,reservePercent:enforcedReserve!==undefined?num(enforcedReserve):num($("reserve")?.value),profitPercent:enforcedProfit!==undefined?num(enforcedProfit):num($("profit")?.value),roundFn:rounded,
+    overheadPercent:state.settings.overhead,reservePercent,profitPercent,roundFn:rounded,
     baseFee:orderType==="customerObject"?num($("customerBaseFee")?.value):settings.baseFee,
     furtherSurcharges:orderType==="customerObject"?num($("consultationFee")?.value)+num($("setupFee")?.value)+num($("positioningFee")?.value)+num($("focusFee")?.value)+num($("testRunFee")?.value)+num($("inspectionFee")?.value)+num($("cleaningFee")?.value)+num($("otherCosts")?.value):0,
     minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:num($("expressSurcharge")?.value)
