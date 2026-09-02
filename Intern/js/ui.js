@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.5";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=6.5";
-import { renderMaterials } from "./materials.js?v=6.6.8";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.3";
-import { fillSettings } from "./settings.js?v=6.5";
-import { renderTools, resetTool } from "./statistics.js?v=6.5";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.3";
-import { appAlert, appPrompt } from "./dialogs.js?v=6.5";
-import { applyDesignDefaults } from "./design.js?v=6.5";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.5.1";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.12";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.12";
+import { renderMaterials } from "./materials.js?v=6.6.12";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.12";
+import { fillSettings } from "./settings.js?v=6.6.12";
+import { renderTools, resetTool } from "./statistics.js?v=6.6.12";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.12";
+import { appAlert, appPrompt } from "./dialogs.js?v=6.6.12";
+import { applyDesignDefaults } from "./design.js?v=6.6.12";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.12";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
@@ -74,6 +74,8 @@ function resetCalculator(module="3d"){
 export function loadCalculatorData(source={},options={}){
   const enforcedProfitPercent=source.transferSource==="estimator"&&source.enforcedProfitPercent!==undefined&&source.enforcedProfitPercent!==null&&source.enforcedProfitPercent!==""
     ?num(source.enforcedProfitPercent):null;
+  const enforcedReservePercent=source.transferSource==="estimator"&&source.enforcedReservePercent!==undefined&&source.enforcedReservePercent!==null&&source.enforcedReservePercent!==""
+    ?num(source.enforcedReservePercent):null;
   const snapshot=source.calculationSnapshot?.sourceModule==="calculator"?source.calculationSnapshot:null;
   if(snapshot)source={...source,module:snapshot.module||source.module,orderType:snapshot.orderType||source.orderType,customerObjectProcess:snapshot.customerObjectProcess||source.customerObjectProcess,machineId:snapshot.machineId||source.machineId,productSize:snapshot.productSize||source.productSize,consumables:snapshot.consumables||source.consumables,positions:snapshot.positions||source.positions,workSeconds:snapshot.workSeconds??source.workSeconds,fields:{...(source.fields||{}),...(snapshot.fields||{})}};
   const storedFields={
@@ -106,7 +108,8 @@ export function loadCalculatorData(source={},options={}){
   // Eine Schätzer-Übergabe hat einen verbindlichen Gewinnsatz. Nach dem
   // mehrfachen Neuaufbau des dynamischen Rechnerformulars wird er zuletzt
   // nochmals direkt gesetzt, damit kein leerer/alter Formularwert gewinnt.
-  if(enforcedProfitPercent!==null&&$("profit"))$("profit").value=String(enforcedProfitPercent);
+  if(enforcedProfitPercent!==null&&$("profit")){$("profit").value=String(enforcedProfitPercent);$("calcForm").dataset.enforcedProfit=String(enforcedProfitPercent);$("profit").addEventListener("input",()=>{delete $("calcForm").dataset.enforcedProfit;calculate()},{once:true})}
+  if(enforcedReservePercent!==null&&$("reserve")){$("reserve").value=String(enforcedReservePercent);$("calcForm").dataset.enforcedReserve=String(enforcedReservePercent);$("reserve").addEventListener("input",()=>{delete $("calcForm").dataset.enforcedReserve;calculate()},{once:true})}
   if(source.machineId&&$("machineSelect"))$("machineSelect").value=source.machineId;
   if(options.blankCustomer){
     $("projectName").value="";

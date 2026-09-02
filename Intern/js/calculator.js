@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.5";
-import { state, save, defaults } from "./storage.js?v=6.5";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.8";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.5";
-import { renderProjects } from "./projects.js?v=6.6.3";
-import { appConfirm } from "./dialogs.js?v=6.5";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.5.1";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.3";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.5.5";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.12";
+import { state, save, defaults } from "./storage.js?v=6.6.12";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.12";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.12";
+import { renderProjects } from "./projects.js?v=6.6.12";
+import { appConfirm } from "./dialogs.js?v=6.6.12";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.12";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.12";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.12";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -249,6 +249,7 @@ document.querySelectorAll("[data-product-size]").forEach(b=>b.onclick=()=>setPro
 export function renderCalculator(clear=false){
   const type=state.activeModule||"3d";
   if(clear){
+    delete $("calcForm").dataset.enforcedProfit;delete $("calcForm").dataset.enforcedReserve;
     consumableSelections=[];productSize="medium";
     const own=document.querySelector('input[name="orderType"][value="own"]');if(own)own.checked=true;
     if($("customerObjectProcess"))$("customerObjectProcess").value="engrave";
@@ -490,9 +491,11 @@ export function calculate(){
   }
 
   const settings=getCustomerSettings(),difficultyKey=$("difficulty")?.value||"normal";
+  const enforcedProfit=$("calcForm")?.dataset.enforcedProfit;
+  const enforcedReserve=$("calcForm")?.dataset.enforcedReserve;
   const breakdown=computePriceBreakdown({
     orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
-    overheadPercent:state.settings.overhead,reservePercent:num($("reserve")?.value),profitPercent:num($("profit")?.value),roundFn:rounded,
+    overheadPercent:state.settings.overhead,reservePercent:enforcedReserve!==undefined?num(enforcedReserve):num($("reserve")?.value),profitPercent:enforcedProfit!==undefined?num(enforcedProfit):num($("profit")?.value),roundFn:rounded,
     baseFee:orderType==="customerObject"?num($("customerBaseFee")?.value):settings.baseFee,
     furtherSurcharges:orderType==="customerObject"?num($("consultationFee")?.value)+num($("setupFee")?.value)+num($("positioningFee")?.value)+num($("focusFee")?.value)+num($("testRunFee")?.value)+num($("inspectionFee")?.value)+num($("cleaningFee")?.value)+num($("otherCosts")?.value):0,
     minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:num($("expressSurcharge")?.value)

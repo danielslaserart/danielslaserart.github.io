@@ -1,19 +1,19 @@
-import { initializeAuth, state } from "./storage.js?v=6.5";
-import { num } from "./utils.js?v=6.5";
-import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.5";
-import { renderCalculator } from "./calculator.js?v=6.6.5";
-import { renderTools } from "./statistics.js?v=6.5";
-import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.8";
-import { renderProjects } from "./projects.js?v=6.6.6";
-import { fillSettings } from "./settings.js?v=6.5";
-import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.6.10";
-import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.5";
-import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.5";
-import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.5";
-import { initializeCustomers, renderCustomers } from "./customers.js?v=6.5";
-import "./position-profile-fix.js?v=6.6.4";
+import { initializeAuth, state } from "./storage.js?v=6.6.12";
+import { num } from "./utils.js?v=6.6.12";
+import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.12";
+import { renderCalculator } from "./calculator.js?v=6.6.12";
+import { renderTools } from "./statistics.js?v=6.6.12";
+import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.12";
+import { renderProjects } from "./projects.js?v=6.6.12";
+import { fillSettings } from "./settings.js?v=6.6.12";
+import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.6.12";
+import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.6.12";
+import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.6.12";
+import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.12";
+import { initializeCustomers, renderCustomers } from "./customers.js?v=6.6.12";
+import "./position-profile-fix.js?v=6.6.12";
 
-const loadPositionUiFix=()=>import("./position-ui-fix.js?v=6.6.7").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
+const loadPositionUiFix=()=>import("./position-ui-fix.js?v=6.6.12").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadPositionUiFix,{once:true});else loadPositionUiFix();
 
 function renderAll(){
@@ -55,12 +55,14 @@ document.addEventListener("dla:estimator-transfer",event=>{
   const data=event.detail||{};
   const rawTransferredProfit=data.profitPercent??data.inputs?.mcProfit??document.getElementById("mcProfit")?.value;
   const transferredProfit=rawTransferredProfit!==undefined&&rawTransferredProfit!==null&&rawTransferredProfit!==""?num(rawTransferredProfit):num(state.settings.profit);
+  const rawTransferredReserve=data.reservePercent??data.inputs?.mcReserve??document.getElementById("mcReserve")?.value;
+  const transferredReserve=rawTransferredReserve!==undefined&&rawTransferredReserve!==null&&rawTransferredReserve!==""?num(rawTransferredReserve):num(state.settings.reserve);
   const [materialId="",variantId=""]=String(data.materialId||"").split("::");
   const activity=data.process==="both"?"both":data.process==="cut"?"cut":"engrave";
   loadCalculatorData({
     module:"laser",type:"Laser",orderType:data.orderType||"own",customerObjectProcess:data.process,machineId:data.machineId,productSize:"custom",
-    transferSource:"estimator",enforcedProfitPercent:transferredProfit,
-    fields:{matMain:data.materialId,usageMain:data.area,cutMinutes:data.cutMinutes,engraveMinutes:data.engraveMinutes,workMinutes:data.workMinutes,profit:transferredProfit,difficulty:data.customerPricing?.difficultyKey||"normal",riskSurcharge:data.customerPricing?.risk??"",expressSurcharge:data.customerPricing?.express??""},
+    transferSource:"estimator",enforcedProfitPercent:transferredProfit,enforcedReservePercent:transferredReserve,
+    fields:{matMain:data.materialId,usageMain:data.area,cutMinutes:data.cutMinutes,engraveMinutes:data.engraveMinutes,workMinutes:data.workMinutes,reserve:transferredReserve,profit:transferredProfit,difficulty:data.customerPricing?.difficultyKey||"normal",riskSurcharge:data.customerPricing?.risk??"",expressSurcharge:data.customerPricing?.express??""},
     positions:[{label:"Motiv-Schätzer",activity,materialSource:data.materialSource==="customer"?"customer":"managed",materialId,variantId,materialName:data.materialName||"",machineId:data.machineId||"",machineName:data.machineName||"",materialCost:data.materialCost||0,machineMinutes:(data.cutMinutes||0)+(data.engraveMinutes||0),machineCost:data.machineCost||0,workMinutes:data.workMinutes||0,workCost:data.workCost||0,otherCost:data.additionalCosts||0,quantity:1,unit:"Stück"}],
     notes:"Aus Angebotsassistent übernommen"
   },{blankCustomer:true,editingProjectId:null});
@@ -79,7 +81,7 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 export function initializeApp(){
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6.12",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
