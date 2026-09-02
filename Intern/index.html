@@ -437,6 +437,7 @@
         </fieldset>
         <label>Breite (cm)<input id="mcWidth" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 30"></label>
         <label>Höhe (cm)<input id="mcHeight" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 35"></label>
+        <label>Die Maße sind<select id="mcDimensionMeaning"><option value="engraving" selected>Gravur-/Bearbeitungsgröße – ganzes Stück berechnen</option><option value="material">Tatsächlich verbrauchte Materialgröße – anteilig berechnen</option></select></label>
         <label>Ebenen / Platten<input id="mcLayers" type="number" min="1" max="10" step="1" inputmode="numeric" placeholder="z. B. 2"></label>
         <label>Material<select id="mcMaterial"><option value="">Material auswählen</option></select></label>
         <label>Maschine<select id="mcMachine"></select></label>
@@ -1066,6 +1067,6 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
-<script type="module" src="js/app.js?v=6.6.8"></script>
+<script type="module" src="js/app.js?v=6.6.9"></script>
 </body>
 </html>
