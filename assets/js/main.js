@@ -67,8 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   box.style.display = "block";
 
-  const now = new Date();
-
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -76,25 +74,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${y}-${m}-${d}`;
   };
 
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  const day = (now.getDay() + 6) % 7; // Montag = 0
-  const startOfWeek = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() - day
-  );
-
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  // Ende immer morgen, damit der heutige Tag vollständig enthalten ist.
-  const endOfRange = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1
-  );
-
   const counterBaseUrl = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
+  const refreshIntervalMs = 10_000;
+  let refreshInProgress = false;
 
   const cleanCount = (value) => {
     if (value === null || value === undefined || value === "") return "0";
@@ -126,10 +108,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Wichtig: nicht mehr alles mit Promise.all abbrechen lassen.
-  // Wenn z.B. nur „Heute“ spinnt, bleiben Woche/Monat/Gesamt trotzdem sichtbar.
-  setStat(todayEl, fetchCount(formatDate(startOfToday), formatDate(endOfRange)));
-  setStat(weekEl, fetchCount(formatDate(startOfWeek), formatDate(endOfRange)));
-  setStat(monthEl, fetchCount(formatDate(startOfMonth), formatDate(endOfRange)));
-  setStat(totalEl, fetchCount());
+  const refreshStats = async () => {
+    if (refreshInProgress || document.hidden) return;
+    refreshInProgress = true;
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const day = (now.getDay() + 6) % 7; // Montag = 0
+    const startOfWeek = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - day
+    );
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Ende immer morgen, damit der heutige Tag vollständig enthalten ist.
+    const endOfRange = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1
+    );
+
+    // Jeder Wert wird unabhängig aktualisiert. Ein einzelner Fehler blendet die
+    // anderen Besucherzahlen dadurch nicht aus.
+    await Promise.allSettled([
+      setStat(todayEl, fetchCount(formatDate(startOfToday), formatDate(endOfRange))),
+      setStat(weekEl, fetchCount(formatDate(startOfWeek), formatDate(endOfRange))),
+      setStat(monthEl, fetchCount(formatDate(startOfMonth), formatDate(endOfRange))),
+      setStat(totalEl, fetchCount()),
+    ]);
+
+    refreshInProgress = false;
+  };
+
+  refreshStats();
+  window.setInterval(refreshStats, refreshIntervalMs);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refreshStats();
+  });
 });
