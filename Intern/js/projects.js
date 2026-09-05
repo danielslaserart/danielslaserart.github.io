@@ -1,13 +1,13 @@
 import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.16";
 import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.16";
-import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.16";
+import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.18";
 import { resolveMaterialSelection } from "./materials.js?v=6.6.16";
 import { workshopUnit } from "./calculator.js?v=6.6.16";
 import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.16";
 import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.16";
 import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.16";
 import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.16";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.17";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.18";
 import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.16";
 import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.16";
 import { customerNameById, customerAddressById } from "./customers.js?v=6.6.16";

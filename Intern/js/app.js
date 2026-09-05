@@ -1,10 +1,10 @@
 import { initializeAuth, state } from "./storage.js?v=6.6.16";
 import { num } from "./utils.js?v=6.6.16";
-import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.16";
+import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.18";
 import { renderCalculator } from "./calculator.js?v=6.6.16";
 import { renderTools } from "./statistics.js?v=6.6.16";
 import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.16";
-import { renderProjects } from "./projects.js?v=6.6.17";
+import { renderProjects } from "./projects.js?v=6.6.18";
 import { fillSettings } from "./settings.js?v=6.6.16";
 import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.6.16";
 import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.6.16";
