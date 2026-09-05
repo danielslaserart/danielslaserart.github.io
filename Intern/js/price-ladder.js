@@ -16,6 +16,11 @@ function sources(source={}){
   ].filter(Boolean);
 }
 
+function roundUpPrice(value,step){
+  const safeStep=Math.max(.01,num(step)||.01);
+  return money(Math.ceil((num(value)-1e-9)/safeStep)*safeStep);
+}
+
 function component(source,keys){
   for(const data of sources(source)){
     const value=firstValue(...keys.map(key=>data[key]));
@@ -74,7 +79,8 @@ export function getAgreementPriceStatus({agreementPrice,selfCosts,subtotal,recom
 }
 
 export function getPriceLadderData(source={}){
-  const result=source.calculationSnapshot?.results||{};
+  const snapshot=source.calculationSnapshot||{};
+  const result=snapshot.results||{};
   const estimator=source.estimatorData||{};
   const directBreakdown=sources(source)[0]||{};
   const selfRaw=firstValue(
@@ -111,12 +117,6 @@ export function getPriceLadderData(source={}){
   );
   const subtotal=hasValue(subtotalRaw)?money(subtotalRaw)
     :selfCosts!==null?money(selfCosts+calculatedWorkPrice):null;
-  const recommendedRaw=firstValue(
-    source.recommendedSalePrice,source.recommendedPrice,
-    directBreakdown.sale,result.optimalPrice,result.calculatedPrice,
-    estimator.recommendedSalePrice,estimator.estimatedPrice,source.estimatedPrice,source.sale
-  );
-  const recommendedSalePrice=hasValue(recommendedRaw)?money(recommendedRaw):null;
   const profitPercentRaw=firstValue(source.profitPercent,directBreakdown.profitPercent,source.fields?.profit,source.calculationSnapshot?.fields?.profit,source.calculationSnapshot?.pricingSettings?.profit);
   const profitMarkupRaw=firstValue(source.profitMarkup,directBreakdown.profitMarkup);
   const profitPercent=hasValue(profitPercentRaw)?num(profitPercentRaw):null;
@@ -125,6 +125,20 @@ export function getPriceLadderData(source={}){
   const preRoundedRaw=firstValue(source.calculated,directBreakdown.calculated);
   const preRoundedPrice=hasValue(preRoundedRaw)?num(preRoundedRaw)
     :subtotal!==null&&profitMarkup!==null?subtotal+profitMarkup:null;
+  const roundingStep=firstValue(source.roundingStep,source.rounding,snapshot.pricingSettings?.rounding);
+  // Bei einer gerade laufenden Berechnung ist source.sale das frisch berechnete
+  // Ergebnis. In gespeicherten Altprojekten kann pricingBreakdown.sale dagegen
+  // noch den früher vereinbarten Preis enthalten. Dann wird die Empfehlung aus
+  // Zwischensumme und Gewinnaufschlag neu aufgebaut; die Preisvereinbarung bleibt
+  // weiterhin separat über agreementPrice erhalten.
+  const currentCalculationSale=hasValue(source.calculated)&&hasValue(source.sale)?source.sale:null;
+  const recalculatedSale=preRoundedPrice!==null?roundUpPrice(preRoundedPrice,roundingStep):null;
+  const recommendedRaw=firstValue(
+    source.recommendedSalePrice,source.recommendedPrice,currentCalculationSale,recalculatedSale,
+    result.optimalPrice,result.calculatedPrice,estimator.recommendedSalePrice,
+    estimator.estimatedPrice,source.estimatedPrice,directBreakdown.sale,source.sale
+  );
+  const recommendedSalePrice=hasValue(recommendedRaw)?money(recommendedRaw):null;
   const roundingDifference=preRoundedPrice!==null&&recommendedSalePrice!==null
     ?money(recommendedSalePrice-preRoundedPrice):null;
   const companyProfit=selfCosts!==null&&recommendedSalePrice!==null
