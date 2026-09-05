@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.19";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.19";
-import { renderMaterials } from "./materials.js?v=6.6.19";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.19";
-import { fillSettings } from "./settings.js?v=6.6.19";
-import { renderTools, resetTool } from "./statistics.js?v=6.6.19";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.19";
-import { appAlert, appPrompt } from "./dialogs.js?v=6.6.19";
-import { applyDesignDefaults } from "./design.js?v=6.6.19";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.19";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.20";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.20";
+import { renderMaterials } from "./materials.js?v=6.6.20";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.20";
+import { fillSettings } from "./settings.js?v=6.6.20";
+import { renderTools, resetTool } from "./statistics.js?v=6.6.20";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.20";
+import { appAlert, appPrompt } from "./dialogs.js?v=6.6.20";
+import { applyDesignDefaults } from "./design.js?v=6.6.20";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.20";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
@@ -77,7 +77,13 @@ export function loadCalculatorData(source={},options={}){
   const enforcedReservePercent=source.transferSource==="estimator"&&source.enforcedReservePercent!==undefined&&source.enforcedReservePercent!==null&&source.enforcedReservePercent!==""
     ?num(source.enforcedReservePercent):null;
   const snapshot=source.calculationSnapshot?.sourceModule==="calculator"?source.calculationSnapshot:null;
-  if(snapshot)source={...source,module:snapshot.module||source.module,orderType:snapshot.orderType||source.orderType,customerObjectProcess:snapshot.customerObjectProcess||source.customerObjectProcess,machineId:snapshot.machineId||source.machineId,productSize:snapshot.productSize||source.productSize,consumables:snapshot.consumables||source.consumables,positions:snapshot.positions||source.positions,workSeconds:snapshot.workSeconds??source.workSeconds,fields:{...(source.fields||{}),...(snapshot.fields||{})}};
+  if(snapshot){
+    const currentFields=source.fields||{},snapshotFields=snapshot.fields||{};
+    const fields={...snapshotFields};
+    Object.entries(currentFields).forEach(([key,value])=>{if(value!==undefined&&value!==null&&value!=="")fields[key]=value});
+    source={...source,module:snapshot.module||source.module,orderType:snapshot.orderType||source.orderType,customerObjectProcess:snapshot.customerObjectProcess||source.customerObjectProcess,machineId:snapshot.machineId||source.machineId,productSize:snapshot.productSize||source.productSize,consumables:snapshot.consumables||source.consumables,positions:snapshot.positions||source.positions,workSeconds:snapshot.workSeconds??source.workSeconds,fields};
+  }
+  const storedProfit=[source.fields?.profit,source.calculationSnapshot?.pricingSettings?.profitPercent,source.pricingBreakdown?.profitPercent,state.settings.profit,0].find(value=>value!==undefined&&value!==null&&value!=="");
   const storedFields={
     objectMaterial:source.objectMaterial??source.estimatorData?.materialName??"",
     objectValue:source.objectValue??source.estimatorData?.objectValue??"",
@@ -85,7 +91,7 @@ export function loadCalculatorData(source={},options={}){
     difficulty:source.difficulty??source.estimatorData?.difficulty??"normal",
     riskSurcharge:source.riskSurcharge??source.estimatorData?.riskSurcharge??source.pricingBreakdown?.risk??"",
     expressSurcharge:source.expressSurcharge??source.estimatorData?.expressSurcharge??source.pricingBreakdown?.express??"",
-    profit:source.fields?.profit??source.calculationSnapshot?.pricingSettings?.profitPercent??source.pricingBreakdown?.profitPercent??state.settings.profit??0,
+    profit:storedProfit,
     ...(source.fields||{})
   };
   const module=source.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[source.type])||"3d";
