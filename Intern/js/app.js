@@ -1,19 +1,19 @@
-import { initializeAuth, state } from "./storage.js?v=6.6.19";
-import { num } from "./utils.js?v=6.6.19";
-import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.19";
-import { renderCalculator } from "./calculator.js?v=6.6.19";
-import { renderTools } from "./statistics.js?v=6.6.19";
-import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.19";
-import { renderProjects } from "./projects.js?v=6.6.19";
-import { fillSettings } from "./settings.js?v=6.6.19";
-import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.6.19";
-import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.6.19";
-import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.6.19";
-import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.19";
-import { initializeCustomers, renderCustomers } from "./customers.js?v=6.6.19";
-import "./position-profile-fix.js?v=6.6.19";
+import { initializeAuth, state } from "./storage.js?v=6.6.20";
+import { num } from "./utils.js?v=6.6.20";
+import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.20";
+import { renderCalculator } from "./calculator.js?v=6.6.20";
+import { renderTools } from "./statistics.js?v=6.6.20";
+import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.20";
+import { renderProjects } from "./projects.js?v=6.6.20";
+import { fillSettings } from "./settings.js?v=6.6.20";
+import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=6.6.20";
+import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=6.6.20";
+import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=6.6.20";
+import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.20";
+import { initializeCustomers, renderCustomers } from "./customers.js?v=6.6.20";
+import "./position-profile-fix.js?v=6.6.20";
 
-const loadPositionUiFix=()=>import("./position-ui-fix.js?v=6.6.19").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
+const loadPositionUiFix=()=>import("./position-ui-fix.js?v=6.6.20").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadPositionUiFix,{once:true});else loadPositionUiFix();
 
 function renderAll(){
@@ -81,7 +81,7 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 export function initializeApp(){
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6.19",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6.20",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
