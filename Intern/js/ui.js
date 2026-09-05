@@ -1,7 +1,7 @@
 import { $, num, euro, uid, esc } from "./utils.js?v=6.6.16";
 import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.16";
 import { renderMaterials } from "./materials.js?v=6.6.16";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.16";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.18";
 import { fillSettings } from "./settings.js?v=6.6.16";
 import { renderTools, resetTool } from "./statistics.js?v=6.6.16";
 import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.16";
