@@ -1,4 +1,4 @@
-import { euro, esc, num } from "./utils.js?v=6.6.22";
+import { euro, esc, num } from "./utils.js?v=6.6.23";
 
 const hasValue=value=>value!==null&&value!==undefined&&value!==""&&Number.isFinite(Number(value));
 const firstValue=(...values)=>values.find(hasValue);
