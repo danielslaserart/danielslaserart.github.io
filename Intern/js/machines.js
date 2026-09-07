@@ -1,6 +1,6 @@
-import { $, num, esc } from "./utils.js?v=6.6.22";
-import { state, save } from "./storage.js?v=6.6.22";
-import { renderMotifEstimator } from "./estimator.js?v=6.6.22";
+import { $, num, esc } from "./utils.js?v=6.6.23";
+import { state, save } from "./storage.js?v=6.6.23";
+import { renderMotifEstimator } from "./estimator.js?v=6.6.23";
 function machineOptions(type,selected=""){
   const list=(state.machines||[]).filter(m=>m.type===type&&m.active!==false);
   return `<option value="">Keine Maschine ausgewählt</option>`+list.map(m=>`<option value="${m.id}" ${m.id===selected?"selected":""}>${esc(m.name)}</option>`).join("");
