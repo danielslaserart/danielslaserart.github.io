@@ -1,11 +1,11 @@
-import { $, num, euro, esc } from "./utils.js?v=6.6.21";
-import { state, save } from "./storage.js?v=6.6.21";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.21";
-import { rounded, renderCalculator, calculate } from "./calculator.js?v=6.6.21";
-import { setScreen } from "./ui.js?v=6.6.21";
-import { renderMotifEstimator } from "./estimator.js?v=6.6.21";
-import { resetMotifEstimator } from "./estimator.js?v=6.6.21";
-import { appAlert, appConfirm } from "./dialogs.js?v=6.6.21";
+import { $, num, euro, esc } from "./utils.js?v=6.6.22";
+import { state, save } from "./storage.js?v=6.6.22";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.22";
+import { rounded, renderCalculator, calculate } from "./calculator.js?v=6.6.22";
+import { setScreen } from "./ui.js?v=6.6.22";
+import { renderMotifEstimator } from "./estimator.js?v=6.6.22";
+import { resetMotifEstimator } from "./estimator.js?v=6.6.22";
+import { appAlert, appConfirm } from "./dialogs.js?v=6.6.22";
 function allMaterialOptions(){
   return `<option value="">Kein Material</option>`+
     materialSelections(null,"main")

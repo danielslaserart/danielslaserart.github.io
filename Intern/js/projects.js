@@ -1,17 +1,17 @@
-import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.21";
-import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.21";
-import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.21";
-import { resolveMaterialSelection } from "./materials.js?v=6.6.21";
-import { workshopUnit } from "./calculator.js?v=6.6.21";
-import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.21";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.21";
-import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.21";
-import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.21";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.21";
-import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.21";
-import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.21";
-import { customerNameById, customerAddressById } from "./customers.js?v=6.6.21";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.21";
+import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.22";
+import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.22";
+import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.22";
+import { resolveMaterialSelection } from "./materials.js?v=6.6.22";
+import { workshopUnit } from "./calculator.js?v=6.6.22";
+import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.22";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.22";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.22";
+import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.22";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.22";
+import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.22";
+import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.22";
+import { customerNameById, customerAddressById } from "./customers.js?v=6.6.22";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.22";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -37,7 +37,11 @@ export function renderPriceTypeBadge(priceType,isPreferred=false){
 }
 function actualProjectPrice(project){
   if(["done","billed"].includes(project?.status))return project.agreementPrice??project.actualPrice??project.sale??0;
-  return project?.sale??project?.recommendedSalePrice??project?.recommendedPrice??0;
+  if(Array.isArray(project?.positions)){
+    if(project.orderType==="customerObject")return currentCustomerCalculation(project)?.recommended??project.recommendedSalePrice??project.recommendedPrice??project.sale??0;
+    return positionTotals(project).recommended;
+  }
+  return project?.recommendedSalePrice??project?.recommendedPrice??project?.pricingBreakdown?.sale??project?.sale??0;
 }
 export function renderProjectPriceBlock(project){
   const hasAgreement=project.agreementPrice!=null;
