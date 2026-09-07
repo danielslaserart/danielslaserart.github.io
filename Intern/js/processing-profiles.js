@@ -1,6 +1,6 @@
-import { $, esc, num, uid } from "./utils.js?v=6.6.20";
-import { state, save, normalizeProcessingProfile } from "./storage.js?v=6.6.20";
-import { appAlert, appConfirm } from "./dialogs.js?v=6.6.20";
+import { $, esc, num, uid } from "./utils.js?v=6.6.21";
+import { state, save, normalizeProcessingProfile } from "./storage.js?v=6.6.21";
+import { appAlert, appConfirm } from "./dialogs.js?v=6.6.21";
 
 const PROCESS_LABELS={
   vectorEngraving:"Vektorgravur",imageEngraving:"Bildgravur",areaEngraving:"Flächengravur",
