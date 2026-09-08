@@ -1,119 +1,84 @@
-const allowedOrigins = new Set([
+const allowedOrigins = [
   "https://danielslaserart.de",
   "https://www.danielslaserart.de",
-]);
+];
 
-const jsonHeaders = (origin: string | null) => {
-  const headers: Record<string, string> = {
+function makeHeaders(origin: string) {
+  return {
     "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store, max-age=0",
-    "x-content-type-options": "nosniff",
-    "x-robots-tag": "noindex, nofollow, noarchive",
-    vary: "Origin",
+    "cache-control": "no-store",
+    "access-control-allow-origin": allowedOrigins.includes(origin) ? origin : "",
+    "access-control-allow-methods": "GET, OPTIONS",
   };
-
-  if (origin && allowedOrigins.has(origin)) {
-    headers["access-control-allow-origin"] = origin;
-  }
-
-  return headers;
-};
-
-const reply = (body: unknown, status: number, origin: string | null) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: jsonHeaders(origin),
-  });
-
-const parseDate = (value: string | null) => {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+}
 
 Deno.serve(async (request) => {
-  const origin = request.headers.get("origin");
+  const origin = request.headers.get("origin") || "";
+  const responseHeaders = makeHeaders(origin);
 
   if (request.method === "OPTIONS") {
-    if (!origin || !allowedOrigins.has(origin)) {
-      return reply({ error: "origin_not_allowed" }, 403, origin);
-    }
-
-    const headers = jsonHeaders(origin);
-    headers["access-control-allow-methods"] = "GET, OPTIONS";
-    headers["access-control-allow-headers"] = "content-type";
-    return new Response(null, { status: 204, headers });
+    return new Response(null, { status: 204, headers: responseHeaders });
   }
 
-  if (request.method !== "GET") {
-    return reply({ error: "method_not_allowed" }, 405, origin);
+  if (request.method !== "GET" || !allowedOrigins.includes(origin)) {
+    return new Response(JSON.stringify({ error: "not_allowed" }), {
+      status: 403,
+      headers: responseHeaders,
+    });
   }
 
-  if (!origin || !allowedOrigins.has(origin)) {
-    return reply({ error: "origin_not_allowed" }, 403, origin);
-  }
+  const token = Deno.env.get("GOATCOUNTER_API_TOKEN");
 
-  const apiToken = Deno.env.get("GOATCOUNTER_API_TOKEN") ?? "";
-  if (!apiToken) {
-    return reply({ error: "server_not_configured" }, 500, origin);
+  if (!token) {
+    return new Response(JSON.stringify({ error: "missing_token" }), {
+      status: 500,
+      headers: responseHeaders,
+    });
   }
 
   const requestUrl = new URL(request.url);
-  const ranges = {
-    today: parseDate(requestUrl.searchParams.get("today")),
-    week: parseDate(requestUrl.searchParams.get("week")),
-    month: parseDate(requestUrl.searchParams.get("month")),
-    total: new Date("2020-01-01T00:00:00.000Z"),
-  } as const;
+  const starts = [
+    requestUrl.searchParams.get("today"),
+    requestUrl.searchParams.get("week"),
+    requestUrl.searchParams.get("month"),
+    "2020-01-01T00:00:00.000Z",
+  ];
 
-  if (!ranges.today || !ranges.week || !ranges.month) {
-    return reply({ error: "invalid_date_range" }, 400, origin);
+  if (starts.slice(0, 3).some((value) => !value)) {
+    return new Response(JSON.stringify({ error: "missing_dates" }), {
+      status: 400,
+      headers: responseHeaders,
+    });
   }
 
-  const fetchTotal = async (start: Date) => {
+  async function loadTotal(start: string | null) {
     const url = new URL(
       "https://danielslaserart.goatcounter.com/api/v0/stats/total",
     );
-    url.searchParams.set("start", start.toISOString());
+    url.searchParams.set("start", start || "");
 
     const response = await fetch(url, {
       headers: {
+        authorization: `Bearer ${token}`,
         accept: "application/json",
-        authorization: `Bearer ${apiToken}`,
+        "content-type": "application/json",
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`GoatCounter API returned ${response.status}`);
-    }
-
     const data = await response.json();
-    const total = Number(data?.total);
-    if (!Number.isFinite(total)) {
-      throw new Error("GoatCounter API returned an invalid total");
-    }
-
-    return total;
-  };
-
-  try {
-    const entries = await Promise.all(
-      Object.entries(ranges).map(async ([name, start]) => [
-        name,
-        await fetchTotal(start as Date),
-      ]),
-    );
-
-    return reply(
-      {
-        ...Object.fromEntries(entries),
-        updatedAt: new Date().toISOString(),
-      },
-      200,
-      origin,
-    );
-  } catch (error) {
-    console.error("GoatCounter statistics could not be loaded", error);
-    return reply({ error: "upstream_failed" }, 502, origin);
+    return Number(data.total);
   }
+
+  const totals = await Promise.all(starts.map(loadTotal));
+
+  return new Response(
+    JSON.stringify({
+      today: totals[0],
+      week: totals[1],
+      month: totals[2],
+      total: totals[3],
+      updatedAt: new Date().toISOString(),
+    }),
+    { status: 200, headers: responseHeaders },
+  );
 });
