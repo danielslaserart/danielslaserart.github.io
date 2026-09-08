@@ -24,10 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       card.querySelector("[data-customer-photo-button]")?.addEventListener("click", () => {
-        const customerPhoto = projectImages?.[1];
+        const additionalViews = projectImages?.slice(1);
 
-        if (customerPhoto) {
-          Lightbox?.open?.([customerPhoto], 0);
+        if (additionalViews?.length) {
+          Lightbox?.open?.(additionalViews, 0);
         }
       });
 
