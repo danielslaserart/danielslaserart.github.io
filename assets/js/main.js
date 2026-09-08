@@ -74,8 +74,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${y}-${m}-${d}`;
   };
 
-  const counterBaseUrl = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
-  const refreshIntervalMs = 10_000;
+  const liveStatsUrl = "https://qsnlwppbcczjwxwuhbkv.supabase.co/functions/v1/goatcounter-stats";
+  const fallbackCounterUrl = "https://danielslaserart.goatcounter.com/counter/TOTAL.json";
+  const refreshIntervalMs = 20_000;
   let refreshInProgress = false;
 
   const cleanCount = (value) => {
@@ -83,8 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return String(value);
   };
 
-  const fetchCount = async (start = null, end = null) => {
-    const url = new URL(counterBaseUrl);
+  const fetchFallbackCount = async (start = null, end = null) => {
+    const url = new URL(fallbackCounterUrl);
 
     if (start) url.searchParams.set("start", start);
     if (end) url.searchParams.set("end", end);
@@ -97,6 +98,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const data = await res.json();
     return cleanCount(data.count);
+  };
+
+  const fetchLiveStats = async (ranges) => {
+    const url = new URL(liveStatsUrl);
+    url.searchParams.set("today", ranges.today.toISOString());
+    url.searchParams.set("week", ranges.week.toISOString());
+    url.searchParams.set("month", ranges.month.toISOString());
+
+    const response = await fetch(url.toString(), { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Live-Statistik ${response.status}`);
+    }
+
+    const data = await response.json();
+    for (const key of ["today", "week", "month", "total"]) {
+      if (!Number.isFinite(Number(data[key]))) {
+        throw new Error(`Live-Statistik enthält keinen gültigen Wert für ${key}`);
+      }
+    }
+
+    return data;
   };
 
   const setStat = async (element, promise) => {
@@ -122,21 +144,33 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Ende immer morgen, damit der heutige Tag vollständig enthalten ist.
+    // Der öffentliche GoatCounter-Zähler dient nur als Rückfalllösung, solange
+    // die geschützte API-Abfrage vorübergehend nicht erreichbar ist.
     const endOfRange = new Date(
       now.getFullYear(),
       now.getMonth(),
       now.getDate() + 1
     );
 
-    // Jeder Wert wird unabhängig aktualisiert. Ein einzelner Fehler blendet die
-    // anderen Besucherzahlen dadurch nicht aus.
-    await Promise.allSettled([
-      setStat(todayEl, fetchCount(formatDate(startOfToday), formatDate(endOfRange))),
-      setStat(weekEl, fetchCount(formatDate(startOfWeek), formatDate(endOfRange))),
-      setStat(monthEl, fetchCount(formatDate(startOfMonth), formatDate(endOfRange))),
-      setStat(totalEl, fetchCount()),
-    ]);
+    try {
+      const stats = await fetchLiveStats({
+        today: startOfToday,
+        week: startOfWeek,
+        month: startOfMonth,
+      });
+      todayEl.textContent = cleanCount(stats.today);
+      weekEl.textContent = cleanCount(stats.week);
+      monthEl.textContent = cleanCount(stats.month);
+      totalEl.textContent = cleanCount(stats.total);
+    } catch (error) {
+      console.warn("Live-Besucherzahlen nicht erreichbar, nutze Rückfalllösung:", error);
+      await Promise.allSettled([
+        setStat(todayEl, fetchFallbackCount(formatDate(startOfToday), formatDate(endOfRange))),
+        setStat(weekEl, fetchFallbackCount(formatDate(startOfWeek), formatDate(endOfRange))),
+        setStat(monthEl, fetchFallbackCount(formatDate(startOfMonth), formatDate(endOfRange))),
+        setStat(totalEl, fetchFallbackCount()),
+      ]);
+    }
 
     refreshInProgress = false;
   };

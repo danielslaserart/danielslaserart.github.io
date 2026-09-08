@@ -1,2 +1,5 @@
 [functions.order-monitor-read]
 verify_jwt = false
+
+[functions.goatcounter-stats]
+verify_jwt = false
