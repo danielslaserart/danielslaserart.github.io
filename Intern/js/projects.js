@@ -1,17 +1,17 @@
-import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.23";
-import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.23";
-import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.23";
-import { resolveMaterialSelection } from "./materials.js?v=6.6.23";
-import { workshopUnit } from "./calculator.js?v=6.6.23";
-import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.23";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.23";
-import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.23";
-import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.23";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.23";
-import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.23";
-import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.23";
-import { customerNameById, customerAddressById } from "./customers.js?v=6.6.23";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.23";
+import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.26";
+import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.26";
+import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.26";
+import { resolveMaterialSelection } from "./materials.js?v=6.6.26";
+import { workshopUnit, computePriceRecommendations } from "./calculator.js?v=6.6.26";
+import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.26";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.26";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.26";
+import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.26";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.26";
+import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.26";
+import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.26";
+import { customerNameById, customerAddressById } from "./customers.js?v=6.6.26";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.26";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -46,7 +46,8 @@ function actualProjectPrice(project){
 export function renderProjectPriceBlock(project){
   const hasAgreement=project.agreementPrice!=null;
   const closed=["done","billed"].includes(project.status);
-  return `<div class="project-price-block"><strong>${euro(actualProjectPrice(project))}</strong><span class="project-agreed-price">${closed?"Verkaufspreis":`Vereinbart: ${hasAgreement?euro(project.agreementPrice):"Nicht festgelegt"}`}</span>${hasAgreement?renderPriceTypeBadge(project.priceType,project.isPreferredRepeatPrice):""}</div>`;
+  const work=positionTotals(project).work;
+  return `<div class="project-price-block"><strong>${euro(actualProjectPrice(project))}</strong>${work>0?`<span class="project-agreed-price">Arbeitskosten: ${euro(work)}</span>`:""}<span class="project-agreed-price">${closed?"Verkaufspreis":`Vereinbart: ${hasAgreement?euro(project.agreementPrice):"Nicht festgelegt"}`}</span>${hasAgreement?renderPriceTypeBadge(project.priceType,project.isPreferredRepeatPrice):""}</div>`;
 }
 export function renderProjects(){
   const realProjects=getRealProjects();
@@ -266,50 +267,46 @@ function signedEuro(value){
   const clean=Math.abs(value)<.005?0:value;
   return `${clean>0?"+":""}${euro(clean)}`;
 }
+function recommendationRows(withWork,withoutWork){return `
+  <div><span>Niedrigste Preisempfehlung ohne Arbeitszeit</span><strong>${euro(withoutWork.low)}</strong></div>
+  <div><span>Niedrigste Preisempfehlung mit Arbeitszeit</span><strong>${euro(withWork.low)}</strong></div>
+  <div><span>Optimal ohne Arbeitszeit</span><strong>${euro(withoutWork.optimal)}</strong></div>
+  <div><span>Optimal mit Arbeitszeit</span><strong>${euro(withWork.optimal)}</strong></div>
+  <div><span>Premium ohne Arbeitszeit</span><strong>${euro(withoutWork.premium)}</strong></div>
+  <div><span>Premium mit Arbeitszeit</span><strong>${euro(withWork.premium)}</strong></div>`;}
 function currentCustomerCalculation(p){
   if(p.orderType!=="customerObject")return null;
   const storedBreakdown=p.pricingBreakdown||p.calculationSnapshot?.pricingBreakdown||p.estimatorData?.pricingBreakdown||{};
   const results=p.calculationSnapshot?.results||{};
   const totals=positionTotals(p),hasCurrentPositions=Array.isArray(p.positions),material=hasCurrentPositions?totals.material:num(storedBreakdown.material),machine=hasCurrentPositions?totals.machine:num(storedBreakdown.machine??results.machineCosts),work=hasCurrentPositions?totals.work:num(storedBreakdown.work??results.workCosts),extra=hasCurrentPositions?totals.other:num(storedBreakdown.extra??results.additionalCosts);
   const baseFee=num(storedBreakdown.baseFee),furtherSurcharges=num(storedBreakdown.furtherSurcharges),risk=num(storedBreakdown.risk??p.riskSurcharge),express=num(storedBreakdown.express??p.expressSurcharge),difficultyPercent=num(p.difficultyPercent??p.calculationSnapshot?.pricingSettings?.difficultyPercent);
-  const difficulty=(baseFee+furtherSurcharges)*difficultyPercent/100;
-  const selfCosts=material+machine+work+extra;
-  const calculatedWorkPrice=baseFee+furtherSurcharges+difficulty+risk+express;
-  const subtotalBeforeMinimum=selfCosts+calculatedWorkPrice;
   const minimum=num(storedBreakdown.minimum??p.calculationSnapshot?.pricingSettings?.minimumPrice);
-  const subtotal=Math.max(subtotalBeforeMinimum,minimum);
   const profitPercent=Math.max(0,num(p.fields?.profit??storedBreakdown.profitPercent??state.settings?.profit??30));
-  const profitMarkup=subtotal*profitPercent/100;
-  const calculated=subtotal+profitMarkup;
   const rounding=Math.max(.01,num(p.calculationSnapshot?.pricingSettings?.rounding??state.settings?.rounding??.1));
-  const recommended=Math.ceil((calculated-1e-9)/rounding)*rounding;
-  const breakdown={...storedBreakdown,material,machine,work,extra,baseFee,furtherSurcharges,risk,express,difficulty,
-    cost:selfCosts,calculatedWorkPrice,subtotalBeforeMinimum,subtotal,priceBeforeProfit:subtotal,
-    profitPercent,profitMarkup,calculated,minimum,minimumApplied:subtotalBeforeMinimum<minimum,sale:recommended};
+  const roundFn=value=>Math.ceil((value-1e-9)/rounding)*rounding;
+  const recommendations=computePriceRecommendations({orderType:"customerObject",material,machine,work,extra,baseFee,furtherSurcharges,risk,express,difficultyPercent,minimumPrice:minimum,profitPercent,roundFn});
+  const breakdown={...storedBreakdown,...recommendations.withWork,saleWithoutWork:recommendations.withoutWork.sale};
+  const {cost:selfCosts,calculatedWorkPrice,subtotal,profitMarkup,calculated,sale:recommended}=breakdown;
   const source={...p,cost:selfCosts,selfCosts,costCoveringMinimumPrice:selfCosts,calculatedWorkPrice,subtotal,
     priceBeforeProfit:subtotal,profitPercent,profitMarkup,recommendedSalePrice:recommended,recommendedPrice:recommended,
-    pricingBreakdown:breakdown};
-  return {breakdown,selfCosts,calculatedWorkPrice,subtotal,profitMarkup,profitPercent,calculated,recommended,results,source};
+    recommendedSalePriceWithoutWork:recommendations.withoutWork.sale,pricingBreakdown:breakdown};
+  return {breakdown,selfCosts,calculatedWorkPrice,subtotal,profitMarkup,profitPercent,calculated,recommended,results,source,recommendations};
 }
 function customerCalculationOverview(p){
   const current=currentCustomerCalculation(p);
   if(!current)return "";
-  const {breakdown,selfCosts,calculated,recommended,results,source}=current;
+  const {breakdown,selfCosts,calculated,recommended,results,source,recommendations}=current;
   const row=(label,value)=>num(value)!==0?`<div><span>${label}</span><strong>${euro(value)}</strong></div>`:"";
-  const costRows=`${row("Materialkosten",breakdown.material)}${row("Maschinenkosten",breakdown.machine??results.machineCosts)}${row("Arbeitskosten",breakdown.work??results.workCosts)}${row("Sonstige echte Kosten",breakdown.extra??results.additionalCosts)}`;
+  const costRows=`${row("Materialkosten",breakdown.material)}${row("Maschinenkosten",breakdown.machine??results.machineCosts)}${row("Arbeitskosten (Stundenlohn)",breakdown.work??results.workCosts)}${row("Sonstige echte Kosten",breakdown.extra??results.additionalCosts)}`;
   const surchargeRows=`${row("Grundpauschale",breakdown.baseFee)}${row("Schwierigkeitsaufschlag",breakdown.difficulty)}${row("Risikoaufschlag",breakdown.risk??p.riskSurcharge)}${row("Expresszuschlag",breakdown.express??p.expressSurcharge)}${row("Weitere Zuschläge",breakdown.furtherSurcharges)}`;
-  const priceStep=num(state.settings?.rounding)||.1;
-  const low=Math.ceil((Math.max(selfCosts,recommended*.8)-1e-9)/priceStep)*priceStep;
-  const premium=Math.ceil((recommended*1.2-1e-9)/priceStep)*priceStep;
+  const withTiers=recommendations.withWorkTiers,withoutTiers=recommendations.withoutWorkTiers;
   return `<div class="project-calculation-overview">
     ${costRows?`<h4>TATSÄCHLICHE KOSTEN</h4>${costRows}`:""}
     <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
     ${surchargeRows?`<h4>PREISBESTANDTEILE UND ZUSCHLÄGE</h4>${surchargeRows}`:""}
     ${Math.abs(recommended-calculated)>=.005?`<h4>RUNDUNG</h4><div><span>Rundungsdifferenz</span><strong>${signedEuro(recommended-calculated)}</strong></div>`:""}
     ${renderPriceLadder(getPriceLadderData(source),{heading:true,details:true})}
-    <div><span>Niedrige Preisempfehlung</span><strong>${euro(low)}</strong></div>
-    <div><span>Optimal</span><strong>${euro(recommended)}</strong></div>
-    <div><span>Premium</span><strong>${euro(premium)}</strong></div>
+    ${recommendationRows(withTiers,withoutTiers)}
   </div>`;
 }
 export function viewProject(id){
@@ -319,13 +316,10 @@ export function viewProject(id){
   const currentPositionTotals=positionTotals(p);
   const selfCosts=Array.isArray(p.positions)?currentPositionTotals.cost:getCostCoveringMinimumPrice(p);
   const ownProfitPercent=Math.max(0,num(p.fields?.profit??p.calculationSnapshot?.fields?.profit??p.calculationSnapshot?.pricingSettings?.profitPercent??state.settings?.profit??30));
-  const ownProfitMarkup=selfCosts*ownProfitPercent/100;
-  const ownCalculated=selfCosts+ownProfitMarkup;
   const priceStep=num(p.calculationSnapshot?.pricingSettings?.rounding??state.settings?.rounding)||.1;
-  const ownRecommended=Math.ceil((ownCalculated-1e-9)/priceStep)*priceStep;
-  const lowPrice=Math.ceil((Math.max(selfCosts,ownRecommended*.8)-1e-9)/priceStep)*priceStep;
-  const premiumPrice=Math.ceil((ownRecommended*1.2-1e-9)/priceStep)*priceStep;
-  const ownPriceSource={...p,selfCosts,cost:selfCosts,costCoveringMinimumPrice:selfCosts,calculatedWorkPrice:0,subtotal:selfCosts,priceBeforeProfit:selfCosts,profitPercent:ownProfitPercent,profitMarkup:ownProfitMarkup,calculated:ownCalculated,recommendedSalePrice:ownRecommended,recommendedPrice:ownRecommended,pricingBreakdown:{...(p.pricingBreakdown||{}),cost:selfCosts,calculatedWorkPrice:0,subtotal:selfCosts,priceBeforeProfit:selfCosts,profitPercent:ownProfitPercent,profitMarkup:ownProfitMarkup,calculated:ownCalculated,sale:ownRecommended}};
+  const ownRecommendations=computePriceRecommendations({orderType:"own",material:currentPositionTotals.material,machine:currentPositionTotals.machine,work:currentPositionTotals.work,extra:currentPositionTotals.other,reservePercent:num(p.positionReservePercent??p.fields?.reserve??p.calculationSnapshot?.pricingSettings?.reservePercent??state.settings?.reserve),profitPercent:ownProfitPercent,roundFn:value=>Math.ceil((value-1e-9)/priceStep)*priceStep});
+  const ownBreakdown=ownRecommendations.withWork,ownRecommended=ownBreakdown.sale;
+  const ownPriceSource={...p,selfCosts:ownBreakdown.cost,cost:ownBreakdown.cost,costCoveringMinimumPrice:ownBreakdown.cost,calculatedWorkPrice:0,subtotal:ownBreakdown.cost,priceBeforeProfit:ownBreakdown.cost,profitPercent:ownProfitPercent,profitMarkup:ownBreakdown.profitMarkup,calculated:ownBreakdown.calculated,recommendedSalePrice:ownRecommended,recommendedPrice:ownRecommended,recommendedSalePriceWithoutWork:ownRecommendations.withoutWork.sale,pricingBreakdown:{...(p.pricingBreakdown||{}),...ownBreakdown,saleWithoutWork:ownRecommendations.withoutWork.sale}};
   const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
   $("projectViewTitle").textContent=p.title||"Projekt";
   $("projectViewContent").innerHTML=`
@@ -352,9 +346,7 @@ export function viewProject(id){
       ${renderPriceLadder(getPriceLadderData(ownPriceSource),{heading:false,details:true})}
       <div><span>Tatsächlicher Gewinn</span><strong>${euro(actualProjectPrice(p)-selfCosts)}</strong></div>
       <div><span>Gewinnmarge</span><strong>${actualProjectPrice(p)>0?`${((actualProjectPrice(p)-selfCosts)/actualProjectPrice(p)*100).toLocaleString("de-DE",{maximumFractionDigits:1})} %`:"0,0 %"}</strong></div>
-      <div><span>Niedrige Preisempfehlung</span><strong>${euro(lowPrice)}</strong></div>
-      <div><span>Optimal</span><strong>${euro(ownRecommended)}</strong></div>
-      <div><span>Premium</span><strong>${euro(premiumPrice)}</strong></div>
+      ${recommendationRows(ownRecommendations.withWorkTiers,ownRecommendations.withoutWorkTiers)}
     </div>`}
     ${priceAgreementHtml(p,getPriceLadderData(p.orderType==="customerObject"?currentCustomerCalculation(p).source:ownPriceSource))}
     ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}

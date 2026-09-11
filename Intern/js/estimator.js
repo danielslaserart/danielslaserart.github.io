@@ -1,11 +1,11 @@
-import { $, num, euro, esc, uid } from "./utils.js?v=6.6.23";
-import { state, save } from "./storage.js?v=6.6.23";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.23";
-import { rounded, computePriceBreakdown } from "./calculator.js?v=6.6.23";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.23";
-import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.23";
-import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.23";
-import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.23";
+import { $, num, euro, esc, uid } from "./utils.js?v=6.6.26";
+import { state, save } from "./storage.js?v=6.6.26";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.26";
+import { rounded, computePriceBreakdown, computePriceRecommendations } from "./calculator.js?v=6.6.26";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.26";
+import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.26";
+import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.26";
+import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.26";
 let motifImageDetail = null;
 let editingEstimatorProjectId=null;
 let estimatorCustomerPricing=null;
@@ -138,12 +138,20 @@ export function calculateMotifEstimator(){
     difficultyPercent:customerPricing.difficultyPercent,risk:customerPricing.risk,express:customerPricing.express,
     profitPercent:num($('mcProfit').value),roundFn:rounded
   }):null;
+  const recommendationParts=customerPricing?{
+    orderType,machine:machineCost,work:workCost,extra,
+    baseFee:customerPricing.baseFee,minimumPrice:customerPricing.minimumPrice,
+    difficultyPercent:customerPricing.difficultyPercent,risk:customerPricing.risk,express:customerPricing.express,
+    profitPercent:num($('mcProfit').value),roundFn:rounded
+  }:{orderType:"own",material,machine:machineCost,work:workCost,extra,overheadPercent:num(state.settings.overhead),reservePercent:num($('mcReserve').value),profitPercent:num($('mcProfit').value),roundFn:rounded};
+  const recommendations=computePriceRecommendations(recommendationParts);
   const finalCost=customerBreakdown?.cost??cost;
   const sale=customerBreakdown?.sale??rounded(Math.max(cost,learnedPriceSuggestion(similar,area,calculatedSale)));
   const profit=sale-finalCost,margin=sale>0?profit/sale*100:0;
   const calculatedPrice=customerBreakdown?.calculated??sale;
   const roundingDifference=sale-calculatedPrice;
-  const minimal=rounded(Math.max(finalCost,sale*.8)),premium=rounded(sale*1.2);
+  const minimal=rounded(sale*.8),premium=rounded(sale*1.2);
+  const withWorkTiers={low:minimal,optimal:sale,premium},withoutWorkTiers=recommendations.withoutWorkTiers;
   $('mcDetected').textContent=motifComplexityLabel(complexity);$('mcMaterialUsage').textContent=mat.text;$('mcMaterialCostResult').textContent=euro(material);
   if($("mcMaterialSourceHint"))$("mcMaterialSourceHint").textContent=materialSource==="customer"?"Kundenmaterial – keine Materialkosten berechnet":"";
   $('mcCutTime').textContent=`${Math.round(cutMinutes)} Min.`;$('mcEngraveTime').textContent=`${Math.round(engraveMinutes)} Min.`;$('mcWorkTime').textContent=`${Math.round(work)} Min.`;
@@ -152,7 +160,7 @@ export function calculateMotifEstimator(){
   $('mcTotalCost').textContent=euro(finalCost);$('mcSalePrice').textContent=euro(sale);
   $('mcCostCoveringMinimum').textContent=euro(finalCost);
   if($("estimatorPriceLadder"))$("estimatorPriceLadder").innerHTML=renderPriceLadder(getPriceLadderData({
-    ...(customerBreakdown||{}),orderType,cost:finalCost,sale,
+    ...(customerBreakdown||{}),orderType,cost:finalCost,sale,recommendedSalePriceWithoutWork:recommendations.withoutWork.sale,
     profitPercent:num($('mcProfit').value),
     subtotal:customerBreakdown?.subtotal??finalCost,
     pricingBreakdown:customerBreakdown||{material,machine:machineCost,work:workCost,extra,overhead,reserve}
@@ -164,10 +172,12 @@ export function calculateMotifEstimator(){
   ["mcBaseFeeRow","mcDifficultyRow","mcRiskRow","mcExpressRow","mcFurtherSurchargesRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
   $("mcCalculatedPrice").textContent=euro(calculatedPrice);$("mcRoundingDifference").textContent=signedEuro(roundingDifference);$("mcOtherActualCosts").textContent=euro(0);
   $("mcProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("mcMarginLabel").textContent=customerObject?"Gewinnmarge vom Verkaufspreis":"Gewinnmarge";$("mcProfitExplanation").textContent=customerObject?`${euro(sale)} − ${euro(finalCost)}`:"";
-  $('mcPriceMin').textContent=euro(minimal);$('mcPriceOptimal').textContent=euro(sale);$('mcPricePremium').textContent=euro(premium);
+  $('mcPriceMinWithoutWork').textContent=euro(withoutWorkTiers.low);$('mcPriceMin').textContent=euro(withWorkTiers.low);
+  $('mcPriceOptimalWithoutWork').textContent=euro(withoutWorkTiers.optimal);$('mcPriceOptimal').textContent=euro(withWorkTiers.optimal);
+  $('mcPricePremiumWithoutWork').textContent=euro(withoutWorkTiers.premium);$('mcPricePremium').textContent=euro(withWorkTiers.premium);
   $('mcLearningHint').textContent=similar.length?`Es wurden ${similar.length} ähnliche Projekte gefunden. Die Zeitberechnung wurde mit diesen Erfahrungswerten verbessert.`:'Noch keine ähnlichen Referenzprojekte vorhanden.';
   $('motifCalc').dataset.predictedMachineMinutes=String(cutMinutes+engraveMinutes);
-  const snapshot={orderType,materialSource,materialId:materialSelection?.id||"",materialName:materialSelection?.name||"",machineId:machine?.id||"",machineName:machine?.name||"",width,height,area,layers,detail:complexity,process,estimatedCutTime:cutMinutes,estimatedEngravingTime:engraveMinutes,cutMinutes,engraveMinutes,cost:finalCost,estimatedPrice:sale,sale,profit,profitPercent:num($("mcProfit").value),reservePercent:num($("mcReserve").value),minimal,optimal:sale,premium,workMinutes:work,materialCost:material,machineCost,workCost,additionalCosts:extra,customerPricing,pricingBreakdown:customerBreakdown,inputs:{mcWidth:$("mcWidth").value,mcHeight:$("mcHeight").value,mcDimensionMeaning:$("mcDimensionMeaning")?.value||"engraving",mcLayers:$("mcLayers").value,mcCutSpeed:$("mcCutSpeed").value,mcEngraveSpeed:$("mcEngraveSpeed").value,mcComplexity:$("mcComplexity").value,mcExtraCost:$("mcExtraCost").value,mcBaseWork:$("mcBaseWork").value,mcHourly:$("mcHourly").value,mcReserve:$("mcReserve").value,mcProfit:$("mcProfit").value,mcSand:$("mcSand").checked,mcPaint:$("mcPaint").checked,mcGlue:$("mcGlue").checked},calibrationFactor:cal,learningFactor};
+  const snapshot={orderType,materialSource,materialId:materialSelection?.id||"",materialName:materialSelection?.name||"",machineId:machine?.id||"",machineName:machine?.name||"",width,height,area,layers,detail:complexity,process,estimatedCutTime:cutMinutes,estimatedEngravingTime:engraveMinutes,cutMinutes,engraveMinutes,cost:finalCost,estimatedPrice:sale,sale,recommendedSalePriceWithoutWork:recommendations.withoutWork.sale,profit,profitPercent:num($("mcProfit").value),reservePercent:num($("mcReserve").value),minimal,optimal:sale,premium,minimalWithoutWork:withoutWorkTiers.low,optimalWithoutWork:withoutWorkTiers.optimal,premiumWithoutWork:withoutWorkTiers.premium,workMinutes:work,materialCost:material,machineCost,workCost,additionalCosts:extra,customerPricing,pricingBreakdown:{...(customerBreakdown||recommendations.withWork),saleWithoutWork:recommendations.withoutWork.sale},inputs:{mcWidth:$("mcWidth").value,mcHeight:$("mcHeight").value,mcDimensionMeaning:$("mcDimensionMeaning")?.value||"engraving",mcLayers:$("mcLayers").value,mcCutSpeed:$("mcCutSpeed").value,mcEngraveSpeed:$("mcEngraveSpeed").value,mcComplexity:$("mcComplexity").value,mcExtraCost:$("mcExtraCost").value,mcBaseWork:$("mcBaseWork").value,mcHourly:$("mcHourly").value,mcReserve:$("mcReserve").value,mcProfit:$("mcProfit").value,mcSand:$("mcSand").checked,mcPaint:$("mcPaint").checked,mcGlue:$("mcGlue").checked},calibrationFactor:cal,learningFactor};
   $('motifCalc').dataset.snapshot=JSON.stringify(snapshot);
   return snapshot;
 }

@@ -1,6 +1,6 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.6.23";
-import { appConfirm } from "./dialogs.js?v=6.6.23";
-import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6.23";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.6.26";
+import { appConfirm } from "./dialogs.js?v=6.6.26";
+import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6.26";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -94,7 +94,7 @@ export const defaults = {
       risks:{under50:0,from50To100:0,from100To250:0,from250To500:0,over500:0}
     }
   },
-  materials:[],processingProfiles:[],projects:[],customers:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
+  materials:[],processingProfiles:[],projects:[],customers:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastOwnModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[]
 };
 export function normalizeCustomerRecord(customer={}){

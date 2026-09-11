@@ -1,4 +1,4 @@
-import { euro, esc, num } from "./utils.js?v=6.6.23";
+import { euro, esc, num } from "./utils.js?v=6.6.26";
 
 const hasValue=value=>value!==null&&value!==undefined&&value!==""&&Number.isFinite(Number(value));
 const firstValue=(...values)=>values.find(hasValue);
@@ -93,7 +93,7 @@ export function getPriceLadderData(source={}){
     ["Materialkosten",component(source,["material"])],
     ["Verbrauchsmaterial",component(source,["consumables"])],
     ["Maschinenkosten",component(source,["machine"])],
-    ["Arbeitskosten",component(source,["work"])],
+    ["Arbeitskosten (Stundenlohn)",component(source,["work"])],
     ["Sonstige Kosten",component(source,["extra"])],
     ["Fehlerreserve",component(source,["reserve","errorReserve"])]
   ];
@@ -139,6 +139,8 @@ export function getPriceLadderData(source={}){
     estimator.estimatedPrice,source.estimatedPrice,directBreakdown.sale,source.sale
   );
   const recommendedSalePrice=hasValue(recommendedRaw)?money(recommendedRaw):null;
+  const recommendedWithoutWorkRaw=firstValue(source.recommendedSalePriceWithoutWork,directBreakdown.saleWithoutWork,estimator.recommendedSalePriceWithoutWork);
+  const recommendedSalePriceWithoutWork=hasValue(recommendedWithoutWorkRaw)?money(recommendedWithoutWorkRaw):null;
   const roundingDifference=preRoundedPrice!==null&&recommendedSalePrice!==null
     ?money(recommendedSalePrice-preRoundedPrice):null;
   const companyProfit=selfCosts!==null&&recommendedSalePrice!==null
@@ -153,7 +155,7 @@ export function getPriceLadderData(source={}){
     agreementPrice,selfCosts,subtotal,recommendedSalePrice
   });
   return {selfCosts,costCoveringMinimumPrice:selfCosts,costItems,surchargeItems,totalSurcharges,
-    calculatedWorkPrice,subtotal,profitMarkup,profitPercent,roundingDifference,recommendedSalePrice,
+    calculatedWorkPrice,subtotal,profitMarkup,profitPercent,roundingDifference,recommendedSalePrice,recommendedSalePriceWithoutWork,
     companyProfit,companyProfitPercent,status,agreementPrice,agreementProfit,agreementMargin,agreementStatus};
 }
 
@@ -234,7 +236,8 @@ export function renderPriceLadder(data,{heading=true,details=true}={}){
     ${step("neutral","Zwischensumme",data.subtotal,"Selbstkosten plus kalkulierter Arbeitspreis.")}
     ${step("work","Gewinnaufschlag",data.profitMarkup,profitDescription)}
     ${data.roundingDifference!==null&&cents(data.roundingDifference)!==0?step("neutral","Rundung",data.roundingDifference,"Anpassung auf den eingestellten Preis-Schritt."):""}
-    ${step(data.status==="positive"?"recommended":data.status==="negative"?"negative":"neutral","Empfohlener Verkaufspreis",data.recommendedSalePrice,"Zwischensumme plus Gewinnaufschlag, anschließend gerundet.",profitText+warning)}
+    ${data.recommendedSalePriceWithoutWork!==null?step("neutral","Empfohlener Verkaufspreis ohne Arbeitszeit",data.recommendedSalePriceWithoutWork,"Ohne Arbeitskosten aus Arbeitszeit × Stundenlohn."):""}
+    ${step(data.status==="positive"?"recommended":data.status==="negative"?"negative":"neutral","Empfohlener Verkaufspreis mit Arbeitszeit",data.recommendedSalePrice,"Zwischensumme plus Gewinnaufschlag, anschließend gerundet.",profitText+warning)}
     ${renderAgreementPriceSummary(data)}
   </section>`;
 }

@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.23";
-import { state, save, defaults } from "./storage.js?v=6.6.23";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.23";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.23";
-import { renderProjects } from "./projects.js?v=6.6.23";
-import { appConfirm } from "./dialogs.js?v=6.6.23";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.23";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.23";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.23";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.26";
+import { state, save, defaults } from "./storage.js?v=6.6.26";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.26";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.26";
+import { renderProjects } from "./projects.js?v=6.6.26";
+import { appConfirm } from "./dialogs.js?v=6.6.26";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.26";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.26";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.26";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -59,6 +59,16 @@ export function computePriceBreakdown(parts={}){
   return {material,consumables,machine,work,extra,reserve,cost,calculatedWorkPrice:0,subtotal:cost,
     priceBeforeProfit:cost,profitPercent,profitMarkup,sale,profit:Math.max(0,sale-cost),
     baseFee:0,difficulty:0,risk:0,calculated,minimum:0,minimumApplied:false};
+}
+export function computePriceRecommendations(parts={}){
+  const withWork=computePriceBreakdown(parts);
+  const withoutWork=computePriceBreakdown({...parts,work:0});
+  const tiers=breakdown=>({
+    low:parts.roundFn?parts.roundFn(breakdown.sale*.8):breakdown.sale*.8,
+    optimal:breakdown.sale,
+    premium:parts.roundFn?parts.roundFn(breakdown.sale*1.2):breakdown.sale*1.2
+  });
+  return {withWork,withoutWork,withWorkTiers:tiers(withWork),withoutWorkTiers:tiers(withoutWork)};
 }
 export function getTimerSeconds(){
   const timer=state.timer||defaults.timer;
@@ -176,7 +186,9 @@ function updateOrderAssistantUI(){
   document.querySelector(".tabs")?.classList.toggle("order-no-material",noMaterial);
 }
 document.querySelectorAll('input[name="orderType"]').forEach(input=>input.addEventListener("change",()=>{
-  if(input.checked&&input.value!=="own")state.activeModule="laser";
+  if(!input.checked)return;
+  if(input.value==="own")state.activeModule=state.lastOwnModule||state.activeModule||"3d";
+  else{if(state.activeModule!=="laser")state.lastOwnModule=state.activeModule;state.activeModule="laser";}
   syncAutomaticFirstPosition(state.activeModule);
   renderCalculator(false);
 }));
@@ -497,13 +509,15 @@ export function calculate(){
   const estimatorPosition=calculatorPositionProject.positions?.find(position=>position.calculationSource==="estimator");
   const profitPercent=$("profit")?.dataset.userEdited==="true"?num($("profit")?.value):estimatorPosition?.profitPercent!==undefined?num(estimatorPosition.profitPercent):enforcedProfit!==undefined?num(enforcedProfit):num($("profit")?.value);
   const reservePercent=$("reserve")?.dataset.userEdited==="true"?num($("reserve")?.value):estimatorPosition?.reservePercent!==undefined?num(estimatorPosition.reservePercent):enforcedReserve!==undefined?num(enforcedReserve):num($("reserve")?.value);
-  const breakdown=computePriceBreakdown({
+  const priceParts={
     orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
     overheadPercent:state.settings.overhead,reservePercent,profitPercent,roundFn:rounded,
     baseFee:orderType==="customerObject"?num($("customerBaseFee")?.value):settings.baseFee,
     furtherSurcharges:orderType==="customerObject"?num($("consultationFee")?.value)+num($("setupFee")?.value)+num($("positioningFee")?.value)+num($("focusFee")?.value)+num($("testRunFee")?.value)+num($("inspectionFee")?.value)+num($("cleaningFee")?.value)+num($("otherCosts")?.value):0,
     minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:num($("expressSurcharge")?.value)
-  });
+  };
+  const recommendations=computePriceRecommendations(priceParts);
+  const breakdown={...recommendations.withWork,saleWithoutWork:recommendations.withoutWork.sale,costWithoutWork:recommendations.withoutWork.cost};
   const customerObject=orderType==="customerObject";
   ["resRoundingHeading","resActualProfitHeading","resCustomerMaterialRow","resOtherActualCostsRow","resRoundingRow","resActualProfitRow","resMarginRow","resSaleHeading"].forEach(id=>$(id)?.classList.add("hidden"));
   $("resCostHeading")?.classList.toggle("hidden",!customerObject);$("resPricePartsHeading")?.classList.toggle("hidden",!customerObject);
@@ -528,18 +542,20 @@ export function calculate(){
   const roundingDifference=breakdown.sale-breakdown.calculated;
   const actualProfit=breakdown.sale-breakdown.cost;
   const margin=breakdown.sale>0?actualProfit/breakdown.sale*100:0;
-  const lowPrice=rounded(Math.max(breakdown.cost,breakdown.sale*.8));
-  const premiumPrice=rounded(breakdown.sale*1.2);
+  const lowPrice=recommendations.withWorkTiers.low;
+  const premiumPrice=recommendations.withWorkTiers.premium;
   $("resCost").textContent=euro(breakdown.cost);$("resProfit").textContent=euro(breakdown.profit);$("resSale").textContent=euro(breakdown.sale);$("resSaleLabel").textContent=customerObject?"Empfohlener Verkaufspreis":"Verkaufspreis";
   $("resCostCoveringMinimum").textContent=euro(breakdown.cost);
   const agreementText=$("agreementPrice")?.value?.trim()??"";
   const liveAgreementPrice=agreementText===""?null:Number(agreementText.replace(",","."));
   if($("calculatorPriceLadder"))$("calculatorPriceLadder").innerHTML=renderPriceLadder(getPriceLadderData({
-    ...breakdown,orderType,
+    ...breakdown,orderType,recommendedSalePriceWithoutWork:recommendations.withoutWork.sale,
     agreementPrice:Number.isFinite(liveAgreementPrice)?liveAgreementPrice:null
   }),{heading:true,details:true});
   $("resProfitRow").classList.toggle("hidden",customerObject);$("resProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("resProfitExplanation").textContent="";
-  $("resPriceLow").textContent=euro(lowPrice);$("resPriceOptimal").textContent=euro(breakdown.sale);$("resPricePremium").textContent=euro(premiumPrice);
+  $("resPriceLowWithoutWork").textContent=euro(recommendations.withoutWorkTiers.low);$("resPriceLow").textContent=euro(lowPrice);
+  $("resPriceOptimalWithoutWork").textContent=euro(recommendations.withoutWorkTiers.optimal);$("resPriceOptimal").textContent=euro(breakdown.sale);
+  $("resPricePremiumWithoutWork").textContent=euro(recommendations.withoutWorkTiers.premium);$("resPricePremium").textContent=euro(premiumPrice);
   $("resRounding").textContent=signedEuro(roundingDifference);$("resActualProfit").textContent=euro(actualProfit);$("resActualProfitExplanation").textContent=`${euro(breakdown.sale)} − ${euro(breakdown.cost)}`;$("resMargin").textContent=`${margin.toLocaleString("de-DE",{maximumFractionDigits:1})} %`;
   $("resPerPiece").textContent=qty>1?`${euro(breakdown.sale/qty)} je Stück`:"";
   $("calcForm").dataset.sale=breakdown.sale;

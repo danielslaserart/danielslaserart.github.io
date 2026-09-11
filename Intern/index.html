@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json?v=6.6">
   <link rel="apple-touch-icon" href="icon-192.png?v=6.5">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.5">
-  <link rel="stylesheet" href="style.css?v=6.6.24">
+  <link rel="stylesheet" href="style.css?v=6.6.26">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -257,7 +257,7 @@
         <div id="resConsumablesRow"><span>Verbrauchsmaterial</span><strong id="resConsumables">0,00 €</strong></div>
         <div id="resCustomerMaterialRow" class="hidden"><span>Materialkosten</span><strong>0,00 €</strong></div>
         <div><span>Maschinenkosten</span><strong id="resMachine">0,00 €</strong></div>
-        <div><span>Arbeitskosten</span><strong id="resWork">0,00 €</strong></div>
+        <div><span>Arbeitskosten (Stundenlohn)</span><strong id="resWork">0,00 €</strong></div>
         <div id="resExtraRow"><span>Zusatzkosten</span><strong id="resExtra">0,00 €</strong></div>
         <div id="resReserveRow"><span>Fehlerreserve</span><strong id="resReserve">0,00 €</strong></div>
         <div id="resOtherActualCostsRow" class="hidden"><span>Sonstige echte Kosten</span><strong>0,00 €</strong></div>
@@ -271,9 +271,12 @@
         <div id="resFurtherSurchargesRow" class="hidden"><span>Weitere Zuschläge</span><strong id="resFurtherSurcharges">0,00 €</strong></div>
         <div id="calculatorPriceLadder" class="price-ladder-host"></div>
         <div id="resProfitRow"><span id="resProfitLabel">Gewinn</span><strong id="resProfit">0,00 €</strong><small id="resProfitExplanation"></small></div>
-        <div><span>Niedrige Preisempfehlung</span><strong id="resPriceLow">0,00 €</strong></div>
-        <div><span>Optimal</span><strong id="resPriceOptimal">0,00 €</strong></div>
-        <div><span>Premium</span><strong id="resPricePremium">0,00 €</strong></div>
+        <div><span>Niedrigste Preisempfehlung ohne Arbeitszeit</span><strong id="resPriceLowWithoutWork">0,00 €</strong></div>
+        <div><span>Niedrigste Preisempfehlung mit Arbeitszeit</span><strong id="resPriceLow">0,00 €</strong></div>
+        <div><span>Optimal ohne Arbeitszeit</span><strong id="resPriceOptimalWithoutWork">0,00 €</strong></div>
+        <div><span>Optimal mit Arbeitszeit</span><strong id="resPriceOptimal">0,00 €</strong></div>
+        <div><span>Premium ohne Arbeitszeit</span><strong id="resPricePremiumWithoutWork">0,00 €</strong></div>
+        <div><span>Premium mit Arbeitszeit</span><strong id="resPricePremium">0,00 €</strong></div>
         <div id="resCalculatedHeading" class="result-section-heading hidden">BERECHNETER PREIS</div>
         <div id="resCalculatedRow" class="hidden"><span>Berechneter Preis</span><strong id="resCalculated">0,00 €</strong></div>
         <div id="resMinimumRow" class="hidden"><span>Mindestpreis angewendet</span><strong id="resMinimum">0,00 €</strong></div>
@@ -513,9 +516,12 @@
         <div id="mcActualProfitHeading" class="result-section-heading hidden">TATSÄCHLICHER GEWINN</div>
         <div><span id="mcProfitLabel">Gewinn</span><strong id="mcProfitEuro">0,00 €</strong><small id="mcProfitExplanation"></small></div>
         <div><span id="mcMarginLabel">Gewinnmarge</span><strong id="mcProfitPercent">0 %</strong></div>
-        <div><span>Niedrige Preisempfehlung</span><strong id="mcPriceMin">0,00 €</strong></div>
-        <div><span>Optimal</span><strong id="mcPriceOptimal">0,00 €</strong></div>
-        <div><span>Premium</span><strong id="mcPricePremium">0,00 €</strong></div>
+        <div><span>Niedrigste Preisempfehlung ohne Arbeitszeit</span><strong id="mcPriceMinWithoutWork">0,00 €</strong></div>
+        <div><span>Niedrigste Preisempfehlung mit Arbeitszeit</span><strong id="mcPriceMin">0,00 €</strong></div>
+        <div><span>Optimal ohne Arbeitszeit</span><strong id="mcPriceOptimalWithoutWork">0,00 €</strong></div>
+        <div><span>Optimal mit Arbeitszeit</span><strong id="mcPriceOptimal">0,00 €</strong></div>
+        <div><span>Premium ohne Arbeitszeit</span><strong id="mcPricePremiumWithoutWork">0,00 €</strong></div>
+        <div><span>Premium mit Arbeitszeit</span><strong id="mcPricePremium">0,00 €</strong></div>
       </div>
       <div id="mcLearningHint" class="learning-hint">Noch keine ähnlichen Referenzprojekte vorhanden.</div>
       <div class="estimator-actions">
@@ -1070,6 +1076,6 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
-<script type="module" src="js/app.js?v=6.6.23"></script>
+<script type="module" src="js/app.js?v=6.6.26"></script>
 </body>
 </html>
