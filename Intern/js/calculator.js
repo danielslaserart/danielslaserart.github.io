@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.27";
-import { state, save, defaults } from "./storage.js?v=6.6.27";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.27";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.27";
-import { renderProjects } from "./projects.js?v=6.6.27";
-import { appConfirm } from "./dialogs.js?v=6.6.27";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.27";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.27";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.27";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.28";
+import { state, save, defaults } from "./storage.js?v=6.6.28";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.28";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.28";
+import { renderProjects } from "./projects.js?v=6.6.28";
+import { appConfirm } from "./dialogs.js?v=6.6.28";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.28";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.28";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.28";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -191,8 +191,17 @@ function updateOrderAssistantUI(){
 }
 document.querySelectorAll('input[name="orderType"]').forEach(input=>input.addEventListener("change",()=>{
   if(!input.checked)return;
-  if(input.value==="own")state.activeModule=state.lastOwnModule||state.activeModule||"3d";
-  else{if(state.activeModule!=="laser")state.lastOwnModule=state.activeModule;state.activeModule="laser";}
+  const form=$("calcForm");
+  if(input.value==="own"){
+    const remembered=form?.dataset.ownModule||state.lastOwnModule||"3d";
+    state.activeModule=["3d","laser","vinyl","textil"].includes(remembered)?remembered:"3d";
+  }else{
+    const activeTab=document.querySelector("[data-tab].active")?.dataset.tab;
+    const ownModule=[activeTab,state.lastOwnModule,state.activeModule].find(module=>["3d","laser","vinyl","textil"].includes(module))||"laser";
+    state.lastOwnModule=ownModule;
+    if(form)form.dataset.ownModule=ownModule;
+    state.activeModule="laser";
+  }
   syncAutomaticFirstPosition(state.activeModule);
   renderCalculator(false);
 }));
