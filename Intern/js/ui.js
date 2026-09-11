@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.28";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.28";
-import { renderMaterials } from "./materials.js?v=6.6.28";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.28";
-import { fillSettings } from "./settings.js?v=6.6.28";
-import { renderTools, resetTool } from "./statistics.js?v=6.6.28";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.28";
-import { appAlert, appPrompt } from "./dialogs.js?v=6.6.28";
-import { applyDesignDefaults } from "./design.js?v=6.6.28";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.28";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.29";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.29";
+import { renderMaterials } from "./materials.js?v=6.6.29";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.29";
+import { fillSettings } from "./settings.js?v=6.6.29";
+import { renderTools, resetTool } from "./statistics.js?v=6.6.29";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.29";
+import { appAlert, appPrompt } from "./dialogs.js?v=6.6.29";
+import { applyDesignDefaults } from "./design.js?v=6.6.29";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.29";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
@@ -48,7 +48,7 @@ function renderLearningStatistics(){
   const active=records.filter(r=>r.reference!==false).length;
   box.innerHTML=`<div class="stats learning-stat-grid"><div class="card stat"><span>Erfahrungswerte</span><strong>${records.length}</strong></div><div class="card stat"><span>Aktiv im Lernsystem</span><strong>${active}</strong></div><div class="card stat"><span>Ø Zeitabweichung</span><strong>${timeDeviation==null?"–":timeDeviation.toLocaleString("de-DE",{maximumFractionDigits:1})+" %"}</strong></div><div class="card stat"><span>Ø Preisabweichung</span><strong>${priceDeviation==null?"–":priceDeviation.toLocaleString("de-DE",{maximumFractionDigits:1})+" %"}</strong></div></div><div class="card learning-progress-card"><h3>Lernfortschritt</h3><p>${records.length<3?"Noch wenige Vergleichswerte. Mit jedem gepflegten Ist-Wert werden die Schätzungen zuverlässiger.":records.length<10?"Gute Grundlage. Weitere tatsächliche Zeiten und Verkaufspreise verbessern die Trefferquote.":"Das Lernsystem verfügt über eine solide Datenbasis."}</p><div class="learning-progress"><i style="width:${Math.min(100,records.length*10)}%"></i></div></div>`;
 }
-document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{if(getOrderType()==="own"){state.activeModule=b.dataset.tab;state.lastOwnModule=b.dataset.tab;if($("calcForm"))$("calcForm").dataset.ownModule=b.dataset.tab}else state.activeModule="laser";syncAutomaticFirstPosition(state.activeModule);save();renderCalculator()});
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{state.activeModule=b.dataset.tab;state.lastOwnModule=b.dataset.tab;if($("calcForm"))$("calcForm").dataset.ownModule=b.dataset.tab;syncAutomaticFirstPosition(state.activeModule);save();renderCalculator()});
 
 function resetCalculator(module="3d"){
   state.activeModule=module||"3d";
@@ -98,8 +98,9 @@ export function loadCalculatorData(source={},options={}){
   };
   const module=source.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[source.type])||"3d";
   const requestedOrderType=source.orderType||"own";
-  state.activeModule=requestedOrderType==="own"?module:"laser";
-  if(requestedOrderType==="own"){state.lastOwnModule=module;if($("calcForm"))$("calcForm").dataset.ownModule=module}
+  state.activeModule=module;
+  state.lastOwnModule=module;
+  if($("calcForm"))$("calcForm").dataset.ownModule=module;
   setCalculatorProductSize(source.productSize||"medium");
   setCalculatorConsumables([]);
   state.timer={running:false,startedAt:null,elapsed:0};
