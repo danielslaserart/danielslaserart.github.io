@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.26";
-import { state, save, defaults } from "./storage.js?v=6.6.26";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.26";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.26";
-import { renderProjects } from "./projects.js?v=6.6.26";
-import { appConfirm } from "./dialogs.js?v=6.6.26";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.26";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.26";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.26";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.27";
+import { state, save, defaults } from "./storage.js?v=6.6.27";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.27";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.27";
+import { renderProjects } from "./projects.js?v=6.6.27";
+import { appConfirm } from "./dialogs.js?v=6.6.27";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.27";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.27";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.27";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -68,7 +68,11 @@ export function computePriceRecommendations(parts={}){
     optimal:breakdown.sale,
     premium:parts.roundFn?parts.roundFn(breakdown.sale*1.2):breakdown.sale*1.2
   });
-  return {withWork,withoutWork,withWorkTiers:tiers(withWork),withoutWorkTiers:tiers(withoutWork)};
+  const withWorkTiers=tiers(withWork);
+  const laborCosts=Math.max(0,num(withWork.work));
+  const withoutWorkTiers={low:Math.max(0,withWorkTiers.low-laborCosts),optimal:Math.max(0,withWorkTiers.optimal-laborCosts),premium:Math.max(0,withWorkTiers.premium-laborCosts)};
+  withoutWork.sale=withoutWorkTiers.optimal;
+  return {withWork,withoutWork,withWorkTiers,withoutWorkTiers};
 }
 export function getTimerSeconds(){
   const timer=state.timer||defaults.timer;

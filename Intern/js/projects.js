@@ -1,17 +1,17 @@
-import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.26";
-import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.26";
-import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.26";
-import { resolveMaterialSelection } from "./materials.js?v=6.6.26";
-import { workshopUnit, computePriceRecommendations } from "./calculator.js?v=6.6.26";
-import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.26";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.26";
-import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.26";
-import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.26";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.26";
-import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.26";
-import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.26";
-import { customerNameById, customerAddressById } from "./customers.js?v=6.6.26";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.26";
+import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.27";
+import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.27";
+import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.27";
+import { resolveMaterialSelection } from "./materials.js?v=6.6.27";
+import { workshopUnit, computePriceRecommendations } from "./calculator.js?v=6.6.27";
+import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.27";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.27";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.27";
+import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.27";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.27";
+import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.27";
+import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.27";
+import { customerNameById, customerAddressById } from "./customers.js?v=6.6.27";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.27";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -267,13 +267,11 @@ function signedEuro(value){
   const clean=Math.abs(value)<.005?0:value;
   return `${clean>0?"+":""}${euro(clean)}`;
 }
-function recommendationRows(withWork,withoutWork){return `
-  <div><span>Niedrigste Preisempfehlung ohne Arbeitszeit</span><strong>${euro(withoutWork.low)}</strong></div>
-  <div><span>Niedrigste Preisempfehlung mit Arbeitszeit</span><strong>${euro(withWork.low)}</strong></div>
-  <div><span>Optimal ohne Arbeitszeit</span><strong>${euro(withoutWork.optimal)}</strong></div>
-  <div><span>Optimal mit Arbeitszeit</span><strong>${euro(withWork.optimal)}</strong></div>
-  <div><span>Premium ohne Arbeitszeit</span><strong>${euro(withoutWork.premium)}</strong></div>
-  <div><span>Premium mit Arbeitszeit</span><strong>${euro(withWork.premium)}</strong></div>`;}
+function recommendationRows(withWork,withoutWork){return `<div class="price-recommendation-table-wrap"><table class="price-recommendation-table"><thead><tr><th>Preisstufe</th><th>Ohne Arbeitszeit</th><th>Mit Arbeitszeit</th></tr></thead><tbody>
+  <tr><th>Niedrigste</th><td>${euro(withoutWork.low)}</td><td>${euro(withWork.low)}</td></tr>
+  <tr><th>Optimal</th><td>${euro(withoutWork.optimal)}</td><td>${euro(withWork.optimal)}</td></tr>
+  <tr><th>Premium</th><td>${euro(withoutWork.premium)}</td><td>${euro(withWork.premium)}</td></tr>
+  </tbody></table></div>`;}
 function currentCustomerCalculation(p){
   if(p.orderType!=="customerObject")return null;
   const storedBreakdown=p.pricingBreakdown||p.calculationSnapshot?.pricingBreakdown||p.estimatorData?.pricingBreakdown||{};

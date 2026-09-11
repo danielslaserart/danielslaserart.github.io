@@ -1,4 +1,4 @@
-import { state } from "./storage.js?v=6.6.26";
+import { state } from "./storage.js?v=6.6.27";
 
 const money=n=>(Math.max(0,Number(n)||0)).toFixed(2);
 
