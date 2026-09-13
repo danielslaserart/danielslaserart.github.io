@@ -1,17 +1,17 @@
-import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.32";
-import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.32";
-import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.32";
-import { resolveMaterialSelection } from "./materials.js?v=6.6.32";
-import { workshopUnit, computePriceRecommendations } from "./calculator.js?v=6.6.32";
-import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.32";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.32";
-import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.32";
-import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.32";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.32";
-import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.32";
-import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.32";
-import { customerNameById, customerAddressById } from "./customers.js?v=6.6.32";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.32";
+import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.33";
+import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.33";
+import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.33";
+import { resolveMaterialSelection } from "./materials.js?v=6.6.33";
+import { workshopUnit, computePriceRecommendations } from "./calculator.js?v=6.6.33";
+import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.33";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.33";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.33";
+import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.33";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.33";
+import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.33";
+import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.33";
+import { customerNameById, customerAddressById } from "./customers.js?v=6.6.33";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.33";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -244,7 +244,7 @@ export function renderStatisticsCharts(){
   box.innerHTML=`<div class="chart-card"><b>Umsatz</b><strong>${euro(totalSale)}</strong>${bars}</div><div class="chart-card"><b>Gewinn</b><strong>${euro(totalProfit)}</strong><p>${projects.length} Projekte</p></div><div class="chart-card"><b>Meistgenutzte Materialien</b><p>${topMaterials}</p></div><div class="chart-card"><b>Maschinenlaufzeit</b><p>${machines}</p></div>`;
 }
 const PROCESSING_FIELD_IDS=["matMain","matTransfer","usageMain","usageTransfer","printMinutes","engraveMinutes","cutMinutes","workMinutes","hourlyRate","quantity","colors","plotMinutes","weedMinutes","mountMinutes","pressMinutes","prepMinutes"];
-const PROJECT_FIELD_SKIP=new Set(["projectName","customerName","customerAddress","projectNotes","machineSelect","projectStatus","projectTags","difficulty","riskSurcharge","expressSurcharge","objectMaterial","customerObjectProcess","agreementPrice","agreementPriceNote","agreementPriceType","priceType","priceAgreementDate","agreementPriceDate","isPreferredRepeatPrice","isPreferredCustomerPrice",...PROCESSING_FIELD_IDS]);
+const PROJECT_FIELD_SKIP=new Set(["projectName","customerName","customerAddress","projectNotes","machineSelect","projectStatus","projectTags","difficulty","riskSurcharge","expressSurcharge","customerBaseFeeEnabled","customerExpressEnabled","objectMaterial","customerObjectProcess","agreementPrice","agreementPriceNote","agreementPriceType","priceType","priceAgreementDate","agreementPriceDate","isPreferredRepeatPrice","isPreferredCustomerPrice",...PROCESSING_FIELD_IDS]);
 function fieldRow(id,value){
   const formatted=formatProjectFieldValue(id,value,{resolveMaterial:resolveMaterialSelection,resolveMachine:value=>state.machines.find(m=>m.id===value)});
   return `<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(formatted)}</strong></div>`;
@@ -277,7 +277,8 @@ function currentCustomerCalculation(p){
   const storedBreakdown=p.pricingBreakdown||p.calculationSnapshot?.pricingBreakdown||p.estimatorData?.pricingBreakdown||{};
   const results=p.calculationSnapshot?.results||{};
   const totals=positionTotals(p),hasCurrentPositions=Array.isArray(p.positions),material=hasCurrentPositions?totals.material:num(storedBreakdown.material),machine=hasCurrentPositions?totals.machine:num(storedBreakdown.machine??results.machineCosts),work=hasCurrentPositions?totals.work:num(storedBreakdown.work??results.workCosts),extra=hasCurrentPositions?totals.other:num(storedBreakdown.extra??results.additionalCosts);
-  const savedBaseFee=num(storedBreakdown.baseFee),baseFee=savedBaseFee>0?savedBaseFee:(num(state.settings.customerObject?.baseFee)||15),furtherSurcharges=num(storedBreakdown.furtherSurcharges),risk=num(storedBreakdown.risk??p.riskSurcharge),express=num(storedBreakdown.express??p.expressSurcharge),difficultyPercent=num(p.difficultyPercent??p.calculationSnapshot?.pricingSettings?.difficultyPercent);
+  const baseFeeDisabled=p.fields?.customerBaseFeeEnabled===false||p.fields?.customerBaseFeeEnabled==="false";
+  const savedBaseFee=num(storedBreakdown.baseFee),baseFee=baseFeeDisabled?0:(savedBaseFee>0?savedBaseFee:(num(state.settings.customerObject?.baseFee)||15)),furtherSurcharges=num(storedBreakdown.furtherSurcharges),risk=num(storedBreakdown.risk??p.riskSurcharge),express=num(storedBreakdown.express??p.expressSurcharge),difficultyPercent=num(p.difficultyPercent??p.calculationSnapshot?.pricingSettings?.difficultyPercent);
   const minimum=num(storedBreakdown.minimum??p.calculationSnapshot?.pricingSettings?.minimumPrice);
   const profitPercent=Math.max(0,num(p.fields?.profit??storedBreakdown.profitPercent??state.settings?.profit??30));
   const rounding=Math.max(.01,num(p.calculationSnapshot?.pricingSettings?.rounding??state.settings?.rounding??.1));

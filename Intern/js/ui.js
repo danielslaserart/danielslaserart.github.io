@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.32";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.32";
-import { renderMaterials } from "./materials.js?v=6.6.32";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.32";
-import { fillSettings } from "./settings.js?v=6.6.32";
-import { renderTools, resetTool } from "./statistics.js?v=6.6.32";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.32";
-import { appAlert, appPrompt } from "./dialogs.js?v=6.6.32";
-import { applyDesignDefaults } from "./design.js?v=6.6.32";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.32";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.33";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.33";
+import { renderMaterials } from "./materials.js?v=6.6.33";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=6.6.33";
+import { fillSettings } from "./settings.js?v=6.6.33";
+import { renderTools, resetTool } from "./statistics.js?v=6.6.33";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=6.6.33";
+import { appAlert, appPrompt } from "./dialogs.js?v=6.6.33";
+import { applyDesignDefaults } from "./design.js?v=6.6.33";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=6.6.33";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
@@ -90,10 +90,10 @@ export function loadCalculatorData(source={},options={}){
     ...(source.fields||{}),
     objectMaterial:source.objectMaterial??source.estimatorData?.materialName??"",
     objectValue:source.objectValue??source.estimatorData?.objectValue??"",
-    customerBaseFee:source.fields?.customerBaseFee??source.pricingBreakdown?.baseFee??source.calculationSnapshot?.pricingSettings?.baseFee??"",
+    customerBaseFeeEnabled:source.fields?.customerBaseFeeEnabled??(num(source.fields?.customerBaseFee??source.pricingBreakdown?.baseFee??source.calculationSnapshot?.pricingSettings?.baseFee)>0?"true":"false"),
     difficulty:source.difficulty??source.estimatorData?.difficulty??"normal",
     riskSurcharge:source.riskSurcharge??source.estimatorData?.riskSurcharge??source.pricingBreakdown?.risk??"",
-    expressSurcharge:source.expressSurcharge??source.estimatorData?.expressSurcharge??source.pricingBreakdown?.express??"",
+    customerExpressEnabled:source.fields?.customerExpressEnabled??(num(source.expressSurcharge??source.estimatorData?.expressSurcharge??source.pricingBreakdown?.express)>0?"true":"false"),
     profit:storedProfit
   };
   const module=source.module||({"3D-Druck":"3d","Laser":"laser","Vinylfolie":"vinyl","Textilfolie":"textil"}[source.type])||"3d";

@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json?v=6.6">
   <link rel="apple-touch-icon" href="icon-192.png?v=6.5">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.5">
-  <link rel="stylesheet" href="style.css?v=6.6.32">
+  <link rel="stylesheet" href="style.css?v=6.6.33">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -756,79 +756,25 @@
       <div><div class="eyebrow">ZENTRALE WERTE</div><h2>Einstellungen</h2></div>
     </div>
 
-    <form id="settingsForm" class="card form-card">
-      <div class="field-grid">
-        <label>Gewinnaufschlag (%)<input id="setProfit" type="number" step="any" inputmode="decimal"></label>
-        <label>Eigener Stundenlohn (€/h)<input id="setHourly" type="number" step="any" inputmode="decimal"></label>
-        <label>Plotter Maschinenkosten (€/Min.)<input id="setPlotter" type="number" step="any" inputmode="decimal"></label>
-        <label>Transferpresse (€/Min.)<input id="setPresse" type="number" step="any" inputmode="decimal"></label>
-        <label>Fehler-/Ausschussreserve (%)<input id="setReserve" type="number" step="any" inputmode="decimal"></label>
-        <label>Standard-Verpackung (€)<input id="setPackaging" type="number" step="any" inputmode="decimal"></label>
-        <label>Gemeinkosten (%)<input id="setOverhead" type="number" min="0" step="any" inputmode="decimal"></label>
-        <label>Stromkosten (€/kWh)<input id="setElectricity" type="number" min="0" step="any" inputmode="decimal"></label>
-        <label>Standardmaschine<select id="setDefaultMachine"></select></label>
-        <label>Standardmaterial<select id="setDefaultMaterial"></select></label>
-        <label>Preisrundung
-          <select id="setRounding">
-            <option value="0.01">Centgenau</option>
-            <option value="0.1">Auf 10 Cent</option>
-            <option value="0.5">Auf 50 Cent</option>
-            <option value="1">Auf volle Euro</option>
-          </select>
-        </label>
-      </div>
-      <div class="settings-subsection">
-        <div class="group-title">DESIGN- UND DATEIDIENSTLEISTUNGEN</div>
-        <div class="field-grid">
-          <label>Design-Stundenlohn (€/h)<input id="setDesignHourly" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>Mindestpauschale Design (€)<input id="setDesignMinimum" type="number" min="0" step="any" inputmode="decimal"></label>
-        </div>
-      </div>
-      <div class="settings-subsection">
-        <div class="group-title">KUNDENOBJEKTE</div>
-        <div class="field-grid">
-          <label>Grundpauschale Kundenobjekte (€)<input id="setCustomerBaseFee" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>Mindestpreis Kundenobjekte (€)<input id="setCustomerMinimum" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>Standard-Expresszuschlag (€)<input id="setCustomerExpress" type="number" min="0" step="any" inputmode="decimal"></label>
-        </div>
-        <h4>Schwierigkeitsgrade (%)</h4>
-        <div class="field-grid settings-five-grid">
-          <label>Sehr einfach<input id="setDifficultyVeryEasy" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>Einfach<input id="setDifficultyEasy" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>Normal<input id="setDifficultyNormal" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>Schwer<input id="setDifficultyHard" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>Sehr schwer<input id="setDifficultyVeryHard" type="number" min="0" step="any" inputmode="decimal"></label>
-        </div>
-        <h4>Risikoaufschläge nach Objektwert (€)</h4>
-        <div class="field-grid settings-five-grid">
-          <label>Unter 50 €<input id="setRiskUnder50" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>50–100 €<input id="setRisk50To100" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>100–250 €<input id="setRisk100To250" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>250–500 €<input id="setRisk250To500" type="number" min="0" step="any" inputmode="decimal"></label>
-          <label>Über 500 €<input id="setRiskOver500" type="number" min="0" step="any" inputmode="decimal"></label>
-        </div>
-      </div>
+    <form id="settingsForm" class="card form-card settings-accordion">
+      <details class="settings-panel" open><summary><span>Preise &amp; Kalkulation</span><small>Gewinn, Stundenlohn, Reserve und Rundung</small></summary><div class="settings-panel-body field-grid">
+        <label>Gewinnaufschlag (%)<input id="setProfit" type="number" step="any" inputmode="decimal"></label><label>Eigener Stundenlohn (€/h)<input id="setHourly" type="number" step="any" inputmode="decimal"></label><label>Fehler-/Ausschussreserve (%)<input id="setReserve" type="number" step="any" inputmode="decimal"></label><label>Standard-Verpackung (€)<input id="setPackaging" type="number" step="any" inputmode="decimal"></label><label>Gemeinkosten (%)<input id="setOverhead" type="number" min="0" step="any" inputmode="decimal"></label><label>Stromkosten (€/kWh)<input id="setElectricity" type="number" min="0" step="any" inputmode="decimal"></label><label>Preisrundung<select id="setRounding"><option value="0.01">Centgenau</option><option value="0.1">Auf 10 Cent</option><option value="0.5">Auf 50 Cent</option><option value="1">Auf volle Euro</option></select></label>
+      </div></details>
+      <details class="settings-panel"><summary><span>Maschinen &amp; Standards</span><small>Plotter, Presse und Vorauswahl</small></summary><div class="settings-panel-body field-grid">
+        <label>Plotter Maschinenkosten (€/Min.)<input id="setPlotter" type="number" step="any" inputmode="decimal"></label><label>Transferpresse (€/Min.)<input id="setPresse" type="number" step="any" inputmode="decimal"></label><label>Standardmaschine<select id="setDefaultMachine"></select></label><label>Standardmaterial<select id="setDefaultMaterial"></select></label>
+      </div></details>
+      <details class="settings-panel"><summary><span>Design &amp; Dateien</span><small>Stundenlohn und Mindestpauschale</small></summary><div class="settings-panel-body field-grid">
+        <label>Design-Stundenlohn (€/h)<input id="setDesignHourly" type="number" min="0" step="any" inputmode="decimal"></label><label>Mindestpauschale Design (€)<input id="setDesignMinimum" type="number" min="0" step="any" inputmode="decimal"></label>
+      </div></details>
+      <details class="settings-panel"><summary><span>Kundenobjekte</span><small>Pauschalen, Schwierigkeit und Risiko</small></summary><div class="settings-panel-body">
+        <div class="field-grid"><label>Grundpauschale Kundenobjekte (€)<input id="setCustomerBaseFee" type="number" min="0" step="any" inputmode="decimal"></label><label>Mindestpreis Kundenobjekte (€)<input id="setCustomerMinimum" type="number" min="0" step="any" inputmode="decimal"></label><label>Standard-Expresszuschlag (€)<input id="setCustomerExpress" type="number" min="0" step="any" inputmode="decimal"></label></div>
+        <h4>Schwierigkeitsgrade (%)</h4><div class="field-grid settings-five-grid"><label>Sehr einfach<input id="setDifficultyVeryEasy" type="number" min="0" step="any" inputmode="decimal"></label><label>Einfach<input id="setDifficultyEasy" type="number" min="0" step="any" inputmode="decimal"></label><label>Normal<input id="setDifficultyNormal" type="number" min="0" step="any" inputmode="decimal"></label><label>Schwer<input id="setDifficultyHard" type="number" min="0" step="any" inputmode="decimal"></label><label>Sehr schwer<input id="setDifficultyVeryHard" type="number" min="0" step="any" inputmode="decimal"></label></div>
+        <h4>Risikoaufschläge nach Objektwert (€)</h4><div class="field-grid settings-five-grid"><label>Unter 50 €<input id="setRiskUnder50" type="number" min="0" step="any" inputmode="decimal"></label><label>50–100 €<input id="setRisk50To100" type="number" min="0" step="any" inputmode="decimal"></label><label>100–250 €<input id="setRisk100To250" type="number" min="0" step="any" inputmode="decimal"></label><label>250–500 €<input id="setRisk250To500" type="number" min="0" step="any" inputmode="decimal"></label><label>Über 500 €<input id="setRiskOver500" type="number" min="0" step="any" inputmode="decimal"></label></div>
+      </div></details>
       <button class="primary wide" type="submit">Einstellungen speichern</button>
     </form>
-
-    <div class="machines-section">
-      <div class="section-head compact"><div><div class="eyebrow">MASCHINEN</div><h3>Kostenprofile</h3></div></div>
-      <p class="tool-intro">Hier speicherst du Kosten und Standardgeschwindigkeiten jeder Maschine. Der Motiv-Schätzer übernimmt diese Werte automatisch.</p>
-      <div id="machineList" class="machine-list"></div>
-    </div>
-    <div class="card cloud-card">
-      <h3>☁ Cloud-Speicherung</h3>
-      <p>Materialien, Einstellungen und Projekte werden nach jeder Änderung automatisch in deinem Supabase-Konto gespeichert.</p>
-    </div>
-
-    <div class="card backup">
-      <h3>Zusätzliche Sicherung</h3>
-      <p>Die Daten werden automatisch in Supabase gespeichert. Zusätzlich kannst du eine lokale Sicherungsdatei herunterladen.</p>
-      <div class="button-row">
-        <button id="exportBtn" class="secondary" type="button">Backup herunterladen</button>
-        <label class="secondary file-button">Backup einlesen<input id="importInput" type="file" accept=".json,application/json"></label>
-      </div>
-    </div>
+    <details class="card settings-panel system-section-panel"><summary><span>Maschinen-Kostenprofile</span><small>Kosten und Geschwindigkeiten je Maschine</small></summary><div class="settings-panel-body machines-section"><p class="tool-intro">Hier speicherst du Kosten und Standardgeschwindigkeiten jeder Maschine. Der Motiv-Schätzer übernimmt diese Werte automatisch.</p><div id="machineList" class="machine-list"></div></div></details>
+    <details class="card settings-panel system-section-panel"><summary><span>Daten &amp; Sicherung</span><small>Cloud-Status, Export und Wiederherstellung</small></summary><div class="settings-panel-body"><div class="cloud-card"><h3>☁ Cloud-Speicherung</h3><p>Materialien, Einstellungen und Projekte werden nach jeder Änderung automatisch gespeichert.</p></div><div class="backup"><h3>Zusätzliche Sicherung</h3><p>Zusätzlich kannst du eine lokale Sicherungsdatei herunterladen oder wieder einlesen.</p><div class="button-row"><button id="exportBtn" class="secondary" type="button">Backup herunterladen</button><label class="secondary file-button">Backup einlesen<input id="importInput" type="file" accept=".json,application/json"></label></div></div></div></details>
   </section>
 </main>
 <dialog id="appDialog" class="app-dialog">
@@ -1082,6 +1028,6 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
-<script type="module" src="js/app.js?v=6.6.32"></script>
+<script type="module" src="js/app.js?v=6.6.33"></script>
 </body>
 </html>

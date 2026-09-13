@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.32";
-import { state, save, defaults } from "./storage.js?v=6.6.32";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.32";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.32";
-import { renderProjects } from "./projects.js?v=6.6.32";
-import { appConfirm } from "./dialogs.js?v=6.6.32";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.32";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.32";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.32";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.33";
+import { state, save, defaults } from "./storage.js?v=6.6.33";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.33";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.33";
+import { renderProjects } from "./projects.js?v=6.6.33";
+import { appConfirm } from "./dialogs.js?v=6.6.33";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.33";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.33";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.33";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -119,7 +119,7 @@ function getMachine(){
 }
 export function captureCalculatorFields(){
   const fields={};
-  document.querySelectorAll("#calcForm input,#calcForm select,#calcForm textarea").forEach(el=>{if(el.id)fields[el.id]=el.value;});
+  document.querySelectorAll("#calcForm input,#calcForm select,#calcForm textarea").forEach(el=>{if(el.id)fields[el.id]=el.type==="checkbox"?String(el.checked):el.value;});
   return fields;
 }
 function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,customerProcess,fields,positions}){
@@ -161,7 +161,7 @@ function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,custome
   };
 }
 export function applyCalculatorFields(fields={}){
-  Object.entries(fields).forEach(([id,value])=>{const el=$(id);if(el)el.value=value;});
+  Object.entries(fields).forEach(([id,value])=>{const el=$(id);if(!el)return;if(el.type==="checkbox")el.checked=value===true||value==="true"||value==="on"||value===1;else el.value=value;});
   if($("riskSurcharge")&&fields.riskSurcharge!==""&&fields.riskSurcharge!=null)$("riskSurcharge").dataset.manual="true";
   calculate();
 }
@@ -212,10 +212,10 @@ function customerPricingFields(){
     <div class="field-grid customer-object-fields">
       <label>Material des Kundenobjekts (nur Bezeichnung)<input id="objectMaterial" placeholder="z. B. Holz, Glas, Textil"></label>
       <label>Wert des Kundenobjekts (€)<input id="objectValue" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 120"></label>
-      <label>Grundpauschale (€)<input id="customerBaseFee" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.baseFee)}"></label>
+      <label class="calculator-toggle"><span>Grundpauschale (${euro(settings.baseFee)})</span><input id="customerBaseFeeEnabled" type="checkbox" checked><i aria-hidden="true"></i></label>
       <label>Schwierigkeitsgrad<select id="difficulty"><option value="veryEasy">Sehr einfach (${num(settings.difficulties.veryEasy)} %)</option><option value="easy">Einfach (${num(settings.difficulties.easy)} %)</option><option value="normal" selected>Normal (${num(settings.difficulties.normal)} %)</option><option value="hard">Schwer (${num(settings.difficulties.hard)} %)</option><option value="veryHard">Sehr schwer (${num(settings.difficulties.veryHard)} %)</option></select></label>
       <div class="risk-field-wrap"><label>Risikoaufschlag (€)<input id="riskSurcharge" type="number" min="0" step="any" inputmode="decimal" value="0"></label><button id="resetRiskSuggestion" class="ghost small" type="button">Automatisch</button></div>
-      <label>Expresszuschlag (€)<input id="expressSurcharge" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.expressFee)}"></label>
+      <label class="calculator-toggle"><span>Expresszuschlag (${euro(settings.expressFee)})</span><input id="customerExpressEnabled" type="checkbox"><i aria-hidden="true"></i></label>
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${num(state.settings.profit)}"></label>
       <label>Beratung (€)<input id="consultationFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
       <label>Einrichtung (€)<input id="setupFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
@@ -380,10 +380,10 @@ export function renderCalculator(clear=false){
       <div class="field-grid customer-object-fields">
         ${customer?`<label>Material des Kundenobjekts (nur Bezeichnung)<input id="objectMaterial" placeholder="z. B. versilbert, Edelstahl, Holz"></label>
         <label>Wert des Kundenobjekts (€)<input id="objectValue" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 120"></label>
-        <label>Grundpauschale (€)<input id="customerBaseFee" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.baseFee)}"></label>
+        <label class="calculator-toggle"><span>Grundpauschale (${euro(settings.baseFee)})</span><input id="customerBaseFeeEnabled" type="checkbox" checked><i aria-hidden="true"></i></label>
         <label>Schwierigkeitsgrad<select id="difficulty"><option value="veryEasy">Sehr einfach (${num(settings.difficulties.veryEasy)} %)</option><option value="easy">Einfach (${num(settings.difficulties.easy)} %)</option><option value="normal" selected>Normal (${num(settings.difficulties.normal)} %)</option><option value="hard">Schwer (${num(settings.difficulties.hard)} %)</option><option value="veryHard">Sehr schwer (${num(settings.difficulties.veryHard)} %)</option></select></label>
         <div class="risk-field-wrap"><label>Risikoaufschlag (€)<input id="riskSurcharge" type="number" min="0" step="any" inputmode="decimal" value="0"></label><button id="resetRiskSuggestion" class="ghost small" type="button">Automatisch</button></div>`:""}
-        ${customer?`<label>Expresszuschlag (€)<input id="expressSurcharge" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.expressFee)}"></label><label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${num(state.settings.profit)}"></label>`:""}
+        ${customer?`<label class="calculator-toggle"><span>Expresszuschlag (${euro(settings.expressFee)})</span><input id="customerExpressEnabled" type="checkbox"><i aria-hidden="true"></i></label><label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${num(state.settings.profit)}"></label>`:""}
         ${customer?`<label>Beratung (€)<input id="consultationFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Einrichtung (€)<input id="setupFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Positionierung (€)<input id="positioningFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Fokus (€)<input id="focusFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Probelauf (€)<input id="testRunFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Nachkontrolle (€)<input id="inspectionFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Reinigung (€)<input id="cleaningFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${num(state.settings.packaging)}"></label><label>Sonstiger Zuschlag (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value="0"></label>`:""}
         <label class="${customer&&process==="cut"?"hidden":""}">Gravurdauer (Minuten)<input id="engraveMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
         <label class="${customer&&process==="engrave"?"hidden":""}">Schnittdauer (Minuten)<input id="cutMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
@@ -557,9 +557,9 @@ export function calculate(){
   const priceParts={
     orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
     overheadPercent:state.settings.overhead,reservePercent,profitPercent,roundFn:rounded,
-    baseFee:orderType==="customerObject"?num($("customerBaseFee")?.value):settings.baseFee,
+    baseFee:orderType==="customerObject"&&$("customerBaseFeeEnabled")?.checked?num(settings.baseFee):0,
     furtherSurcharges:orderType==="customerObject"?num($("consultationFee")?.value)+num($("setupFee")?.value)+num($("positioningFee")?.value)+num($("focusFee")?.value)+num($("testRunFee")?.value)+num($("inspectionFee")?.value)+num($("cleaningFee")?.value)+num($("otherCosts")?.value):0,
-    minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:num($("expressSurcharge")?.value)
+    minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:orderType==="customerObject"&&$("customerExpressEnabled")?.checked?num(settings.expressFee):0
   };
   const recommendations=computePriceRecommendations(priceParts);
   const breakdown={...recommendations.withWork,saleWithoutWork:recommendations.withoutWork.sale,costWithoutWork:recommendations.withoutWork.cost};
@@ -625,7 +625,7 @@ $("calcForm").onsubmit=async e=>{
     orderType,process:customerProcess,materialId:"",materialName:$("objectMaterial")?.value.trim()||"Kundenobjekt",machineId:machine?.id||"",machineName:machine?.name||"",
     estimatedCutTime,estimatedEngravingTime,estimatedTotalTime:estimatedCutTime+estimatedEngravingTime,
     actualCutTime:null,actualEngravingTime:null,actualTotalTime:null,estimatedPrice:saleNow,actualPrice:saleNow,materialCost:0,cost:costNow,
-    objectValue:num($("objectValue")?.value),riskSurcharge:num($("riskSurcharge")?.value),expressSurcharge:num($("expressSurcharge")?.value),difficulty,difficultyPercent:num(customerSettings.difficulties?.[difficulty])
+    objectValue:num($("objectValue")?.value),riskSurcharge:num($("riskSurcharge")?.value),expressSurcharge:num(breakdown.express),difficulty,difficultyPercent:num(customerSettings.difficulties?.[difficulty])
   }:(existingProject?.estimatorData||null);
   const savedFields=captureCalculatorFields();
   const savedPositions=getCalculatorPositions();
@@ -637,7 +637,7 @@ $("calcForm").onsubmit=async e=>{
   const actualSale=closed?(agreementFields.agreementPrice??existingProject?.actualPrice??existingProject?.sale??saleNow):saleNow;
   const customerProcessLabel=(CUSTOMER_PROCESS_OPTIONS[state.activeModule]||[]).find(([value])=>value===customerProcess)?.[1]||"Kundenobjekt bearbeiten";
   const manualWorkMinutes=num($("workMinutes")?.value),manualHourlyRate=num($("hourlyRate")?.value),manualWorkCost=manualWorkMinutes/60*manualHourlyRate;
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),manualWorkMinutes,manualHourlyRate,manualWorkCost,sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num(breakdown.express):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),manualWorkMinutes,manualHourlyRate,manualWorkCost,sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   // Neue Projekte speichern keine Adresskopie. Altprojekt-Anschriften bleiben unverändert als historischer Rückfall erhalten.
   if(existingProject?.customerAddress)project.customerAddress=existingProject.customerAddress;else delete project.customerAddress;
   if(existingProject?.fields?.customerAddress)project.fields.customerAddress=existingProject.fields.customerAddress;
