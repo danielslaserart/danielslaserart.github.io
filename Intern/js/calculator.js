@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.31";
-import { state, save, defaults } from "./storage.js?v=6.6.31";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.31";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.31";
-import { renderProjects } from "./projects.js?v=6.6.31";
-import { appConfirm } from "./dialogs.js?v=6.6.31";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.31";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.31";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.31";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.32";
+import { state, save, defaults } from "./storage.js?v=6.6.32";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.32";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.32";
+import { renderProjects } from "./projects.js?v=6.6.32";
+import { appConfirm } from "./dialogs.js?v=6.6.32";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.32";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.32";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.32";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -326,7 +326,10 @@ export function renderCalculator(clear=false){
     if($("projectStatus")) $("projectStatus").value="offer";
     if($("projectTags")) $("projectTags").value="";
     setTimerSeconds(0);
+    if($("workMinutes"))$("workMinutes").value="";
+    if($("hourlyRate"))$("hourlyRate").value=state.settings.hourly;
   }
+  if($("hourlyRate")&&!$("hourlyRate").value)$("hourlyRate").value=state.settings.hourly;
 
   let html="";
   if(type==="3d") html=`
@@ -338,8 +341,6 @@ export function renderCalculator(clear=false){
       <label>Filamentverbrauch (g)<input id="usageMain" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Druckdauer (Minuten)<input id="printMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <div class="machine-rate-display">Maschinenkosten: <strong id="machineRateDisplay">0,00 € / Std.</strong></div>
-      <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-      <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       ${orderType==="own"?`<label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
@@ -357,8 +358,6 @@ export function renderCalculator(clear=false){
       <label>Schnittdauer (Minuten)<input id="cutMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <div class="machine-rate-display">Gravur: <strong id="engraveRateDisplay">0,00 € / Min.</strong></div>
       <div class="machine-rate-display">Schnitt: <strong id="cutRateDisplay">0,00 € / Min.</strong></div>
-      <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-      <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       ${orderType==="own"?`<label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
@@ -390,8 +389,6 @@ export function renderCalculator(clear=false){
         <label class="${customer&&process==="engrave"?"hidden":""}">Schnittdauer (Minuten)<input id="cutMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
         <div class="machine-rate-display">Gravur: <strong id="engraveRateDisplay">0,00 € / Min.</strong></div>
         <div class="machine-rate-display">Schnitt: <strong id="cutRateDisplay">0,00 € / Min.</strong></div>
-        <label>Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-        <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
         ${customer?"":`<label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label><label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label><label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>`}
       </div>
       ${customer?`<div class="price-explanation">Das Kundenobjekt selbst bleibt kundeneigen und kostet 0 €. Eigene Materialien und weitere Arbeiten können unten als zusätzliche Positionen ergänzt werden.</div>`:""}`;
@@ -412,7 +409,6 @@ export function renderCalculator(clear=false){
       <label>Plotterkosten (€/Minute)<input id="plotRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.plotter}"></label>
       <label>Entgitterzeit (Minuten)<input id="weedMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Montage-/Klebezeit (Minuten)<input id="mountMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-      <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       ${orderType==="own"?`<label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
@@ -437,7 +433,6 @@ export function renderCalculator(clear=false){
       <label>Presszeit je Stück (Minuten)<input id="pressMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       <label>Pressenkosten (€/Minute)<input id="pressRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.presse}"></label>
       <label>Vor-/Nachbereitung je Stück (Minuten)<input id="prepMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-      <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung gesamt (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
       ${orderType==="own"?`<label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
@@ -531,7 +526,7 @@ export function calculate(){
     qty=Math.max(1,num($("quantity")?.value));
     material=unitMain*num($("usageMain")?.value)+unitTransfer*num($("usageTransfer")?.value);
     machine=num($("plotMinutes")?.value)*num($("plotRate")?.value);
-    work=((num($("weedMinutes")?.value)+num($("mountMinutes")?.value))/60)*num($("hourlyRate")?.value);
+    work=((num($("workMinutes")?.value)+num($("weedMinutes")?.value)+num($("mountMinutes")?.value))/60)*num($("hourlyRate")?.value);
     extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
   if(type==="textil"){
@@ -539,7 +534,7 @@ export function calculate(){
     const colors=Math.max(1,num($("colors")?.value));
     material=(unitMain*num($("usageMain")?.value)*colors*qty)+(num($("textilePrice")?.value)*qty);
     machine=(num($("plotMinutes")?.value)*num($("plotRate")?.value)*qty)+(num($("pressMinutes")?.value)*num($("pressRate")?.value)*qty);
-    work=((num($("weedMinutes")?.value)+num($("prepMinutes")?.value))*qty/60)*num($("hourlyRate")?.value);
+    work=(((num($("weedMinutes")?.value)+num($("prepMinutes")?.value))*qty+num($("workMinutes")?.value))/60)*num($("hourlyRate")?.value);
     extra=num($("packaging")?.value)+num($("otherCosts")?.value);
   }
 
@@ -550,7 +545,7 @@ export function calculate(){
     work+=totals.work;
     extra=totals.other+num($("packaging")?.value);
   }else{
-    material=totals.material;machine=totals.machine;work=totals.work;extra=totals.other;
+    material=totals.material;machine=totals.machine;work+=totals.work;extra=totals.other;
   }
 
   const settings=getCustomerSettings(),difficultyKey=$("difficulty")?.value||"normal";
@@ -641,7 +636,8 @@ $("calcForm").onsubmit=async e=>{
   const projectStatus=$("projectStatus")?.value||"offer",closed=["done","billed"].includes(projectStatus);
   const actualSale=closed?(agreementFields.agreementPrice??existingProject?.actualPrice??existingProject?.sale??saleNow):saleNow;
   const customerProcessLabel=(CUSTOMER_PROCESS_OPTIONS[state.activeModule]||[]).find(([value])=>value===customerProcess)?.[1]||"Kundenobjekt bearbeiten";
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const manualWorkMinutes=num($("workMinutes")?.value),manualHourlyRate=num($("hourlyRate")?.value),manualWorkCost=manualWorkMinutes/60*manualHourlyRate;
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),manualWorkMinutes,manualHourlyRate,manualWorkCost,sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   // Neue Projekte speichern keine Adresskopie. Altprojekt-Anschriften bleiben unverändert als historischer Rückfall erhalten.
   if(existingProject?.customerAddress)project.customerAddress=existingProject.customerAddress;else delete project.customerAddress;
   if(existingProject?.fields?.customerAddress)project.fields.customerAddress=existingProject.fields.customerAddress;
