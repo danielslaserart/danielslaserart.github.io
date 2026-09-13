@@ -1,16 +1,20 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.30";
-import { state, save, defaults } from "./storage.js?v=6.6.30";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.30";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.30";
-import { renderProjects } from "./projects.js?v=6.6.30";
-import { appConfirm } from "./dialogs.js?v=6.6.30";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.30";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.30";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.30";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.31";
+import { state, save, defaults } from "./storage.js?v=6.6.31";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.31";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.31";
+import { renderProjects } from "./projects.js?v=6.6.31";
+import { appConfirm } from "./dialogs.js?v=6.6.31";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.31";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.31";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.31";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
-function getCustomerSettings(){return state.settings.customerObject||defaults.settings.customerObject;}
+function getCustomerSettings(){
+  const saved=state.settings.customerObject||{};
+  return {...defaults.settings.customerObject,...saved,baseFee:num(saved.baseFee)>0?num(saved.baseFee):defaults.settings.customerObject.baseFee,
+    difficulties:{...defaults.settings.customerObject.difficulties,...(saved.difficulties||{})},risks:{...defaults.settings.customerObject.risks,...(saved.risks||{})}};
+}
 export function suggestedRiskSurcharge(value,settings=getCustomerSettings()){
   const v=Math.max(0,num(value)),r=settings.risks||{};
   if(v<50)return num(r.under50);

@@ -1,6 +1,6 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.6.30";
-import { appConfirm } from "./dialogs.js?v=6.6.30";
-import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6.30";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.6.31";
+import { appConfirm } from "./dialogs.js?v=6.6.31";
+import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6.31";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -89,7 +89,7 @@ export const defaults = {
     overhead:0,electricity:0,defaultMachine:"",defaultMaterial:"",
     design:{hourlyRate:0,minimumFee:0},
     customerObject:{
-      baseFee:0,minimumPrice:0,expressFee:0,
+      baseFee:15,minimumPrice:0,expressFee:0,
       difficulties:{veryEasy:0,easy:0,normal:0,hard:0,veryHard:0},
       risks:{under50:0,from50To100:0,from100To250:0,from250To500:0,over500:0}
     }
@@ -305,16 +305,21 @@ export function isReferenceRecord(record){return record?.recordType==="reference
 export function getRealProjects(){return state.projects.filter(Boolean).filter(isRealProject);}
 export function getReferenceProjects(){return state.projects.filter(isReferenceRecord);}
 export function mergeSettings(settings={}){
+  const customerObject={
+    ...defaults.settings.customerObject,
+    ...(settings?.customerObject||{}),
+    difficulties:{...defaults.settings.customerObject.difficulties,...(settings?.customerObject?.difficulties||{})},
+    risks:{...defaults.settings.customerObject.risks,...(settings?.customerObject?.risks||{})}
+  };
+  // Frühere Versionen speicherten die 15-€-Pauschale teilweise nur als
+  // Mindestpreis. Ein leerer/alter Nullwert wird auf die Standardpauschale
+  // angehoben, damit sie als eigener Preisbestandteil sichtbar bleibt.
+  if(num(customerObject.baseFee)<=0)customerObject.baseFee=defaults.settings.customerObject.baseFee;
   return {
     ...defaults.settings,
     ...(settings||{}),
     design:{...defaults.settings.design,...(settings?.design||{})},
-    customerObject:{
-      ...defaults.settings.customerObject,
-      ...(settings?.customerObject||{}),
-      difficulties:{...defaults.settings.customerObject.difficulties,...(settings?.customerObject?.difficulties||{})},
-      risks:{...defaults.settings.customerObject.risks,...(settings?.customerObject?.risks||{})}
-    }
+    customerObject
   };
 }
 function migrateEmbeddedReferences(container){
