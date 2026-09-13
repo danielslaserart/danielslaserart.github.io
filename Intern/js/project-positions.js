@@ -1,13 +1,21 @@
-import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.6.35";
-import { state, save } from "./storage.js?v=6.6.35";
-import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.6.35";
-import { appAlert, appConfirm } from "./dialogs.js?v=6.6.35";
+import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.6.36";
+import { state, save } from "./storage.js?v=6.6.36";
+import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.6.36";
+import { appAlert, appConfirm } from "./dialogs.js?v=6.6.36";
 
 export const POSITION_ACTIVITIES=[
   ["engrave","Gravieren"],["cut","Schneiden"],["both","Gravieren und Schneiden"],
   ["print3d","3D-Druck"],["plot","Plotten"],["glue","Kleben"],["assemble","Montieren"],
   ["paint","Lackieren / Beizen"],["pack","Verpacken"],["material","Nur Material"],["other","Sonstiges"]
 ];
+const MODULE_ACTIVITIES={
+  "3d":["print3d","glue","assemble","paint","pack","material","other"],
+  laser:["engrave","cut","both","glue","assemble","paint","pack","material","other"],
+  vinyl:["plot","glue","assemble","pack","material","other"],
+  textil:["plot","assemble","pack","material","other"]
+};
+const defaultActivity=project=>project?.orderType==="customerObject"&&["engrave","cut","both","print3d","plot"].includes(project.customerObjectProcess)?project.customerObjectProcess:({"3d":"print3d",laser:"engrave",vinyl:"plot",textil:"plot"}[project?.module]||"other");
+function activitiesFor(project,selected){const allowed=MODULE_ACTIVITIES[project?.module]||POSITION_ACTIVITIES.map(([value])=>value);return POSITION_ACTIVITIES.filter(([value])=>allowed.includes(value)||value===selected);}
 const activityLabel=value=>POSITION_ACTIVITIES.find(row=>row[0]===value)?.[1]||"Sonstiges";
 const finite=value=>Number.isFinite(Number(value))?Number(value):0;
 const clamp=value=>Math.max(0,finite(value));
@@ -129,11 +137,11 @@ function workshopSizeOptions(selection,selected="custom"){
   const rows=[["small","Klein",levels.small],["medium","Mittel",levels.medium],["large","Groß",levels.large]].filter(([, ,value])=>value>0);
   return rows.map(([value,label,quantity])=>`<option value="${value}" ${selected===value?"selected":""}>${label} (${quantity.toLocaleString("de-DE")} ${esc(unit)})</option>`).join("")+`<option value="custom" ${selected==="custom"?"selected":""}>Eigene Menge</option>`;
 }
-function editorHtml(position){
+function editorHtml(position,project){
   const selected=selectionValue(position);
   const timeLabel=position.activity==="engrave"?"Gravurzeit (Min.)":position.activity==="cut"?"Schnittzeit (Min.)":position.activity==="print3d"?"Druckzeit (Min.)":"Maschinenzeit (Min.)";
   return `<dialog id="positionEditorDialog"><form method="dialog" class="dialog-card position-editor" id="positionEditorForm"><div class="section-head"><h2>${position.id?"Position bearbeiten":"Position hinzufügen"}</h2><button type="button" class="icon-btn" data-position-cancel>×</button></div>
-  <div class="field-grid"><label>Bezeichnung<input name="label" required value="${esc(position.label||"")}"></label><label>Tätigkeit<select name="activity">${POSITION_ACTIVITIES.map(([v,l])=>`<option value="${v}" ${position.activity===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
+  <div class="field-grid"><label>Bezeichnung<input name="label" required value="${esc(position.label||"")}"></label><label>Tätigkeit<select name="activity">${activitiesFor(project,position.activity).map(([v,l])=>`<option value="${v}" ${position.activity===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
   <fieldset><legend>Materialquelle</legend><div class="position-source-options"><label><input type="radio" name="materialSource" value="managed" ${position.materialSource==="managed"?"checked":""}> Materialverwaltung</label><label><input type="radio" name="materialSource" value="manual" ${position.materialSource==="manual"?"checked":""}> Einmalig manuell</label><label><input type="radio" name="materialSource" value="customer" ${position.materialSource==="customer"?"checked":""}> Kundeneigen (0 €)</label></div></fieldset>
   <div data-position-managed><label>Material / Variante<select name="managedMaterial">${materialOptionHtml(position.activity,selected)}</select></label></div>
   <div data-position-manual><label>Materialbezeichnung<input name="materialName" value="${esc(position.materialName||"")}"></label></div>
@@ -149,7 +157,7 @@ function editorHtml(position){
 function applyVisibility(form){const source=new FormData(form).get("materialSource")||"manual",activity=form.elements.activity.value;form.querySelector("[data-position-managed]").classList.toggle("hidden",source!=="managed");form.querySelector("[data-position-manual]").classList.toggle("hidden",source==="managed");form.elements.materialCost.disabled=source==="customer";if(source==="customer")form.elements.materialCost.value=0;const usesMachine=["engrave","cut","both","print3d","plot"].includes(activity);form.querySelector("[data-position-machine]").classList.toggle("hidden",!usesMachine);form.querySelector("[data-position-grams]").classList.toggle("hidden",activity!=="print3d");form.querySelector("[data-position-profile]").classList.toggle("hidden",!["engrave","cut","both"].includes(activity));form.querySelector("[data-position-work]").classList.toggle("hidden",activity==="material");form.querySelector("[data-position-other]").classList.toggle("hidden",activity==="material");const label=form.querySelector("[data-position-time-label]");if(label)label.childNodes[0].nodeValue=activity==="engrave"?"Gravurzeit (Min.)":activity==="cut"?"Schnittzeit (Min.)":activity==="print3d"?"Druckzeit (Min.)":"Maschinenzeit (Min.)";}
 
 async function openEditor(project,existing,onDone){
-  const wrapper=document.createElement("div");const draft=normalizePosition(existing||{id:"",activity:"engrave",materialSource:"managed",quantity:1,unit:"Stück"});wrapper.innerHTML=editorHtml(draft);document.body.append(wrapper);const dialog=wrapper.querySelector("dialog"),form=wrapper.querySelector("form");
+  const wrapper=document.createElement("div");const draft=normalizePosition(existing||{id:"",activity:defaultActivity(project),materialSource:"managed",quantity:1,unit:"Stück"});wrapper.innerHTML=editorHtml(draft,project);document.body.append(wrapper);const dialog=wrapper.querySelector("dialog"),form=wrapper.querySelector("form");
   const close=()=>{try{dialog.close()}catch{}wrapper.remove()};form.querySelectorAll("[data-position-cancel]").forEach(b=>b.onclick=close);
   const syncWorkCost=()=>{const minutes=clamp(form.elements.workMinutes.value),hourly=clamp(state.settings?.hourly);form.elements.workCost.value=(minutes/60*hourly).toFixed(2);};
   const syncManagedConsumption=(preferredSize=null)=>{const selection=resolveMaterialSelection(form.elements.managedMaterial.value),managed=new FormData(form).get("materialSource")==="managed",workshop=managed&&hasWorkshopUnit(selection),box=form.querySelector("[data-position-workshop-size]"),size=form.elements.consumptionSize,multiplier=form.elements.consumptionMultiplier;if(!selection||!managed){box.classList.add("hidden");return;}box.classList.toggle("hidden",!workshop);if(workshop){const details=workshopDetails(selection),wanted=preferredSize??size.value;size.innerHTML=workshopSizeOptions(selection,wanted);if(!size.value)size.value="custom";const preset=size.value!=="custom";form.querySelector("[data-position-workshop-multiplier]").classList.toggle("hidden",!preset);multiplier.disabled=!preset;if(preset){multiplier.value=Math.max(1,Math.round(clamp(multiplier.value)||1));form.elements.quantity.value=details.levels[size.value]*clamp(multiplier.value);}form.elements.unit.value=details.unit;form.elements.unit.readOnly=true;form.querySelector("[data-position-quantity-label]").childNodes[0].nodeValue=`Gesamtmenge in ${details.unit}`;form.querySelector("[data-position-workshop-info]").textContent=preset?`${details.levels[size.value].toLocaleString("de-DE")} ${details.unit} × ${multiplier.value} = ${clamp(form.elements.quantity.value).toLocaleString("de-DE")} ${details.unit} insgesamt · Lagerverbrauch und Kosten werden automatisch berechnet.`:`1 ${details.unit} = ${details.amount.toLocaleString("de-DE")} ${selection.unit} · Lagerverbrauch und Kosten werden automatisch berechnet.`;}else{multiplier.disabled=true;form.elements.unit.readOnly=false;form.querySelector("[data-position-quantity-label]").childNodes[0].nodeValue="Menge";}const baseConsumption=workshop?clamp(form.elements.quantity.value)*workshopDetails(selection).amount:materialQuantity(form.elements.quantity.value,selection.unit||form.elements.unit.value);form.elements.materialConsumption.value=baseConsumption;form.elements.materialCost.value=(materialUnitPrice(selection)*baseConsumption).toFixed(2);};
