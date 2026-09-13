@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.33";
-import { state, save, defaults } from "./storage.js?v=6.6.33";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.33";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.33";
-import { renderProjects } from "./projects.js?v=6.6.33";
-import { appConfirm } from "./dialogs.js?v=6.6.33";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.33";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.33";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.33";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.34";
+import { state, save, defaults } from "./storage.js?v=6.6.34";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.34";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.34";
+import { renderProjects } from "./projects.js?v=6.6.34";
+import { appConfirm } from "./dialogs.js?v=6.6.34";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.34";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.34";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.34";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -326,10 +326,7 @@ export function renderCalculator(clear=false){
     if($("projectStatus")) $("projectStatus").value="offer";
     if($("projectTags")) $("projectTags").value="";
     setTimerSeconds(0);
-    if($("workMinutes"))$("workMinutes").value="";
-    if($("hourlyRate"))$("hourlyRate").value=state.settings.hourly;
   }
-  if($("hourlyRate")&&!$("hourlyRate").value)$("hourlyRate").value=state.settings.hourly;
 
   let html="";
   if(type==="3d") html=`
@@ -439,8 +436,8 @@ export function renderCalculator(clear=false){
       <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>`:""}
     </div>`;
 
-  if(orderType==="customerObject"&&type!=="laser"){
-    html=`${customerPricingFields()}${html}<div class="price-explanation">Das Kundenobjekt selbst bleibt kundeneigen und kostet 0 €. Eigene Materialien und Arbeitsschritte werden normal kalkuliert.</div>`;
+  if(orderType==="customerObject"){
+    html=`${customerPricingFields()}<div class="price-explanation">Das Kundenobjekt selbst bleibt kundeneigen und kostet 0 €. Material, Maschinenzeit und Arbeitszeit werden ausschließlich unten über die Projektpositionen erfasst.</div>`;
   }
 
   const showCustomerObjectFields=orderType==="customerObject";
@@ -539,14 +536,10 @@ export function calculate(){
   }
 
   const totals=positionTotals(calculatorPositionProject);
-  if(orderType==="customerObject"){
-    material=totals.material;
-    machine+=totals.machine;
-    work+=totals.work;
-    extra=totals.other+num($("packaging")?.value);
-  }else{
-    material=totals.material;machine=totals.machine;work+=totals.work;extra=totals.other;
-  }
+  material=totals.material;
+  machine=totals.machine;
+  work=totals.work;
+  extra=totals.other;
 
   const settings=getCustomerSettings(),difficultyKey=$("difficulty")?.value||"normal";
   const enforcedProfit=$("calcForm")?.dataset.enforcedProfit;
@@ -636,8 +629,7 @@ $("calcForm").onsubmit=async e=>{
   const projectStatus=$("projectStatus")?.value||"offer",closed=["done","billed"].includes(projectStatus);
   const actualSale=closed?(agreementFields.agreementPrice??existingProject?.actualPrice??existingProject?.sale??saleNow):saleNow;
   const customerProcessLabel=(CUSTOMER_PROCESS_OPTIONS[state.activeModule]||[]).find(([value])=>value===customerProcess)?.[1]||"Kundenobjekt bearbeiten";
-  const manualWorkMinutes=num($("workMinutes")?.value),manualHourlyRate=num($("hourlyRate")?.value),manualWorkCost=manualWorkMinutes/60*manualHourlyRate;
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num(breakdown.express):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),manualWorkMinutes,manualHourlyRate,manualWorkCost,sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num(breakdown.express):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   // Neue Projekte speichern keine Adresskopie. Altprojekt-Anschriften bleiben unverändert als historischer Rückfall erhalten.
   if(existingProject?.customerAddress)project.customerAddress=existingProject.customerAddress;else delete project.customerAddress;
   if(existingProject?.fields?.customerAddress)project.fields.customerAddress=existingProject.fields.customerAddress;
