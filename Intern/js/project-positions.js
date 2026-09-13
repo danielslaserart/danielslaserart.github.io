@@ -1,7 +1,7 @@
-import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.6.34";
-import { state, save } from "./storage.js?v=6.6.34";
-import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.6.34";
-import { appAlert, appConfirm } from "./dialogs.js?v=6.6.34";
+import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.6.35";
+import { state, save } from "./storage.js?v=6.6.35";
+import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.6.35";
+import { appAlert, appConfirm } from "./dialogs.js?v=6.6.35";
 
 export const POSITION_ACTIVITIES=[
   ["engrave","Gravieren"],["cut","Schneiden"],["both","Gravieren und Schneiden"],
@@ -60,6 +60,7 @@ export function projectPositions(project={},includeLegacy=true){
 
 export function positionTotals(project={}){
   const positions=projectPositions(project,false);const totals=positions.reduce((sum,p)=>{sum.material+=p.materialCost;sum.machine+=p.machineCost;sum.work+=p.workCost;sum.other+=p.otherCost;return sum;},{material:0,machine:0,work:0,other:0});
+  totals.work+=clamp(project.manualWorkCost);
   if(totals.work<=0){
     const fields=project.fields||{},snapshot=project.calculationSnapshot||{},results=snapshot.results||{};
     const workMinutes=[fields.workMinutes,snapshot.fields?.workMinutes].map(clamp).find(value=>value>0)||0;

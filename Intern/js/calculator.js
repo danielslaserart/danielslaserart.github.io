@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.34";
-import { state, save, defaults } from "./storage.js?v=6.6.34";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.34";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.34";
-import { renderProjects } from "./projects.js?v=6.6.34";
-import { appConfirm } from "./dialogs.js?v=6.6.34";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.34";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.34";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.34";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.35";
+import { state, save, defaults } from "./storage.js?v=6.6.35";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.35";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.35";
+import { renderProjects } from "./projects.js?v=6.6.35";
+import { appConfirm } from "./dialogs.js?v=6.6.35";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.35";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.35";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.35";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -216,14 +216,6 @@ function customerPricingFields(){
       <label>Schwierigkeitsgrad<select id="difficulty"><option value="veryEasy">Sehr einfach (${num(settings.difficulties.veryEasy)} %)</option><option value="easy">Einfach (${num(settings.difficulties.easy)} %)</option><option value="normal" selected>Normal (${num(settings.difficulties.normal)} %)</option><option value="hard">Schwer (${num(settings.difficulties.hard)} %)</option><option value="veryHard">Sehr schwer (${num(settings.difficulties.veryHard)} %)</option></select></label>
       <div class="risk-field-wrap"><label>Risikoaufschlag (€)<input id="riskSurcharge" type="number" min="0" step="any" inputmode="decimal" value="0"></label><button id="resetRiskSuggestion" class="ghost small" type="button">Automatisch</button></div>
       <label class="calculator-toggle"><span>Expresszuschlag (${euro(settings.expressFee)})</span><input id="customerExpressEnabled" type="checkbox"><i aria-hidden="true"></i></label>
-      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${num(state.settings.profit)}"></label>
-      <label>Beratung (€)<input id="consultationFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
-      <label>Einrichtung (€)<input id="setupFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
-      <label>Positionierung (€)<input id="positioningFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
-      <label>Fokus (€)<input id="focusFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
-      <label>Probelauf (€)<input id="testRunFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
-      <label>Nachkontrolle (€)<input id="inspectionFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
-      <label>Reinigung (€)<input id="cleaningFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
     </div>`;
 }
 document.querySelectorAll('input[name="orderType"]').forEach(input=>input.addEventListener("change",()=>{
@@ -326,6 +318,7 @@ export function renderCalculator(clear=false){
     if($("projectStatus")) $("projectStatus").value="offer";
     if($("projectTags")) $("projectTags").value="";
     setTimerSeconds(0);
+    if($("workMinutes"))$("workMinutes").value="";
   }
 
   let html="";
@@ -538,20 +531,20 @@ export function calculate(){
   const totals=positionTotals(calculatorPositionProject);
   material=totals.material;
   machine=totals.machine;
-  work=totals.work;
+  work=totals.work+(num($("workMinutes")?.value)/60)*num(state.settings.hourly);
   extra=totals.other;
 
   const settings=getCustomerSettings(),difficultyKey=$("difficulty")?.value||"normal";
   const enforcedProfit=$("calcForm")?.dataset.enforcedProfit;
   const enforcedReserve=$("calcForm")?.dataset.enforcedReserve;
   const estimatorPosition=calculatorPositionProject.positions?.find(position=>position.calculationSource==="estimator");
-  const profitPercent=$("profit")?.dataset.userEdited==="true"?num($("profit")?.value):estimatorPosition?.profitPercent!==undefined?num(estimatorPosition.profitPercent):enforcedProfit!==undefined?num(enforcedProfit):num($("profit")?.value);
-  const reservePercent=$("reserve")?.dataset.userEdited==="true"?num($("reserve")?.value):estimatorPosition?.reservePercent!==undefined?num(estimatorPosition.reservePercent):enforcedReserve!==undefined?num(enforcedReserve):num($("reserve")?.value);
+  const profitPercent=$("profit")?.dataset.userEdited==="true"?num($("profit")?.value):estimatorPosition?.profitPercent!==undefined?num(estimatorPosition.profitPercent):enforcedProfit!==undefined?num(enforcedProfit):num(state.settings.profit);
+  const reservePercent=$("reserve")?.dataset.userEdited==="true"?num($("reserve")?.value):estimatorPosition?.reservePercent!==undefined?num(estimatorPosition.reservePercent):enforcedReserve!==undefined?num(enforcedReserve):num(state.settings.reserve);
   const priceParts={
     orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
     overheadPercent:state.settings.overhead,reservePercent,profitPercent,roundFn:rounded,
     baseFee:orderType==="customerObject"&&$("customerBaseFeeEnabled")?.checked?num(settings.baseFee):0,
-    furtherSurcharges:orderType==="customerObject"?num($("consultationFee")?.value)+num($("setupFee")?.value)+num($("positioningFee")?.value)+num($("focusFee")?.value)+num($("testRunFee")?.value)+num($("inspectionFee")?.value)+num($("cleaningFee")?.value)+num($("otherCosts")?.value):0,
+    furtherSurcharges:0,
     minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:orderType==="customerObject"&&$("customerExpressEnabled")?.checked?num(settings.expressFee):0
   };
   const recommendations=computePriceRecommendations(priceParts);
@@ -629,7 +622,8 @@ $("calcForm").onsubmit=async e=>{
   const projectStatus=$("projectStatus")?.value||"offer",closed=["done","billed"].includes(projectStatus);
   const actualSale=closed?(agreementFields.agreementPrice??existingProject?.actualPrice??existingProject?.sale??saleNow):saleNow;
   const customerProcessLabel=(CUSTOMER_PROCESS_OPTIONS[state.activeModule]||[]).find(([value])=>value===customerProcess)?.[1]||"Kundenobjekt bearbeiten";
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num(breakdown.express):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const manualWorkMinutes=num($("workMinutes")?.value),manualHourlyRate=num(state.settings.hourly),manualWorkCost=manualWorkMinutes/60*manualHourlyRate;
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num(breakdown.express):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),manualWorkMinutes,manualHourlyRate,manualWorkCost,sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   // Neue Projekte speichern keine Adresskopie. Altprojekt-Anschriften bleiben unverändert als historischer Rückfall erhalten.
   if(existingProject?.customerAddress)project.customerAddress=existingProject.customerAddress;else delete project.customerAddress;
   if(existingProject?.fields?.customerAddress)project.fields.customerAddress=existingProject.fields.customerAddress;
