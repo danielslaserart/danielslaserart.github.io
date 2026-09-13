@@ -1,4 +1,4 @@
-import { euro, esc, num } from "./utils.js?v=6.6.29";
+import { euro, esc, num } from "./utils.js?v=6.6.30";
 
 const LABELS={
   customerObjectProcess:"Bearbeitungsart",objectMaterial:"Objektmaterial",machineSelect:"Maschine",
@@ -16,6 +16,7 @@ const LABELS={
 };
 const ENUMS={
   engrave:"Gravieren",cut:"Schneiden",both:"Gravieren und Schneiden",engraveAndCut:"Gravieren und Schneiden",
+  print3d:"3D-Teil fertigen",plot:"Plotten",assemble:"Montieren / aufbringen",
   easy:"Leicht",normal:"Normal",medium:"Mittel",hard:"Schwer",
   regularCustomer:"Stammkundenpreis",special:"Sonderpreis",promotion:"Aktionspreis",
   repeatOrder:"Folgebestellungspreis",other:"Sonstiges"

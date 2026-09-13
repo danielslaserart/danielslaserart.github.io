@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.29";
-import { state, save, defaults } from "./storage.js?v=6.6.29";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.29";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.29";
-import { renderProjects } from "./projects.js?v=6.6.29";
-import { appConfirm } from "./dialogs.js?v=6.6.29";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.29";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.29";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.29";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.30";
+import { state, save, defaults } from "./storage.js?v=6.6.30";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.30";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.30";
+import { renderProjects } from "./projects.js?v=6.6.30";
+import { appConfirm } from "./dialogs.js?v=6.6.30";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.30";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.30";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.30";
 let editingProjectId=null;
 let calculatorPositionProject={positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -189,6 +189,39 @@ function updateOrderAssistantUI(){
   document.querySelector(".consumables-section")?.classList.toggle("hidden",noMaterial);
   document.querySelector(".tabs")?.classList.toggle("order-no-material",noMaterial);
 }
+const CUSTOMER_PROCESS_OPTIONS={
+  "3d":[["print3d","3D-Teil für Kundenobjekt fertigen"],["assemble","3D-Teil montieren / anpassen"]],
+  laser:[["engrave","Kundenobjekt gravieren"],["cut","Kundenobjekt schneiden"],["both","Kundenobjekt gravieren + schneiden"]],
+  vinyl:[["plot","Vinyl plotten"],["assemble","Vinyl auf Kundenobjekt aufbringen"]],
+  textil:[["plot","Textilfolie plotten und pressen"],["assemble","Textil veredeln / aufpressen"]]
+};
+function syncCustomerProcessOptions(module=state.activeModule){
+  const select=$("customerObjectProcess");if(!select)return;
+  const options=CUSTOMER_PROCESS_OPTIONS[module]||CUSTOMER_PROCESS_OPTIONS.laser;
+  const previous=select.value;
+  select.innerHTML=options.map(([value,label])=>`<option value="${value}">${label}</option>`).join("");
+  select.value=options.some(([value])=>value===previous)?previous:options[0][0];
+}
+function customerPricingFields(){
+  const settings=getCustomerSettings();
+  return `<div class="group-title">KUNDENOBJEKT &amp; ZUSCHLÄGE</div>
+    <div class="field-grid customer-object-fields">
+      <label>Material des Kundenobjekts (nur Bezeichnung)<input id="objectMaterial" placeholder="z. B. Holz, Glas, Textil"></label>
+      <label>Wert des Kundenobjekts (€)<input id="objectValue" type="number" min="0" step="any" inputmode="decimal" placeholder="z. B. 120"></label>
+      <label>Grundpauschale (€)<input id="customerBaseFee" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.baseFee)}"></label>
+      <label>Schwierigkeitsgrad<select id="difficulty"><option value="veryEasy">Sehr einfach (${num(settings.difficulties.veryEasy)} %)</option><option value="easy">Einfach (${num(settings.difficulties.easy)} %)</option><option value="normal" selected>Normal (${num(settings.difficulties.normal)} %)</option><option value="hard">Schwer (${num(settings.difficulties.hard)} %)</option><option value="veryHard">Sehr schwer (${num(settings.difficulties.veryHard)} %)</option></select></label>
+      <div class="risk-field-wrap"><label>Risikoaufschlag (€)<input id="riskSurcharge" type="number" min="0" step="any" inputmode="decimal" value="0"></label><button id="resetRiskSuggestion" class="ghost small" type="button">Automatisch</button></div>
+      <label>Expresszuschlag (€)<input id="expressSurcharge" type="number" min="0" step="any" inputmode="decimal" value="${num(settings.expressFee)}"></label>
+      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${num(state.settings.profit)}"></label>
+      <label>Beratung (€)<input id="consultationFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+      <label>Einrichtung (€)<input id="setupFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+      <label>Positionierung (€)<input id="positioningFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+      <label>Fokus (€)<input id="focusFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+      <label>Probelauf (€)<input id="testRunFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+      <label>Nachkontrolle (€)<input id="inspectionFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+      <label>Reinigung (€)<input id="cleaningFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
+    </div>`;
+}
 document.querySelectorAll('input[name="orderType"]').forEach(input=>input.addEventListener("change",()=>{
   if(!input.checked)return;
   const form=$("calcForm");
@@ -276,6 +309,7 @@ export function renderCalculator(clear=false){
     if($("customerObjectProcess"))$("customerObjectProcess").value="engrave";
   }
   const orderType=getOrderType();
+  syncCustomerProcessOptions(type);
   initializeConsumables(clear);
   $("calcTitle").textContent=titles[type];
   document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===type));
@@ -304,8 +338,8 @@ export function renderCalculator(clear=false){
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-      <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
-      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
+      ${orderType==="own"?`<label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
+      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>`:""}
     </div>`;
 
   if(type==="laser"&&orderType==="own") html=`
@@ -323,8 +357,8 @@ export function renderCalculator(clear=false){
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-      <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
-      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
+      ${orderType==="own"?`<label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
+      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>`:""}
     </div>
     <section class="processing-profile-recommendations">
       <div class="group-title">TECHNISCHE EINSTELLUNGEN</div>
@@ -377,8 +411,8 @@ export function renderCalculator(clear=false){
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-      <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
-      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
+      ${orderType==="own"?`<label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
+      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>`:""}
       <label>Stückzahl<input id="quantity" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
     </div>`;
 
@@ -402,9 +436,13 @@ export function renderCalculator(clear=false){
       <label>Stundenlohn (€/Stunde)<input id="hourlyRate" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.hourly}"></label>
       <label>Verpackung gesamt (€)<input id="packaging" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.packaging}"></label>
       <label>Sonstige Kosten (€)<input id="otherCosts" type="number" min="0" step="any" inputmode="decimal" value=""></label>
-      <label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
-      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>
+      ${orderType==="own"?`<label>Fehlerreserve (%)<input id="reserve" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.reserve}"></label>
+      <label>Gewinnaufschlag (%)<input id="profit" type="number" min="0" step="any" inputmode="decimal" value="${state.settings.profit}"></label>`:""}
     </div>`;
+
+  if(orderType==="customerObject"&&type!=="laser"){
+    html=`${customerPricingFields()}${html}<div class="price-explanation">Das Kundenobjekt selbst bleibt kundeneigen und kostet 0 €. Eigene Materialien und Arbeitsschritte werden normal kalkuliert.</div>`;
+  }
 
   const showCustomerObjectFields=orderType==="customerObject";
   const customerSection=$("customerObjectSurcharges");
@@ -598,7 +636,8 @@ $("calcForm").onsubmit=async e=>{
   const selectedCustomerId=$("projectCustomerId")?.value||"";
   const projectStatus=$("projectStatus")?.value||"offer",closed=["done","billed"].includes(projectStatus);
   const actualSale=closed?(agreementFields.agreementPrice??existingProject?.actualPrice??existingProject?.sale??saleNow):saleNow;
-  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?({engrave:"Kundenobjekt gravieren",cut:"Kundenobjekt schneiden",both:"Kundenobjekt gravieren + schneiden"}[customerProcess]):orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
+  const customerProcessLabel=(CUSTOMER_PROCESS_OPTIONS[state.activeModule]||[]).find(([value])=>value===customerProcess)?.[1]||"Kundenobjekt bearbeiten";
+  const project={id:editingProjectId||uid(),recordType:"project",isReference:false,...agreementFields,calculationSource:"calculator",calculationSnapshot,orderType,customerObjectProcess:customerProcess,objectMaterial:$("objectMaterial")?.value.trim()||"",objectValue:customerObject?num($("objectValue")?.value):null,riskSurcharge:customerObject?num($("riskSurcharge")?.value):null,expressSurcharge:customerObject?num($("expressSurcharge")?.value):null,difficulty,difficultyPercent:customerObject?num(customerSettings.difficulties?.[difficulty]):null,pricingBreakdown:breakdown,title,customerId:selectedCustomerId&&selectedCustomerId!=="__new__"?selectedCustomerId:null,customer:"",type:customerObject?customerProcessLabel:orderType==="service"?"Dienstleistung ohne Material":titles[state.activeModule],module:state.activeModule,machineId:machine?.id||"",machineName:machine?.name||"",notes:$("projectNotes")?.value.trim()||"",status:projectStatus,tags:($("projectTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),images:existingProject?.images||[],image:null,reference:false,estimatedPrice:customerObject?saleNow:(existingProject?.estimatedPrice??saleNow),recommendedSalePrice:saleNow,recommendedPrice:saleNow,actualPrice:actualSale,estimatedCutTime:customerObject?estimatedCutTime:null,actualCutTime:existingProject?.actualCutTime??null,estimatedEngravingTime:customerObject?estimatedEngravingTime:null,actualEngravingTime:existingProject?.actualEngravingTime??null,estimatedTotalTime:customerObject?estimatedCutTime+estimatedEngravingTime:null,actualTotalTime:existingProject?.actualTotalTime??null,materialCost:customerObject?0:null,estimatorData,priceHistory:history,workSeconds:getTimerSeconds(),sale:actualSale,cost:costNow,qty:num($("calcForm").dataset.qty)||1,productSize,consumables:orderType==="own"?consumableSelections.filter(r=>r.materialId&&num(r.quantity)>0).map(r=>({materialId:r.materialId,quantity:num(r.quantity)})):[],fields:savedFields,created:editingProjectId?(state.projects.find(p=>p.id===editingProjectId)?.created||new Date().toISOString()):new Date().toISOString(),updated:new Date().toISOString()};
   // Neue Projekte speichern keine Adresskopie. Altprojekt-Anschriften bleiben unverändert als historischer Rückfall erhalten.
   if(existingProject?.customerAddress)project.customerAddress=existingProject.customerAddress;else delete project.customerAddress;
   if(existingProject?.fields?.customerAddress)project.fields.customerAddress=existingProject.fields.customerAddress;
