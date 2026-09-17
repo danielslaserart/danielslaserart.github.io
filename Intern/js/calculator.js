@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.38";
-import { state, save, defaults } from "./storage.js?v=6.6.38";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.38";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.38";
-import { renderProjects } from "./projects.js?v=6.6.38";
-import { appConfirm } from "./dialogs.js?v=6.6.38";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.38";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.38";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.38";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.39";
+import { state, save, defaults } from "./storage.js?v=6.6.39";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.39";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.39";
+import { renderProjects } from "./projects.js?v=6.6.39";
+import { appConfirm } from "./dialogs.js?v=6.6.39";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.39";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.39";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.39";
 let editingProjectId=null;
 let calculatorPositionProject={module:"3d",positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -23,7 +23,8 @@ export function suggestedRiskSurcharge(value,settings=getCustomerSettings()){
   if(v<=500)return num(r.from250To500);
   return num(r.over500);
 }
-export function paintingSurcharge(coats=0,baseFee=state.settings?.paintBaseFee??4){
+export function paintingSurcharge(coats=0,customFee=0,baseFee=state.settings?.paintBaseFee??4){
+  if(String(coats)==="custom")return Math.max(0,num(customFee));
   const count=Math.max(0,Math.min(3,Math.floor(num(coats))));
   const base=Math.max(0,num(baseFee));
   return count>0?base*(1+(count-1)*.45):0;
@@ -329,7 +330,7 @@ export function renderCalculator(clear=false){
     if($("projectTags")) $("projectTags").value="";
     setTimerSeconds(0);
     if($("workMinutes"))$("workMinutes").value="";
-    if($("paintCoats"))$("paintCoats").value="0";
+    if($("paintCoats"))$("paintCoats").value="0";if($("paintCustomFee"))$("paintCustomFee").value="0";
   }
 
   let html="";
@@ -552,7 +553,7 @@ export function calculate(){
   const profitPercent=$("profit")?.dataset.userEdited==="true"?num($("profit")?.value):estimatorPosition?.profitPercent!==undefined?num(estimatorPosition.profitPercent):enforcedProfit!==undefined?num(enforcedProfit):num(state.settings.profit);
   const reservePercent=$("reserve")?.dataset.userEdited==="true"?num($("reserve")?.value):estimatorPosition?.reservePercent!==undefined?num(estimatorPosition.reservePercent):enforcedReserve!==undefined?num(enforcedReserve):num(state.settings.reserve);
   const priceParts={
-    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,paintFee:paintingSurcharge($("paintCoats")?.value),
+    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,paintFee:paintingSurcharge($("paintCoats")?.value,$("paintCustomFee")?.value),
     overheadPercent:state.settings.overhead,reservePercent,profitPercent,roundFn:rounded,
     baseFee:orderType==="customerObject"&&$("customerBaseFeeEnabled")?.checked?num(settings.baseFee):0,
     furtherSurcharges:0,
@@ -577,7 +578,7 @@ export function calculate(){
   $("resMachine").textContent=euro(breakdown.machine);$("resWork").textContent=euro(breakdown.work);$("resExtra").textContent=euro(breakdown.extra);$("resReserve").textContent=euro(breakdown.reserve);
   $("resDifficulty").textContent=euro(breakdown.difficulty);$("resRisk").textContent=euro(breakdown.risk);$("resExpress").textContent=euro(breakdown.express);$("resCalculated").textContent=euro(breakdown.calculated);$("resMinimum").textContent=euro(breakdown.minimum);
   if($("resPaintFee"))$("resPaintFee").textContent=euro(breakdown.paintFee);
-  if($("paintFeePreview")){const coats=Math.max(0,num($("paintCoats")?.value)),fee=paintingSurcharge(coats);$("paintFeePreview").textContent=coats?`${coats} Schicht${coats===1?"":"en"}: ${euro(fee)} Pauschale vor Gewinnaufschlag.`:"Keine Lackierpauschale.";}
+  if($("paintFeePreview")){const selection=$("paintCoats")?.value||"0",custom=selection==="custom",coats=Math.max(0,num(selection)),fee=paintingSurcharge(selection,$("paintCustomFee")?.value);$("paintCustomFeeField")?.classList.toggle("hidden",!custom);$("paintFeePreview").textContent=custom?`Sonderaufwand: ${euro(fee)} Pauschale vor Gewinnaufschlag.`:coats?`${coats} Schicht${coats===1?"":"en"}: ${euro(fee)} Pauschale vor Gewinnaufschlag.`:"Keine Lackierpauschale.";}
   if($("resFurtherSurcharges"))$("resFurtherSurcharges").textContent=euro(breakdown.furtherSurcharges);
   if($("customerObjectCompactSummary")&&customerObject){
     const difficultyLabels={veryEasy:"Sehr einfach",easy:"Einfach",normal:"Normal",hard:"Schwer",veryHard:"Sehr schwer"};

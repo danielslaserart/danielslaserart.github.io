@@ -1,11 +1,11 @@
-import { $, num, euro, esc, uid } from "./utils.js?v=6.6.38";
-import { state, save } from "./storage.js?v=6.6.38";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.38";
-import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.38";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.38";
-import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.38";
-import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.38";
-import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.38";
+import { $, num, euro, esc, uid } from "./utils.js?v=6.6.39";
+import { state, save } from "./storage.js?v=6.6.39";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.39";
+import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.39";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.39";
+import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.39";
+import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.39";
+import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.39";
 let motifImageDetail = null;
 let editingEstimatorProjectId=null;
 let estimatorCustomerPricing=null;
@@ -119,7 +119,8 @@ export function calculateMotifEstimator(){
   cutMinutes*=learningFactor;engraveMinutes*=learningFactor;
   const machineCost=cutMinutes*num(machine?.cutRate||machine?.minuteRate||state.settings.laserSchnitt)+engraveMinutes*num(machine?.engraveRate||machine?.minuteRate||state.settings.laserGravur);
   const mat=calculateMotifMaterialCost(width,height,layers),material=materialSource==="customer"?0:mat.cost;$('mcMaterialCost').value=material?material.toFixed(2):'';
-  const extra=num($('mcExtraCost').value),workCost=work/60*num($('mcHourly').value),paintFee=paintingSurcharge($('mcPaint').value);
+  const extra=num($('mcExtraCost').value),workCost=work/60*num($('mcHourly').value),paintFee=paintingSurcharge($('mcPaint').value,$('mcPaintCustomFee')?.value);
+  $("mcPaintCustomFeeField")?.classList.toggle("hidden",$("mcPaint").value!=="custom");
   const direct=material+extra+machineCost+workCost,overhead=direct*num(state.settings.overhead)/100,base=direct+overhead,reserve=base*num($('mcReserve').value)/100,cost=base+reserve;
   const calculatedSale=(cost+paintFee)*(1+num($('mcProfit').value)/100);
   const customerSettings=state.settings.customerObject||{};
@@ -178,7 +179,7 @@ export function calculateMotifEstimator(){
   $('mcPricePremiumWithoutWork').textContent=euro(withoutWorkTiers.premium);$('mcPricePremium').textContent=euro(withWorkTiers.premium);
   $('mcLearningHint').textContent=similar.length?`Es wurden ${similar.length} ähnliche Projekte gefunden. Die Zeitberechnung wurde mit diesen Erfahrungswerten verbessert.`:'Noch keine ähnlichen Referenzprojekte vorhanden.';
   $('motifCalc').dataset.predictedMachineMinutes=String(cutMinutes+engraveMinutes);
-  const snapshot={orderType,materialSource,materialId:materialSelection?.id||"",materialName:materialSelection?.name||"",machineId:machine?.id||"",machineName:machine?.name||"",width,height,area,layers,detail:complexity,process,estimatedCutTime:cutMinutes,estimatedEngravingTime:engraveMinutes,cutMinutes,engraveMinutes,cost:finalCost,estimatedPrice:sale,sale,recommendedSalePriceWithoutWork:saleWithoutWork,profit,profitPercent:num($("mcProfit").value),reservePercent:num($("mcReserve").value),minimal,optimal:sale,premium,minimalWithoutWork:withoutWorkTiers.low,optimalWithoutWork:withoutWorkTiers.optimal,premiumWithoutWork:withoutWorkTiers.premium,workMinutes:work,materialCost:material,machineCost,workCost,additionalCosts:extra,paintFee,customerPricing,pricingBreakdown:{...(customerBreakdown||recommendations.withWork),saleWithoutWork},inputs:{mcWidth:$("mcWidth").value,mcHeight:$("mcHeight").value,mcDimensionMeaning:$("mcDimensionMeaning")?.value||"engraving",mcLayers:$("mcLayers").value,mcCutSpeed:$("mcCutSpeed").value,mcEngraveSpeed:$("mcEngraveSpeed").value,mcComplexity:$("mcComplexity").value,mcExtraCost:$("mcExtraCost").value,mcBaseWork:$("mcBaseWork").value,mcHourly:$("mcHourly").value,mcReserve:$("mcReserve").value,mcProfit:$("mcProfit").value,mcSand:$("mcSand").checked,mcPaint:$("mcPaint").value,mcGlue:$("mcGlue").checked},calibrationFactor:cal,learningFactor};
+  const snapshot={orderType,materialSource,materialId:materialSelection?.id||"",materialName:materialSelection?.name||"",machineId:machine?.id||"",machineName:machine?.name||"",width,height,area,layers,detail:complexity,process,estimatedCutTime:cutMinutes,estimatedEngravingTime:engraveMinutes,cutMinutes,engraveMinutes,cost:finalCost,estimatedPrice:sale,sale,recommendedSalePriceWithoutWork:saleWithoutWork,profit,profitPercent:num($("mcProfit").value),reservePercent:num($("mcReserve").value),minimal,optimal:sale,premium,minimalWithoutWork:withoutWorkTiers.low,optimalWithoutWork:withoutWorkTiers.optimal,premiumWithoutWork:withoutWorkTiers.premium,workMinutes:work,materialCost:material,machineCost,workCost,additionalCosts:extra,paintFee,customerPricing,pricingBreakdown:{...(customerBreakdown||recommendations.withWork),saleWithoutWork},inputs:{mcWidth:$("mcWidth").value,mcHeight:$("mcHeight").value,mcDimensionMeaning:$("mcDimensionMeaning")?.value||"engraving",mcLayers:$("mcLayers").value,mcCutSpeed:$("mcCutSpeed").value,mcEngraveSpeed:$("mcEngraveSpeed").value,mcComplexity:$("mcComplexity").value,mcExtraCost:$("mcExtraCost").value,mcBaseWork:$("mcBaseWork").value,mcHourly:$("mcHourly").value,mcReserve:$("mcReserve").value,mcProfit:$("mcProfit").value,mcSand:$("mcSand").checked,mcPaint:$("mcPaint").value,mcPaintCustomFee:$("mcPaintCustomFee")?.value||"0",mcGlue:$("mcGlue").checked},calibrationFactor:cal,learningFactor};
   $('motifCalc').dataset.snapshot=JSON.stringify(snapshot);
   return snapshot;
 }
@@ -187,7 +188,7 @@ export async function resetMotifEstimator(confirmFirst=true){
   editingEstimatorProjectId=null;
   estimatorCustomerPricing=null;
   ["mcWidth","mcHeight","mcLayers","mcCutSpeed","mcEngraveSpeed","mcExtraCost","mcBaseWork","mcActualSalePrice","mcActualTime","mcActualCutTime","mcActualEngravingTime"].forEach(id=>{if($(id))$(id).value="0"});
-  ["mcSand","mcGlue"].forEach(id=>{if($(id))$(id).checked=false});if($("mcPaint"))$("mcPaint").value="0";
+  ["mcSand","mcGlue"].forEach(id=>{if($(id))$(id).checked=false});if($("mcPaint"))$("mcPaint").value="0";if($("mcPaintCustomFee"))$("mcPaintCustomFee").value="0";
   if($("mcMaterial"))$("mcMaterial").value="";
   if($("mcComplexity"))$("mcComplexity").value="auto";
   if($("mcDimensionMeaning"))$("mcDimensionMeaning").value="engraving";
@@ -199,7 +200,7 @@ export async function resetMotifEstimator(confirmFirst=true){
   if($("mcProfit"))$("mcProfit").value=String(num(state.settings.profit));
   applyMotifMachineSpeeds(true);updateMotifProcessUI();calculateMotifEstimator();return true;
 }
-['mcWidth','mcHeight','mcDimensionMeaning','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcGlue','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
+['mcWidth','mcHeight','mcDimensionMeaning','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcPaintCustomFee','mcGlue','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
 document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',()=>{updateMotifProcessUI();calculateMotifEstimator()}));
 document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',renderMotifProfiles));
 document.querySelectorAll('input[name="mcMaterialSource"]').forEach(el=>el.addEventListener('change',calculateMotifEstimator));
@@ -273,7 +274,7 @@ export function loadProjectIntoMotifEstimator(project){
   setValue("mcCutSpeed",inputs.mcCutSpeed);setValue("mcEngraveSpeed",inputs.mcEngraveSpeed);setValue("mcComplexity",inputs.mcComplexity??data.detail);
   setValue("mcExtraCost",inputs.mcExtraCost??data.additionalCosts);setValue("mcBaseWork",inputs.mcBaseWork);
   setValue("mcHourly",inputs.mcHourly);setValue("mcReserve",inputs.mcReserve);setValue("mcProfit",inputs.mcProfit);
-  ["mcSand","mcGlue"].forEach(id=>{if($(id)&&inputs[id]!==undefined)$(id).checked=Boolean(inputs[id])});if($("mcPaint")&&inputs.mcPaint!==undefined)$("mcPaint").value=inputs.mcPaint===true?"1":String(inputs.mcPaint||0);
+  ["mcSand","mcGlue"].forEach(id=>{if($(id)&&inputs[id]!==undefined)$(id).checked=Boolean(inputs[id])});if($("mcPaint")&&inputs.mcPaint!==undefined)$("mcPaint").value=inputs.mcPaint===true?"1":String(inputs.mcPaint||0);if($("mcPaintCustomFee")&&inputs.mcPaintCustomFee!==undefined)$("mcPaintCustomFee").value=inputs.mcPaintCustomFee;
   const source=document.querySelector(`input[name="mcMaterialSource"][value="${snapshot?.materialSource||data.materialSource||((project.orderType==="customerObject")?"customer":"own")}"]`);if(source)source.checked=true;
   const process=document.querySelector(`input[name="mcProcess"][value="${data.process||project.customerObjectProcess||"cut"}"]`);if(process)process.checked=true;
   setValue("mcActualSalePrice",project.actualPrice??project.sale);setValue("mcActualTime",project.actualTotalTime);setValue("mcActualCutTime",project.actualCutTime);setValue("mcActualEngravingTime",project.actualEngravingTime);
