@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json?v=6.6">
   <link rel="apple-touch-icon" href="icon-192.png?v=6.5">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.5">
-  <link rel="stylesheet" href="style.css?v=6.6.37">
+  <link rel="stylesheet" href="style.css?v=6.6.38">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -227,6 +227,11 @@
         <label>Benötigte Arbeitszeit (Minuten)<input id="workMinutes" type="number" min="0" step="any" inputmode="decimal" value=""></label>
         <small>Die Arbeitskosten werden automatisch mit dem Stundenlohn aus „System“ berechnet.</small>
       </div>
+      <div class="manual-work-card">
+        <div class="group-title">LACKIEREN / BEIZEN</div>
+        <label>Anzahl der Schichten<select id="paintCoats"><option value="0">Nicht lackiert / gebeizt</option><option value="1">1× lackiert / gebeizt</option><option value="2">2× lackiert</option><option value="3">3× lackiert</option></select></label>
+        <small id="paintFeePreview">Keine Lackierpauschale.</small>
+      </div>
       <details id="customerObjectSurcharges" class="customer-object-surcharges hidden">
         <summary>
           <span class="customer-object-summary-title">KUNDENOBJEKT &amp; ZUSCHLÄGE</span>
@@ -272,6 +277,7 @@
         <div id="resDifficultyRow" class="hidden"><span>Schwierigkeitsaufschlag</span><strong id="resDifficulty">0,00 €</strong></div>
         <div id="resRiskRow" class="hidden"><span>Risikoaufschlag</span><strong id="resRisk">0,00 €</strong></div>
         <div id="resExpressRow" class="hidden"><span>Expresszuschlag</span><strong id="resExpress">0,00 €</strong></div>
+        <div id="resPaintFeeRow" class="hidden"><span>Lackier-/Beizpauschale</span><strong id="resPaintFee">0,00 €</strong></div>
         <div id="resFurtherSurchargesRow" class="hidden"><span>Weitere Zuschläge</span><strong id="resFurtherSurcharges">0,00 €</strong></div>
         <div id="calculatorPriceLadder" class="price-ladder-host"></div>
         <div id="resProfitRow"><span id="resProfitLabel">Gewinn</span><strong id="resProfit">0,00 €</strong><small id="resProfitExplanation"></small></div>
@@ -476,7 +482,7 @@
         <b>Nacharbeit</b>
         <div class="motif-options">
           <label><input id="mcSand" type="checkbox"> Schleifen / Reinigen</label>
-          <label><input id="mcPaint" type="checkbox"> Lackieren / Beizen</label>
+          <label>Lackieren / Beizen<select id="mcPaint"><option value="0">Nicht lackiert / gebeizt</option><option value="1">1× lackiert / gebeizt</option><option value="2">2× lackiert</option><option value="3">3× lackiert</option></select></label>
           <label><input id="mcGlue" type="checkbox"> Verleimen / Ausrichten</label>
         </div>
       </div>
@@ -754,7 +760,7 @@
 
     <form id="settingsForm" class="card form-card settings-accordion">
       <details class="settings-panel" open><summary><span>Preise &amp; Kalkulation</span><small>Gewinn, Stundenlohn, Reserve und Rundung</small></summary><div class="settings-panel-body field-grid">
-        <label>Gewinnaufschlag (%)<input id="setProfit" type="number" step="any" inputmode="decimal"></label><label>Eigener Stundenlohn (€/h)<input id="setHourly" type="number" step="any" inputmode="decimal"></label><label>Fehler-/Ausschussreserve (%)<input id="setReserve" type="number" step="any" inputmode="decimal"></label><label>Standard-Verpackung (€)<input id="setPackaging" type="number" step="any" inputmode="decimal"></label><label>Gemeinkosten (%)<input id="setOverhead" type="number" min="0" step="any" inputmode="decimal"></label><label>Stromkosten (€/kWh)<input id="setElectricity" type="number" min="0" step="any" inputmode="decimal"></label><label>Preisrundung<select id="setRounding"><option value="0.01">Centgenau</option><option value="0.1">Auf 10 Cent</option><option value="0.5">Auf 50 Cent</option><option value="1">Auf volle Euro</option></select></label>
+        <label>Gewinnaufschlag (%)<input id="setProfit" type="number" step="any" inputmode="decimal"></label><label>Eigener Stundenlohn (€/h)<input id="setHourly" type="number" step="any" inputmode="decimal"></label><label>Fehler-/Ausschussreserve (%)<input id="setReserve" type="number" step="any" inputmode="decimal"></label><label>Standard-Verpackung (€)<input id="setPackaging" type="number" step="any" inputmode="decimal"></label><label>Lackier-/Beiz-Grundpauschale (€)<input id="setPaintBaseFee" type="number" min="0" step="any" inputmode="decimal"><small>Für die erste Schicht; jede weitere Schicht kostet 45 % davon.</small></label><label>Gemeinkosten (%)<input id="setOverhead" type="number" min="0" step="any" inputmode="decimal"></label><label>Stromkosten (€/kWh)<input id="setElectricity" type="number" min="0" step="any" inputmode="decimal"></label><label>Preisrundung<select id="setRounding"><option value="0.01">Centgenau</option><option value="0.1">Auf 10 Cent</option><option value="0.5">Auf 50 Cent</option><option value="1">Auf volle Euro</option></select></label>
       </div></details>
       <details class="settings-panel"><summary><span>Maschinen &amp; Standards</span><small>Plotter, Presse und Vorauswahl</small></summary><div class="settings-panel-body field-grid">
         <label>Plotter Maschinenkosten (€/Min.)<input id="setPlotter" type="number" step="any" inputmode="decimal"></label><label>Transferpresse (€/Min.)<input id="setPresse" type="number" step="any" inputmode="decimal"></label><label>Standardmaschine<select id="setDefaultMachine"></select></label><label>Standardmaterial<select id="setDefaultMaterial"></select></label>
@@ -1024,6 +1030,6 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
-<script type="module" src="js/app.js?v=6.6.37"></script>
+<script type="module" src="js/app.js?v=6.6.38"></script>
 </body>
 </html>

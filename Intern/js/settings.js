@@ -1,13 +1,14 @@
-import { $, num, esc, inferMaterialCategory, inferMaterialUseCategory } from "./utils.js?v=6.6.37";
-import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord, normalizeProcessingProfiles, mergeSettings } from "./storage.js?v=6.6.37";
-import { renderMachines } from "./machines.js?v=6.6.37";
-import { renderMaterials } from "./materials.js?v=6.6.37";
-import { renderProjects } from "./projects.js?v=6.6.37";
-import { appAlert } from "./dialogs.js?v=6.6.37";
+import { $, num, esc, inferMaterialCategory, inferMaterialUseCategory } from "./utils.js?v=6.6.38";
+import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord, normalizeProcessingProfiles, mergeSettings } from "./storage.js?v=6.6.38";
+import { renderMachines } from "./machines.js?v=6.6.38";
+import { renderMaterials } from "./materials.js?v=6.6.38";
+import { renderProjects } from "./projects.js?v=6.6.38";
+import { appAlert } from "./dialogs.js?v=6.6.38";
 export function fillSettings(){
   renderMachines();
   $("setProfit").value=state.settings.profit;$("setHourly").value=state.settings.hourly;$("setPlotter").value=state.settings.plotter;
   $("setPresse").value=state.settings.presse;$("setReserve").value=state.settings.reserve;$("setPackaging").value=state.settings.packaging;$("setRounding").value=String(state.settings.rounding);
+  $("setPaintBaseFee").value=num(state.settings.paintBaseFee??4);
   $("setOverhead").value=num(state.settings.overhead);$("setElectricity").value=num(state.settings.electricity);
   $("setDefaultMachine").innerHTML='<option value="">Keine Vorgabe</option>'+state.machines.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("");
   $("setDefaultMaterial").innerHTML='<option value="">Keine Vorgabe</option>'+state.materials.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("");
@@ -21,7 +22,7 @@ export function fillSettings(){
 }
 $("settingsForm").onsubmit=e=>{
   e.preventDefault();
-  state.settings={...state.settings,profit:num($("setProfit").value),hourly:num($("setHourly").value),plotter:num($("setPlotter").value),presse:num($("setPresse").value),reserve:num($("setReserve").value),packaging:num($("setPackaging").value),rounding:num($("setRounding").value),overhead:num($("setOverhead").value),electricity:num($("setElectricity").value),defaultMachine:$("setDefaultMachine").value,defaultMaterial:$("setDefaultMaterial").value,design:{hourlyRate:num($("setDesignHourly").value),minimumFee:num($("setDesignMinimum").value)},customerObject:{baseFee:num($("setCustomerBaseFee").value),minimumPrice:num($("setCustomerMinimum").value),expressFee:num($("setCustomerExpress").value),difficulties:{veryEasy:num($("setDifficultyVeryEasy").value),easy:num($("setDifficultyEasy").value),normal:num($("setDifficultyNormal").value),hard:num($("setDifficultyHard").value),veryHard:num($("setDifficultyVeryHard").value)},risks:{under50:num($("setRiskUnder50").value),from50To100:num($("setRisk50To100").value),from100To250:num($("setRisk100To250").value),from250To500:num($("setRisk250To500").value),over500:num($("setRiskOver500").value)}}};
+  state.settings={...state.settings,profit:num($("setProfit").value),hourly:num($("setHourly").value),plotter:num($("setPlotter").value),presse:num($("setPresse").value),reserve:num($("setReserve").value),packaging:num($("setPackaging").value),paintBaseFee:num($("setPaintBaseFee").value),rounding:num($("setRounding").value),overhead:num($("setOverhead").value),electricity:num($("setElectricity").value),defaultMachine:$("setDefaultMachine").value,defaultMaterial:$("setDefaultMaterial").value,design:{hourlyRate:num($("setDesignHourly").value),minimumFee:num($("setDesignMinimum").value)},customerObject:{baseFee:num($("setCustomerBaseFee").value),minimumPrice:num($("setCustomerMinimum").value),expressFee:num($("setCustomerExpress").value),difficulties:{veryEasy:num($("setDifficultyVeryEasy").value),easy:num($("setDifficultyEasy").value),normal:num($("setDifficultyNormal").value),hard:num($("setDifficultyHard").value),veryHard:num($("setDifficultyVeryHard").value)},risks:{under50:num($("setRiskUnder50").value),from50To100:num($("setRisk50To100").value),from100To250:num($("setRisk100To250").value),from250To500:num($("setRisk250To500").value),over500:num($("setRiskOver500").value)}}};
   save();appAlert("Einstellungen gespeichert.");
 };
 

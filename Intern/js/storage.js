@@ -1,6 +1,6 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.6.37";
-import { appConfirm } from "./dialogs.js?v=6.6.37";
-import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6.37";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.6.38";
+import { appConfirm } from "./dialogs.js?v=6.6.38";
+import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.6.38";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -85,7 +85,7 @@ if (PREVIOUS_APP_VERSION !== APP_VERSION) {
 export const defaults = {
   settings:{
     profit:0,hourly:0,machine3d:0,laserGravur:0,laserSchnitt:0,
-    plotter:0,presse:0,reserve:0,packaging:0,rounding:0,
+    plotter:0,presse:0,reserve:0,packaging:0,paintBaseFee:4,rounding:0,
     overhead:0,electricity:0,defaultMachine:"",defaultMaterial:"",
     design:{hourlyRate:0,minimumFee:0},
     customerObject:{

@@ -1,7 +1,7 @@
-import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.6.37";
-import { state, save } from "./storage.js?v=6.6.37";
-import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.6.37";
-import { appAlert, appConfirm } from "./dialogs.js?v=6.6.37";
+import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.6.38";
+import { state, save } from "./storage.js?v=6.6.38";
+import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.6.38";
+import { appAlert, appConfirm } from "./dialogs.js?v=6.6.38";
 
 export const POSITION_ACTIVITIES=[
   ["engrave","Gravieren"],["cut","Schneiden"],["both","Gravieren und Schneiden"],
@@ -9,8 +9,8 @@ export const POSITION_ACTIVITIES=[
   ["paint","Lackieren / Beizen"],["pack","Verpacken"],["material","Nur Material"],["other","Sonstiges"]
 ];
 const MODULE_ACTIVITIES={
-  "3d":["print3d","glue","assemble","paint","pack","material","other"],
-  laser:["engrave","cut","both","glue","assemble","paint","pack","material","other"],
+  "3d":["print3d","glue","assemble","pack","material","other"],
+  laser:["engrave","cut","both","glue","assemble","pack","material","other"],
   vinyl:["plot","glue","assemble","pack","material","other"],
   textil:["plot","assemble","pack","material","other"]
 };
@@ -83,7 +83,9 @@ export function positionTotals(project={}){
   const rounding=clamp(project.calculationSnapshot?.pricingSettings?.rounding??state.settings?.rounding)||.01;
   totals.reserve=totals.baseCost*reservePercent/100;
   totals.cost=totals.baseCost+totals.reserve;
-  totals.calculated=totals.cost*(1+profitPercent/100);
+  const coats=Math.max(0,Math.min(3,Math.floor(clamp(project.fields?.paintCoats))));
+  totals.paintFee=project.fields?.paintCoats!==undefined?(coats>0?clamp(state.settings?.paintBaseFee??4)*(1+(coats-1)*.45):0):clamp(project.pricingBreakdown?.paintFee);
+  totals.calculated=(totals.cost+totals.paintFee)*(1+profitPercent/100);
   totals.recommended=Math.ceil(totals.calculated/rounding)*rounding;
   totals.agreed=project.agreementPrice==null?null:clamp(project.agreementPrice);
   const sale=totals.agreed??totals.recommended;

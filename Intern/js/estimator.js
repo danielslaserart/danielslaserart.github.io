@@ -1,11 +1,11 @@
-import { $, num, euro, esc, uid } from "./utils.js?v=6.6.37";
-import { state, save } from "./storage.js?v=6.6.37";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.37";
-import { rounded, computePriceBreakdown, computePriceRecommendations } from "./calculator.js?v=6.6.37";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.37";
-import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.37";
-import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.37";
-import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.37";
+import { $, num, euro, esc, uid } from "./utils.js?v=6.6.38";
+import { state, save } from "./storage.js?v=6.6.38";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.38";
+import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.38";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.38";
+import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.38";
+import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.38";
+import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.38";
 let motifImageDetail = null;
 let editingEstimatorProjectId=null;
 let estimatorCustomerPricing=null;
@@ -111,7 +111,6 @@ export function calculateMotifEstimator(){
   let engraveMinutes=(doEngrave&&area>0)?(area*.055*motifComplexityFactor(complexity)*cal*(5000/engraveSpeed)):0;
   let work=num($('mcBaseWork').value);
   if($('mcSand').checked)work+=8+area/180;
-  if($('mcPaint').checked)work+=10+area/150;
   if($('mcGlue').checked&&layers>1)work+=8+(layers-1)*5+area/220;
   const machine=(state.machines||[]).find(m=>m.id===$('mcMachine').value);
   const materialSelection=resolveMaterialSelection($('mcMaterial')?.value);
@@ -120,9 +119,9 @@ export function calculateMotifEstimator(){
   cutMinutes*=learningFactor;engraveMinutes*=learningFactor;
   const machineCost=cutMinutes*num(machine?.cutRate||machine?.minuteRate||state.settings.laserSchnitt)+engraveMinutes*num(machine?.engraveRate||machine?.minuteRate||state.settings.laserGravur);
   const mat=calculateMotifMaterialCost(width,height,layers),material=materialSource==="customer"?0:mat.cost;$('mcMaterialCost').value=material?material.toFixed(2):'';
-  const extra=num($('mcExtraCost').value),workCost=work/60*num($('mcHourly').value);
+  const extra=num($('mcExtraCost').value),workCost=work/60*num($('mcHourly').value),paintFee=paintingSurcharge($('mcPaint').value);
   const direct=material+extra+machineCost+workCost,overhead=direct*num(state.settings.overhead)/100,base=direct+overhead,reserve=base*num($('mcReserve').value)/100,cost=base+reserve;
-  const calculatedSale=cost*(1+num($('mcProfit').value)/100);
+  const calculatedSale=(cost+paintFee)*(1+num($('mcProfit').value)/100);
   const customerSettings=state.settings.customerObject||{};
   const customerPricing=orderType==="customerObject"?{
     baseFee:num(estimatorCustomerPricing?.baseFee??customerSettings.baseFee),
@@ -133,17 +132,17 @@ export function calculateMotifEstimator(){
     express:num(estimatorCustomerPricing?.express??customerSettings.expressFee)
   }:null;
   const customerBreakdown=customerPricing?computePriceBreakdown({
-    orderType,machine:machineCost,work:workCost,extra,
+    orderType,machine:machineCost,work:workCost,extra,paintFee,
     baseFee:customerPricing.baseFee,minimumPrice:customerPricing.minimumPrice,
     difficultyPercent:customerPricing.difficultyPercent,risk:customerPricing.risk,express:customerPricing.express,
     profitPercent:num($('mcProfit').value),roundFn:rounded
   }):null;
   const recommendationParts=customerPricing?{
-    orderType,machine:machineCost,work:workCost,extra,
+    orderType,machine:machineCost,work:workCost,extra,paintFee,
     baseFee:customerPricing.baseFee,minimumPrice:customerPricing.minimumPrice,
     difficultyPercent:customerPricing.difficultyPercent,risk:customerPricing.risk,express:customerPricing.express,
     profitPercent:num($('mcProfit').value),roundFn:rounded
-  }:{orderType:"own",material,machine:machineCost,work:workCost,extra,overheadPercent:num(state.settings.overhead),reservePercent:num($('mcReserve').value),profitPercent:num($('mcProfit').value),roundFn:rounded};
+  }:{orderType:"own",material,machine:machineCost,work:workCost,extra,paintFee,overheadPercent:num(state.settings.overhead),reservePercent:num($('mcReserve').value),profitPercent:num($('mcProfit').value),roundFn:rounded};
   const recommendations=computePriceRecommendations(recommendationParts);
   const finalCost=customerBreakdown?.cost??cost;
   const sale=customerBreakdown?.sale??rounded(Math.max(cost,learnedPriceSuggestion(similar,area,calculatedSale)));
@@ -179,7 +178,7 @@ export function calculateMotifEstimator(){
   $('mcPricePremiumWithoutWork').textContent=euro(withoutWorkTiers.premium);$('mcPricePremium').textContent=euro(withWorkTiers.premium);
   $('mcLearningHint').textContent=similar.length?`Es wurden ${similar.length} ähnliche Projekte gefunden. Die Zeitberechnung wurde mit diesen Erfahrungswerten verbessert.`:'Noch keine ähnlichen Referenzprojekte vorhanden.';
   $('motifCalc').dataset.predictedMachineMinutes=String(cutMinutes+engraveMinutes);
-  const snapshot={orderType,materialSource,materialId:materialSelection?.id||"",materialName:materialSelection?.name||"",machineId:machine?.id||"",machineName:machine?.name||"",width,height,area,layers,detail:complexity,process,estimatedCutTime:cutMinutes,estimatedEngravingTime:engraveMinutes,cutMinutes,engraveMinutes,cost:finalCost,estimatedPrice:sale,sale,recommendedSalePriceWithoutWork:saleWithoutWork,profit,profitPercent:num($("mcProfit").value),reservePercent:num($("mcReserve").value),minimal,optimal:sale,premium,minimalWithoutWork:withoutWorkTiers.low,optimalWithoutWork:withoutWorkTiers.optimal,premiumWithoutWork:withoutWorkTiers.premium,workMinutes:work,materialCost:material,machineCost,workCost,additionalCosts:extra,customerPricing,pricingBreakdown:{...(customerBreakdown||recommendations.withWork),saleWithoutWork},inputs:{mcWidth:$("mcWidth").value,mcHeight:$("mcHeight").value,mcDimensionMeaning:$("mcDimensionMeaning")?.value||"engraving",mcLayers:$("mcLayers").value,mcCutSpeed:$("mcCutSpeed").value,mcEngraveSpeed:$("mcEngraveSpeed").value,mcComplexity:$("mcComplexity").value,mcExtraCost:$("mcExtraCost").value,mcBaseWork:$("mcBaseWork").value,mcHourly:$("mcHourly").value,mcReserve:$("mcReserve").value,mcProfit:$("mcProfit").value,mcSand:$("mcSand").checked,mcPaint:$("mcPaint").checked,mcGlue:$("mcGlue").checked},calibrationFactor:cal,learningFactor};
+  const snapshot={orderType,materialSource,materialId:materialSelection?.id||"",materialName:materialSelection?.name||"",machineId:machine?.id||"",machineName:machine?.name||"",width,height,area,layers,detail:complexity,process,estimatedCutTime:cutMinutes,estimatedEngravingTime:engraveMinutes,cutMinutes,engraveMinutes,cost:finalCost,estimatedPrice:sale,sale,recommendedSalePriceWithoutWork:saleWithoutWork,profit,profitPercent:num($("mcProfit").value),reservePercent:num($("mcReserve").value),minimal,optimal:sale,premium,minimalWithoutWork:withoutWorkTiers.low,optimalWithoutWork:withoutWorkTiers.optimal,premiumWithoutWork:withoutWorkTiers.premium,workMinutes:work,materialCost:material,machineCost,workCost,additionalCosts:extra,paintFee,customerPricing,pricingBreakdown:{...(customerBreakdown||recommendations.withWork),saleWithoutWork},inputs:{mcWidth:$("mcWidth").value,mcHeight:$("mcHeight").value,mcDimensionMeaning:$("mcDimensionMeaning")?.value||"engraving",mcLayers:$("mcLayers").value,mcCutSpeed:$("mcCutSpeed").value,mcEngraveSpeed:$("mcEngraveSpeed").value,mcComplexity:$("mcComplexity").value,mcExtraCost:$("mcExtraCost").value,mcBaseWork:$("mcBaseWork").value,mcHourly:$("mcHourly").value,mcReserve:$("mcReserve").value,mcProfit:$("mcProfit").value,mcSand:$("mcSand").checked,mcPaint:$("mcPaint").value,mcGlue:$("mcGlue").checked},calibrationFactor:cal,learningFactor};
   $('motifCalc').dataset.snapshot=JSON.stringify(snapshot);
   return snapshot;
 }
@@ -188,7 +187,7 @@ export async function resetMotifEstimator(confirmFirst=true){
   editingEstimatorProjectId=null;
   estimatorCustomerPricing=null;
   ["mcWidth","mcHeight","mcLayers","mcCutSpeed","mcEngraveSpeed","mcExtraCost","mcBaseWork","mcActualSalePrice","mcActualTime","mcActualCutTime","mcActualEngravingTime"].forEach(id=>{if($(id))$(id).value="0"});
-  ["mcSand","mcPaint","mcGlue"].forEach(id=>{if($(id))$(id).checked=false});
+  ["mcSand","mcGlue"].forEach(id=>{if($(id))$(id).checked=false});if($("mcPaint"))$("mcPaint").value="0";
   if($("mcMaterial"))$("mcMaterial").value="";
   if($("mcComplexity"))$("mcComplexity").value="auto";
   if($("mcDimensionMeaning"))$("mcDimensionMeaning").value="engraving";
@@ -274,7 +273,7 @@ export function loadProjectIntoMotifEstimator(project){
   setValue("mcCutSpeed",inputs.mcCutSpeed);setValue("mcEngraveSpeed",inputs.mcEngraveSpeed);setValue("mcComplexity",inputs.mcComplexity??data.detail);
   setValue("mcExtraCost",inputs.mcExtraCost??data.additionalCosts);setValue("mcBaseWork",inputs.mcBaseWork);
   setValue("mcHourly",inputs.mcHourly);setValue("mcReserve",inputs.mcReserve);setValue("mcProfit",inputs.mcProfit);
-  ["mcSand","mcPaint","mcGlue"].forEach(id=>{if($(id)&&inputs[id]!==undefined)$(id).checked=Boolean(inputs[id])});
+  ["mcSand","mcGlue"].forEach(id=>{if($(id)&&inputs[id]!==undefined)$(id).checked=Boolean(inputs[id])});if($("mcPaint")&&inputs.mcPaint!==undefined)$("mcPaint").value=inputs.mcPaint===true?"1":String(inputs.mcPaint||0);
   const source=document.querySelector(`input[name="mcMaterialSource"][value="${snapshot?.materialSource||data.materialSource||((project.orderType==="customerObject")?"customer":"own")}"]`);if(source)source.checked=true;
   const process=document.querySelector(`input[name="mcProcess"][value="${data.process||project.customerObjectProcess||"cut"}"]`);if(process)process.checked=true;
   setValue("mcActualSalePrice",project.actualPrice??project.sale);setValue("mcActualTime",project.actualTotalTime);setValue("mcActualCutTime",project.actualCutTime);setValue("mcActualEngravingTime",project.actualEngravingTime);

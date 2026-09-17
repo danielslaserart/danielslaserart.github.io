@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=6.6.37";
-import { state, save, defaults } from "./storage.js?v=6.6.37";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.37";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.37";
-import { renderProjects } from "./projects.js?v=6.6.37";
-import { appConfirm } from "./dialogs.js?v=6.6.37";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.37";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.37";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.37";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.6.38";
+import { state, save, defaults } from "./storage.js?v=6.6.38";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.38";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.6.38";
+import { renderProjects } from "./projects.js?v=6.6.38";
+import { appConfirm } from "./dialogs.js?v=6.6.38";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.6.38";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.38";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.6.38";
 let editingProjectId=null;
 let calculatorPositionProject={module:"3d",positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -23,6 +23,11 @@ export function suggestedRiskSurcharge(value,settings=getCustomerSettings()){
   if(v<=500)return num(r.from250To500);
   return num(r.over500);
 }
+export function paintingSurcharge(coats=0,baseFee=state.settings?.paintBaseFee??4){
+  const count=Math.max(0,Math.min(3,Math.floor(num(coats))));
+  const base=Math.max(0,num(baseFee));
+  return count>0?base*(1+(count-1)*.45):0;
+}
 export function computePriceBreakdown(parts={}){
   const orderType=parts.orderType||"own";
   if(orderType==="customerObject"){
@@ -33,11 +38,12 @@ export function computePriceBreakdown(parts={}){
     const risk=Math.max(0,num(parts.risk));
     const express=Math.max(0,num(parts.express));
     const furtherSurcharges=Math.max(0,num(parts.furtherSurcharges));
+    const paintFee=Math.max(0,num(parts.paintFee));
     const difficultyPercent=Math.max(0,num(parts.difficultyPercent));
     const extra=Math.max(0,num(parts.extra));
     const difficulty=(baseFee+furtherSurcharges)*difficultyPercent/100;
     const cost=material+machine+work+extra;
-    const calculatedWorkPrice=baseFee+furtherSurcharges+difficulty+risk+express;
+    const calculatedWorkPrice=baseFee+furtherSurcharges+paintFee+difficulty+risk+express;
     const subtotalBeforeMinimum=cost+calculatedWorkPrice;
     const minimum=Math.max(0,num(parts.minimumPrice));
     const minimumApplied=subtotalBeforeMinimum<minimum;
@@ -46,22 +52,23 @@ export function computePriceBreakdown(parts={}){
     const profitMarkup=subtotal*profitPercent/100;
     const calculated=subtotal+profitMarkup;
     const recommended=parts.roundFn?parts.roundFn(calculated):calculated;
-    return {material,consumables:0,baseFee,furtherSurcharges,machine,work,extra,reserve:0,difficulty,risk,express,
+    return {material,consumables:0,baseFee,furtherSurcharges,paintFee,machine,work,extra,reserve:0,difficulty,risk,express,
       cost,calculatedWorkPrice,subtotalBeforeMinimum,subtotal,priceBeforeProfit:subtotal,profitPercent,profitMarkup,
       calculated,minimum,minimumApplied,sale:recommended,profit:Math.max(0,recommended-cost)};
   }
-  const material=Math.max(0,num(parts.material)),consumables=Math.max(0,num(parts.consumables)),machine=Math.max(0,num(parts.machine)),work=Math.max(0,num(parts.work)),extra=Math.max(0,num(parts.extra));
+  const material=Math.max(0,num(parts.material)),consumables=Math.max(0,num(parts.consumables)),machine=Math.max(0,num(parts.machine)),work=Math.max(0,num(parts.work)),extra=Math.max(0,num(parts.extra)),paintFee=Math.max(0,num(parts.paintFee));
   const direct=material+consumables+machine+work+extra;
   const overhead=direct*Math.max(0,num(parts.overheadPercent))/100;
   const base=direct+overhead;
   const reserve=base*Math.max(0,num(parts.reservePercent))/100;
   const cost=base+reserve;
+  const subtotal=cost+paintFee;
   const profitPercent=Math.max(0,num(parts.profitPercent));
-  const profitMarkup=cost*profitPercent/100;
-  const calculated=cost+profitMarkup;
+  const profitMarkup=subtotal*profitPercent/100;
+  const calculated=subtotal+profitMarkup;
   const sale=parts.roundFn?parts.roundFn(calculated):calculated;
-  return {material,consumables,machine,work,extra,reserve,cost,calculatedWorkPrice:0,subtotal:cost,
-    priceBeforeProfit:cost,profitPercent,profitMarkup,sale,profit:Math.max(0,sale-cost),
+  return {material,consumables,machine,work,extra,paintFee,reserve,cost,calculatedWorkPrice:paintFee,subtotal,
+    priceBeforeProfit:subtotal,profitPercent,profitMarkup,sale,profit:Math.max(0,sale-cost),
     baseFee:0,difficulty:0,risk:0,calculated,minimum:0,minimumApplied:false};
 }
 export function computePriceRecommendations(parts={}){
@@ -322,6 +329,7 @@ export function renderCalculator(clear=false){
     if($("projectTags")) $("projectTags").value="";
     setTimerSeconds(0);
     if($("workMinutes"))$("workMinutes").value="";
+    if($("paintCoats"))$("paintCoats").value="0";
   }
 
   let html="";
@@ -544,7 +552,7 @@ export function calculate(){
   const profitPercent=$("profit")?.dataset.userEdited==="true"?num($("profit")?.value):estimatorPosition?.profitPercent!==undefined?num(estimatorPosition.profitPercent):enforcedProfit!==undefined?num(enforcedProfit):num(state.settings.profit);
   const reservePercent=$("reserve")?.dataset.userEdited==="true"?num($("reserve")?.value):estimatorPosition?.reservePercent!==undefined?num(estimatorPosition.reservePercent):enforcedReserve!==undefined?num(enforcedReserve):num(state.settings.reserve);
   const priceParts={
-    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,
+    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,paintFee:paintingSurcharge($("paintCoats")?.value),
     overheadPercent:state.settings.overhead,reservePercent,profitPercent,roundFn:rounded,
     baseFee:orderType==="customerObject"&&$("customerBaseFeeEnabled")?.checked?num(settings.baseFee):0,
     furtherSurcharges:0,
@@ -557,6 +565,7 @@ export function calculate(){
   $("resCostHeading")?.classList.toggle("hidden",!customerObject);$("resPricePartsHeading")?.classList.toggle("hidden",!customerObject);
   $("resMaterialRow").classList.toggle("hidden",breakdown.material<=0);$("resConsumablesRow").classList.toggle("hidden",customerObject||breakdown.consumables<=0);
   $("resBaseFeeRow").classList.toggle("hidden",!customerObject||breakdown.baseFee<=0);$("resDifficultyRow").classList.toggle("hidden",!customerObject||breakdown.difficulty<=0);$("resRiskRow").classList.toggle("hidden",!customerObject||breakdown.risk<=0);$("resExpressRow").classList.toggle("hidden",!customerObject||breakdown.express<=0);$("resCalculatedRow").classList.add("hidden");$("resMinimumRow").classList.toggle("hidden",!customerObject||!breakdown.minimumApplied);
+  $("resPaintFeeRow")?.classList.toggle("hidden",breakdown.paintFee<=0);
   $("resFurtherSurchargesRow").classList.toggle("hidden",!customerObject||breakdown.furtherSurcharges<=0);
   $("resExtraRow").classList.toggle("hidden",breakdown.extra<=0);$("resReserveRow").classList.toggle("hidden",customerObject||breakdown.reserve<=0);
   $("resMachine").parentElement.classList.toggle("hidden",breakdown.machine<=0);
@@ -567,10 +576,12 @@ export function calculate(){
   $("resMaterial").textContent=euro(breakdown.material);$("resConsumables").textContent=euro(breakdown.consumables);$("resBaseFee").textContent=euro(breakdown.baseFee);
   $("resMachine").textContent=euro(breakdown.machine);$("resWork").textContent=euro(breakdown.work);$("resExtra").textContent=euro(breakdown.extra);$("resReserve").textContent=euro(breakdown.reserve);
   $("resDifficulty").textContent=euro(breakdown.difficulty);$("resRisk").textContent=euro(breakdown.risk);$("resExpress").textContent=euro(breakdown.express);$("resCalculated").textContent=euro(breakdown.calculated);$("resMinimum").textContent=euro(breakdown.minimum);
+  if($("resPaintFee"))$("resPaintFee").textContent=euro(breakdown.paintFee);
+  if($("paintFeePreview")){const coats=Math.max(0,num($("paintCoats")?.value)),fee=paintingSurcharge(coats);$("paintFeePreview").textContent=coats?`${coats} Schicht${coats===1?"":"en"}: ${euro(fee)} Pauschale vor Gewinnaufschlag.`:"Keine Lackierpauschale.";}
   if($("resFurtherSurcharges"))$("resFurtherSurcharges").textContent=euro(breakdown.furtherSurcharges);
   if($("customerObjectCompactSummary")&&customerObject){
     const difficultyLabels={veryEasy:"Sehr einfach",easy:"Einfach",normal:"Normal",hard:"Schwer",veryHard:"Sehr schwer"};
-    const surchargeTotal=num(breakdown.baseFee)+num(breakdown.furtherSurcharges)+num(breakdown.difficulty)+num(breakdown.risk)+num(breakdown.express);
+    const surchargeTotal=num(breakdown.baseFee)+num(breakdown.furtherSurcharges)+num(breakdown.paintFee)+num(breakdown.difficulty)+num(breakdown.risk)+num(breakdown.express);
     $("customerObjectCompactSummary").textContent=`Wert: ${euro($("objectValue")?.value)} · ${difficultyLabels[difficultyKey]||"Normal"} · Risiko: ${euro(breakdown.risk)} · Grundpauschale: ${euro(breakdown.baseFee)} · Zuschläge: ${euro(surchargeTotal)}`;
   }
   const roundingDifference=breakdown.sale-breakdown.calculated;

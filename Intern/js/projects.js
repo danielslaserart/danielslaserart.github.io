@@ -1,17 +1,17 @@
-import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.37";
-import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.37";
-import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.37";
-import { resolveMaterialSelection } from "./materials.js?v=6.6.37";
-import { workshopUnit, computePriceRecommendations } from "./calculator.js?v=6.6.37";
-import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.37";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.37";
-import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.37";
-import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.37";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.37";
-import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.37";
-import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.37";
-import { customerNameById, customerAddressById } from "./customers.js?v=6.6.37";
-import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.37";
+import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=6.6.38";
+import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=6.6.38";
+import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=6.6.38";
+import { resolveMaterialSelection } from "./materials.js?v=6.6.38";
+import { workshopUnit, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.38";
+import { deleteLearningRecord, saveLearningRecord } from "./learning.js?v=6.6.38";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.38";
+import { priceAgreementHtml, bindPriceAgreementActions } from "./customer-price-history.js?v=6.6.38";
+import { projectFieldLabel, formatProjectFieldValue, isEmptyProjectValue, getCostCoveringMinimumPrice } from "./project-detail-formatting.js?v=6.6.38";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.38";
+import { renderWorkshopAnalysis } from "./workshop-analysis.js?v=6.6.38";
+import { OFFER_PDF_TEMPLATE, createOfferPdf, downloadOfferPdf, offerPdfFilename } from "./offer-pdf.js?v=6.6.38";
+import { customerNameById, customerAddressById } from "./customers.js?v=6.6.38";
+import { renderProjectPositions, bindProjectPositions, deductPositionStock, positionTotals } from "./project-positions.js?v=6.6.38";
 function existingCustomer(project){
   const id=project?.customerId?String(project.customerId):null;
   return id?(state.customers||[]).find(customer=>String(customer.id)===id)||null:null;
@@ -244,7 +244,7 @@ export function renderStatisticsCharts(){
   box.innerHTML=`<div class="chart-card"><b>Umsatz</b><strong>${euro(totalSale)}</strong>${bars}</div><div class="chart-card"><b>Gewinn</b><strong>${euro(totalProfit)}</strong><p>${projects.length} Projekte</p></div><div class="chart-card"><b>Meistgenutzte Materialien</b><p>${topMaterials}</p></div><div class="chart-card"><b>Maschinenlaufzeit</b><p>${machines}</p></div>`;
 }
 const PROCESSING_FIELD_IDS=["matMain","matTransfer","usageMain","usageTransfer","printMinutes","engraveMinutes","cutMinutes","workMinutes","hourlyRate","quantity","colors","plotMinutes","weedMinutes","mountMinutes","pressMinutes","prepMinutes"];
-const PROJECT_FIELD_SKIP=new Set(["projectName","customerName","customerAddress","projectNotes","machineSelect","projectStatus","projectTags","difficulty","riskSurcharge","expressSurcharge","customerBaseFeeEnabled","customerExpressEnabled","objectMaterial","customerObjectProcess","agreementPrice","agreementPriceNote","agreementPriceType","priceType","priceAgreementDate","agreementPriceDate","isPreferredRepeatPrice","isPreferredCustomerPrice",...PROCESSING_FIELD_IDS]);
+const PROJECT_FIELD_SKIP=new Set(["projectName","customerName","customerAddress","projectNotes","machineSelect","projectStatus","projectTags","difficulty","riskSurcharge","expressSurcharge","customerBaseFeeEnabled","customerExpressEnabled","objectMaterial","customerObjectProcess","paintCoats","agreementPrice","agreementPriceNote","agreementPriceType","priceType","priceAgreementDate","agreementPriceDate","isPreferredRepeatPrice","isPreferredCustomerPrice",...PROCESSING_FIELD_IDS]);
 function fieldRow(id,value){
   const formatted=formatProjectFieldValue(id,value,{resolveMaterial:resolveMaterialSelection,resolveMachine:value=>state.machines.find(m=>m.id===value)});
   return `<div><span>${esc(projectFieldLabel(id))}</span><strong>${esc(formatted)}</strong></div>`;
@@ -278,12 +278,12 @@ function currentCustomerCalculation(p){
   const results=p.calculationSnapshot?.results||{};
   const totals=positionTotals(p),hasCurrentPositions=Array.isArray(p.positions),material=hasCurrentPositions?totals.material:num(storedBreakdown.material),machine=hasCurrentPositions?totals.machine:num(storedBreakdown.machine??results.machineCosts),work=hasCurrentPositions?totals.work:num(storedBreakdown.work??results.workCosts),extra=hasCurrentPositions?totals.other:num(storedBreakdown.extra??results.additionalCosts);
   const baseFeeDisabled=p.fields?.customerBaseFeeEnabled===false||p.fields?.customerBaseFeeEnabled==="false";
-  const savedBaseFee=num(storedBreakdown.baseFee),baseFee=baseFeeDisabled?0:(savedBaseFee>0?savedBaseFee:(num(state.settings.customerObject?.baseFee)||15)),furtherSurcharges=num(storedBreakdown.furtherSurcharges),risk=num(storedBreakdown.risk??p.riskSurcharge),express=num(storedBreakdown.express??p.expressSurcharge),difficultyPercent=num(p.difficultyPercent??p.calculationSnapshot?.pricingSettings?.difficultyPercent);
+  const savedBaseFee=num(storedBreakdown.baseFee),baseFee=baseFeeDisabled?0:(savedBaseFee>0?savedBaseFee:(num(state.settings.customerObject?.baseFee)||15)),furtherSurcharges=num(storedBreakdown.furtherSurcharges),paintFee=p.fields?.paintCoats!==undefined?paintingSurcharge(p.fields.paintCoats):num(storedBreakdown.paintFee),risk=num(storedBreakdown.risk??p.riskSurcharge),express=num(storedBreakdown.express??p.expressSurcharge),difficultyPercent=num(p.difficultyPercent??p.calculationSnapshot?.pricingSettings?.difficultyPercent);
   const minimum=num(storedBreakdown.minimum??p.calculationSnapshot?.pricingSettings?.minimumPrice);
   const profitPercent=Math.max(0,num(p.fields?.profit??storedBreakdown.profitPercent??state.settings?.profit??30));
   const rounding=Math.max(.01,num(p.calculationSnapshot?.pricingSettings?.rounding??state.settings?.rounding??.1));
   const roundFn=value=>Math.ceil((value-1e-9)/rounding)*rounding;
-  const recommendations=computePriceRecommendations({orderType:"customerObject",material,machine,work,extra,baseFee,furtherSurcharges,risk,express,difficultyPercent,minimumPrice:minimum,profitPercent,roundFn});
+  const recommendations=computePriceRecommendations({orderType:"customerObject",material,machine,work,extra,baseFee,furtherSurcharges,paintFee,risk,express,difficultyPercent,minimumPrice:minimum,profitPercent,roundFn});
   const breakdown={...storedBreakdown,...recommendations.withWork,saleWithoutWork:recommendations.withoutWork.sale};
   const {cost:selfCosts,calculatedWorkPrice,subtotal,profitMarkup,calculated,sale:recommended}=breakdown;
   const source={...p,cost:selfCosts,selfCosts,costCoveringMinimumPrice:selfCosts,calculatedWorkPrice,subtotal,
@@ -297,7 +297,7 @@ function customerCalculationOverview(p){
   const {breakdown,selfCosts,calculated,recommended,results,source,recommendations}=current;
   const row=(label,value)=>num(value)!==0?`<div><span>${label}</span><strong>${euro(value)}</strong></div>`:"";
   const costRows=`${row("Materialkosten",breakdown.material)}${row("Maschinenkosten",breakdown.machine??results.machineCosts)}${row("Arbeitskosten (Stundenlohn)",breakdown.work??results.workCosts)}${row("Sonstige echte Kosten",breakdown.extra??results.additionalCosts)}`;
-  const surchargeRows=`${row("Grundpauschale",breakdown.baseFee)}${row("Schwierigkeitsaufschlag",breakdown.difficulty)}${row("Risikoaufschlag",breakdown.risk??p.riskSurcharge)}${row("Expresszuschlag",breakdown.express??p.expressSurcharge)}${row("Weitere Zuschläge",breakdown.furtherSurcharges)}`;
+  const surchargeRows=`${row("Grundpauschale",breakdown.baseFee)}${row("Lackier-/Beizpauschale",breakdown.paintFee)}${row("Schwierigkeitsaufschlag",breakdown.difficulty)}${row("Risikoaufschlag",breakdown.risk??p.riskSurcharge)}${row("Expresszuschlag",breakdown.express??p.expressSurcharge)}${row("Weitere Zuschläge",breakdown.furtherSurcharges)}`;
   const withTiers=recommendations.withWorkTiers,withoutTiers=recommendations.withoutWorkTiers;
   return `<div class="project-calculation-overview">
     ${costRows?`<h4>TATSÄCHLICHE KOSTEN</h4>${costRows}`:""}
@@ -316,7 +316,7 @@ export function viewProject(id){
   const selfCosts=Array.isArray(p.positions)?currentPositionTotals.cost:getCostCoveringMinimumPrice(p);
   const ownProfitPercent=Math.max(0,num(p.fields?.profit??p.calculationSnapshot?.fields?.profit??p.calculationSnapshot?.pricingSettings?.profitPercent??state.settings?.profit??30));
   const priceStep=num(p.calculationSnapshot?.pricingSettings?.rounding??state.settings?.rounding)||.1;
-  const ownRecommendations=computePriceRecommendations({orderType:"own",material:currentPositionTotals.material,machine:currentPositionTotals.machine,work:currentPositionTotals.work,extra:currentPositionTotals.other,reservePercent:num(p.positionReservePercent??p.fields?.reserve??p.calculationSnapshot?.pricingSettings?.reservePercent??state.settings?.reserve),profitPercent:ownProfitPercent,roundFn:value=>Math.ceil((value-1e-9)/priceStep)*priceStep});
+  const ownRecommendations=computePriceRecommendations({orderType:"own",material:currentPositionTotals.material,machine:currentPositionTotals.machine,work:currentPositionTotals.work,extra:currentPositionTotals.other,paintFee:p.fields?.paintCoats!==undefined?paintingSurcharge(p.fields.paintCoats):num(p.pricingBreakdown?.paintFee),reservePercent:num(p.positionReservePercent??p.fields?.reserve??p.calculationSnapshot?.pricingSettings?.reservePercent??state.settings?.reserve),profitPercent:ownProfitPercent,roundFn:value=>Math.ceil((value-1e-9)/priceStep)*priceStep});
   const ownBreakdown=ownRecommendations.withWork,ownRecommended=ownBreakdown.sale;
   const ownPriceSource={...p,selfCosts:ownBreakdown.cost,cost:ownBreakdown.cost,costCoveringMinimumPrice:ownBreakdown.cost,calculatedWorkPrice:0,subtotal:ownBreakdown.cost,priceBeforeProfit:ownBreakdown.cost,profitPercent:ownProfitPercent,profitMarkup:ownBreakdown.profitMarkup,calculated:ownBreakdown.calculated,recommendedSalePrice:ownRecommended,recommendedPrice:ownRecommended,recommendedSalePriceWithoutWork:ownRecommendations.withoutWork.sale,pricingBreakdown:{...(p.pricingBreakdown||{}),...ownBreakdown,saleWithoutWork:ownRecommendations.withoutWork.sale}};
   const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
