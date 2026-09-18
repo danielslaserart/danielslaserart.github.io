@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=4.7";
-import { state, save, defaults } from "./storage.js?v=4.7";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=4.7";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=4.7";
-import { renderProjects } from "./projects.js?v=4.7";
-import { appConfirm } from "./dialogs.js?v=4.7";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=4.7";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=4.7";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=4.7";
+import { $, num, euro, uid, esc } from "./utils.js?v=6.7";
+import { state, save, defaults } from "./storage.js?v=6.7";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.7";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=6.7";
+import { renderProjects } from "./projects.js?v=6.7";
+import { appConfirm } from "./dialogs.js?v=6.7";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=6.7";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.7";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=6.7";
 let editingProjectId=null;
 let calculatorPositionProject={module:"3d",positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -40,11 +40,13 @@ export function computePriceBreakdown(parts={}){
     const express=Math.max(0,num(parts.express));
     const furtherSurcharges=Math.max(0,num(parts.furtherSurcharges));
     const paintFee=Math.max(0,num(parts.paintFee));
+    const sandFee=Math.max(0,num(parts.sandFee));
+    const glueFee=Math.max(0,num(parts.glueFee));
     const difficultyPercent=Math.max(0,num(parts.difficultyPercent));
     const extra=Math.max(0,num(parts.extra));
     const difficulty=(baseFee+furtherSurcharges)*difficultyPercent/100;
     const cost=material+machine+work+extra;
-    const calculatedWorkPrice=baseFee+furtherSurcharges+paintFee+difficulty+risk+express;
+    const calculatedWorkPrice=baseFee+furtherSurcharges+paintFee+sandFee+glueFee+difficulty+risk+express;
     const subtotalBeforeMinimum=cost+calculatedWorkPrice;
     const minimum=Math.max(0,num(parts.minimumPrice));
     const minimumApplied=subtotalBeforeMinimum<minimum;
@@ -53,22 +55,22 @@ export function computePriceBreakdown(parts={}){
     const profitMarkup=subtotal*profitPercent/100;
     const calculated=subtotal+profitMarkup;
     const recommended=parts.roundFn?parts.roundFn(calculated):calculated;
-    return {material,consumables:0,baseFee,furtherSurcharges,paintFee,machine,work,extra,reserve:0,difficulty,risk,express,
+    return {material,consumables:0,baseFee,furtherSurcharges,paintFee,sandFee,glueFee,machine,work,extra,reserve:0,difficulty,risk,express,
       cost,calculatedWorkPrice,subtotalBeforeMinimum,subtotal,priceBeforeProfit:subtotal,profitPercent,profitMarkup,
       calculated,minimum,minimumApplied,sale:recommended,profit:Math.max(0,recommended-cost)};
   }
-  const material=Math.max(0,num(parts.material)),consumables=Math.max(0,num(parts.consumables)),machine=Math.max(0,num(parts.machine)),work=Math.max(0,num(parts.work)),extra=Math.max(0,num(parts.extra)),paintFee=Math.max(0,num(parts.paintFee)),express=Math.max(0,num(parts.express));
+  const material=Math.max(0,num(parts.material)),consumables=Math.max(0,num(parts.consumables)),machine=Math.max(0,num(parts.machine)),work=Math.max(0,num(parts.work)),extra=Math.max(0,num(parts.extra)),paintFee=Math.max(0,num(parts.paintFee)),sandFee=Math.max(0,num(parts.sandFee)),glueFee=Math.max(0,num(parts.glueFee)),express=Math.max(0,num(parts.express));
   const direct=material+consumables+machine+work+extra;
   const overhead=direct*Math.max(0,num(parts.overheadPercent))/100;
   const base=direct+overhead;
   const reserve=base*Math.max(0,num(parts.reservePercent))/100;
   const cost=base+reserve;
-  const subtotal=cost+paintFee+express;
+  const subtotal=cost+paintFee+sandFee+glueFee+express;
   const profitPercent=Math.max(0,num(parts.profitPercent));
   const profitMarkup=subtotal*profitPercent/100;
   const calculated=subtotal+profitMarkup;
   const sale=parts.roundFn?parts.roundFn(calculated):calculated;
-  return {material,consumables,machine,work,extra,paintFee,express,reserve,cost,calculatedWorkPrice:paintFee+express,subtotal,
+  return {material,consumables,machine,work,extra,paintFee,sandFee,glueFee,express,reserve,cost,calculatedWorkPrice:paintFee+sandFee+glueFee+express,subtotal,
     priceBeforeProfit:subtotal,profitPercent,profitMarkup,sale,profit:Math.max(0,sale-cost),
     baseFee:0,difficulty:0,risk:0,calculated,minimum:0,minimumApplied:false};
 }
