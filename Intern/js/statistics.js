@@ -1,7 +1,7 @@
 import { $, num, euro, esc } from "./utils.js?v=6.6.40";
 import { state, save } from "./storage.js?v=6.6.40";
 import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.40";
-import { rounded, renderCalculator, calculate } from "./calculator.js?v=6.6.40";
+import { rounded, renderCalculator, calculate } from "./calculator.js?v=6.6.41";
 import { setScreen } from "./ui.js?v=6.6.40";
 import { renderMotifEstimator } from "./estimator.js?v=6.6.40";
 import { resetMotifEstimator } from "./estimator.js?v=6.6.40";
