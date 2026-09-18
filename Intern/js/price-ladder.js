@@ -102,6 +102,7 @@ export function getPriceLadderData(source={}){
     ["Schwierigkeitsaufschlag",component(source,["difficulty","difficultySurcharge"])],
     ["Risikoaufschlag",component(source,["risk","riskSurcharge"])],
     ["Expresszuschlag",component(source,["express","expressSurcharge"])],
+    ["Lackier-/Beizpauschale",component(source,["paintFee","paintingSurcharge"])],
     ["Motiv-/Komplexitätsaufschlag",component(source,["complexitySurcharge","motifSurcharge"])],
     ["Materialaufschlag",component(source,["materialSurcharge"])],
     ["Weitere Zuschläge",component(source,["otherSurcharges","furtherSurcharges"])]
@@ -110,13 +111,16 @@ export function getPriceLadderData(source={}){
   const explicitWork=firstValue(
     source.calculatedWorkPrice,directBreakdown.calculatedWorkPrice,estimator.calculatedWorkPrice
   );
-  const calculatedWorkPrice=hasValue(explicitWork)?money(explicitWork):totalSurcharges;
+  const explicitWorkPrice=hasValue(explicitWork)?money(explicitWork):null;
+  const calculatedWorkPrice=explicitWorkPrice===null?totalSurcharges:money(Math.max(explicitWorkPrice,totalSurcharges));
   const subtotalRaw=firstValue(
     source.subtotal,source.priceBeforeProfit,source.preProfitPrice,
     directBreakdown.subtotal,directBreakdown.priceBeforeProfit,estimator.subtotal
   );
-  const subtotal=hasValue(subtotalRaw)?money(subtotalRaw)
-    :selfCosts!==null?money(selfCosts+calculatedWorkPrice):null;
+  const derivedSubtotal=selfCosts!==null?money(selfCosts+calculatedWorkPrice):null;
+  const subtotal=hasValue(subtotalRaw)
+    ?money(Math.max(money(subtotalRaw),derivedSubtotal??money(subtotalRaw)))
+    :derivedSubtotal;
   const profitPercentRaw=firstValue(source.profitPercent,directBreakdown.profitPercent,source.fields?.profit,source.calculationSnapshot?.fields?.profit,source.calculationSnapshot?.pricingSettings?.profit);
   const profitMarkupRaw=firstValue(source.profitMarkup,directBreakdown.profitMarkup);
   const profitPercent=hasValue(profitPercentRaw)?num(profitPercentRaw):null;
