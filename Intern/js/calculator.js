@@ -458,7 +458,11 @@ export function renderCalculator(clear=false){
   renderCalculatorProjectPositions();
   updateOrderAssistantUI();
   renderConsumables();
-  document.querySelectorAll("#calcForm input:not(.agreement-field),#calcForm select:not(.agreement-field)").forEach(el=>el.oninput=()=>{if(el.id==="profit"||el.id==="reserve")el.dataset.userEdited="true";calculate()});
+  document.querySelectorAll("#calcForm input:not(.agreement-field),#calcForm select:not(.agreement-field)").forEach(el=>{
+    const recalculate=()=>{if(el.id==="profit"||el.id==="reserve")el.dataset.userEdited="true";calculate()};
+    el.oninput=recalculate;
+    el.onchange=recalculate;
+  });
   $("agreementPrice")?.addEventListener("input",()=>{updateAgreementFormState();calculate()});
   ["machineSelect","matMain","calculatorProfileSource","profileProcessType"].forEach(id=>$(id)?.addEventListener("change",renderCalculatorProfiles));
   if($("objectValue"))$("objectValue").oninput=()=>{
