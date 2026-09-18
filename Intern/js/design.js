@@ -1,6 +1,6 @@
-import { $, num, euro, uid } from "./utils.js?v=6.6.40";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=6.6.40";
-import { appAlert, appConfirm } from "./dialogs.js?v=6.6.40";
+import { $, num, euro, uid } from "./utils.js?v=4.7";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=4.7";
+import { appAlert, appConfirm } from "./dialogs.js?v=4.7";
 let editingDesignId=null;
 
 function getDesignDefaults(){
