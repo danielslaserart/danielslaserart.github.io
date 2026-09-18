@@ -1,7 +1,7 @@
 import { initializeAuth, state } from "./storage.js?v=6.6.40";
 import { num } from "./utils.js?v=6.6.40";
 import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=6.6.40";
-import { renderCalculator } from "./calculator.js?v=6.6.41";
+import { renderCalculator } from "./calculator.js?v=6.6.42";
 import { renderTools } from "./statistics.js?v=6.6.40";
 import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=6.6.40";
 import { renderProjects } from "./projects.js?v=6.6.40";
@@ -81,7 +81,7 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 export function initializeApp(){
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6.41",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=6.6.42",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
