@@ -1,7 +1,7 @@
 import { $, num, euro, esc, uid } from "./utils.js?v=6.6.40";
 import { state, save } from "./storage.js?v=6.6.40";
 import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.40";
-import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.41";
+import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.42";
 import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.40";
 import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.40";
 import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.40";
