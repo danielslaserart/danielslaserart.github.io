@@ -1,11 +1,11 @@
-import { $, num, euro, esc, uid } from "./utils.js?v=6.6.39";
-import { state, save } from "./storage.js?v=6.6.39";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.39";
-import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.39";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.39";
-import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.39";
-import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.39";
-import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.39";
+import { $, num, euro, esc, uid } from "./utils.js?v=6.6.40";
+import { state, save } from "./storage.js?v=6.6.40";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.40";
+import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.40";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.40";
+import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.40";
+import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.40";
+import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.40";
 let motifImageDetail = null;
 let editingEstimatorProjectId=null;
 let estimatorCustomerPricing=null;
@@ -29,6 +29,7 @@ function updateMotifProcessUI(){
   $('mcEngraveSpeedLabel')?.classList.toggle('hidden',!doEngrave);
   $('mcCutTimeRow')?.classList.toggle('hidden',!doCut);
   $('mcEngraveTimeRow')?.classList.toggle('hidden',!doEngrave);
+  $('mcExpressField')?.classList.toggle('hidden',orderType!=="customerObject");
 }
 function calculateMotifMaterialCost(width,height,layers){
   const selected=resolveMaterialSelection($('mcMaterial')?.value);if(!selected)return {cost:0,text:'–'};
@@ -130,7 +131,7 @@ export function calculateMotifEstimator(){
     difficultyKey:estimatorCustomerPricing?.difficultyKey||"normal",
     difficultyPercent:num(estimatorCustomerPricing?.difficultyPercent??customerSettings.difficulties?.[estimatorCustomerPricing?.difficultyKey||"normal"]),
     risk:num(estimatorCustomerPricing?.risk),
-    express:num(estimatorCustomerPricing?.express??customerSettings.expressFee)
+    express:$('mcExpressEnabled')?.checked?num(customerSettings.expressFee):0
   }:null;
   const customerBreakdown=customerPricing?computePriceBreakdown({
     orderType,machine:machineCost,work:workCost,extra,paintFee,
@@ -171,7 +172,8 @@ export function calculateMotifEstimator(){
   const customerObject=orderType==="customerObject";
   ["mcCostHeading","mcPricePartsHeading","mcRoundingHeading","mcActualProfitHeading","mcRoundingRow","mcOtherActualCostsRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
   $("mcCalculatedHeading")?.classList.add("hidden");$("mcCalculatedRow")?.classList.add("hidden");$("mcSaleHeading")?.classList.add("hidden");
-  ["mcBaseFeeRow","mcDifficultyRow","mcRiskRow","mcExpressRow","mcFurtherSurchargesRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
+  ["mcBaseFeeRow","mcDifficultyRow","mcRiskRow","mcFurtherSurchargesRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
+  $("mcExpressRow")?.classList.toggle("hidden",!customerObject||!num(customerBreakdown?.express));
   $("mcCalculatedPrice").textContent=euro(calculatedPrice);$("mcRoundingDifference").textContent=signedEuro(roundingDifference);$("mcOtherActualCosts").textContent=euro(0);
   $("mcProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("mcMarginLabel").textContent=customerObject?"Gewinnmarge vom Verkaufspreis":"Gewinnmarge";$("mcProfitExplanation").textContent=customerObject?`${euro(sale)} − ${euro(finalCost)}`:"";
   $('mcPriceMinWithoutWork').textContent=euro(withoutWorkTiers.low);$('mcPriceMin').textContent=euro(withWorkTiers.low);
@@ -179,7 +181,7 @@ export function calculateMotifEstimator(){
   $('mcPricePremiumWithoutWork').textContent=euro(withoutWorkTiers.premium);$('mcPricePremium').textContent=euro(withWorkTiers.premium);
   $('mcLearningHint').textContent=similar.length?`Es wurden ${similar.length} ähnliche Projekte gefunden. Die Zeitberechnung wurde mit diesen Erfahrungswerten verbessert.`:'Noch keine ähnlichen Referenzprojekte vorhanden.';
   $('motifCalc').dataset.predictedMachineMinutes=String(cutMinutes+engraveMinutes);
-  const snapshot={orderType,materialSource,materialId:materialSelection?.id||"",materialName:materialSelection?.name||"",machineId:machine?.id||"",machineName:machine?.name||"",width,height,area,layers,detail:complexity,process,estimatedCutTime:cutMinutes,estimatedEngravingTime:engraveMinutes,cutMinutes,engraveMinutes,cost:finalCost,estimatedPrice:sale,sale,recommendedSalePriceWithoutWork:saleWithoutWork,profit,profitPercent:num($("mcProfit").value),reservePercent:num($("mcReserve").value),minimal,optimal:sale,premium,minimalWithoutWork:withoutWorkTiers.low,optimalWithoutWork:withoutWorkTiers.optimal,premiumWithoutWork:withoutWorkTiers.premium,workMinutes:work,materialCost:material,machineCost,workCost,additionalCosts:extra,paintFee,customerPricing,pricingBreakdown:{...(customerBreakdown||recommendations.withWork),saleWithoutWork},inputs:{mcWidth:$("mcWidth").value,mcHeight:$("mcHeight").value,mcDimensionMeaning:$("mcDimensionMeaning")?.value||"engraving",mcLayers:$("mcLayers").value,mcCutSpeed:$("mcCutSpeed").value,mcEngraveSpeed:$("mcEngraveSpeed").value,mcComplexity:$("mcComplexity").value,mcExtraCost:$("mcExtraCost").value,mcBaseWork:$("mcBaseWork").value,mcHourly:$("mcHourly").value,mcReserve:$("mcReserve").value,mcProfit:$("mcProfit").value,mcSand:$("mcSand").checked,mcPaint:$("mcPaint").value,mcPaintCustomFee:$("mcPaintCustomFee")?.value||"0",mcGlue:$("mcGlue").checked},calibrationFactor:cal,learningFactor};
+  const snapshot={orderType,materialSource,materialId:materialSelection?.id||"",materialName:materialSelection?.name||"",machineId:machine?.id||"",machineName:machine?.name||"",width,height,area,layers,detail:complexity,process,estimatedCutTime:cutMinutes,estimatedEngravingTime:engraveMinutes,cutMinutes,engraveMinutes,cost:finalCost,estimatedPrice:sale,sale,recommendedSalePriceWithoutWork:saleWithoutWork,profit,profitPercent:num($("mcProfit").value),reservePercent:num($("mcReserve").value),minimal,optimal:sale,premium,minimalWithoutWork:withoutWorkTiers.low,optimalWithoutWork:withoutWorkTiers.optimal,premiumWithoutWork:withoutWorkTiers.premium,workMinutes:work,materialCost:material,machineCost,workCost,additionalCosts:extra,paintFee,customerPricing,pricingBreakdown:{...(customerBreakdown||recommendations.withWork),saleWithoutWork},inputs:{mcWidth:$("mcWidth").value,mcHeight:$("mcHeight").value,mcDimensionMeaning:$("mcDimensionMeaning")?.value||"engraving",mcLayers:$("mcLayers").value,mcCutSpeed:$("mcCutSpeed").value,mcEngraveSpeed:$("mcEngraveSpeed").value,mcComplexity:$("mcComplexity").value,mcExtraCost:$("mcExtraCost").value,mcBaseWork:$("mcBaseWork").value,mcHourly:$("mcHourly").value,mcReserve:$("mcReserve").value,mcProfit:$("mcProfit").value,mcSand:$("mcSand").checked,mcPaint:$("mcPaint").value,mcPaintCustomFee:$("mcPaintCustomFee")?.value||"0",mcGlue:$("mcGlue").checked,mcExpressEnabled:Boolean($("mcExpressEnabled")?.checked)},calibrationFactor:cal,learningFactor};
   $('motifCalc').dataset.snapshot=JSON.stringify(snapshot);
   return snapshot;
 }
@@ -193,6 +195,7 @@ export async function resetMotifEstimator(confirmFirst=true){
   if($("mcComplexity"))$("mcComplexity").value="auto";
   if($("mcDimensionMeaning"))$("mcDimensionMeaning").value="engraving";
   const ownMaterial=document.querySelector('input[name="mcMaterialSource"][value="own"]');if(ownMaterial)ownMaterial.checked=true;
+  if($("mcExpressEnabled"))$("mcExpressEnabled").checked=false;
   const cut=document.querySelector('input[name="mcProcess"][value="cut"]');if(cut)cut.checked=true;
   motifImageDetail=null;$("mcPreview")?.removeAttribute("src");$("mcPreview")?.classList.add("hidden");$("mcPreviewPlaceholder")?.classList.remove("hidden");
   if($("mcHourly"))$("mcHourly").value=String(num(state.settings.hourly));
@@ -200,10 +203,10 @@ export async function resetMotifEstimator(confirmFirst=true){
   if($("mcProfit"))$("mcProfit").value=String(num(state.settings.profit));
   applyMotifMachineSpeeds(true);updateMotifProcessUI();calculateMotifEstimator();return true;
 }
-['mcWidth','mcHeight','mcDimensionMeaning','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcPaintCustomFee','mcGlue','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
+['mcWidth','mcHeight','mcDimensionMeaning','mcLayers','mcCutSpeed','mcEngraveSpeed','mcComplexity','mcSand','mcPaint','mcPaintCustomFee','mcGlue','mcExpressEnabled','mcMaterial','mcExtraCost','mcBaseWork','mcHourly','mcReserve','mcProfit'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calculateMotifEstimator);el.addEventListener('change',calculateMotifEstimator)}});
 document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',()=>{updateMotifProcessUI();calculateMotifEstimator()}));
 document.querySelectorAll('input[name="mcProcess"]').forEach(el=>el.addEventListener('change',renderMotifProfiles));
-document.querySelectorAll('input[name="mcMaterialSource"]').forEach(el=>el.addEventListener('change',calculateMotifEstimator));
+document.querySelectorAll('input[name="mcMaterialSource"]').forEach(el=>el.addEventListener('change',()=>{updateMotifProcessUI();calculateMotifEstimator()}));
 if($('mcMaterial'))$('mcMaterial').addEventListener('change',renderMotifProfiles);
 if($('mcMachine'))$('mcMachine').addEventListener('change',()=>{applyMotifMachineSpeeds(true);calculateMotifEstimator();renderMotifProfiles()});
 ["mcProfileSource","mcProfileProcessType"].forEach(id=>$(id)?.addEventListener("change",renderMotifProfiles));
@@ -274,7 +277,7 @@ export function loadProjectIntoMotifEstimator(project){
   setValue("mcCutSpeed",inputs.mcCutSpeed);setValue("mcEngraveSpeed",inputs.mcEngraveSpeed);setValue("mcComplexity",inputs.mcComplexity??data.detail);
   setValue("mcExtraCost",inputs.mcExtraCost??data.additionalCosts);setValue("mcBaseWork",inputs.mcBaseWork);
   setValue("mcHourly",inputs.mcHourly);setValue("mcReserve",inputs.mcReserve);setValue("mcProfit",inputs.mcProfit);
-  ["mcSand","mcGlue"].forEach(id=>{if($(id)&&inputs[id]!==undefined)$(id).checked=Boolean(inputs[id])});if($("mcPaint")&&inputs.mcPaint!==undefined)$("mcPaint").value=inputs.mcPaint===true?"1":String(inputs.mcPaint||0);if($("mcPaintCustomFee")&&inputs.mcPaintCustomFee!==undefined)$("mcPaintCustomFee").value=inputs.mcPaintCustomFee;
+  ["mcSand","mcGlue"].forEach(id=>{if($(id)&&inputs[id]!==undefined)$(id).checked=Boolean(inputs[id])});if($("mcPaint")&&inputs.mcPaint!==undefined)$("mcPaint").value=inputs.mcPaint===true?"1":String(inputs.mcPaint||0);if($("mcPaintCustomFee")&&inputs.mcPaintCustomFee!==undefined)$("mcPaintCustomFee").value=inputs.mcPaintCustomFee;if($("mcExpressEnabled"))$("mcExpressEnabled").checked=inputs.mcExpressEnabled!==undefined?Boolean(inputs.mcExpressEnabled):num((data.customerPricing||snapshot?.pricingSettings)?.express)>0;
   const source=document.querySelector(`input[name="mcMaterialSource"][value="${snapshot?.materialSource||data.materialSource||((project.orderType==="customerObject")?"customer":"own")}"]`);if(source)source.checked=true;
   const process=document.querySelector(`input[name="mcProcess"][value="${data.process||project.customerObjectProcess||"cut"}"]`);if(process)process.checked=true;
   setValue("mcActualSalePrice",project.actualPrice??project.sale);setValue("mcActualTime",project.actualTotalTime);setValue("mcActualCutTime",project.actualCutTime);setValue("mcActualEngravingTime",project.actualEngravingTime);

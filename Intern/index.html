@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json?v=6.6">
   <link rel="apple-touch-icon" href="icon-192.png?v=6.5">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.5">
-  <link rel="stylesheet" href="style.css?v=6.6.39">
+  <link rel="stylesheet" href="style.css?v=6.6.40">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -451,6 +451,7 @@
             <label><input name="mcMaterialSource" value="customer" type="radio"> Material vom Kunden</label>
           </div>
         </fieldset>
+        <label id="mcExpressField" class="calculator-toggle hidden"><span>Expresszuschlag aus System verwenden</span><input id="mcExpressEnabled" type="checkbox"><i aria-hidden="true"></i></label>
         <label>Breite (cm)<input id="mcWidth" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 30"></label>
         <label>Höhe (cm)<input id="mcHeight" type="number" min="1" step="any" inputmode="decimal" placeholder="z. B. 35"></label>
         <label>Die Maße sind<select id="mcDimensionMeaning"><option value="engraving" selected>Gravur-/Bearbeitungsgröße – ganzes Stück berechnen</option><option value="material">Tatsächlich verbrauchte Materialgröße – anteilig berechnen</option></select></label>
@@ -1032,6 +1033,6 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
-<script type="module" src="js/app.js?v=6.6.39"></script>
+<script type="module" src="js/app.js?v=6.6.40"></script>
 </body>
 </html>
