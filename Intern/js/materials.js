@@ -1,6 +1,6 @@
 import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, inferMaterialActivities, categoryOptions, compressProjectImage } from "./utils.js?v=6.6.40";
 import { state, save } from "./storage.js?v=6.6.40";
-import { calculate } from "./calculator.js?v=6.6.40";
+import { calculate } from "./calculator.js?v=6.6.41";
 import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.6.40";
 import { renderMaterialProfileSections, renderMaterialProfileEditor, renderProcessingProfileManager } from "./processing-profiles.js?v=6.6.40";
 const dialog=$("materialDialog");
