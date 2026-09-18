@@ -1,11 +1,11 @@
-import { $, num, euro, esc, uid } from "./utils.js?v=6.6.40";
-import { state, save } from "./storage.js?v=6.6.40";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=6.6.40";
-import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=6.6.42";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=6.6.40";
-import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=6.6.40";
-import { appAlert, appForm, appConfirm } from "./dialogs.js?v=6.6.40";
-import { renderMotifProfiles } from "./processing-profiles.js?v=6.6.40";
+import { $, num, euro, esc, uid } from "./utils.js?v=4.7";
+import { state, save } from "./storage.js?v=4.7";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=4.7";
+import { rounded, computePriceBreakdown, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=4.7";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=4.7";
+import { findSimilarProjects, learnedTimeFactor, learnedPriceSuggestion, saveLearningRecord } from "./learning.js?v=4.7";
+import { appAlert, appForm, appConfirm } from "./dialogs.js?v=4.7";
+import { renderMotifProfiles } from "./processing-profiles.js?v=4.7";
 let motifImageDetail = null;
 let editingEstimatorProjectId=null;
 let estimatorCustomerPricing=null;
@@ -123,7 +123,8 @@ export function calculateMotifEstimator(){
   const extra=num($('mcExtraCost').value),workCost=work/60*num($('mcHourly').value),paintFee=paintingSurcharge($('mcPaint').value,$('mcPaintCustomFee')?.value);
   $("mcPaintCustomFeeField")?.classList.toggle("hidden",$("mcPaint").value!=="custom");
   const direct=material+extra+machineCost+workCost,overhead=direct*num(state.settings.overhead)/100,base=direct+overhead,reserve=base*num($('mcReserve').value)/100,cost=base+reserve;
-  const calculatedSale=(cost+paintFee)*(1+num($('mcProfit').value)/100);
+  const expressFee=$('mcExpressEnabled')?.checked?num(state.settings.customerObject?.expressFee):0;
+  const calculatedSale=(cost+paintFee+expressFee)*(1+num($('mcProfit').value)/100);
   const customerSettings=state.settings.customerObject||{};
   const customerPricing=orderType==="customerObject"?{
     baseFee:num(estimatorCustomerPricing?.baseFee??customerSettings.baseFee),
@@ -131,7 +132,7 @@ export function calculateMotifEstimator(){
     difficultyKey:estimatorCustomerPricing?.difficultyKey||"normal",
     difficultyPercent:num(estimatorCustomerPricing?.difficultyPercent??customerSettings.difficulties?.[estimatorCustomerPricing?.difficultyKey||"normal"]),
     risk:num(estimatorCustomerPricing?.risk),
-    express:$('mcExpressEnabled')?.checked?num(customerSettings.expressFee):0
+    express:expressFee
   }:null;
   const customerBreakdown=customerPricing?computePriceBreakdown({
     orderType,machine:machineCost,work:workCost,extra,paintFee,
@@ -144,10 +145,10 @@ export function calculateMotifEstimator(){
     baseFee:customerPricing.baseFee,minimumPrice:customerPricing.minimumPrice,
     difficultyPercent:customerPricing.difficultyPercent,risk:customerPricing.risk,express:customerPricing.express,
     profitPercent:num($('mcProfit').value),roundFn:rounded
-  }:{orderType:"own",material,machine:machineCost,work:workCost,extra,paintFee,overheadPercent:num(state.settings.overhead),reservePercent:num($('mcReserve').value),profitPercent:num($('mcProfit').value),roundFn:rounded};
+  }:{orderType:"own",material,machine:machineCost,work:workCost,extra,paintFee,express:expressFee,overheadPercent:num(state.settings.overhead),reservePercent:num($('mcReserve').value),profitPercent:num($('mcProfit').value),roundFn:rounded};
   const recommendations=computePriceRecommendations(recommendationParts);
   const finalCost=customerBreakdown?.cost??cost;
-  const sale=customerBreakdown?.sale??rounded(Math.max(cost,learnedPriceSuggestion(similar,area,calculatedSale)));
+  const sale=customerBreakdown?.sale??rounded(Math.max(recommendations.withWork.sale,learnedPriceSuggestion(similar,area,calculatedSale)));
   const profit=sale-finalCost,margin=sale>0?profit/sale*100:0;
   const calculatedPrice=customerBreakdown?.calculated??sale;
   const roundingDifference=sale-calculatedPrice;
@@ -159,21 +160,21 @@ export function calculateMotifEstimator(){
   if($("mcMaterialSourceHint"))$("mcMaterialSourceHint").textContent=materialSource==="customer"?"Kundenmaterial – keine Materialkosten berechnet":"";
   $('mcCutTime').textContent=`${Math.round(cutMinutes)} Min.`;$('mcEngraveTime').textContent=`${Math.round(engraveMinutes)} Min.`;$('mcWorkTime').textContent=`${Math.round(work)} Min.`;
   $('mcMachineCost').textContent=euro(machineCost);$('mcWorkCostResult').textContent=euro(workCost);$('mcBaseFeeResult').textContent=euro(customerBreakdown?.baseFee||0);
-  $('mcDifficultyResult').textContent=euro(customerBreakdown?.difficulty||0);$('mcRiskResult').textContent=euro(customerBreakdown?.risk||0);$('mcExpressResult').textContent=euro(customerBreakdown?.express||0);
+  $('mcDifficultyResult').textContent=euro(customerBreakdown?.difficulty||0);$('mcRiskResult').textContent=euro(customerBreakdown?.risk||0);$('mcExpressResult').textContent=euro(expressFee);
   $('mcTotalCost').textContent=euro(finalCost);$('mcSalePrice').textContent=euro(sale);
   $('mcCostCoveringMinimum').textContent=euro(finalCost);
+  const activeBreakdown=customerBreakdown||recommendations.withWork;
   if($("estimatorPriceLadder"))$("estimatorPriceLadder").innerHTML=renderPriceLadder(getPriceLadderData({
-    ...(customerBreakdown||{}),orderType,cost:finalCost,sale,recommendedSalePriceWithoutWork:saleWithoutWork,
+    ...activeBreakdown,orderType,cost:finalCost,sale,recommendedSalePrice:sale,recommendedSalePriceWithoutWork:saleWithoutWork,
     profitPercent:num($('mcProfit').value),
-    subtotal:customerBreakdown?.subtotal??finalCost,
-    pricingBreakdown:customerBreakdown||{material,machine:machineCost,work:workCost,extra,overhead,reserve}
+    pricingBreakdown:activeBreakdown
   }),{heading:true,details:true});
   $('mcProfitEuro').textContent=euro(profit);$('mcProfitPercent').textContent=`${margin.toLocaleString('de-DE',{maximumFractionDigits:1})} %`;
   const customerObject=orderType==="customerObject";
   ["mcCostHeading","mcPricePartsHeading","mcRoundingHeading","mcActualProfitHeading","mcRoundingRow","mcOtherActualCostsRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
   $("mcCalculatedHeading")?.classList.add("hidden");$("mcCalculatedRow")?.classList.add("hidden");$("mcSaleHeading")?.classList.add("hidden");
   ["mcBaseFeeRow","mcDifficultyRow","mcRiskRow","mcFurtherSurchargesRow"].forEach(id=>$(id)?.classList.toggle("hidden",!customerObject));
-  $("mcExpressRow")?.classList.toggle("hidden",!customerObject||!num(customerBreakdown?.express));
+  $("mcExpressRow")?.classList.toggle("hidden",!num(activeBreakdown.express));
   $("mcCalculatedPrice").textContent=euro(calculatedPrice);$("mcRoundingDifference").textContent=signedEuro(roundingDifference);$("mcOtherActualCosts").textContent=euro(0);
   $("mcProfitLabel").textContent=customerObject?"Tatsächlicher Gewinn":"Gewinn";$("mcMarginLabel").textContent=customerObject?"Gewinnmarge vom Verkaufspreis":"Gewinnmarge";$("mcProfitExplanation").textContent=customerObject?`${euro(sale)} − ${euro(finalCost)}`:"";
   $('mcPriceMinWithoutWork').textContent=euro(withoutWorkTiers.low);$('mcPriceMin').textContent=euro(withWorkTiers.low);
