@@ -1,8 +1,8 @@
-import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, inferMaterialActivities, categoryOptions, compressProjectImage } from "./utils.js?v=6.7";
-import { state, save } from "./storage.js?v=6.7";
-import { calculate } from "./calculator.js?v=6.7";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.7";
-import { renderMaterialProfileSections, renderMaterialProfileEditor, renderProcessingProfileManager } from "./processing-profiles.js?v=6.7";
+import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, inferMaterialActivities, categoryOptions, compressProjectImage } from "./utils.js?v=6.8";
+import { state, save } from "./storage.js?v=6.8";
+import { calculate } from "./calculator.js?v=6.8";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=6.8";
+import { renderMaterialProfileSections, renderMaterialProfileEditor, renderProcessingProfileManager } from "./processing-profiles.js?v=6.8";
 const dialog=$("materialDialog");
 $("newMaterialBtn").onclick=()=>openMaterial();
 $("closeMaterialBtn").onclick=()=>dialog.close();
@@ -47,6 +47,13 @@ function renderMaterialCategorySelect(selected=""){$("materialCategory").innerHT
 function toggleMaterialAreaBox(){$("materialAreaDimensions").classList.toggle("hidden",!["cm²","m²"].includes($("materialUnit").value))}
 function renderMaterialImagePreview(){const box=$("materialImagePreview");box.classList.toggle("hidden",!materialImageData);box.innerHTML=materialImageData?`<img src="${materialImageData}" alt="Materialbild"><button id="removeMaterialImageBtn" type="button">×</button>`:"";if(materialImageData)$("removeMaterialImageBtn").onclick=()=>{materialImageData="";renderMaterialImagePreview()}}
 function dimensionToCm(v,u){return num(v)*(u==="mm"?.1:u==="m"?100:1)}
+function areaQuantityFromDimensions(item={},purchaseCount=1){
+  const unit=String(item.unit||"").toLowerCase(),width=dimensionToCm(item.width,item.dimensionUnit||"cm"),height=dimensionToCm(item.height,item.dimensionUnit||"cm"),sheets=Math.max(1,num(item.sheetCount)||1),purchases=Math.max(1,num(purchaseCount)||1);
+  if(!width||!height)return 0;
+  if(unit==="cm²"||unit==="cm2")return width*height*sheets*purchases;
+  if(unit==="m²"||unit==="m2")return width*height*sheets*purchases/10000;
+  return 0;
+}
 function updateMaterialAreaHint(){const area=dimensionToCm($("materialWidth").value,$("materialDimensionUnit").value)*dimensionToCm($("materialHeight").value,$("materialDimensionUnit").value)*Math.max(1,num($("materialSheetCount").value));$("materialAreaHint").textContent=area?`Gesamtfläche: ${area.toLocaleString("de-DE",{maximumFractionDigits:2})} cm² = ${(area/10000).toLocaleString("de-DE",{maximumFractionDigits:4})} m²`:""}
 function calculateMaterialPurchasedArea(){const area=dimensionToCm($("materialWidth").value,$("materialDimensionUnit").value)*dimensionToCm($("materialHeight").value,$("materialDimensionUnit").value)*Math.max(1,num($("materialSheetCount").value));if(!area){appAlert("Bitte Breite und Höhe eingeben.");return}$("materialUnit").value=$("materialUnit").value==="m²"?"m²":"cm²";$("materialQuantity").value=$("materialUnit").value==="m²"?Number((area/10000).toFixed(6)):Number(area.toFixed(2));previewUnit();updateMaterialAreaHint()}
 function updateWorkshopUnitSentence(){
@@ -75,9 +82,9 @@ function toggleMaterialFamilyMode(){
 
 let editingMaterialVariants=[];
 function normalizeVariant(v,m={}){
-  const quantity=Math.max(0.000001,num(v?.quantity)||1),price=num(v?.price);
+  const dimensions={...m,...v},quantity=Math.max(0.000001,num(v?.quantity)||1),areaQuantity=areaQuantityFromDimensions(dimensions,quantity),price=num(v?.price);
   const images=Array.isArray(v?.images)?v.images.filter(Boolean):(v?.image?[v.image]:[]);
-  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/quantity,width:num(v?.width),height:num(v?.height),dimensionUnit:v?.dimensionUnit||m.dimensionUnit||"cm",sheetCount:Math.max(1,num(v?.sheetCount)||1),trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),images,image:images[0]||"",note:v?.note||"",location:v?.location||"",supplier:v?.supplier||"",properties:v?.properties||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
+  return {id:v?.id||uid(),name:v?.name||"",price,quantity,unit:v?.unit||m.unit||"Stück",unitPrice:price/(areaQuantity||quantity),width:num(v?.width),height:num(v?.height),dimensionUnit:v?.dimensionUnit||m.dimensionUnit||"cm",sheetCount:Math.max(1,num(v?.sheetCount)||1),trackStock:Boolean(v?.trackStock),stock:num(v?.stock),minStock:num(v?.minStock),favorite:Boolean(v?.favorite),images,image:images[0]||"",note:v?.note||"",location:v?.location||"",supplier:v?.supplier||"",properties:v?.properties||"",stockHistory:Array.isArray(v?.stockHistory)?v.stockHistory:[]};
 }
 function syncVariantTitleImage(v){
   v.images=Array.isArray(v.images)?v.images.filter(Boolean):[];
@@ -140,7 +147,11 @@ function selectionKey(materialId,variantId=""){return variantId?`${materialId}::
 export function resolveMaterialSelection(value){
   if(!value)return null;const [materialId,variantId]=String(value).split("::");const material=state.materials.find(m=>m.id===materialId);if(!material)return null;
   const variant=variantId?(material.variants||[]).find(v=>v.id===variantId):null;
-  return variant?{...material,...variant,id:selectionKey(material.id,variant.id),materialId:material.id,variantId:variant.id,name:`${material.name} – ${variant.name}`,baseMaterial:material}:material;
+  if(!variant)return material;
+  const resolved={...material,...variant,id:selectionKey(material.id,variant.id),materialId:material.id,variantId:variant.id,name:`${material.name} – ${variant.name}`,baseMaterial:material};
+  const areaQuantity=areaQuantityFromDimensions(resolved,resolved.quantity);
+  if(areaQuantity>0)resolved.unitPrice=num(resolved.price)/areaQuantity;
+  return resolved;
 }
 export function materialSelections(area=null,role="main"){
   const out=[];state.materials.filter(m=>(!area||m.area===area)&&(role!=="main"||m.mainRole!==false)).forEach(m=>{
