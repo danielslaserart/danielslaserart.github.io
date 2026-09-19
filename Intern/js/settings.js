@@ -1,9 +1,9 @@
-import { $, num, esc, inferMaterialCategory, inferMaterialUseCategory } from "./utils.js?v=6.9";
-import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord, normalizeProcessingProfiles, mergeSettings } from "./storage.js?v=6.9";
-import { renderMachines } from "./machines.js?v=6.9";
-import { renderMaterials } from "./materials.js?v=6.9";
-import { renderProjects } from "./projects.js?v=6.9";
-import { appAlert } from "./dialogs.js?v=6.9";
+import { $, num, esc, inferMaterialCategory, inferMaterialUseCategory } from "./utils.js?v=6.10";
+import { state, save, defaults, replaceState, normalizeProjectRecord, normalizeLearningRecord, normalizeProcessingProfiles, mergeSettings } from "./storage.js?v=6.10";
+import { renderMachines } from "./machines.js?v=6.10";
+import { renderMaterials } from "./materials.js?v=6.10";
+import { renderProjects } from "./projects.js?v=6.10";
+import { appAlert } from "./dialogs.js?v=6.10";
 export function fillSettings(){
   renderMachines();
   $("setProfit").value=state.settings.profit;$("setHourly").value=state.settings.hourly;$("setPlotter").value=state.settings.plotter;

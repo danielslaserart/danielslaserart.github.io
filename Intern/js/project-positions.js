@@ -1,7 +1,7 @@
-import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.9";
-import { state, save } from "./storage.js?v=6.9";
-import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.9";
-import { appAlert, appConfirm } from "./dialogs.js?v=6.9";
+import { $, num, euro, uid, esc, compressProjectImage, inferMaterialUseCategory, inferMaterialActivities } from "./utils.js?v=6.10";
+import { state, save } from "./storage.js?v=6.10";
+import { resolveMaterialSelection, materialSelections } from "./materials.js?v=6.10";
+import { appAlert, appConfirm } from "./dialogs.js?v=6.10";
 
 export const POSITION_ACTIVITIES=[
   ["engrave","Gravieren"],["cut","Schneiden"],["both","Gravieren und Schneiden"],
@@ -171,7 +171,7 @@ async function openEditor(project,existing,onDone){
   form.elements.consumptionMultiplier.oninput=()=>syncManagedConsumption();
   form.elements.materialLengthMm.oninput=()=>syncManagedConsumption();
   form.elements.materialWidthMm.oninput=()=>syncManagedConsumption();
-  form.elements.materialAreaCount.oninput=()=>syncManagedConsumption();
+  form.elements.materialAreaCount.oninput=()=>{if(form.elements.materialAreaCount.value!=="")syncManagedConsumption();};
   form.elements.quantity.oninput=()=>{if(new FormData(form).get("materialSource")!=="managed")return;form.elements.consumptionSize.value="custom";syncManagedConsumption();};
   form.elements.workMinutes.oninput=syncWorkCost;
   form.elements.machineId.onchange=()=>{const machine=state.machines.find(m=>m.id===form.elements.machineId.value);if(machine&&machineHourly(machine)&&clamp(form.elements.machineMinutes.value))form.elements.machineCost.value=(machineHourly(machine)*clamp(form.elements.machineMinutes.value)/60).toFixed(2);};
