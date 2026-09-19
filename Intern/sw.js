@@ -1,4 +1,4 @@
-const CACHE="dla-kalkulator-v6-7-finishing-surcharges-20260918";
+const CACHE="dla-kalkulator-v6-8-material-pack-area-20260919";
 const FALLBACK="./index.html?v=6.6";
 const ASSETS=["./?v=6.5","./index.html?v=6.6.9","./style.css?v=6.5","./js/app.js?v=6.6.9","./js/calculator.js?v=6.6.4","./js/design.js?v=6.5","./js/materials.js?v=6.6.8","./js/machines.js?v=6.6.9","./js/estimator.js?v=6.6.9","./js/learning.js?v=6.5","./js/projects.js?v=6.6.5","./js/project-positions.js?v=6.5.4","./js/offer-pdf.js?v=6.5","./js/statistics.js?v=6.5","./js/workshop-analysis.js?v=6.5","./js/storage.js?v=6.5","./js/settings.js?v=6.5","./js/ui.js?v=6.6.4","./js/utils.js?v=6.5","./js/dialogs.js?v=6.5","./js/processing-profiles.js?v=6.5","./js/customer-price-history.js?v=6.6.4","./js/project-detail-formatting.js?v=6.5","./js/price-ladder.js?v=6.6.4","./js/customers.js?v=6.5","./assets/vendor/pdf-lib.min.js?v=6.5","./assets/pdf/briefpapier-daniels-laser-art.pdf?v=6.5","./manifest.json?v=6.5","./icon-192.png?v=6.5","./icon-512.png?v=6.5","./icon-maskable-512.png?v=6.5","./briefkopf-logo.png?v=6.5","/assets/images/hero/background.webp"];
 ASSETS.push("./js/monitoring.js?v=6.6");
@@ -10,7 +10,7 @@ ASSETS.push("./index.html?v=6.6.40","./js/app.js?v=6.6.40","./js/ui.js?v=6.6.40"
 ASSETS.push("./index.html?v=6.6.40","./style.css?v=6.6.40");
 ASSETS.push("./index.html?v=6.6.41","./js/app.js?v=6.6.41","./js/calculator.js?v=6.6.41","./js/ui.js?v=6.6.40","./js/estimator.js?v=6.6.40","./js/materials.js?v=6.6.40","./js/projects.js?v=6.6.40","./js/statistics.js?v=6.6.40");
 ASSETS.push("./index.html?v=6.6.42","./js/app.js?v=6.6.42","./js/calculator.js?v=6.6.42","./js/price-ladder.js?v=6.6.42");
-ASSETS.push("./index.html?v=6.7","./js/app.js?v=6.7","./js/calculator.js?v=6.7","./js/estimator.js?v=6.7","./js/price-ladder.js?v=6.7");
+ASSETS.push("./index.html?v=6.8","./js/app.js?v=6.8","./js/calculator.js?v=6.8","./js/estimator.js?v=6.8","./js/price-ladder.js?v=6.8");
 self.addEventListener("install",event=>{self.skipWaiting();event.waitUntil(caches.open(CACHE).then(cache=>Promise.allSettled(ASSETS.map(asset=>cache.add(asset)))))});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.hostname.includes("supabase.co")||url.hostname.includes("jsdelivr.net"))return;event.respondWith(fetch(event.request,{cache:"no-store"}).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match(event.request).then(cached=>cached||caches.match(FALLBACK))))});
