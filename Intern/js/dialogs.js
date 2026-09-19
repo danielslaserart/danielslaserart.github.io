@@ -1,4 +1,4 @@
-import { esc } from "./utils.js?v=6.8";
+import { esc } from "./utils.js?v=6.9";
 
 const dialog=document.getElementById("appDialog");
 const title=document.getElementById("appDialogTitle");
