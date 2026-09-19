@@ -1,6 +1,6 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.7";
-import { appConfirm } from "./dialogs.js?v=6.7";
-import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.7";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=6.8";
+import { appConfirm } from "./dialogs.js?v=6.8";
+import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=6.8";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -129,7 +129,7 @@ function normalizeLoadedState(saved){
       defaultConsumption:num(m.defaultConsumption),
       autoAdd:Boolean(m.autoAdd),
       favorite:Boolean(m.favorite),
-      variants:Array.isArray(m.variants)?m.variants.map(v=>({...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity:num(v.quantity)||1,unit:v.unit||m.unit||"Stück",unitPrice:num(v.unitPrice)||(num(v.quantity)>0?num(v.price)/num(v.quantity):0),trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",supplier:v.supplier||"",properties:v.properties||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]})):[],
+      variants:Array.isArray(m.variants)?m.variants.map(v=>{const unit=v.unit||m.unit||"Stück",quantity=num(v.quantity)||1,dimensionUnit=v.dimensionUnit||m.dimensionUnit||"cm",factor=dimensionUnit==="mm"?.1:dimensionUnit==="m"?100:1,areaCm2=num(v.width)*factor*num(v.height)*factor*Math.max(1,num(v.sheetCount)||1)*Math.max(1,quantity),areaQuantity=(unit==="cm²"||unit==="cm2")?areaCm2:(unit==="m²"||unit==="m2")?areaCm2/10000:0,pricedQuantity=areaQuantity||quantity;return {...v,id:v.id||uid(),name:v.name||"Variante",price:num(v.price),quantity,unit,unitPrice:pricedQuantity>0?num(v.price)/pricedQuantity:0,trackStock:Boolean(v.trackStock),stock:num(v.stock),minStock:num(v.minStock),favorite:Boolean(v.favorite),images:Array.isArray(v.images)?v.images:(v.image?[v.image]:[]),image:v.image||v.images?.[0]||"",note:v.note||"",location:v.location||"",supplier:v.supplier||"",properties:v.properties||"",stockHistory:Array.isArray(v.stockHistory)?v.stockHistory:[]};}):[],
       stockHistory:Array.isArray(m.stockHistory)?m.stockHistory:[],trackStock:Boolean(m.trackStock),stock:num(m.stock),minStock:num(m.minStock),
       category:inferMaterialCategory(m),supplier:m.supplier||"",image:m.image||"",lastUsed:m.lastUsed||null,
       width:num(m.width),height:num(m.height),dimensionUnit:m.dimensionUnit||"cm",sheetCount:num(m.sheetCount)||1,
