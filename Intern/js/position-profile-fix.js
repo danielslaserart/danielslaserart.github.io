@@ -1,4 +1,4 @@
-import { state } from "./storage.js?v=6.10";
+import { state } from "./storage.js?v=7.0";
 
 const clamp=value=>Math.max(0,Number.isFinite(Number(value))?Number(value):0);
 

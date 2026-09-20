@@ -1,4 +1,4 @@
-import { euro, esc, num } from "./utils.js?v=6.10";
+import { euro, esc, num } from "./utils.js?v=7.0";
 
 const LABELS={
   customerObjectProcess:"Bearbeitungsart",objectMaterial:"Objektmaterial",machineSelect:"Maschine",
@@ -13,11 +13,12 @@ const LABELS={
   otherCosts:"Sonstige Kosten",reserve:"Fehlerreserve",profit:"Gewinnaufschlag",quantity:"Stückzahl",
   colors:"Farben",plotMinutes:"Plottdauer",weedMinutes:"Entgitterzeit",mountMinutes:"Montagezeit",
   pressMinutes:"Presszeit",prepMinutes:"Vor-/Nachbereitung",textilePrice:"Textilpreis"
+  ,sandEnabled:"Schleifen / Reinigen",glueEnabled:"Kleben",glueSize:"Klebegröße",glueCount:"Kleben – Anzahl",solderEnabled:"Löten",paintCoats:"Lackier-/Beizschichten",paintCustomFee:"Eigene Lackierpauschale"
 };
 const ENUMS={
   engrave:"Gravieren",cut:"Schneiden",both:"Gravieren und Schneiden",engraveAndCut:"Gravieren und Schneiden",
   print3d:"3D-Teil fertigen",plot:"Plotten",assemble:"Montieren / aufbringen",
-  easy:"Leicht",normal:"Normal",medium:"Mittel",hard:"Schwer",
+  easy:"Leicht",normal:"Normal",small:"Klein",medium:"Mittel",large:"Groß",hard:"Schwer",
   regularCustomer:"Stammkundenpreis",special:"Sonderpreis",promotion:"Aktionspreis",
   repeatOrder:"Folgebestellungspreis",other:"Sonstiges"
 };

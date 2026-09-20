@@ -1,4 +1,4 @@
-import { euro, esc, num } from "./utils.js?v=6.10";
+import { euro, esc, num } from "./utils.js?v=7.0";
 
 const hasValue=value=>value!==null&&value!==undefined&&value!==""&&Number.isFinite(Number(value));
 const firstValue=(...values)=>values.find(hasValue);
@@ -105,6 +105,7 @@ export function getPriceLadderData(source={}){
     ["Lackier-/Beizpauschale",component(source,["paintFee","paintingSurcharge"])],
     ["Schleifen-/Reinigungspauschale",component(source,["sandFee","sandingSurcharge"])],
     ["Verleim-/Ausrichtpauschale",component(source,["glueFee","gluingSurcharge"])],
+    ["Lötpauschale",component(source,["solderFee","solderingSurcharge"])],
     ["Motiv-/Komplexitätsaufschlag",component(source,["complexitySurcharge","motifSurcharge"])],
     ["Materialaufschlag",component(source,["materialSurcharge"])],
     ["Weitere Zuschläge",component(source,["otherSurcharges","furtherSurcharges"])]

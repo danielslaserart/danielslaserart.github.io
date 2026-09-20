@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#090d14">
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <title>Daniels Laser Art – Kalkulator</title>
-  <link rel="manifest" href="manifest.json?v=6.10">
+  <link rel="manifest" href="manifest.json?v=7.0">
   <link rel="apple-touch-icon" href="icon-192.png?v=6.5">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6.5">
-  <link rel="stylesheet" href="style.css?v=6.10">
+  <link rel="stylesheet" href="style.css?v=7.0">
   <script>
     window.addEventListener("error",event=>{
       console.error("Globaler Startfehler:",event.error||event.message);
@@ -77,7 +77,7 @@
   <section id="home" class="screen active">
     <div class="dashboard-head">
       <div><div class="eyebrow">DANIELS LASER ART</div><h2 id="dashboardGreeting">Hallo Daniel</h2><p class="dashboard-subtitle">Deine Werkstatt. Deine Preise. Alles im Blick.</p></div>
-      <span class="version-badge">V6.10</span>
+      <span class="version-badge">V7.0</span>
     </div>
 
     <div class="dashboard-actions">
@@ -233,6 +233,17 @@
         <label id="paintCustomFeeField" class="hidden">Eigene Lackierpauschale (€)<input id="paintCustomFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
         <small id="paintFeePreview">Keine Lackierpauschale.</small>
       </div>
+      <div class="manual-work-card">
+        <div class="group-title">WEITERE ARBEITEN</div>
+        <label class="check-row"><input id="sandEnabled" type="checkbox"><span>Schleifen / Reinigen</span></label>
+        <label class="check-row"><input id="glueEnabled" type="checkbox"><span>Kleben</span></label>
+        <div id="glueOptions" class="field-grid hidden">
+          <label>Größe<select id="glueSize"><option value="small">Klein</option><option value="medium" selected>Mittel</option><option value="large">Groß</option></select></label>
+          <label>Wie oft?<input id="glueCount" type="number" min="1" step="1" inputmode="numeric" value="1"></label>
+        </div>
+        <label class="check-row"><input id="solderEnabled" type="checkbox"><span>Löten</span></label>
+        <small id="finishingFeePreview">Keine weitere Pauschale.</small>
+      </div>
       <details id="customerObjectSurcharges" class="customer-object-surcharges hidden">
         <summary>
           <span class="customer-object-summary-title">KUNDENOBJEKT &amp; ZUSCHLÄGE</span>
@@ -279,6 +290,9 @@
         <div id="resRiskRow" class="hidden"><span>Risikoaufschlag</span><strong id="resRisk">0,00 €</strong></div>
         <div id="resExpressRow" class="hidden"><span>Expresszuschlag</span><strong id="resExpress">0,00 €</strong></div>
         <div id="resPaintFeeRow" class="hidden"><span>Lackier-/Beizpauschale</span><strong id="resPaintFee">0,00 €</strong></div>
+        <div id="resSandFeeRow" class="hidden"><span>Schleif-/Reinigungspauschale</span><strong id="resSandFee">0,00 €</strong></div>
+        <div id="resGlueFeeRow" class="hidden"><span>Klebepauschale</span><strong id="resGlueFee">0,00 €</strong></div>
+        <div id="resSolderFeeRow" class="hidden"><span>Lötpauschale</span><strong id="resSolderFee">0,00 €</strong></div>
         <div id="resFurtherSurchargesRow" class="hidden"><span>Weitere Zuschläge</span><strong id="resFurtherSurcharges">0,00 €</strong></div>
         <div id="calculatorPriceLadder" class="price-ladder-host"></div>
         <div id="resProfitRow"><span id="resProfitLabel">Gewinn</span><strong id="resProfit">0,00 €</strong><small id="resProfitExplanation"></small></div>
@@ -486,7 +500,9 @@
           <label><input id="mcSand" type="checkbox"> Schleifen / Reinigen</label>
           <label>Lackieren / Beizen<select id="mcPaint"><option value="0">Nicht lackiert / gebeizt</option><option value="1">1× lackiert / gebeizt</option><option value="2">2× lackiert</option><option value="3">3× lackiert</option><option value="custom">Sonderaufwand</option></select></label>
           <label id="mcPaintCustomFeeField" class="hidden">Eigene Lackierpauschale (€)<input id="mcPaintCustomFee" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
-          <label><input id="mcGlue" type="checkbox"> Verleimen / Ausrichten</label>
+          <label><input id="mcGlue" type="checkbox"> Kleben</label>
+          <div id="mcGlueOptions" class="field-grid hidden"><label>Größe<select id="mcGlueSize"><option value="small">Klein</option><option value="medium" selected>Mittel</option><option value="large">Groß</option></select></label><label>Wie oft?<input id="mcGlueCount" type="number" min="1" step="1" inputmode="numeric" value="1"></label></div>
+          <label><input id="mcSolder" type="checkbox"> Löten</label>
         </div>
       </div>
 
@@ -520,6 +536,7 @@
         <div id="mcSandFeeRow" class="hidden"><span>Schleifen / Reinigen</span><strong id="mcSandFeeResult">0,00 €</strong></div>
         <div id="mcPaintFeeRow" class="hidden"><span>Lackieren / Beizen</span><strong id="mcPaintFeeResult">0,00 €</strong></div>
         <div id="mcGlueFeeRow" class="hidden"><span>Verleimen / Ausrichten</span><strong id="mcGlueFeeResult">0,00 €</strong></div>
+        <div id="mcSolderFeeRow" class="hidden"><span>Löten</span><strong id="mcSolderFeeResult">0,00 €</strong></div>
         <div id="mcFurtherSurchargesRow"><span>Weitere Zuschläge</span><strong>0,00 €</strong></div>
         <div id="estimatorPriceLadder" class="price-ladder-host"></div>
         <div id="mcCalculatedHeading" class="result-section-heading hidden">BERECHNETER PREIS</div>
@@ -766,7 +783,7 @@
 
     <form id="settingsForm" class="card form-card settings-accordion">
       <details class="settings-panel" open><summary><span>Preise &amp; Kalkulation</span><small>Gewinn, Stundenlohn, Reserve und Rundung</small></summary><div class="settings-panel-body field-grid">
-        <label>Gewinnaufschlag (%)<input id="setProfit" type="number" step="any" inputmode="decimal"></label><label>Eigener Stundenlohn (€/h)<input id="setHourly" type="number" step="any" inputmode="decimal"></label><label>Fehler-/Ausschussreserve (%)<input id="setReserve" type="number" step="any" inputmode="decimal"></label><label>Standard-Verpackung (€)<input id="setPackaging" type="number" step="any" inputmode="decimal"></label><label>Lackier-/Beiz-Grundpauschale (€)<input id="setPaintBaseFee" type="number" min="0" step="any" inputmode="decimal"><small>Für die erste Schicht; jede weitere Schicht kostet 45 % davon.</small></label><label>Gemeinkosten (%)<input id="setOverhead" type="number" min="0" step="any" inputmode="decimal"></label><label>Stromkosten (€/kWh)<input id="setElectricity" type="number" min="0" step="any" inputmode="decimal"></label><label>Preisrundung<select id="setRounding"><option value="0.01">Centgenau</option><option value="0.1">Auf 10 Cent</option><option value="0.5">Auf 50 Cent</option><option value="1">Auf volle Euro</option></select></label>
+        <label>Gewinnaufschlag (%)<input id="setProfit" type="number" step="any" inputmode="decimal"></label><label>Eigener Stundenlohn (€/h)<input id="setHourly" type="number" step="any" inputmode="decimal"></label><label>Fehler-/Ausschussreserve (%)<input id="setReserve" type="number" step="any" inputmode="decimal"></label><label>Standard-Verpackung (€)<input id="setPackaging" type="number" step="any" inputmode="decimal"></label><label>Lackier-/Beiz-Grundpauschale (€)<input id="setPaintBaseFee" type="number" min="0" step="any" inputmode="decimal"><small>Für die erste Schicht; jede weitere Schicht kostet 45 % davon.</small></label><label>Schleif-/Reinigungspauschale (€)<input id="setSandFee" type="number" min="0" step="any" inputmode="decimal"></label><label>Kleben klein (€)<input id="setGlueSmall" type="number" min="0" step="any" inputmode="decimal"></label><label>Kleben mittel (€)<input id="setGlueMedium" type="number" min="0" step="any" inputmode="decimal"></label><label>Kleben groß (€)<input id="setGlueLarge" type="number" min="0" step="any" inputmode="decimal"></label><label>Lötpauschale (€)<input id="setSolderFee" type="number" min="0" step="any" inputmode="decimal"></label><label>Gemeinkosten (%)<input id="setOverhead" type="number" min="0" step="any" inputmode="decimal"></label><label>Stromkosten (€/kWh)<input id="setElectricity" type="number" min="0" step="any" inputmode="decimal"></label><label>Preisrundung<select id="setRounding"><option value="0.01">Centgenau</option><option value="0.1">Auf 10 Cent</option><option value="0.5">Auf 50 Cent</option><option value="1">Auf volle Euro</option></select></label>
       </div></details>
       <details class="settings-panel"><summary><span>Maschinen &amp; Standards</span><small>Plotter, Presse und Vorauswahl</small></summary><div class="settings-panel-body field-grid">
         <label>Plotter Maschinenkosten (€/Min.)<input id="setPlotter" type="number" step="any" inputmode="decimal"></label><label>Transferpresse (€/Min.)<input id="setPresse" type="number" step="any" inputmode="decimal"></label><label>Standardmaschine<select id="setDefaultMachine"></select></label><label>Standardmaterial<select id="setDefaultMaterial"></select></label>
@@ -1036,6 +1053,6 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
-<script type="module" src="js/app.js?v=6.10"></script>
+<script type="module" src="js/app.js?v=7.0"></script>
 </body>
 </html>
