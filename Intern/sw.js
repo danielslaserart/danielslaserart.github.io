@@ -1,7 +1,7 @@
-const CACHE="dla-kalkulator-v7-1-project-status-values-20260920";
-const FALLBACK="./index.html?v=7.1";
+const CACHE="dla-kalkulator-v7-2-newest-projects-first-20260920";
+const FALLBACK="./index.html?v=7.2";
 const MODULES=["app","calculator","customer-price-history","customers","design","dialogs","estimator","learning","machines","materials","monitoring","offer-pdf","price-ladder","processing-profiles","project-detail-formatting","project-positions","projects","settings","statistics","storage","ui","utils","workshop-analysis","position-editor-fix","position-profile-fix","position-ui-fix"];
-const ASSETS=["./?v=7.1","./index.html?v=7.1","./style.css?v=7.1",...MODULES.map(name=>`./js/${name}.js?v=7.1`),"./assets/vendor/pdf-lib.min.js","./assets/pdf/briefpapier-daniels-laser-art.pdf","./manifest.json","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./briefkopf-logo.png","/assets/images/hero/background.webp"];
+const ASSETS=["./?v=7.2","./index.html?v=7.2","./style.css?v=7.2",...MODULES.map(name=>`./js/${name}.js?v=7.2`),"./assets/vendor/pdf-lib.min.js","./assets/pdf/briefpapier-daniels-laser-art.pdf","./manifest.json","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./briefkopf-logo.png","/assets/images/hero/background.webp"];
 self.addEventListener("install",event=>{self.skipWaiting();event.waitUntil(caches.open(CACHE).then(cache=>Promise.allSettled(ASSETS.map(asset=>cache.add(asset)))))});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.hostname.includes("supabase.co")||url.hostname.includes("jsdelivr.net"))return;event.respondWith(fetch(event.request,{cache:"no-store"}).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match(event.request).then(cached=>cached||caches.match(FALLBACK))))});

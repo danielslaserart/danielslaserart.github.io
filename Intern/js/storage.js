@@ -1,6 +1,6 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js?v=7.1";
-import { appConfirm } from "./dialogs.js?v=7.1";
-import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=7.1";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=7.2";
+import { appConfirm } from "./dialogs.js?v=7.2";
+import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=7.2";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -66,7 +66,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "7.1";
+const APP_VERSION = "7.2";
 const VERSION_KEY = "dla_app_version";
 const MIGRATION_ACK_KEY = "dla_migration_completed_v1";
 const PREVIOUS_APP_VERSION = localStorage.getItem(VERSION_KEY);

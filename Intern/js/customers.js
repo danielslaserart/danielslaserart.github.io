@@ -1,6 +1,6 @@
-import { $, esc, euro, num, uid } from "./utils.js?v=7.1";
-import { state, save, flushCloudSave, getRealProjects, normalizeCustomerRecord } from "./storage.js?v=7.1";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=7.1";
+import { $, esc, euro, num, uid } from "./utils.js?v=7.2";
+import { state, save, flushCloudSave, getRealProjects, normalizeCustomerRecord } from "./storage.js?v=7.2";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=7.2";
 
 const WARNING_CATEGORIES=["Information","Positiv","Rabatt","Rechnung","Mahnung","Reklamation","Vorkasse","Problemkunde","Sonstiges"];
 const PAYMENT_LABELS={immediate:"Zahlt sofort",punctual:"Zahlt pünktlich",late:"Zahlt verspätet",prepayment:"Nur Vorkasse",problematic:"Rechnung problematisch",unknown:"Nicht bewertet"};

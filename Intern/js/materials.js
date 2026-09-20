@@ -1,8 +1,8 @@
-import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, inferMaterialActivities, categoryOptions, compressProjectImage } from "./utils.js?v=7.1";
-import { state, save } from "./storage.js?v=7.1";
-import { calculate } from "./calculator.js?v=7.1";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=7.1";
-import { renderMaterialProfileSections, renderMaterialProfileEditor, renderProcessingProfileManager } from "./processing-profiles.js?v=7.1";
+import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, inferMaterialActivities, categoryOptions, compressProjectImage } from "./utils.js?v=7.2";
+import { state, save } from "./storage.js?v=7.2";
+import { calculate } from "./calculator.js?v=7.2";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=7.2";
+import { renderMaterialProfileSections, renderMaterialProfileEditor, renderProcessingProfileManager } from "./processing-profiles.js?v=7.2";
 const dialog=$("materialDialog");
 $("newMaterialBtn").onclick=()=>openMaterial();
 $("closeMaterialBtn").onclick=()=>dialog.close();
