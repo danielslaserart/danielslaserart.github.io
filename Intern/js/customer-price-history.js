@@ -1,8 +1,8 @@
-import { num, euro, esc } from "./utils.js?v=7.0";
-import { state, save, getRealProjects } from "./storage.js?v=7.0";
-import { appConfirm, appForm } from "./dialogs.js?v=7.0";
-import { getCostCoveringMinimumPrice, getRecommendedPrice, toCents } from "./project-detail-formatting.js?v=7.0";
-import { getPriceLadderData } from "./price-ladder.js?v=7.0";
+import { num, euro, esc } from "./utils.js?v=7.1";
+import { state, save, getRealProjects } from "./storage.js?v=7.1";
+import { appConfirm, appForm } from "./dialogs.js?v=7.1";
+import { getCostCoveringMinimumPrice, getRecommendedPrice, toCents } from "./project-detail-formatting.js?v=7.1";
+import { getPriceLadderData } from "./price-ladder.js?v=7.1";
 
 const validIso=value=>Boolean(value)&&!Number.isNaN(new Date(value).getTime());
 const PRICE_TYPES=new Set(["normal","regularCustomer","special","promotion","repeatOrder","other"]);

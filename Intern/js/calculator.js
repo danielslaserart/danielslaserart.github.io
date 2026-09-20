@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=7.0";
-import { state, save, defaults } from "./storage.js?v=7.0";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=7.0";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=7.0";
-import { renderProjects } from "./projects.js?v=7.0";
-import { appConfirm } from "./dialogs.js?v=7.0";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=7.0";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=7.0";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=7.0";
+import { $, num, euro, uid, esc } from "./utils.js?v=7.1";
+import { state, save, defaults } from "./storage.js?v=7.1";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=7.1";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=7.1";
+import { renderProjects } from "./projects.js?v=7.1";
+import { appConfirm } from "./dialogs.js?v=7.1";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=7.1";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=7.1";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=7.1";
 let editingProjectId=null;
 let calculatorPositionProject={module:"3d",positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -662,7 +662,7 @@ $("calcForm").onsubmit=async e=>{
   let agreementFields;try{agreementFields=readAgreementForm(existingProject||{})}catch(error){await appConfirm(error.message,"Preisvereinbarung prüfen","OK");return}
   if(!await confirmUnderCostAgreement({agreementPrice:agreementFields.agreementPrice,selfCosts:costNow,previousAgreementPrice:existingProject?normalizeAgreementFields(existingProject).agreementPrice:null}))return;
   const selectedCustomerId=$("projectCustomerId")?.value||"";
-  const projectStatus=$("projectStatus")?.value||"offer",closed=["done","billed"].includes(projectStatus);
+  const projectStatus=$("projectStatus")?.value||"offer",closed=["done","doneNoInvoice","billed"].includes(projectStatus);
   const actualSale=closed?(agreementFields.agreementPrice??existingProject?.actualPrice??existingProject?.sale??saleNow):saleNow;
   const customerProcessLabel=(CUSTOMER_PROCESS_OPTIONS[state.activeModule]||[]).find(([value])=>value===customerProcess)?.[1]||"Kundenobjekt bearbeiten";
   const manualWorkMinutes=num($("workMinutes")?.value),manualHourlyRate=num(state.settings.hourly),manualWorkCost=manualWorkMinutes/60*manualHourlyRate;

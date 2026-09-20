@@ -1,17 +1,17 @@
-import { initializeAuth, state } from "./storage.js?v=7.0";
-import { num } from "./utils.js?v=7.0";
-import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=7.0";
-import { renderCalculator } from "./calculator.js?v=7.0";
-import { renderTools } from "./statistics.js?v=7.0";
-import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=7.0";
-import { renderProjects } from "./projects.js?v=7.0";
-import { fillSettings } from "./settings.js?v=7.0";
-import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=7.0";
-import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=7.0";
-import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=7.0";
-import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=7.0";
-import { initializeCustomers, renderCustomers } from "./customers.js?v=7.0";
-import "./position-profile-fix.js?v=7.0";
+import { initializeAuth, state } from "./storage.js?v=7.1";
+import { num } from "./utils.js?v=7.1";
+import { updateHome, loadCalculatorData, startNewOrder } from "./ui.js?v=7.1";
+import { renderCalculator } from "./calculator.js?v=7.1";
+import { renderTools } from "./statistics.js?v=7.1";
+import { renderMaterialCategoryFilter, renderMaterials, updateMaterialModeButtons } from "./materials.js?v=7.1";
+import { renderProjects } from "./projects.js?v=7.1";
+import { fillSettings } from "./settings.js?v=7.1";
+import { renderMotifEstimator, loadProjectIntoMotifEstimator } from "./estimator.js?v=7.1";
+import { applyDesignDefaults, renderDesignStatistics } from "./design.js?v=7.1";
+import { initializeProcessingProfiles, renderProcessingProfileManager, renderCalculatorProfiles, renderMotifProfiles } from "./processing-profiles.js?v=7.1";
+import { initializeWorkshopAnalysis, renderWorkshopAnalysis } from "./workshop-analysis.js?v=7.1";
+import { initializeCustomers, renderCustomers } from "./customers.js?v=7.1";
+import "./position-profile-fix.js?v=7.1";
 
 // Zahlen lassen sich auf Mobilgeräten direkt überschreiben: Beim Antippen wird
 // der komplette bisherige Wert markiert, sodass aus „1“ + „2“ nicht „12“ wird.
@@ -21,7 +21,7 @@ document.addEventListener("focusin",event=>{
   requestAnimationFrame(()=>{try{input.select()}catch{}});
 });
 
-const loadPositionUiFix=()=>import("./position-ui-fix.js?v=7.0").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
+const loadPositionUiFix=()=>import("./position-ui-fix.js?v=7.1").catch(error=>console.warn("Positions-UI-Zusatz konnte nicht geladen werden:",error));
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadPositionUiFix,{once:true});else loadPositionUiFix();
 
 function renderAll(){
@@ -89,7 +89,7 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 export function initializeApp(){
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=7.0",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=7.1",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 

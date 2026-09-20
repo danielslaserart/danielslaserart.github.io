@@ -1,6 +1,6 @@
-import { $, esc, euro, num, uid } from "./utils.js?v=7.0";
-import { state, save, flushCloudSave, getRealProjects, normalizeCustomerRecord } from "./storage.js?v=7.0";
-import { appAlert, appConfirm, appForm } from "./dialogs.js?v=7.0";
+import { $, esc, euro, num, uid } from "./utils.js?v=7.1";
+import { state, save, flushCloudSave, getRealProjects, normalizeCustomerRecord } from "./storage.js?v=7.1";
+import { appAlert, appConfirm, appForm } from "./dialogs.js?v=7.1";
 
 const WARNING_CATEGORIES=["Information","Positiv","Rabatt","Rechnung","Mahnung","Reklamation","Vorkasse","Problemkunde","Sonstiges"];
 const PAYMENT_LABELS={immediate:"Zahlt sofort",punctual:"Zahlt pünktlich",late:"Zahlt verspätet",prepayment:"Nur Vorkasse",problematic:"Rechnung problematisch",unknown:"Nicht bewertet"};
@@ -15,7 +15,7 @@ const customerProjects=customer=>getRealProjects().filter(p=>p.customerId===cust
 const activeWarnings=customer=>(customer.warnings||[]).filter(w=>w.active!==false);
 const projectFinalPrice=p=>p.agreementPrice!=null?num(p.agreementPrice):num(p.actualPrice??p.sale);
 const recommendedPrice=p=>num(p.estimatedPrice??p.calculationSnapshot?.results?.calculatedPrice??p.sale);
-const statusLabel=status=>({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",billed:"Abgerechnet"})[status]||"Angebot";
+const statusLabel=status=>({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",doneNoInvoice:"Erledigt o.R.",billed:"Abgerechnet"})[status]||"Angebot";
 
 function normalizeCustomer(customer={}){
   const normalized=normalizeCustomerRecord(customer)||{rating:0};
@@ -24,7 +24,7 @@ function normalizeCustomer(customer={}){
 
 function allCustomers(){state.customers=(state.customers||[]).map(normalizeCustomer);return state.customers;}
 function addTimeline(customer,type,title,description=""){customer.timeline.unshift({id:uid(),type,title,description,createdAt:now(),manual:type==="manual"});}
-function derivedTimeline(customer){return customerProjects(customer).flatMap(p=>{const rows=[{id:`project:${p.id}`,type:"project",title:"Projekt erstellt",description:p.title,createdAt:p.created||p.updated}];if(p.status==="offer")rows.push({id:`offer:${p.id}`,type:"project",title:"Angebot erstellt",description:p.title,createdAt:p.updated||p.created});if(["done","billed"].includes(p.status))rows.push({id:`done:${p.id}`,type:"project",title:"Projekt abgeschlossen",description:p.title,createdAt:p.updated||p.created});if(p.status==="billed")rows.push({id:`invoice:${p.id}`,type:"project",title:"Rechnung erstellt",description:p.title,createdAt:p.updated||p.created});return rows;});}
+function derivedTimeline(customer){return customerProjects(customer).flatMap(p=>{const rows=[{id:`project:${p.id}`,type:"project",title:"Projekt erstellt",description:p.title,createdAt:p.created||p.updated}];if(p.status==="offer")rows.push({id:`offer:${p.id}`,type:"project",title:"Angebot erstellt",description:p.title,createdAt:p.updated||p.created});if(["done","doneNoInvoice","billed"].includes(p.status))rows.push({id:`done:${p.id}`,type:"project",title:"Projekt abgeschlossen",description:p.title,createdAt:p.updated||p.created});if(p.status==="billed")rows.push({id:`invoice:${p.id}`,type:"project",title:"Rechnung erstellt",description:p.title,createdAt:p.updated||p.created});return rows;});}
 function priceStats(customer){
   const projects=customerProjects(customer).slice().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
   const agreements=projects.filter(p=>p.agreementPrice!=null),last=projects[0];

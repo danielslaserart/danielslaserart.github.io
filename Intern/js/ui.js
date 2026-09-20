@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=7.0";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=7.0";
-import { renderMaterials } from "./materials.js?v=7.0";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=7.0";
-import { fillSettings } from "./settings.js?v=7.0";
-import { renderTools, resetTool } from "./statistics.js?v=7.0";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=7.0";
-import { appAlert, appPrompt } from "./dialogs.js?v=7.0";
-import { applyDesignDefaults } from "./design.js?v=7.0";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=7.0";
+import { $, num, euro, uid, esc } from "./utils.js?v=7.1";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=7.1";
+import { renderMaterials } from "./materials.js?v=7.1";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=7.1";
+import { fillSettings } from "./settings.js?v=7.1";
+import { renderTools, resetTool } from "./statistics.js?v=7.1";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=7.1";
+import { appAlert, appPrompt } from "./dialogs.js?v=7.1";
+import { applyDesignDefaults } from "./design.js?v=7.1";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=7.1";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
@@ -170,7 +170,7 @@ export function updateHome(){
   const monthProjects=realProjects.filter(p=>{const d=new Date(p.created||p.updated);return d.getMonth()===month&&d.getFullYear()===year});
   const monthProfit=monthProjects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   $("homeMaterialCount").textContent=state.materials.length;
-  $("homeOpenCount").textContent=realProjects.filter(p=>!["done","billed"].includes(p.status||"offer")).length;
+  $("homeOpenCount").textContent=realProjects.filter(p=>!["done","doneNoInvoice","billed"].includes(p.status||"offer")).length;
   $("homeMonthProfit").textContent=euro(monthProfit);
   $("homeMonthOrders").textContent=`${monthProjects.length} ${monthProjects.length===1?"Auftrag":"Aufträge"}`;
   $("homeFavoriteCount").textContent=`${state.materials.filter(m=>m.favorite).length} Favoriten`;

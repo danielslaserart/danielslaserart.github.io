@@ -1,4 +1,4 @@
-import { euro, esc, num } from "./utils.js?v=7.0";
+import { euro, esc, num } from "./utils.js?v=7.1";
 
 const LABELS={
   customerObjectProcess:"Bearbeitungsart",objectMaterial:"Objektmaterial",machineSelect:"Maschine",

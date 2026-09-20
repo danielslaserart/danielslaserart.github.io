@@ -1,5 +1,5 @@
-import { num, uid } from "./utils.js?v=7.0";
-import { state, save, getRealProjects } from "./storage.js?v=7.0";
+import { num, uid } from "./utils.js?v=7.1";
+import { state, save, getRealProjects } from "./storage.js?v=7.1";
 
 const detailRank={simple:1,medium:2,high:3,veryHigh:4};
 
