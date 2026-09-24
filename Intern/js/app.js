@@ -89,7 +89,7 @@ document.addEventListener("dla:edit-estimator-project",event=>{
 export function initializeApp(){
   initializeAuth();
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=7.2",{updateViaCache:"none"}).catch(()=>{}));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=8.0",{updateViaCache:"none"}).catch(()=>{}));
   }
 }
 
