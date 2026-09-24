@@ -1,13 +1,13 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=8.0";
-import { state, save, defaults, getRealProjects } from "./storage.js?v=8.0";
-import { renderMaterials } from "./materials.js?v=8.0";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=8.0";
-import { fillSettings } from "./settings.js?v=8.0";
-import { renderTools, resetTool } from "./statistics.js?v=8.0";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=8.0";
-import { appAlert, appPrompt } from "./dialogs.js?v=8.0";
-import { applyDesignDefaults } from "./design.js?v=8.0";
-import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=8.0";
+import { $, num, euro, uid, esc } from "./utils.js?v=7.2";
+import { state, save, defaults, getRealProjects } from "./storage.js?v=7.2";
+import { renderMaterials } from "./materials.js?v=7.2";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=7.2";
+import { fillSettings } from "./settings.js?v=7.2";
+import { renderTools, resetTool } from "./statistics.js?v=7.2";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=7.2";
+import { appAlert, appPrompt } from "./dialogs.js?v=7.2";
+import { applyDesignDefaults } from "./design.js?v=7.2";
+import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=7.2";
 const projectCustomerName=project=>(state.customers||[]).find(c=>c.id===project.customerId)?.companyName||project.customer||"";
 export function setScreen(id){
   const current=document.querySelector(".screen.active")?.id;
