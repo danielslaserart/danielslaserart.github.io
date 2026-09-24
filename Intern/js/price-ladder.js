@@ -1,4 +1,4 @@
-import { euro, esc, num } from "./utils.js?v=7.2";
+import { euro, esc, num } from "./utils.js?v=8.0";
 
 const hasValue=value=>value!==null&&value!==undefined&&value!==""&&Number.isFinite(Number(value));
 const firstValue=(...values)=>values.find(hasValue);
@@ -102,6 +102,7 @@ export function getPriceLadderData(source={}){
     ["Schwierigkeitsaufschlag",component(source,["difficulty","difficultySurcharge"])],
     ["Risikoaufschlag",component(source,["risk","riskSurcharge"])],
     ["Expresszuschlag",component(source,["express","expressSurcharge"])],
+    ["Individualisierung",component(source,["individualization","individualizationFee"])],
     ["Lackier-/Beizpauschale",component(source,["paintFee","paintingSurcharge"])],
     ["Schleifen-/Reinigungspauschale",component(source,["sandFee","sandingSurcharge"])],
     ["Verleim-/Ausrichtpauschale",component(source,["glueFee","gluingSurcharge"])],
