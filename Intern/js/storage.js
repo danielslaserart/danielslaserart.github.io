@@ -66,7 +66,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "7.2";
+const APP_VERSION = "8.0";
 const VERSION_KEY = "dla_app_version";
 const MIGRATION_ACK_KEY = "dla_migration_completed_v1";
 const PREVIOUS_APP_VERSION = localStorage.getItem(VERSION_KEY);
@@ -85,7 +85,7 @@ if (PREVIOUS_APP_VERSION !== APP_VERSION) {
 export const defaults = {
   settings:{
     profit:0,hourly:0,machine3d:0,laserGravur:0,laserSchnitt:0,
-    plotter:0,presse:0,reserve:0,packaging:0,paintBaseFee:4,sandFee:2,solderFee:5,glueFees:{small:2,medium:4,large:6},rounding:0,
+    plotter:0,presse:0,reserve:0,packaging:0,paintBaseFee:4,sandFee:2,solderFee:5,glueFees:{small:2,medium:4,large:6},individualizationFees:{none:0,simple:7.5,medium:15,complex:25},rounding:0,
     overhead:0,electricity:0,defaultMachine:"",defaultMaterial:"",
     design:{hourlyRate:0,minimumFee:0},
     customerObject:{
@@ -319,6 +319,7 @@ export function mergeSettings(settings={}){
     ...defaults.settings,
     ...(settings||{}),
     glueFees:{...defaults.settings.glueFees,...(settings?.glueFees||{})},
+    individualizationFees:{...defaults.settings.individualizationFees,...(settings?.individualizationFees||{})},
     design:{...defaults.settings.design,...(settings?.design||{})},
     customerObject
   };
