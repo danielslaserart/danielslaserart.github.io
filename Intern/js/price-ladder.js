@@ -129,9 +129,10 @@ export function getPriceLadderData(source={}){
   const profitPercent=hasValue(profitPercentRaw)?num(profitPercentRaw):null;
   const profitMarkup=hasValue(profitMarkupRaw)?money(profitMarkupRaw)
     :profitPercent!==null&&subtotal!==null?money(subtotal*profitPercent/100):null;
+  const individualization=component(source,["individualization","individualizationFee"]);
   const preRoundedRaw=firstValue(source.calculated,directBreakdown.calculated);
   const preRoundedPrice=hasValue(preRoundedRaw)?num(preRoundedRaw)
-    :subtotal!==null&&profitMarkup!==null?subtotal+profitMarkup:null;
+    :subtotal!==null&&profitMarkup!==null?subtotal+profitMarkup+individualization:null;
   const roundingStep=firstValue(source.roundingStep,source.rounding,snapshot.pricingSettings?.rounding);
   // Bei einer gerade laufenden Berechnung ist source.sale das frisch berechnete
   // Ergebnis. In gespeicherten Altprojekten kann pricingBreakdown.sale dagegen
@@ -161,7 +162,7 @@ export function getPriceLadderData(source={}){
   const agreementStatus=getAgreementPriceStatus({
     agreementPrice,selfCosts,subtotal,recommendedSalePrice
   });
-  return {selfCosts,costCoveringMinimumPrice:selfCosts,costItems,surchargeItems,totalSurcharges,
+  return {selfCosts,costCoveringMinimumPrice:selfCosts,costItems,surchargeItems,totalSurcharges,individualization,
     calculatedWorkPrice,subtotal,profitMarkup,profitPercent,roundingDifference,recommendedSalePrice,recommendedSalePriceWithoutWork,
     companyProfit,companyProfitPercent,status,agreementPrice,agreementProfit,agreementMargin,agreementStatus};
 }
@@ -242,6 +243,7 @@ export function renderPriceLadder(data,{heading=true,details=true}={}){
     ${step("work","Kalkulierter Arbeitspreis",data.calculatedWorkPrice,data.calculatedWorkPrice===null?"Für dieses ältere Projekt nicht eindeutig ermittelbar.":"Nur Pauschalen und Zuschläge – ohne Selbstkosten.",surchargeDetails)}
     ${step("neutral","Zwischensumme",data.subtotal,"Selbstkosten plus kalkulierter Arbeitspreis.")}
     ${step("work","Gewinnaufschlag",data.profitMarkup,profitDescription)}
+    ${data.individualization?step("work","Individualisierung",data.individualization,"Pauschale für Entwurf und Einzelanfertigung – nach dem Gewinnaufschlag."):""}
     ${data.roundingDifference!==null&&cents(data.roundingDifference)!==0?step("neutral","Rundung",data.roundingDifference,"Anpassung auf den eingestellten Preis-Schritt."):""}
     ${data.recommendedSalePriceWithoutWork!==null?step("neutral","Empfohlener Verkaufspreis ohne Arbeitszeit",data.recommendedSalePriceWithoutWork,"Ohne Arbeitskosten aus Arbeitszeit × Stundenlohn."):""}
     ${step(data.status==="positive"?"recommended":data.status==="negative"?"negative":"neutral","Empfohlener Verkaufspreis mit Arbeitszeit",data.recommendedSalePrice,"Zwischensumme plus Gewinnaufschlag, anschließend gerundet.",profitText+warning)}
