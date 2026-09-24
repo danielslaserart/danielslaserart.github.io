@@ -420,7 +420,7 @@ export async function flushCloudSave(){
 export async function loadCloudState(){
   const client=await createSupabaseClient();
   setSyncStatus("Synchronisiert …","busy");
-  const { data, error } = await client.from("app_state").select("data,updated_at").eq("user_id",currentUser.id).maybeSingle();
+  const { data, error } = await withTimeout(client.from("app_state").select("data,updated_at").eq("user_id",currentUser.id).maybeSingle(),12000,"Zeitüberschreitung beim Laden der Supabase-Daten.");
   if(error){
     throw error;
   }
