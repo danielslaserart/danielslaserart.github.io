@@ -145,7 +145,7 @@ function normalizeLoadedState(saved){
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
     merged.machines=Array.isArray(merged.machines)?merged.machines:[];
-    if(PREVIOUS_APP_VERSION!=="8.0")merged.machines=merged.machines.map(machine=>/atomstack\s*x70/i.test(String(machine?.name||""))?{...machine,engraveRate:.20,cutRate:.25}:machine;
+    merged.machines=merged.machines.map(machine=>/atomstack\s*x70/i.test(String(machine?.name||""))?{...machine,engraveRate:.20,cutRate:.25}:machine;
     merged.processingProfiles=normalizeProcessingProfiles(merged.processingProfiles);
     merged.projects=(merged.projects||[]).map(normalizeProjectRecord);
     merged.customers=normalizeCustomers(merged.customers);
