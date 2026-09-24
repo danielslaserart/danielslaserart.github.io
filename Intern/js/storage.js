@@ -1,6 +1,6 @@
-import { $, num, uid, inferMaterialCategory } from "./utils.js?v=7.2";
-import { appConfirm } from "./dialogs.js?v=7.2";
-import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=7.2";
+import { $, num, uid, inferMaterialCategory } from "./utils.js?v=8.0";
+import { appConfirm } from "./dialogs.js?v=8.0";
+import { buildMonitoringSnapshot, monitoringSnapshotHasPrivateFields } from "./monitoring.js?v=8.0";
 const SUPABASE_URL = "https://qsnlwppbcczjwxwuhbkv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_R0Y-88wMebNVn580N5DvlQ_1xYezwhU";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -66,7 +66,7 @@ async function createSupabaseClient(){
 }
 
 const KEY = "dla_kalkulator_v3";
-const APP_VERSION = "7.2";
+const APP_VERSION = "8.0";
 const VERSION_KEY = "dla_app_version";
 const MIGRATION_ACK_KEY = "dla_migration_completed_v1";
 const PREVIOUS_APP_VERSION = localStorage.getItem(VERSION_KEY);
@@ -85,7 +85,7 @@ if (PREVIOUS_APP_VERSION !== APP_VERSION) {
 export const defaults = {
   settings:{
     profit:0,hourly:0,machine3d:0,laserGravur:0,laserSchnitt:0,
-    plotter:0,presse:0,reserve:0,packaging:0,paintBaseFee:4,sandFee:2,solderFee:5,glueFees:{small:2,medium:4,large:6},rounding:0,
+    plotter:0,presse:0,reserve:0,packaging:0,paintBaseFee:4,sandFee:2,solderFee:5,glueFees:{small:2,medium:4,large:6},individualizationFees:{none:0,simple:7.5,medium:15,complex:25},rounding:0,
     overhead:0,electricity:0,defaultMachine:"",defaultMaterial:"",
     design:{hourlyRate:0,minimumFee:0},
     customerObject:{
@@ -145,6 +145,7 @@ function normalizeLoadedState(saved){
       sizeFactors:{small:num(m.sizeFactors?.small)||0.5,medium:num(m.sizeFactors?.medium)||1,large:num(m.sizeFactors?.large)||2}
     }));
     merged.machines=Array.isArray(merged.machines)?merged.machines:[];
+    if(PREVIOUS_APP_VERSION!=="8.0")merged.machines=merged.machines.map(machine=>/atomstack\s*x70/i.test(String(machine?.name||""))?{...machine,engraveRate:.20,cutRate:.25}:machine;
     merged.processingProfiles=normalizeProcessingProfiles(merged.processingProfiles);
     merged.projects=(merged.projects||[]).map(normalizeProjectRecord);
     merged.customers=normalizeCustomers(merged.customers);
