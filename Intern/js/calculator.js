@@ -1,12 +1,12 @@
-import { $, num, euro, uid, esc } from "./utils.js?v=7.2";
-import { state, save, defaults } from "./storage.js?v=7.2";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=7.2";
-import { renderCalculatorProfiles } from "./processing-profiles.js?v=7.2";
-import { renderProjects } from "./projects.js?v=7.2";
-import { appConfirm } from "./dialogs.js?v=7.2";
-import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=7.2";
-import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=7.2";
-import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=7.2";
+import { $, num, euro, uid, esc } from "./utils.js?v=8.0";
+import { state, save, defaults } from "./storage.js?v=8.0";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=8.0";
+import { renderCalculatorProfiles } from "./processing-profiles.js?v=8.0";
+import { renderProjects } from "./projects.js?v=8.0";
+import { appConfirm } from "./dialogs.js?v=8.0";
+import { readAgreementForm, updateAgreementFormState, confirmUnderCostAgreement, normalizeAgreementFields } from "./customer-price-history.js?v=8.0";
+import { getPriceLadderData, renderPriceLadder } from "./price-ladder.js?v=8.0";
+import { renderProjectPositions, bindProjectPositions, projectPositions, normalizePosition, positionTotals } from "./project-positions.js?v=8.0";
 let editingProjectId=null;
 let calculatorPositionProject={module:"3d",positions:[]};
 export function getOrderType(){return document.querySelector('input[name="orderType"]:checked')?.value||"own";}
@@ -28,6 +28,10 @@ export function paintingSurcharge(coats=0,customFee=0,baseFee=state.settings?.pa
   const count=Math.max(0,Math.min(3,Math.floor(num(coats))));
   const base=Math.max(0,num(baseFee));
   return count>0?base*(1+(count-1)*.45):0;
+}
+export function individualizationSurcharge(level="none",fees=state.settings?.individualizationFees){
+  const configured={...defaults.settings.individualizationFees,...(fees||{})};
+  return Math.max(0,num(configured[level]??0));
 }
 export function glueSurcharge(enabled=false,size="medium",count=1,fees=state.settings?.glueFees){
   if(!enabled)return 0;
@@ -74,9 +78,10 @@ export function computePriceBreakdown(parts={}){
   const subtotal=cost+paintFee+sandFee+glueFee+solderFee+express;
   const profitPercent=Math.max(0,num(parts.profitPercent));
   const profitMarkup=subtotal*profitPercent/100;
-  const calculated=subtotal+profitMarkup;
+  const individualization=Math.max(0,num(parts.individualization));
+  const calculated=subtotal+profitMarkup+individualization;
   const sale=parts.roundFn?parts.roundFn(calculated):calculated;
-  return {material,consumables,machine,work,extra,paintFee,sandFee,glueFee,solderFee,express,reserve,cost,calculatedWorkPrice:paintFee+sandFee+glueFee+solderFee+express,subtotal,
+  return {material,consumables,machine,work,extra,paintFee,sandFee,glueFee,solderFee,express,individualization,reserve,cost,calculatedWorkPrice:paintFee+sandFee+glueFee+solderFee+express+individualization,subtotal,
     priceBeforeProfit:subtotal,profitPercent,profitMarkup,sale,profit:Math.max(0,sale-cost),
     baseFee:0,difficulty:0,risk:0,calculated,minimum:0,minimumApplied:false};
 }
@@ -174,6 +179,7 @@ function buildCalculationSnapshot({breakdown,sale,cost,machine,orderType,custome
       machineCosts:num(breakdown.machine),
       workCosts:num(breakdown.work),
       additionalCosts:num(breakdown.extra),
+      individualization:num(breakdown.individualization),
       calculatedSelfCosts:cost,
       calculatedPrice:sale,
       profit:num(breakdown.profit)
@@ -344,6 +350,7 @@ export function renderCalculator(clear=false){
     setTimerSeconds(0);
     if($("workMinutes"))$("workMinutes").value="";
     if($("paintCoats"))$("paintCoats").value="0";if($("paintCustomFee"))$("paintCustomFee").value="0";
+    if($("individualizationLevel"))$("individualizationLevel").value="none";
     ["sandEnabled","glueEnabled","solderEnabled"].forEach(id=>{if($(id))$(id).checked=false});if($("glueSize"))$("glueSize").value="medium";if($("glueCount"))$("glueCount").value="1";
   }
 
@@ -577,7 +584,7 @@ export function calculate(){
   const profitPercent=$("profit")?.dataset.userEdited==="true"?num($("profit")?.value):estimatorPosition?.profitPercent!==undefined?num(estimatorPosition.profitPercent):enforcedProfit!==undefined?num(enforcedProfit):num(state.settings.profit);
   const reservePercent=$("reserve")?.dataset.userEdited==="true"?num($("reserve")?.value):estimatorPosition?.reservePercent!==undefined?num(estimatorPosition.reservePercent):enforcedReserve!==undefined?num(enforcedReserve):num(state.settings.reserve);
   const priceParts={
-    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,paintFee:paintingSurcharge($("paintCoats")?.value,$("paintCustomFee")?.value),sandFee:$("sandEnabled")?.checked?num(state.settings.sandFee??2):0,glueFee:glueSurcharge($("glueEnabled")?.checked,$("glueSize")?.value,$("glueCount")?.value),solderFee:$("solderEnabled")?.checked?num(state.settings.solderFee??5):0,
+    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,individualization:orderType==="own"?individualizationSurcharge($("individualizationLevel")?.value):0,paintFee:paintingSurcharge($("paintCoats")?.value,$("paintCustomFee")?.value),sandFee:$("sandEnabled")?.checked?num(state.settings.sandFee??2):0,glueFee:glueSurcharge($("glueEnabled")?.checked,$("glueSize")?.value,$("glueCount")?.value),solderFee:$("solderEnabled")?.checked?num(state.settings.solderFee??5):0,
     overheadPercent:state.settings.overhead,reservePercent,profitPercent,roundFn:rounded,
     baseFee:orderType==="customerObject"&&$("customerBaseFeeEnabled")?.checked?num(settings.baseFee):0,
     furtherSurcharges:0,
@@ -590,6 +597,7 @@ export function calculate(){
   $("resCostHeading")?.classList.toggle("hidden",!customerObject);$("resPricePartsHeading")?.classList.toggle("hidden",!customerObject);
   $("resMaterialRow").classList.toggle("hidden",breakdown.material<=0);$("resConsumablesRow").classList.toggle("hidden",customerObject||breakdown.consumables<=0);
   $("resBaseFeeRow").classList.toggle("hidden",!customerObject||breakdown.baseFee<=0);$("resDifficultyRow").classList.toggle("hidden",!customerObject||breakdown.difficulty<=0);$("resRiskRow").classList.toggle("hidden",!customerObject||breakdown.risk<=0);$("resExpressRow").classList.toggle("hidden",!customerObject||breakdown.express<=0);$("resCalculatedRow").classList.add("hidden");$("resMinimumRow").classList.toggle("hidden",!customerObject||!breakdown.minimumApplied);
+  $("resIndividualizationRow")?.classList.toggle("hidden",breakdown.individualization<=0);
   $("resPaintFeeRow")?.classList.toggle("hidden",breakdown.paintFee<=0);
   $("resSandFeeRow")?.classList.toggle("hidden",breakdown.sandFee<=0);$("resGlueFeeRow")?.classList.toggle("hidden",breakdown.glueFee<=0);$("resSolderFeeRow")?.classList.toggle("hidden",breakdown.solderFee<=0);
   $("resFurtherSurchargesRow").classList.toggle("hidden",!customerObject||breakdown.furtherSurcharges<=0);
@@ -602,6 +610,7 @@ export function calculate(){
   $("resMaterial").textContent=euro(breakdown.material);$("resConsumables").textContent=euro(breakdown.consumables);$("resBaseFee").textContent=euro(breakdown.baseFee);
   $("resMachine").textContent=euro(breakdown.machine);$("resWork").textContent=euro(breakdown.work);$("resExtra").textContent=euro(breakdown.extra);$("resReserve").textContent=euro(breakdown.reserve);
   $("resDifficulty").textContent=euro(breakdown.difficulty);$("resRisk").textContent=euro(breakdown.risk);$("resExpress").textContent=euro(breakdown.express);$("resCalculated").textContent=euro(breakdown.calculated);$("resMinimum").textContent=euro(breakdown.minimum);
+  if($("resIndividualization"))$("resIndividualization").textContent=euro(breakdown.individualization);
   if($("resPaintFee"))$("resPaintFee").textContent=euro(breakdown.paintFee);
   if($("resSandFee"))$("resSandFee").textContent=euro(breakdown.sandFee);if($("resGlueFee"))$("resGlueFee").textContent=euro(breakdown.glueFee);if($("resSolderFee"))$("resSolderFee").textContent=euro(breakdown.solderFee);
   if($("paintFeePreview")){const selection=$("paintCoats")?.value||"0",custom=selection==="custom",coats=Math.max(0,num(selection)),fee=paintingSurcharge(selection,$("paintCustomFee")?.value);$("paintCustomFeeField")?.classList.toggle("hidden",!custom);$("paintFeePreview").textContent=custom?`Sonderaufwand: ${euro(fee)} Pauschale vor Gewinnaufschlag.`:coats?`${coats} Schicht${coats===1?"":"en"}: ${euro(fee)} Pauschale vor Gewinnaufschlag.`:"Keine Lackierpauschale.";}
