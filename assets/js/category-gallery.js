@@ -16,15 +16,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const toggle = document.createElement("button");
       toggle.className = "description-toggle-button";
       toggle.type = "button";
-      toggle.textContent = "Beschreibung anzeigen";
+      toggle.textContent = "Mehr lesen ↓";
       toggle.setAttribute("aria-expanded", "false");
       toggle.setAttribute("aria-controls", description.id);
 
       toggle.addEventListener("click", () => {
         const isExpanded = description.classList.toggle("is-expanded");
         toggle.textContent = isExpanded
-          ? "Beschreibung schließen"
-          : "Beschreibung anzeigen";
+          ? "Weniger anzeigen ↑"
+          : "Mehr lesen ↓";
         toggle.setAttribute("aria-expanded", String(isExpanded));
       });
 
