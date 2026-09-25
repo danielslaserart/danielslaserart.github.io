@@ -2,6 +2,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const galleries = document.querySelectorAll("[data-gallery-preview]");
   if (!galleries.length) return;
 
+  const isSpecialProjectsPage = window.location.pathname
+    .toLowerCase()
+    .endsWith("/besondere-projekte.html");
+
+  if (!isSpecialProjectsPage) {
+    document.querySelectorAll(".gallery-card .image-caption > p").forEach((description, index) => {
+      if (!description.textContent.trim()) return;
+
+      description.classList.add("mobile-collapsible-description");
+      description.id ||= `gallery-description-${index + 1}`;
+
+      const toggle = document.createElement("button");
+      toggle.className = "description-toggle-button";
+      toggle.type = "button";
+      toggle.textContent = "Beschreibung anzeigen";
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-controls", description.id);
+
+      toggle.addEventListener("click", () => {
+        const isExpanded = description.classList.toggle("is-expanded");
+        toggle.textContent = isExpanded
+          ? "Beschreibung schließen"
+          : "Beschreibung anzeigen";
+        toggle.setAttribute("aria-expanded", String(isExpanded));
+      });
+
+      description.insertAdjacentElement("afterend", toggle);
+    });
+  }
+
   Lightbox?.bind?.();
 
   galleries.forEach((gallery) => {
