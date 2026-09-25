@@ -293,6 +293,42 @@
   outline: none;
 }
 
+.description-toggle-button {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-collapsible-description:not(.is-expanded) {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .description-toggle-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px 10px;
+    border: 1px solid rgba(176, 141, 87, 0.58);
+    border-radius: 999px;
+    background: rgba(176, 141, 87, 0.1);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .description-toggle-button:focus-visible {
+    border-color: #b08d57;
+    background: rgba(176, 141, 87, 0.22);
+    outline: none;
+  }
+}
+
 .gallery-actions {
   display: flex;
   align-items: center;
