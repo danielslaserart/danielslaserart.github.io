@@ -35,11 +35,18 @@ function priceTypeLabel(type,isPreferred=false){
 export function renderPriceTypeBadge(priceType,isPreferred=false){
   return `<span class="project-price-type">★ ${esc(priceTypeLabel(priceType,isPreferred))}</span>`;
 }
+function projectIndividualization(project){
+  const stored=project?.pricingBreakdown?.individualization??project?.calculationSnapshot?.results?.individualization;
+  if(stored!=null)return Math.max(0,num(stored));
+  const level=project?.fields?.individualizationLevel??project?.calculationSnapshot?.fields?.individualizationLevel??"none";
+  const fees={none:0,simple:7.5,medium:15,complex:25,...(state.settings?.individualizationFees||{})};
+  return Math.max(0,num(fees[level]??0));
+}
 function actualProjectPrice(project){
   if(["done","doneNoInvoice","billed"].includes(project?.status))return project.agreementPrice??project.actualPrice??project.sale??0;
   if(Array.isArray(project?.positions)){
     if(project.orderType==="customerObject")return currentCustomerCalculation(project)?.recommended??project.recommendedSalePrice??project.recommendedPrice??project.sale??0;
-    return positionTotals(project).recommended;
+    return positionTotals(project).recommended+projectIndividualization(project);
   }
   return project?.recommendedSalePrice??project?.recommendedPrice??project?.pricingBreakdown?.sale??project?.sale??0;
 }
@@ -316,7 +323,7 @@ export function viewProject(id){
   const selfCosts=Array.isArray(p.positions)?currentPositionTotals.cost:getCostCoveringMinimumPrice(p);
   const ownProfitPercent=Math.max(0,num(p.fields?.profit??p.calculationSnapshot?.fields?.profit??p.calculationSnapshot?.pricingSettings?.profitPercent??state.settings?.profit??30));
   const priceStep=num(p.calculationSnapshot?.pricingSettings?.rounding??state.settings?.rounding)||.1;
-  const ownRecommendations=computePriceRecommendations({orderType:"own",material:currentPositionTotals.material,machine:currentPositionTotals.machine,work:currentPositionTotals.work,extra:currentPositionTotals.other,paintFee:currentPositionTotals.paintFee,sandFee:currentPositionTotals.sandFee,glueFee:currentPositionTotals.glueFee,solderFee:currentPositionTotals.solderFee,express:num(p.pricingBreakdown?.express),reservePercent:num(p.positionReservePercent??p.fields?.reserve??p.calculationSnapshot?.pricingSettings?.reservePercent??state.settings?.reserve),profitPercent:ownProfitPercent,roundFn:value=>Math.ceil((value-1e-9)/priceStep)*priceStep});
+  const ownRecommendations=computePriceRecommendations({orderType:"own",material:currentPositionTotals.material,machine:currentPositionTotals.machine,work:currentPositionTotals.work,extra:currentPositionTotals.other,individualization:projectIndividualization(p),paintFee:currentPositionTotals.paintFee,sandFee:currentPositionTotals.sandFee,glueFee:currentPositionTotals.glueFee,solderFee:currentPositionTotals.solderFee,express:num(p.pricingBreakdown?.express),reservePercent:num(p.positionReservePercent??p.fields?.reserve??p.calculationSnapshot?.pricingSettings?.reservePercent??state.settings?.reserve),profitPercent:ownProfitPercent,roundFn:value=>Math.ceil((value-1e-9)/priceStep)*priceStep});
   const ownBreakdown=ownRecommendations.withWork,ownRecommended=ownBreakdown.sale;
   const ownPriceSource={...p,selfCosts:ownBreakdown.cost,cost:ownBreakdown.cost,costCoveringMinimumPrice:ownBreakdown.cost,calculatedWorkPrice:0,subtotal:ownBreakdown.cost,priceBeforeProfit:ownBreakdown.cost,profitPercent:ownProfitPercent,profitMarkup:ownBreakdown.profitMarkup,calculated:ownBreakdown.calculated,recommendedSalePrice:ownRecommended,recommendedPrice:ownRecommended,recommendedSalePriceWithoutWork:ownRecommendations.withoutWork.sale,pricingBreakdown:{...(p.pricingBreakdown||{}),...ownBreakdown,saleWithoutWork:ownRecommendations.withoutWork.sale}};
   const cons=(p.consumables||[]).map(r=>{const m=state.materials.find(x=>x.id===r.materialId);return m?`<div><span>${esc(m.name)}</span><strong>${num(r.quantity)} ${esc(workshopUnit(m))}</strong></div>`:""}).join("");
