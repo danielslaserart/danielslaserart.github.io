@@ -228,7 +228,8 @@
         <small>Die Arbeitskosten werden automatisch mit dem Stundenlohn aus „System“ berechnet.</small>
       </div>
       <div class="manual-work-card">
-        <div class="group-title">INDIVIDUALISIERUNG</div>
+        <div class="group-title">EXPRESS & INDIVIDUALISIERUNG</div>
+        <label class="check-row"><input id="expressEnabled" type="checkbox"><span>Expresszuschlag anwenden</span></label>
         <label>Aufwand der Einzelanfertigung
           <select id="individualizationLevel">
             <option value="none">Keine (0,00 €)</option>
@@ -1056,6 +1057,7 @@
       </label>
     </div>
     <div class="project-dialog-footer">
+      <button id="projectCopyChatGptBtn" class="secondary" type="button">📋 Für ChatGPT kopieren</button>
       <button id="offerPdfBtn" class="secondary pdf-action" type="button">📄 PDF-Angebot</button>
       <button id="projectViewEditBtn" class="primary" type="button">✎ Kalkulation bearbeiten</button>
     </div>
