@@ -581,12 +581,13 @@ export function calculate(){
   const estimatorPosition=calculatorPositionProject.positions?.find(position=>position.calculationSource==="estimator");
   const profitPercent=$("profit")?.dataset.userEdited==="true"?num($("profit")?.value):estimatorPosition?.profitPercent!==undefined?num(estimatorPosition.profitPercent):enforcedProfit!==undefined?num(enforcedProfit):num(state.settings.profit);
   const reservePercent=$("reserve")?.dataset.userEdited==="true"?num($("reserve")?.value):estimatorPosition?.reservePercent!==undefined?num(estimatorPosition.reservePercent):enforcedReserve!==undefined?num(enforcedReserve):num(state.settings.reserve);
+  const expressFee=orderType==="customerObject"?($("customerExpressEnabled")?.checked?num(settings.expressFee):0):($("expressEnabled")?.checked?num(settings.expressFee):0);
   const priceParts={
-    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,individualization:orderType==="own"?individualizationSurcharge($("individualizationLevel")?.value):0,express:orderType==="own"&&$("expressEnabled")?.checked?num(getCustomerSettings().expressFee):0,paintFee:paintingSurcharge($("paintCoats")?.value,$("paintCustomFee")?.value),sandFee:$("sandEnabled")?.checked?num(state.settings.sandFee??2):0,glueFee:glueSurcharge($("glueEnabled")?.checked,$("glueSize")?.value,$("glueCount")?.value),solderFee:$("solderEnabled")?.checked?num(state.settings.solderFee??5):0,
+    orderType,material,consumables:orderType==="own"?consumables:0,machine,work,extra,individualization:orderType==="own"?individualizationSurcharge($("individualizationLevel")?.value):0,express:expressFee,paintFee:paintingSurcharge($("paintCoats")?.value,$("paintCustomFee")?.value),sandFee:$("sandEnabled")?.checked?num(state.settings.sandFee??2):0,glueFee:glueSurcharge($("glueEnabled")?.checked,$("glueSize")?.value,$("glueCount")?.value),solderFee:$("solderEnabled")?.checked?num(state.settings.solderFee??5):0,
     overheadPercent:state.settings.overhead,reservePercent,profitPercent,roundFn:rounded,
     baseFee:orderType==="customerObject"&&$("customerBaseFeeEnabled")?.checked?num(settings.baseFee):0,
     furtherSurcharges:0,
-    minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value),express:orderType==="customerObject"&&$("customerExpressEnabled")?.checked?num(settings.expressFee):priceParts.express
+    minimumPrice:settings.minimumPrice,difficultyPercent:settings.difficulties?.[difficultyKey],risk:num($("riskSurcharge")?.value)
   };
   const recommendations=computePriceRecommendations(priceParts);
   const breakdown={...recommendations.withWork,saleWithoutWork:recommendations.withoutWork.sale,costWithoutWork:recommendations.withoutWork.cost};
