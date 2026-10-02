@@ -315,6 +315,41 @@ function customerCalculationOverview(p){
     ${recommendationRows(withTiers,withoutTiers)}
   </div>`;
 }
+function projectChatGptText(p,ownRecommendations,currentPositionTotals){
+  const own=p.orderType!=="customerObject";
+  const recs=own?ownRecommendations:currentCustomerCalculation(p)?.recommendations;
+  const recommended=own?ownRecommendations?.withWork?.sale:currentCustomerCalculation(p)?.recommended;
+  const lowWith=recs?.withWorkTiers?.low,optimalWith=recs?.withWorkTiers?.optimal,premiumWith=recs?.withWorkTiers?.premium;
+  const lowWithout=recs?.withoutWorkTiers?.low,optimalWithout=recs?.withoutWorkTiers?.optimal,premiumWithout=recs?.withoutWorkTiers?.premium;
+  const fields=p.fields||p.calculationSnapshot?.fields||{};
+  const individualization=projectIndividualization(p);
+  const express=num(p.pricingBreakdown?.express??p.expressSurcharge);
+  const lines=[
+    "PROJEKTDATEN FÜR CHATGPT",
+    "Projekt: "+(p.title||"Projekt"),
+    "Auftragstyp: "+orderTypeLabel(p.orderType),
+    "Status: "+projectStatusLabel(p.status),
+    p.customerName||p.customer?("Kunde: "+(p.customerName||p.customer)):"",
+    "Materialkosten: "+euro(currentPositionTotals.material),
+    "Maschinenkosten: "+euro(currentPositionTotals.machine),
+    "Arbeitskosten: "+euro(currentPositionTotals.work),
+    individualization>0?("Individualisierung: "+euro(individualization)):"Individualisierung: keine",
+    express>0?("Expresszuschlag: "+euro(express)):"Express: nein",
+    "",
+    "PREISE",
+    lowWithout!=null?("Niedrigster Preis ohne Arbeitszeit: "+euro(lowWithout)):"",
+    optimalWithout!=null?("Optimaler Preis ohne Arbeitszeit: "+euro(optimalWithout)):"",
+    premiumWithout!=null?("Premiumpreis ohne Arbeitszeit: "+euro(premiumWithout)):"",
+    lowWith!=null?("Niedrigster Preis mit Arbeitszeit: "+euro(lowWith)):"",
+    optimalWith!=null?("Optimaler Preis mit Arbeitszeit: "+euro(optimalWith)):"",
+    premiumWith!=null?("Premiumpreis mit Arbeitszeit: "+euro(premiumWith)):"",
+    recommended!=null?("Empfohlener Verkaufspreis: "+euro(recommended)):"",
+    p.agreementPrice!=null?("Vereinbarter Preis: "+euro(p.agreementPrice)):"Vereinbarter Preis: noch nicht festgelegt",
+    "",
+    p.notes?("Notizen: "+p.notes):""
+  ];
+  return lines.filter(line=>line!==null&&line!==undefined).join("\n").replace(/\n{3,}/g,"\n\n");
+}
 export function viewProject(id){
   const p=getRealProjects().find(x=>x.id===id);
   if(!p){appAlert("Projekt wurde nicht gefunden.");return;}
@@ -368,6 +403,11 @@ export function viewProject(id){
     if(!["done","doneNoInvoice","billed"].includes(previousStatus)&&["done","doneNoInvoice","billed"].includes(p.status))deductPositionStock(p);
     p.updated=new Date().toISOString();
     save();renderProjects();updateHome();
+  };
+  $("projectCopyChatGptBtn").onclick=async()=>{
+    const text=projectChatGptText(p,ownRecommendations,currentPositionTotals);
+    try{await navigator.clipboard.writeText(text);await appAlert("Die wichtigsten Projektdaten inklusive aller Preisstufen wurden für ChatGPT kopiert.");}
+    catch(error){console.error(error);await appAlert("Kopieren wurde vom Browser blockiert.");}
   };
   $("projectViewEditBtn").onclick=()=>{dialog.close();loadProject(id,false)};
   $("offerPdfBtn").onclick=async()=>{let price=p.sale;if(p.agreementPrice!=null){const choice=await appForm({title:"Preis für Kunden-PDF",message:"Interne Notizen und Preis-Historie werden nicht im PDF ausgegeben.",fields:[{name:"priceSource",label:"Endpreis verwenden",type:"select",value:"project",options:[{value:"project",label:`Bisheriger Projektpreis (${euro(p.sale)})`},{value:"agreement",label:`Vereinbarter Verkaufspreis (${euro(p.agreementPrice)})`}]}],acceptText:"PDF erstellen"});if(!choice)return;price=choice.priceSource==="agreement"?p.agreementPrice:p.sale}await printOffer(p,price)};
