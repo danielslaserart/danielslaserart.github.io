@@ -18,10 +18,10 @@ function draw(){
  const wire=d=>node("path",{d,stroke:"#b08d57","stroke-width":2.4,fill:"none"});
  const label=(x,y,s)=>node("text",{x,y,fill:"currentColor","font-size":12,"text-anchor":"middle"},s);
  node("rect",{x:10,y:20,width:68,height:55,rx:6,stroke:"#b08d57",fill:"none"});label(44,42,"DC +");label(44,61,"−");
- wire("M78 34 H"+(part==="none"?180:112));if(part!=="none"){wire(part==="fuse"?"M112 34 H180":"M112 34 L158 19 M165 34 H180");label(146,15,part==="switch"?"Schalter":part==="button"?"Taster":"Sicherung*")}
+ wire("M78 34 H"+(part==="none"?180:112));if(part!=="none"){wire(part==="fuse"?"M112 34 H180":"M112 34 L158 19 M165 34 H180");label(146,15,part==="switch"?"S1":part==="button"?"S1": "F1")}
  wire("M"+(part==="none"?180:180)+" 34 H210 V90 V"+(90+(branches-1)*72));
  wire("M515 90 V"+(90+(branches-1)*72)+" V"+(h-20)+" H44 V75");
- for(let i=0;i<branches;i++){const y=90+i*72;wire("M210 "+y+" H255 M312 "+y+" H370 M403 "+y+" H515");node("rect",{x:255,y:y-12,width:57,height:24,stroke:"#b08d57",fill:"none"});wire("M370 "+(y-13)+" L392 "+y+" L370 "+(y+13)+" Z M397 "+(y-15)+" V"+(y+15));label(283,y-19,"R"+(i+1));label(283,y+30,fmt(res)+" Ω");label(388,y+34,series+"× LED")}
+ for(let i=0;i<branches;i++){const y=90+i*72;wire("M210 "+y+" H255 M312 "+y+" H370 M403 "+y+" H515");node("rect",{x:255,y:y-12,width:57,height:24,stroke:"#b08d57",fill:"none"});wire("M370 "+(y-13)+" L392 "+y+" L370 "+(y+13)+" Z M397 "+(y-15)+" V"+(y+15));label(283,y-19,"R"+(i+1));label(283,y+30,fmt(res)+" Ω");wire("M377 "+(y-16)+" L389 "+(y-28)+" M389 "+(y-28)+" l-2 7 M389 "+(y-28)+" l-7 2 M387 "+(y-10)+" L399 "+(y-22)+" M399 "+(y-22)+" l-2 7 M399 "+(y-22)+" l-7 2");label(388,y+34,series+"× LED")}
  diagram.replaceChildren(svg);
  $("elSafety").textContent=part==="fuse"?"Sicherung nur symbolisch: Typ und Nennwert gesondert anhand der Leitung auslegen.":"Jeder parallele Zweig benötigt seinen eigenen Vorwiderstand. Nur Kleinspannungs-Gleichstrom; LED-Datenblattwerte prüfen.";
 }
