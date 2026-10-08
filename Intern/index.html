@@ -354,9 +354,9 @@
 
 <section id="electronics" class="screen">
  <div class="section-head"><div><div class="eyebrow">ELEKTRONIK · KLEINSPANNUNG</div><h2>Elektronik & Schaltpläne</h2></div></div>
- <div class="card">
+ <div class="card electronics-card">
  <h3>LED- & Widerstandsrechner</h3><p class="tool-intro">Berechnung für LEDs und LED-Filamente mit bekannten Betriebswerten. Die Eingaben aktualisieren das Ergebnis und den Schaltplan sofort.</p>
- <div class="field-grid">
+ <div class="field-grid electronics-fields">
  <label>Versorgungsspannung (V)<input id="elVoltage" type="number" min="0" step="any" value="15"><small>Spannung des Netzteils oder der Batterie. Am Typenschild oder Netzteil ablesen.</small></label>
  <label>LED-Vorwärtsspannung (V)<input id="elForward" type="number" min="0" step="any" value="12"><small>Spannung je LED beim Betriebsstrom. Steht im Datenblatt; 12 V ist nur ein Beispiel.</small></label>
  <label>LED-Betriebsstrom (mA)<input id="elMilliamp" type="number" min="0" step="any" value="20"><small>Zulässiger Strom aus dem Datenblatt. 1000 mA = 1 A.</small></label>
@@ -366,7 +366,7 @@
  <label>Zusatzbauteil<select id="elPart"><option value="none">Keines</option><option value="switch">Ein-/Ausschalter</option><option value="button">Taster (Schließer)</option><option value="fuse">Sicherung (symbolisch)</option></select><small>Vor den LED-Zweigen in der Plusleitung.</small></label>
  </div>
  <div class="mini-results" id="elResults" aria-live="polite"></div>
- <h3>Dein Schaltplan</h3><div id="elDiagram" style="overflow-x:auto;max-width:100%"></div>
+ <h3>Dein Schaltplan</h3><div id="elDiagram" class="electronics-diagram"></div>
  <p class="tool-intro" id="elSafety"></p>
  <button id="elPrint" class="secondary" type="button">Schaltplan drucken</button>
  <p class="tool-intro">Für Sensoren, Dimmer, Relais, USB-C und Spannungswandler werden später konkrete Module und deren Pinbelegung benötigt. Keine 230-V-Schaltungen.</p>
@@ -1089,7 +1089,28 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
-<script defer src="js/electronics.js?v=1.0"></script>
+<style>
+/* Elektronik: mobile-first und bewusst auf diesen Bereich begrenzt */
+#electronics{box-sizing:border-box;min-width:0;max-width:100%;overflow-x:clip;padding-bottom:calc(105px + env(safe-area-inset-bottom,0px))}
+#electronics *,#electronics *::before,#electronics *::after{box-sizing:border-box}
+#electronics .section-head{min-width:0;flex-wrap:wrap}
+#electronics .section-head h2{overflow-wrap:anywhere;line-height:1.25}
+#electronics .electronics-card{min-width:0;max-width:100%;overflow:visible;padding:clamp(12px,3vw,22px)}
+#electronics .electronics-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));gap:14px}
+#electronics .electronics-fields label{display:flex;flex-direction:column;gap:7px;min-width:0;max-width:100%;overflow-wrap:anywhere;line-height:1.45}
+#electronics .electronics-fields label small{display:block;font-size:12px;line-height:1.5;opacity:.8;white-space:normal;overflow-wrap:anywhere}
+#electronics .electronics-fields input,#electronics .electronics-fields select{width:100%;min-width:0;max-width:100%;min-height:44px;font-size:16px}
+#electronics #elResults{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:9px;margin:18px 0}
+#electronics #elResults>div{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px;min-width:0;padding:12px;border:1px solid rgba(176,141,87,.25);border-radius:10px}
+#electronics #elResults span,#electronics #elResults strong{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.4;text-align:left}
+#electronics #elResults strong{font-size:clamp(14px,3.8vw,19px)}
+#electronics .electronics-diagram{width:100%;max-width:100%;min-width:0;overflow:visible;padding:10px 4px 18px;border:1px solid rgba(176,141,87,.25);border-radius:12px}
+#electronics .electronics-diagram svg{display:block;width:100%;height:auto;max-width:100%;overflow:visible}
+#electronics .tool-intro{line-height:1.55;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:650px){#electronics .electronics-fields{grid-template-columns:minmax(0,1fr)}#electronics #elResults{grid-template-columns:minmax(0,1fr)}#electronics .electronics-card{padding:12px}#electronics .electronics-diagram{padding:7px 2px 14px}}
+@media print{body:has(#electronics.active) .bottom-nav,body:has(#electronics.active) #electronics .electronics-fields,body:has(#electronics.active) #elPrint{display:none!important}body:has(#electronics.active) #electronics{overflow:visible;padding:0}body:has(#electronics.active) #electronics .electronics-diagram{max-width:100%}}
+</style>
+<script defer src="js/electronics.js?v=1.1"></script>
 <script type="module" src="js/app.js?v=8.0"></script>
 </body>
 </html>
