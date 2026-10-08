@@ -371,6 +371,53 @@
  <button id="elPrint" class="secondary" type="button">Schaltplan drucken</button>
  <p class="tool-intro">Für Sensoren, Dimmer, Relais, USB-C und Spannungswandler werden später konkrete Module und deren Pinbelegung benötigt. Keine 230-V-Schaltungen.</p>
  </div>
+<div class="card electronics-card">
+ <h3>Weitere Elektronik-Bauteile</h3>
+ <p class="tool-intro">Wähle ein Bauteil aus. Du siehst, welche Anschlüsse es typischerweise besitzt und worauf du achten musst.</p>
+ <div class="electronics-fields">
+ <label>Bauteil auswählen<select id="elModule">
+ <option value="dimmer">PWM-Dimmer</option><option value="pir">Bewegungssensor (PIR)</option><option value="ldr">Dämmerungssensor</option><option value="timer">Zeitrelais</option><option value="relay">Relais-Modul</option><option value="buck">DC/DC-Spannungswandler</option><option value="usb">USB-C-Versorgung</option><option value="fuse">Sicherung / Verpolschutz</option>
+ </select><small>Je nach Hersteller unterscheiden sich die tatsächlichen Anschlussbezeichnungen.</small></label>
+ </div>
+ <h3 id="elModuleTitle">PWM-Dimmer</h3>
+ <ol id="elModulePins" class="electronics-steps"></ol>
+ <p id="elModuleWarning" class="tool-intro"></p>
+ <p id="elModulePlan" class="tool-intro"></p>
+</div>
+<div class="card electronics-card">
+ <h3>Kabelquerschnitt berechnen</h3>
+ <p class="tool-intro">Wie dick muss ein Kupferkabel sein, damit auf dem Hin- und Rückweg nicht zu viel Spannung verloren geht?</p>
+ <div class="electronics-fields field-grid">
+ <label>Spannung (V)<input id="elCableV" type="number" min="0.1" step="any" value="12"><small>Ausgangsspannung deines Netzteils.</small></label>
+ <label>Strom (A)<input id="elCableA" type="number" min="0.01" step="any" value="1"><small>Gesamtstrom der angeschlossenen Verbraucher.</small></label>
+ <label>Kabellänge einfach (m)<input id="elCableM" type="number" min="0.01" step="any" value="2"><small>Nur eine Strecke messen; der Rechner berücksichtigt Hin- und Rückleiter.</small></label>
+ <label>Maximaler Spannungsabfall (%)<input id="elCableDrop" type="number" min="0.1" max="99" step="any" value="3"><small>Wie viel der Versorgungsspannung höchstens im Kabel verloren gehen darf.</small></label>
+ </div>
+ <p id="elCableResult" class="electronics-answer" aria-live="polite"></p>
+</div>
+<div class="card electronics-card">
+ <h3>Netzteil berechnen</h3>
+ <div class="electronics-fields field-grid">
+ <label>Verbraucherspannung (V)<input id="elSupplyV" type="number" min="0.1" step="any" value="12"><small>Benötigte Betriebsspannung deiner Schaltung.</small></label>
+ <label>Gesamtstrom (A)<input id="elSupplyA" type="number" min="0.01" step="any" value="1"><small>Summe der Ströme aller Verbraucher.</small></label>
+ <label>Leistungsreserve (%)<input id="elSupplyReserve" type="number" min="0" max="200" step="any" value="25"><small>Zusätzliche Reserve für das Netzteil.</small></label>
+ </div>
+ <p id="elSupplyResult" class="electronics-answer" aria-live="polite"></p>
+</div>
+<div class="card electronics-card">
+ <h3>Ohmsches Gesetz</h3>
+ <p class="tool-intro">Berechne Strom und Verlustleistung aus Spannung und Widerstand.</p>
+ <div class="electronics-fields field-grid">
+ <label>Spannung am Widerstand (V)<input id="elOhmV" type="number" min="0" step="any" value="12"><small>Die Spannung, die direkt am Widerstand abfällt.</small></label>
+ <label>Widerstand (Ω)<input id="elOhmR" type="number" min="0.01" step="any" value="100"><small>Widerstandswert in Ohm.</small></label>
+ </div>
+ <p id="elOhmResult" class="electronics-answer" aria-live="polite"></p>
+</div>
+<div class="card electronics-card">
+ <h3>Schaltzeichen erklärt</h3>
+ <p class="tool-intro"><strong>R1, R2 …</strong> Widerstände (europäisches Symbol: Rechteck). <strong>LED1, LED2 …</strong> Leuchtdioden. <strong>S1</strong> Schalter oder Taster. <strong>F1</strong> Sicherung. <strong>+ / −</strong> Gleichspannungsanschlüsse.</p>
+ <p class="tool-intro">Eine LED wird als Diode mit zwei nach außen gerichteten Lichtpfeilen dargestellt.</p>
+</div>
 </section>
   <section id="tools" class="screen">
     <div class="section-head">
@@ -1109,8 +1156,14 @@
 #electronics .tool-intro{line-height:1.55;white-space:normal;overflow-wrap:anywhere}
 @media(max-width:650px){#electronics .electronics-fields{grid-template-columns:minmax(0,1fr)}#electronics #elResults{grid-template-columns:minmax(0,1fr)}#electronics .electronics-card{padding:12px}#electronics .electronics-diagram{padding:7px 2px 14px}}
 @media print{body:has(#electronics.active) .bottom-nav,body:has(#electronics.active) #electronics .electronics-fields,body:has(#electronics.active) #elPrint{display:none!important}body:has(#electronics.active) #electronics{overflow:visible;padding:0}body:has(#electronics.active) #electronics .electronics-diagram{max-width:100%}}
+
+#electronics .electronics-steps{padding-left:24px;line-height:1.65;overflow-wrap:anywhere}
+#electronics .electronics-steps li{padding:3px 0}
+#electronics .electronics-answer{border:1px solid rgba(176,141,87,.3);border-radius:10px;padding:14px;line-height:1.6;overflow-wrap:anywhere}
+#electronics .electronics-card + .electronics-card{margin-top:16px}
 </style>
-<script defer src="js/electronics.js?v=1.1"></script>
+<script defer src="js/electronics.js?v=2.0"></script>
+<script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script type="module" src="js/app.js?v=8.0"></script>
 </body>
 </html>
