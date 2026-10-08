@@ -352,6 +352,26 @@
   </section>
 
 
+<section id="electronics" class="screen">
+ <div class="section-head"><div><div class="eyebrow">ELEKTRONIK · KLEINSPANNUNG</div><h2>Elektronik & Schaltpläne</h2></div></div>
+ <div class="card">
+ <h3>LED- & Widerstandsrechner</h3><p class="tool-intro">Berechnung für LEDs und LED-Filamente mit bekannten Betriebswerten. Die Eingaben aktualisieren das Ergebnis und den Schaltplan sofort.</p>
+ <div class="field-grid">
+ <label>Versorgungsspannung (V)<input id="elVoltage" type="number" min="0" step="any" value="15"><small>Spannung des Netzteils oder der Batterie. Am Typenschild oder Netzteil ablesen.</small></label>
+ <label>LED-Vorwärtsspannung (V)<input id="elForward" type="number" min="0" step="any" value="12"><small>Spannung je LED beim Betriebsstrom. Steht im Datenblatt; 12 V ist nur ein Beispiel.</small></label>
+ <label>LED-Betriebsstrom (mA)<input id="elMilliamp" type="number" min="0" step="any" value="20"><small>Zulässiger Strom aus dem Datenblatt. 1000 mA = 1 A.</small></label>
+ <label>LEDs in Reihe je Zweig<input id="elSeries" type="number" min="1" max="12" step="1" value="1"><small>Hintereinander verbundene LEDs: Spannungen addieren sich.</small></label>
+ <label>Parallele Zweige<input id="elBranches" type="number" min="1" max="8" step="1" value="2"><small>Jeder Zweig erhält einen eigenen Vorwiderstand.</small></label>
+ <label>Vorhandener Widerstand (Ω, optional)<input id="elKnown" type="number" min="0" step="any" placeholder="z. B. 47"><small>Zum Prüfen eines vorhandenen Widerstands; Ω bedeutet Ohm.</small></label>
+ <label>Zusatzbauteil<select id="elPart"><option value="none">Keines</option><option value="switch">Ein-/Ausschalter</option><option value="button">Taster (Schließer)</option><option value="fuse">Sicherung (symbolisch)</option></select><small>Vor den LED-Zweigen in der Plusleitung.</small></label>
+ </div>
+ <div class="mini-results" id="elResults" aria-live="polite"></div>
+ <h3>Dein Schaltplan</h3><div id="elDiagram" style="overflow-x:auto;max-width:100%"></div>
+ <p class="tool-intro" id="elSafety"></p>
+ <button id="elPrint" class="secondary" type="button">Schaltplan drucken</button>
+ <p class="tool-intro">Für Sensoren, Dimmer, Relais, USB-C und Spannungswandler werden später konkrete Module und deren Pinbelegung benötigt. Keine 230-V-Schaltungen.</p>
+ </div>
+</section>
   <section id="tools" class="screen">
     <div class="section-head">
       <div><div class="eyebrow">SCHNELLWERKZEUGE</div><h2>Preis & Gewinn</h2></div>
@@ -900,6 +920,7 @@
   <button data-screen="materials"><span>▦</span><small>Material</small></button>
   <button data-screen="learning" class="nav-learning"><span>◇</span><small>Lernen</small></button>
   <button data-screen="settings"><span>⚙</span><small>System</small></button>
+  <button data-screen="electronics"><span>⚡</span><small>Elektronik</small></button>
   <button data-screen="tools"><span>⌘</span><small>Werkzeuge</small></button>
 </nav>
 
@@ -1068,6 +1089,7 @@
   onload="this.dataset.loaded='true'"
   onerror="this.dataset.failed='true'"></script>
 <script src="assets/vendor/pdf-lib.min.js?v=6.5"></script>
+<script defer src="js/electronics.js?v=1.0"></script>
 <script type="module" src="js/app.js?v=8.0"></script>
 </body>
 </html>
