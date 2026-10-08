@@ -414,6 +414,23 @@
  <p id="elOhmResult" class="electronics-answer" aria-live="polite"></p>
 </div>
 <div class="card electronics-card">
+<h3>🔋 Batterielaufzeit berechnen</h3>
+<p class="tool-intro">Wie lange leuchtet dein COB-LED-Band mit Batterien? Trage die Daten der Batterie und die Stromaufnahme des LED-Bandes ein. Die Ergebnisse sind Schätzungen.</p>
+<div class="field-grid electronics-fields">
+<label>Batterietyp<select id="elBatteryType"><option value="alkaline">R6 / AA Alkaline (1,5 V)</option><option value="nimh">AA NiMH-Akku (1,2 V)</option><option value="aaa">AAA Alkaline (1,5 V)</option><option value="custom">Eigene Batterie</option></select><small>R6 bedeutet AA-Batterie. Kapazität und Spannung werden zunächst als typische Beispiele eingesetzt.</small></label>
+<label>Anzahl Batterien gesamt<input id="elBatteryCount" type="number" min="1" max="24" step="1" value="2"><small>Wie viele einzelne Zellen verwendest du insgesamt?</small></label>
+<label>Batterien in Reihe<input id="elBatterySeries" type="number" min="1" max="24" step="1" value="2"><small>In Reihe addiert sich die Spannung. Zwei AA-Zellen in Reihe ergeben nominal 3 V.</small></label>
+<label>Spannung je Batterie (V)<input id="elBatteryVolts" type="number" min="0.1" step="any" value="1.5"><small>Nennspannung laut Aufdruck, z. B. 1,5 V bei Alkaline.</small></label>
+<label>Kapazität je Batterie (mAh)<input id="elBatteryCapacity" type="number" min="1" step="any" value="2000"><small>Im Datenblatt; bei Alkaline stark abhängig von der Belastung. 2000 mAh sind nur ein Beispiel.</small></label>
+<label>Benötigte LED-Spannung (V)<input id="elLoadVolts" type="number" min="0.1" step="any" value="5"><small>Spannung des COB-Bandes laut Hersteller, z. B. 5 V.</small></label>
+<label>LED-Stromaufnahme (A)<input id="elLoadCurrent" type="number" min="0.001" step="any" value="0.2"><small>Am Netzteil messen oder aus der Leistungsangabe berechnen: Watt ÷ Volt. 0,2 A ist nur ein Beispiel.</small></label>
+<label>Wirkungsgrad (%)<input id="elBatteryEfficiency" type="number" min="1" max="100" step="any" value="85"><small>Berücksichtigt Verluste im Spannungswandler. Ohne Wandler bei direkter Versorgung ggf. höher.</small></label>
+<label>Nutzbare Batteriekapazität (%)<input id="elBatteryUsable" type="number" min="1" max="100" step="any" value="60"><small>Vorsichtiger Abschlag für Belastung, Temperatur und Entladeschluss. Kein fester Batteriewert.</small></label>
+</div>
+<div class="mini-results" id="elBatteryResult" aria-live="polite"></div>
+<p class="tool-intro" id="elBatteryNote"></p>
+</div>
+<div class="card electronics-card">
  <h3>Schaltzeichen erklärt</h3>
  <p class="tool-intro"><strong>R1, R2 …</strong> Widerstände (europäisches Symbol: Rechteck). <strong>LED1, LED2 …</strong> Leuchtdioden. <strong>S1</strong> Schalter oder Taster. <strong>F1</strong> Sicherung. <strong>+ / −</strong> Gleichspannungsanschlüsse.</p>
  <p class="tool-intro">Eine LED wird als Diode mit zwei nach außen gerichteten Lichtpfeilen dargestellt.</p>
@@ -1164,6 +1181,7 @@
 </style>
 <script defer src="js/electronics.js?v=2.0"></script>
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
+<script defer src="js/electronics-battery.js?v=2.1"></script>
 <script type="module" src="js/app.js?v=8.0"></script>
 </body>
 </html>
