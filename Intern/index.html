@@ -354,66 +354,13 @@
 
 <section id="electronics" class="screen">
  <div class="section-head"><div><div class="eyebrow">ELEKTRONIK · KLEINSPANNUNG</div><h2>Elektronik & Schaltpläne</h2></div></div>
- <div class="card electronics-card">
- <h3>LED- & Widerstandsrechner</h3><p class="tool-intro">Berechnung für LEDs und LED-Filamente mit bekannten Betriebswerten. Die Eingaben aktualisieren das Ergebnis und den Schaltplan sofort.</p>
- <div class="field-grid electronics-fields">
- <label>Versorgungsspannung (V)<input id="elVoltage" type="number" min="0" step="any" value="15"><small>Spannung des Netzteils oder der Batterie. Am Typenschild oder Netzteil ablesen.</small></label>
- <label>LED-Vorwärtsspannung (V)<input id="elForward" type="number" min="0" step="any" value="12"><small>Spannung je LED beim Betriebsstrom. Steht im Datenblatt; 12 V ist nur ein Beispiel.</small></label>
- <label>LED-Betriebsstrom (mA)<input id="elMilliamp" type="number" min="0" step="any" value="20"><small>Zulässiger Strom aus dem Datenblatt. 1000 mA = 1 A.</small></label>
- <label>LEDs in Reihe je Zweig<input id="elSeries" type="number" min="1" max="12" step="1" value="1"><small>Hintereinander verbundene LEDs: Spannungen addieren sich.</small></label>
- <label>Parallele Zweige<input id="elBranches" type="number" min="1" max="8" step="1" value="2"><small>Jeder Zweig erhält einen eigenen Vorwiderstand.</small></label>
- <label>Vorhandener Widerstand (Ω, optional)<input id="elKnown" type="number" min="0" step="any" placeholder="z. B. 47"><small>Zum Prüfen eines vorhandenen Widerstands; Ω bedeutet Ohm.</small></label>
- <label>Zusatzbauteil<select id="elPart"><option value="none">Keines</option><option value="switch">Ein-/Ausschalter</option><option value="button">Taster (Schließer)</option><option value="fuse">Sicherung (symbolisch)</option></select><small>Vor den LED-Zweigen in der Plusleitung.</small></label>
- </div>
- <div class="mini-results" id="elResults" aria-live="polite"></div>
- <h3>Dein Schaltplan</h3><div id="elDiagram" class="electronics-diagram"></div>
- <p class="tool-intro" id="elSafety"></p>
- <button id="elPrint" class="secondary" type="button">Schaltplan drucken</button>
- <p class="tool-intro">Für Sensoren, Dimmer, Relais, USB-C und Spannungswandler werden später konkrete Module und deren Pinbelegung benötigt. Keine 230-V-Schaltungen.</p>
- </div>
-<div class="card electronics-card">
- <h3>Weitere Elektronik-Bauteile</h3>
- <p class="tool-intro">Wähle ein Bauteil aus. Du siehst, welche Anschlüsse es typischerweise besitzt und worauf du achten musst.</p>
- <div class="electronics-fields">
- <label>Bauteil auswählen<select id="elModule">
- <option value="dimmer">PWM-Dimmer</option><option value="pir">Bewegungssensor (PIR)</option><option value="ldr">Dämmerungssensor</option><option value="timer">Zeitrelais</option><option value="relay">Relais-Modul</option><option value="buck">DC/DC-Spannungswandler</option><option value="usb">USB-C-Versorgung</option><option value="fuse">Sicherung / Verpolschutz</option>
- </select><small>Je nach Hersteller unterscheiden sich die tatsächlichen Anschlussbezeichnungen.</small></label>
- </div>
- <h3 id="elModuleTitle">PWM-Dimmer</h3>
- <ol id="elModulePins" class="electronics-steps"></ol>
- <p id="elModuleWarning" class="tool-intro"></p>
- <p id="elModulePlan" class="tool-intro"></p>
-</div>
-<div class="card electronics-card">
- <h3>Kabelquerschnitt berechnen</h3>
- <p class="tool-intro">Wie dick muss ein Kupferkabel sein, damit auf dem Hin- und Rückweg nicht zu viel Spannung verloren geht?</p>
- <div class="electronics-fields field-grid">
- <label>Spannung (V)<input id="elCableV" type="number" min="0.1" step="any" value="12"><small>Ausgangsspannung deines Netzteils.</small></label>
- <label>Strom (A)<input id="elCableA" type="number" min="0.01" step="any" value="1"><small>Gesamtstrom der angeschlossenen Verbraucher.</small></label>
- <label>Kabellänge einfach (m)<input id="elCableM" type="number" min="0.01" step="any" value="2"><small>Nur eine Strecke messen; der Rechner berücksichtigt Hin- und Rückleiter.</small></label>
- <label>Maximaler Spannungsabfall (%)<input id="elCableDrop" type="number" min="0.1" max="99" step="any" value="3"><small>Wie viel der Versorgungsspannung höchstens im Kabel verloren gehen darf.</small></label>
- </div>
- <p id="elCableResult" class="electronics-answer" aria-live="polite"></p>
-</div>
-<div class="card electronics-card">
- <h3>Netzteil berechnen</h3>
- <div class="electronics-fields field-grid">
- <label>Verbraucherspannung (V)<input id="elSupplyV" type="number" min="0.1" step="any" value="12"><small>Benötigte Betriebsspannung deiner Schaltung.</small></label>
- <label>Gesamtstrom (A)<input id="elSupplyA" type="number" min="0.01" step="any" value="1"><small>Summe der Ströme aller Verbraucher.</small></label>
- <label>Leistungsreserve (%)<input id="elSupplyReserve" type="number" min="0" max="200" step="any" value="25"><small>Zusätzliche Reserve für das Netzteil.</small></label>
- </div>
- <p id="elSupplyResult" class="electronics-answer" aria-live="polite"></p>
-</div>
-<div class="card electronics-card">
- <h3>Ohmsches Gesetz</h3>
- <p class="tool-intro">Berechne Strom und Verlustleistung aus Spannung und Widerstand.</p>
- <div class="electronics-fields field-grid">
- <label>Spannung am Widerstand (V)<input id="elOhmV" type="number" min="0" step="any" value="12"><small>Die Spannung, die direkt am Widerstand abfällt.</small></label>
- <label>Widerstand (Ω)<input id="elOhmR" type="number" min="0.01" step="any" value="100"><small>Widerstandswert in Ohm.</small></label>
- </div>
- <p id="elOhmResult" class="electronics-answer" aria-live="polite"></p>
-</div>
-<div class="card electronics-card">
+ <div class="electronics-tabs" role="tablist" aria-label="Elektronik-Kategorien">
+<button type="button" class="electronics-tab active" data-electronics-tab="battery" role="tab" aria-selected="true">🔋 <span>Batterien</span></button>
+<button type="button" class="electronics-tab" data-electronics-tab="led" role="tab" aria-selected="false">💡 <span>LEDs</span></button>
+<button type="button" class="electronics-tab" data-electronics-tab="power" role="tab" aria-selected="false">⚡ <span>Stromversorgung</span></button>
+<button type="button" class="electronics-tab" data-electronics-tab="modules" role="tab" aria-selected="false">🔌 <span>Bauteile</span></button>
+<button type="button" class="electronics-tab" data-electronics-tab="basics" role="tab" aria-selected="false">📐 <span>Grundlagen</span></button>
+</div><div class="electronics-panel" data-electronics-panel="battery" role="tabpanel"><h3 class="electronics-panel-title">Batterien & Laufzeit</h3><div class="card electronics-card">
 <h3>🔋 Batterien & Laufzeit</h3>
 <p class="tool-intro">Zwei Wege: Mit vorhandenen Batterien die Laufzeit schätzen oder die benötigte Batterieanzahl für eine gewünschte Laufzeit ermitteln. Gemessene Stromaufnahme ist besser als eine Schätzung über die LED-Bandlänge.</p>
 <div class="field-grid electronics-fields">
@@ -433,12 +380,73 @@
 <div class="mini-results" id="elBatteryResult" aria-live="polite"></div>
 <p class="tool-intro" id="elBatteryNote"></p>
 </div>
+</div><div class="electronics-panel" data-electronics-panel="led" role="tabpanel" hidden><h3 class="electronics-panel-title">LEDs & Schaltplan</h3><div class="card electronics-card">
+ <h3>LED- & Widerstandsrechner</h3><p class="tool-intro">Berechnung für LEDs und LED-Filamente mit bekannten Betriebswerten. Die Eingaben aktualisieren das Ergebnis und den Schaltplan sofort.</p>
+ <div class="field-grid electronics-fields">
+ <label>Versorgungsspannung (V)<input id="elVoltage" type="number" min="0" step="any" value="15"><small>Spannung des Netzteils oder der Batterie. Am Typenschild oder Netzteil ablesen.</small></label>
+ <label>LED-Vorwärtsspannung (V)<input id="elForward" type="number" min="0" step="any" value="12"><small>Spannung je LED beim Betriebsstrom. Steht im Datenblatt; 12 V ist nur ein Beispiel.</small></label>
+ <label>LED-Betriebsstrom (mA)<input id="elMilliamp" type="number" min="0" step="any" value="20"><small>Zulässiger Strom aus dem Datenblatt. 1000 mA = 1 A.</small></label>
+ <label>LEDs in Reihe je Zweig<input id="elSeries" type="number" min="1" max="12" step="1" value="1"><small>Hintereinander verbundene LEDs: Spannungen addieren sich.</small></label>
+ <label>Parallele Zweige<input id="elBranches" type="number" min="1" max="8" step="1" value="2"><small>Jeder Zweig erhält einen eigenen Vorwiderstand.</small></label>
+ <label>Vorhandener Widerstand (Ω, optional)<input id="elKnown" type="number" min="0" step="any" placeholder="z. B. 47"><small>Zum Prüfen eines vorhandenen Widerstands; Ω bedeutet Ohm.</small></label>
+ <label>Zusatzbauteil<select id="elPart"><option value="none">Keines</option><option value="switch">Ein-/Ausschalter</option><option value="button">Taster (Schließer)</option><option value="fuse">Sicherung (symbolisch)</option></select><small>Vor den LED-Zweigen in der Plusleitung.</small></label>
+ </div>
+ <div class="mini-results" id="elResults" aria-live="polite"></div>
+ <h3>Dein Schaltplan</h3><div id="elDiagram" class="electronics-diagram"></div>
+ <p class="tool-intro" id="elSafety"></p>
+ <button id="elPrint" class="secondary" type="button">Schaltplan drucken</button>
+ <p class="tool-intro">Für Sensoren, Dimmer, Relais, USB-C und Spannungswandler werden später konkrete Module und deren Pinbelegung benötigt. Keine 230-V-Schaltungen.</p>
+ </div>
+</div><div class="electronics-panel" data-electronics-panel="power" role="tabpanel" hidden><h3 class="electronics-panel-title">Stromversorgung</h3><div class="card electronics-card">
+ <h3>Kabelquerschnitt berechnen</h3>
+ <p class="tool-intro">Wie dick muss ein Kupferkabel sein, damit auf dem Hin- und Rückweg nicht zu viel Spannung verloren geht?</p>
+ <div class="electronics-fields field-grid">
+ <label>Spannung (V)<input id="elCableV" type="number" min="0.1" step="any" value="12"><small>Ausgangsspannung deines Netzteils.</small></label>
+ <label>Strom (A)<input id="elCableA" type="number" min="0.01" step="any" value="1"><small>Gesamtstrom der angeschlossenen Verbraucher.</small></label>
+ <label>Kabellänge einfach (m)<input id="elCableM" type="number" min="0.01" step="any" value="2"><small>Nur eine Strecke messen; der Rechner berücksichtigt Hin- und Rückleiter.</small></label>
+ <label>Maximaler Spannungsabfall (%)<input id="elCableDrop" type="number" min="0.1" max="99" step="any" value="3"><small>Wie viel der Versorgungsspannung höchstens im Kabel verloren gehen darf.</small></label>
+ </div>
+ <p id="elCableResult" class="electronics-answer" aria-live="polite"></p>
+</div>
+
+<div class="card electronics-card">
+ <h3>Netzteil berechnen</h3>
+ <div class="electronics-fields field-grid">
+ <label>Verbraucherspannung (V)<input id="elSupplyV" type="number" min="0.1" step="any" value="12"><small>Benötigte Betriebsspannung deiner Schaltung.</small></label>
+ <label>Gesamtstrom (A)<input id="elSupplyA" type="number" min="0.01" step="any" value="1"><small>Summe der Ströme aller Verbraucher.</small></label>
+ <label>Leistungsreserve (%)<input id="elSupplyReserve" type="number" min="0" max="200" step="any" value="25"><small>Zusätzliche Reserve für das Netzteil.</small></label>
+ </div>
+ <p id="elSupplyResult" class="electronics-answer" aria-live="polite"></p>
+</div>
+</div><div class="electronics-panel" data-electronics-panel="modules" role="tabpanel" hidden><h3 class="electronics-panel-title">Elektronische Bauteile</h3><div class="card electronics-card">
+ <h3>Weitere Elektronik-Bauteile</h3>
+ <p class="tool-intro">Wähle ein Bauteil aus. Du siehst, welche Anschlüsse es typischerweise besitzt und worauf du achten musst.</p>
+ <div class="electronics-fields">
+ <label>Bauteil auswählen<select id="elModule">
+ <option value="dimmer">PWM-Dimmer</option><option value="pir">Bewegungssensor (PIR)</option><option value="ldr">Dämmerungssensor</option><option value="timer">Zeitrelais</option><option value="relay">Relais-Modul</option><option value="buck">DC/DC-Spannungswandler</option><option value="usb">USB-C-Versorgung</option><option value="fuse">Sicherung / Verpolschutz</option>
+ </select><small>Je nach Hersteller unterscheiden sich die tatsächlichen Anschlussbezeichnungen.</small></label>
+ </div>
+ <h3 id="elModuleTitle">PWM-Dimmer</h3>
+ <ol id="elModulePins" class="electronics-steps"></ol>
+ <p id="elModuleWarning" class="tool-intro"></p>
+ <p id="elModulePlan" class="tool-intro"></p>
+</div>
+</div><div class="electronics-panel" data-electronics-panel="basics" role="tabpanel" hidden><h3 class="electronics-panel-title">Grundlagen & Symbole</h3><div class="card electronics-card">
+ <h3>Ohmsches Gesetz</h3>
+ <p class="tool-intro">Berechne Strom und Verlustleistung aus Spannung und Widerstand.</p>
+ <div class="electronics-fields field-grid">
+ <label>Spannung am Widerstand (V)<input id="elOhmV" type="number" min="0" step="any" value="12"><small>Die Spannung, die direkt am Widerstand abfällt.</small></label>
+ <label>Widerstand (Ω)<input id="elOhmR" type="number" min="0.01" step="any" value="100"><small>Widerstandswert in Ohm.</small></label>
+ </div>
+ <p id="elOhmResult" class="electronics-answer" aria-live="polite"></p>
+</div>
+
 <div class="card electronics-card">
  <h3>Schaltzeichen erklärt</h3>
  <p class="tool-intro"><strong>R1, R2 …</strong> Widerstände (europäisches Symbol: Rechteck). <strong>LED1, LED2 …</strong> Leuchtdioden. <strong>S1</strong> Schalter oder Taster. <strong>F1</strong> Sicherung. <strong>+ / −</strong> Gleichspannungsanschlüsse.</p>
  <p class="tool-intro">Eine LED wird als Diode mit zwei nach außen gerichteten Lichtpfeilen dargestellt.</p>
 </div>
-</section>
+</div></section>
   <section id="tools" class="screen">
     <div class="section-head">
       <div><div class="eyebrow">SCHNELLWERKZEUGE</div><h2>Preis & Gewinn</h2></div>
@@ -1181,10 +1189,20 @@
 #electronics .electronics-steps li{padding:3px 0}
 #electronics .electronics-answer{border:1px solid rgba(176,141,87,.3);border-radius:10px;padding:14px;line-height:1.6;overflow-wrap:anywhere}
 #electronics .electronics-card + .electronics-card{margin-top:16px}
+
+/* Elektronik: kompakte Kategorien statt langer Scrollseite */
+#electronics .electronics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0 18px}
+#electronics .electronics-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:60px;padding:9px 4px;border:1px solid rgba(176,141,87,.35);border-radius:12px;background:transparent;color:inherit;cursor:pointer;font-size:19px;line-height:1.2}
+#electronics .electronics-tab span{font-size:11px;font-weight:600;overflow-wrap:anywhere;text-align:center}
+#electronics .electronics-tab.active{border-color:#b08d57;background:rgba(176,141,87,.16);box-shadow:inset 0 0 0 1px rgba(176,141,87,.2)}
+#electronics .electronics-panel[hidden]{display:none!important}
+#electronics .electronics-panel-title{margin:4px 0 14px}
+@media(max-width:650px){#electronics .electronics-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}#electronics .electronics-tab{min-height:56px}#electronics .electronics-tab span{font-size:11px}}
 </style>
 <script defer src="js/electronics.js?v=2.0"></script>
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
+<script defer src="js/electronics-tabs.js?v=1.0"></script>
 <script type="module" src="js/app.js?v=8.0"></script>
 </body>
 </html>
