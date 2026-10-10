@@ -1,10 +1,10 @@
 import { $, num, euro, uid, esc } from "./utils.js?v=7.2";
 import { state, save, defaults, getRealProjects } from "./storage.js?v=7.2";
 import { renderMaterials } from "./materials.js?v=7.2";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=7.2";
+import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=7.6";
 import { fillSettings } from "./settings.js?v=7.2";
 import { renderTools, resetTool } from "./statistics.js?v=7.2";
-import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=7.2";
+import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=7.6";
 import { appAlert, appPrompt } from "./dialogs.js?v=7.2";
 import { applyDesignDefaults } from "./design.js?v=7.2";
 import { loadAgreementForm, clearAgreementForm } from "./customer-price-history.js?v=7.2";
