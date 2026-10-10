@@ -145,10 +145,12 @@
           <option value="psu15">Steckernetzteil · 15 V / 1 A</option>
           <option value="psu12">Steckernetzteil · 12 V / 1 A (vergleichbar)</option>
           <option value="r47">Widerstand · 47 Ω / 1 W · 10 Stück</option>
+          <option value="r30">Widerstand · 30 Ω · einzeln</option>
         </select>
       </label>
       <button id="electronicsMaterialPresetBtn" type="button" class="ghost small">Vorlage übernehmen</button>
-      <small>Öffnet einen vorausgefüllten Materialeintrag. Bitte Einkaufspreis, Menge und Lagerbestand vor dem Speichern prüfen.</small>
+      <button id="electronicsMaterialImportBtn" type="button" class="primary small">Alle Elektronikmaterialien speichern</button>
+      <small>Öffnet einen vorausgefüllten Materialeintrag. Beim Sammelimport werden die Materialien in deinem angemeldeten Bestand gespeichert, ohne vorhandene Einträge zu überschreiben. Unbekannter Bestand bleibt 0. Preise bitte mit den Amazon-Bestellungen abgleichen.</small>
     </div>
     <div class="material-overview-actions">
       <button id="showFavoritesBtn" class="ghost small" type="button">★ Favoriten</button>
@@ -1219,6 +1221,6 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=8.2"></script>
+<script type="module" src="js/app.js?v=8.3"></script>
 </body>
 </html>
