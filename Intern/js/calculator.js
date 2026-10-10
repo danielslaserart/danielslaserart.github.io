@@ -1,6 +1,6 @@
 import { $, num, euro, uid, esc } from "./utils.js?v=7.2";
 import { state, save, defaults } from "./storage.js?v=7.2";
-import { materialSelections, resolveMaterialSelection } from "./materials.js?v=7.2";
+import { materialSelections, resolveMaterialSelection } from "./materials.js?v=7.5";
 import { renderCalculatorProfiles } from "./processing-profiles.js?v=7.2";
 import { renderProjects } from "./projects.js?v=7.2";
 import { appConfirm } from "./dialogs.js?v=7.2";
@@ -301,14 +301,15 @@ export function renderConsumables(){
   if(!consumableSelections.length){box.innerHTML='<div class="consumable-empty">Noch kein Verbrauchsmaterial hinzugefügt.</div>';return;}
   box.innerHTML=consumableSelections.map((row,index)=>{
     const mat=state.materials.find(m=>m.id===row.materialId);
-    return `<div class="consumable-row"><label>Material<select data-consumable-select="${index}">${consumableOptions(row.materialId)}</select>${mat?`<small>${esc(mat.consumableCategory||"Sonstiges")} · ${euro(workshopCost(mat,1))} je ${esc(workshopUnit(mat))}${row.auto?" · automatisch":""}</small>`:""}</label><label>${mat?esc(workshopUnit(mat)):"Menge"}<input data-consumable-qty="${index}" type="number" min="0" step="any" inputmode="decimal" value="${row.quantity}"></label><button type="button" class="remove-consumable" data-consumable-remove="${index}">×</button></div>`;
+    return `<div class="consumable-row"><label>Material<select data-consumable-select="${index}">${consumableOptions(row.materialId)}</select>${mat?`<small>${esc(mat.consumableCategory||"Sonstiges")} · ${euro(workshopCost(mat,1))} je ${esc(workshopUnit(mat))}${row.auto?" · automatisch":""}</small>`:""}</label><label>${mat?esc(workshopUnit(mat)):"Menge"}<input data-consumable-qty="${index}" type="number" min="0" step="any" inputmode="decimal" value="${mat?.area==="Elektronik"&&mat.unit==="m"&&row.displayUnit==="mm"?num(row.quantity)*10:row.quantity}">${mat?.area==="Elektronik"&&mat.unit==="m"?`<select data-consumable-length-unit="${index}" aria-label="Längeneinheit"><option value="cm" ${row.displayUnit!=="mm"?"selected":""}>cm</option><option value="mm" ${row.displayUnit==="mm"?"selected":""}>mm</option></select>`:""}</label><button type="button" class="remove-consumable" data-consumable-remove="${index}">×</button></div>`;
   }).join("");
   document.querySelectorAll("[data-consumable-select]").forEach(el=>el.oninput=()=>{
     const row=consumableSelections[+el.dataset.consumableSelect];row.materialId=el.value;row.auto=false;
     const mat=state.materials.find(m=>m.id===el.value);if(mat&&num(row.quantity)<=0)row.quantity=defaultQty(mat);
     renderConsumables();calculate();
   });
-  document.querySelectorAll("[data-consumable-qty]").forEach(el=>el.oninput=()=>{const row=consumableSelections[+el.dataset.consumableQty];row.quantity=num(el.value);row.auto=false;calculate();});
+  document.querySelectorAll("[data-consumable-qty]").forEach(el=>el.oninput=()=>{const row=consumableSelections[+el.dataset.consumableQty];const mat=state.materials.find(m=>m.id===row.materialId);row.quantity=mat?.area==="Elektronik"&&mat.unit==="m"&&row.displayUnit==="mm"?num(el.value)/10:num(el.value);row.auto=false;calculate();});
+  document.querySelectorAll("[data-consumable-length-unit]").forEach(el=>el.onchange=()=>{const row=consumableSelections[+el.dataset.consumableLengthUnit];row.displayUnit=el.value;renderConsumables();calculate();});
   document.querySelectorAll("[data-consumable-remove]").forEach(btn=>btn.onclick=()=>{consumableSelections.splice(+btn.dataset.consumableRemove,1);renderConsumables();calculate();});
 }
 function consumablesCost(){return consumableSelections.reduce((sum,row)=>{const mat=state.materials.find(m=>m.id===row.materialId);return sum+workshopCost(mat,row.quantity);},0);}
