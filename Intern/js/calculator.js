@@ -668,7 +668,11 @@ $("calcForm").onsubmit=async e=>{
     objectValue:num($("objectValue")?.value),riskSurcharge:num($("riskSurcharge")?.value),expressSurcharge:num(breakdown.express),difficulty,difficultyPercent:num(customerSettings.difficulties?.[difficulty])
   }:(existingProject?.estimatorData||null);
   const savedFields=captureCalculatorFields();
-  const savedPositions=getCalculatorPositions();
+  const draftPositions=getCalculatorPositions();
+  // Schutz vor Datenverlust: Wenn beim Wiederöffnen der Positioneneditor leer
+  // zurückkommt, dürfen gespeicherte Projektpositionen nicht überschrieben werden.
+  const savedPositions=draftPositions.length?draftPositions:(Array.isArray(existingProject?.positions)?existingProject.positions.map((p,i)=>normalizePosition(p,i)):[]);
+  if(existingProject?.positions?.length&&!savedPositions.length){await appAlert("Die vorhandenen Projektpositionen konnten nicht geladen werden. Speichern wurde abgebrochen, um Datenverlust zu verhindern.");return;}
   const calculationSnapshot=buildCalculationSnapshot({breakdown,sale:saleNow,cost:costNow,machine,orderType,customerProcess,fields:savedFields,positions:savedPositions});
   let agreementFields;try{agreementFields=readAgreementForm(existingProject||{})}catch(error){await appConfirm(error.message,"Preisvereinbarung prüfen","OK");return}
   if(!await confirmUnderCostAgreement({agreementPrice:agreementFields.agreementPrice,selfCosts:costNow,previousAgreementPrice:existingProject?normalizeAgreementFields(existingProject).agreementPrice:null}))return;
@@ -682,7 +686,8 @@ $("calcForm").onsubmit=async e=>{
   if(existingProject?.customerAddress)project.customerAddress=existingProject.customerAddress;else delete project.customerAddress;
   if(existingProject?.fields?.customerAddress)project.fields.customerAddress=existingProject.fields.customerAddress;
   // Die automatisch angelegte erste Position bildet bei Kundenobjekten immer das kundeneigene Objekt mit 0 € ab.
-  syncAutomaticFirstPosition(state.activeModule);
+  // Beim Speichern den Positionseditor nicht erneut synchronisieren: dies kann
+  // eine bearbeitete erste Position unbeabsichtigt zurücksetzen.
   // Projektpositionen gehören zur Projektakte und bleiben beim erneuten Kalkulieren vollständig erhalten.
   project.positions=savedPositions;
   const idx=state.projects.findIndex(p=>p.id===project.id);
