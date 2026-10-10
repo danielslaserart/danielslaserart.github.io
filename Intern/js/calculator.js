@@ -655,7 +655,9 @@ $("calcForm").onsubmit=async e=>{
   const customerSettings=getCustomerSettings();
   const difficulty=$("difficulty")?.value||null;
   const breakdown=JSON.parse($("calcForm").dataset.breakdown||"{}");
-  const existingProject=editingProjectId?state.projects.find(p=>p.id===editingProjectId):null;
+  const existingProject=(editingProjectId||$("calcForm")?.dataset.editingProjectId)?state.projects.find(p=>p.id===(editingProjectId||$("calcForm").dataset.editingProjectId)):null;
+  if($("calcForm")?.dataset.editingProjectId&&!existingProject){await appAlert("Das zu bearbeitende Projekt wurde nicht gefunden. Es wurde kein neues Projekt angelegt.");return;}
+  if(existingProject)editingProjectId=existingProject.id;
   const saleNow=num($("calcForm").dataset.sale),costNow=num($("calcForm").dataset.cost);const history=[...(existingProject?.priceHistory||[])];if(!existingProject||num(existingProject.sale)!==saleNow||num(existingProject.cost)!==costNow)history.unshift({date:new Date().toISOString(),sale:saleNow,cost:costNow});
   const estimatedCutTime=customerObject&&customerProcess==="engrave"?0:num($("cutMinutes")?.value);
   const estimatedEngravingTime=customerObject&&customerProcess==="cut"?0:num($("engraveMinutes")?.value);
@@ -692,7 +694,7 @@ $("calcForm").onsubmit=async e=>{
     const stockTarget=mainSel?.variantId?mainSel.baseMaterial.variants.find(v=>v.id===mainSel.variantId):mainSel;
     if(stockTarget?.trackStock&&used>0){stockTarget.stock=num(stockTarget.stock)-used;stockTarget.stockHistory=Array.isArray(stockTarget.stockHistory)?stockTarget.stockHistory:[];stockTarget.stockHistory.unshift({date:new Date().toISOString(),change:-used,reason:`Projekt: ${title}`});}
   }
-  state.lastPrice=project.sale;editingProjectId=null;save();renderProjects();
+  state.lastPrice=project.sale;editingProjectId=null;if($("calcForm"))delete $("calcForm").dataset.editingProjectId;save();renderProjects();
   if(await appConfirm(`${idx>=0?"Projekt aktualisiert.":"Projekt gespeichert."}\nMöchtest du eine neue Kalkulation starten?`,"Gespeichert","Ja"))document.dispatchEvent(new CustomEvent("dla:new-order",{detail:{module:state.activeModule}}));
 };
 
@@ -704,7 +706,7 @@ export function resetCalculatorState(){
   calculatorPositionProject={module:state.activeModule,orderType:getOrderType(),positions:[]};
   productSize="medium";
 }
-export function setEditingProjectId(id){ editingProjectId=id; }
+export function setEditingProjectId(id){ editingProjectId=id||null;if($("calcForm")){if(id)$("calcForm").dataset.editingProjectId=id;else delete $("calcForm").dataset.editingProjectId;} }
 export function setCalculatorProductSize(size){ productSize=size||"medium"; }
 export function setCalculatorConsumables(rows){ consumableSelections=rows||[]; }
 export function getCalculatorProductSize(){ return productSize; }
