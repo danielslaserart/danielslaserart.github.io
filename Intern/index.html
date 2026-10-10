@@ -136,6 +136,20 @@
       <div><div class="eyebrow">DATENBANK</div><h2>Materialien</h2></div>
       <button id="newMaterialBtn" class="primary small">＋ Neu</button>
     </div>
+    <div class="card" style="margin-bottom:12px">
+      <label>⚡ Elektronik-Vorlagen von Amazon
+        <select id="electronicsMaterialPreset">
+          <option value="">Material auswählen …</option>
+          <option value="filament">LED-Filament WIYETY · 300 mm · 3 V · 10 Stück</option>
+          <option value="cob">COB-LED-Band Aclorol · 5 V · 1 m · 3000 K</option>
+          <option value="psu15">Steckernetzteil · 15 V / 1 A</option>
+          <option value="psu12">Steckernetzteil · 12 V / 1 A (vergleichbar)</option>
+          <option value="r47">Widerstand · 47 Ω / 1 W · 10 Stück</option>
+        </select>
+      </label>
+      <button id="electronicsMaterialPresetBtn" type="button" class="ghost small">Vorlage übernehmen</button>
+      <small>Öffnet einen vorausgefüllten Materialeintrag. Bitte Einkaufspreis, Menge und Lagerbestand vor dem Speichern prüfen.</small>
+    </div>
     <div class="material-overview-actions">
       <button id="showFavoritesBtn" class="ghost small" type="button">★ Favoriten</button>
       <button id="showRecentMaterialsBtn" class="ghost small" type="button">↻ Zuletzt verwendet</button>
@@ -1205,6 +1219,6 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=8.1"></script>
+<script type="module" src="js/app.js?v=8.2"></script>
 </body>
 </html>
