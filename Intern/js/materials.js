@@ -1,4 +1,4 @@
-import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, inferMaterialActivities, categoryOptions, compressProjectImage } from "./utils.js?v=7.2";
+import { $, num, euro, uid, esc, MATERIAL_CATEGORIES, inferMaterialCategory, inferMaterialUseCategory, inferMaterialActivities, categoryOptions, compressProjectImage } from "./utils.js?v=7.3";
 import { state, save } from "./storage.js?v=7.2";
 import { calculate } from "./calculator.js?v=7.2";
 import { appAlert, appConfirm, appForm } from "./dialogs.js?v=7.2";
