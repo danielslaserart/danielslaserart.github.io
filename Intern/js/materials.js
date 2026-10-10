@@ -295,6 +295,27 @@ $("materialForm").onsubmit=e=>{
   const i=state.materials.findIndex(x=>x.id===item.id); if(i>=0) state.materials[i]=item; else state.materials.push(item);
   save();dialog.close();renderMaterials();
 };
+const electronicsPresets={
+ filament:{name:"WIYETY LED-Filament 300 mm, 3 V, 2200 K",category:"LED & Beleuchtung",price:16.99,quantity:10,unit:"Stück",note:"Amazon; 10er-Pack. Preis aus früherer Produktauswahl, bitte aktuellen Einkaufspreis prüfen."},
+ cob:{name:"Aclorol COB-LED-Band 5 V, 3000 K, 1 m",category:"LED & Beleuchtung",price:5.94,quantity:1,unit:"m",note:"Amazon; Preis aus früherer Produktauswahl, bitte tatsächliche Bestellvariante prüfen."},
+ psu15:{name:"Steckernetzteil 15 V / 1 A, DC",category:"Netzteile & Stromversorgung",price:10.95,quantity:1,unit:"Stück",note:"Amazon; genauen Stecker und Polarität am gekauften Netzteil prüfen. Preis aus früherer Produktauswahl."},
+ psu12:{name:"Steckernetzteil 12 V / 1 A, DC (vergleichbar)",category:"Netzteile & Stromversorgung",price:0,quantity:1,unit:"Stück",note:"Vergleichsartikel, noch kein konkreter Kaufpreis. Steckergröße, Polarität und Sicherheitskennzeichnung vor Kauf prüfen."},
+ r47:{name:"Widerstand 47 Ω / 1 W",category:"Widerstände",price:3.99,quantity:10,unit:"Stück",note:"Amazon; 10er-Set als früheres Preisbeispiel. Belastbarkeit 1 W beachten."}
+};
+$("electronicsMaterialPresetBtn")?.addEventListener("click",()=>{
+ const preset=electronicsPresets[$("electronicsMaterialPreset")?.value];if(!preset)return;
+ openMaterialEditor();
+ $("materialName").value=preset.name;
+ $("materialArea").value="Elektronik";
+ $("materialArea").dispatchEvent(new Event("change"));
+ $("materialCategory").value=preset.category;
+ $("materialUseCategory").value="accessory";
+ $("materialPrice").value=preset.price||"";
+ $("materialQuantity").value=preset.quantity;
+ if([...$("materialUnit").options].some(o=>o.value===preset.unit))$("materialUnit").value=preset.unit;
+ $("materialNote").value=preset.note;
+ $("materialPrice").dispatchEvent(new Event("input"));
+});
 export function renderMaterials(){
   renderMaterialCategoryFilter();
   const term=$("materialSearch").value.toLowerCase().trim(),area=$("materialAreaFilter").value,category=$("materialCategoryFilter").value;
