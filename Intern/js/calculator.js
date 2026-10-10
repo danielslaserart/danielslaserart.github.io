@@ -672,6 +672,7 @@ $("calcForm").onsubmit=async e=>{
   // Schutz vor Datenverlust: Wenn beim Wiederöffnen der Positioneneditor leer
   // zurückkommt, dürfen gespeicherte Projektpositionen nicht überschrieben werden.
   const savedPositions=draftPositions.length?draftPositions:(Array.isArray(existingProject?.positions)?existingProject.positions.map((p,i)=>normalizePosition(p,i)):[]);
+  if(existingProject?.positions?.length&&savedPositions.length<existingProject.positions.length){await appAlert("Die Positionenliste enthält weniger Einträge als das gespeicherte Projekt. Speichern wurde vorsichtshalber abgebrochen. Bitte prüfe die Projektpositionen.");return;}
   if(existingProject?.positions?.length&&!savedPositions.length){await appAlert("Die vorhandenen Projektpositionen konnten nicht geladen werden. Speichern wurde abgebrochen, um Datenverlust zu verhindern.");return;}
   const calculationSnapshot=buildCalculationSnapshot({breakdown,sale:saleNow,cost:costNow,machine,orderType,customerProcess,fields:savedFields,positions:savedPositions});
   let agreementFields;try{agreementFields=readAgreementForm(existingProject||{})}catch(error){await appConfirm(error.message,"Preisvereinbarung prüfen","OK");return}
