@@ -43,12 +43,13 @@ function projectIndividualization(project){
   return Math.max(0,num(fees[level]??0));
 }
 function actualProjectPrice(project){
-  if(["done","doneNoInvoice","billed"].includes(project?.status))return project.agreementPrice??project.actualPrice??project.sale??0;
-  if(Array.isArray(project?.positions)){
-    if(project.orderType==="customerObject")return currentCustomerCalculation(project)?.recommended??project.recommendedSalePrice??project.recommendedPrice??project.sale??0;
-    return positionTotals(project).recommended+projectIndividualization(project);
-  }
-  return project?.recommendedSalePrice??project?.recommendedPrice??project?.pricingBreakdown?.sale??project?.sale??0;
+  // Die Übersicht muss denselben gespeicherten Preis zeigen wie die Projektakte.
+  // Projektpositionen dürfen diesen Preis nicht beim Anzeigen neu berechnen.
+  const agreed=project?.agreementPrice;
+  if(["done","doneNoInvoice","billed"].includes(project?.status)&&agreed!==null&&agreed!==undefined)return num(agreed);
+  const stored=project?.recommendedSalePrice??project?.recommendedPrice??project?.calculationSnapshot?.results?.calculatedPrice??project?.pricingBreakdown?.sale??project?.sale;
+  if(stored!==null&&stored!==undefined)return num(stored);
+  return Array.isArray(project?.positions)?positionTotals(project).recommended+projectIndividualization(project):0;
 }
 export function renderProjectPriceBlock(project){
   const hasAgreement=project.agreementPrice!=null;
