@@ -300,8 +300,36 @@ const electronicsPresets={
  cob:{name:"Aclorol COB-LED-Band 5 V, 3000 K, 1 m",category:"LED & Beleuchtung",price:5.94,quantity:1,unit:"m",note:"Amazon; Preis aus früherer Produktauswahl, bitte tatsächliche Bestellvariante prüfen."},
  psu15:{name:"Steckernetzteil 15 V / 1 A, DC",category:"Netzteile & Stromversorgung",price:10.95,quantity:1,unit:"Stück",note:"Amazon; genauen Stecker und Polarität am gekauften Netzteil prüfen. Preis aus früherer Produktauswahl."},
  psu12:{name:"Steckernetzteil 12 V / 1 A, DC (vergleichbar)",category:"Netzteile & Stromversorgung",price:0,quantity:1,unit:"Stück",note:"Vergleichsartikel, noch kein konkreter Kaufpreis. Steckergröße, Polarität und Sicherheitskennzeichnung vor Kauf prüfen."},
- r47:{name:"Widerstand 47 Ω / 1 W",category:"Widerstände",price:3.99,quantity:10,unit:"Stück",note:"Amazon; 10er-Set als früheres Preisbeispiel. Belastbarkeit 1 W beachten."}
+ r47:{name:"Widerstand 47 Ω / 1 W",category:"Widerstände",price:3.99,quantity:10,unit:"Stück",note:"Amazon; 10er-Set als früheres Preisbeispiel. Belastbarkeit 1 W beachten."},
+ r30:{name:"Widerstand 30 Ω",category:"Widerstände",price:0,quantity:1,unit:"Stück",note:"Amazon; Widerstandswert 30 Ohm, nicht 30 Stück. Preis und Belastbarkeit noch prüfen."}
 };
+// Einmaliger Import in den angemeldeten Datenbestand; vorhandene Materialien niemals überschreiben.
+$("electronicsMaterialImportBtn")?.addEventListener("click",async()=>{
+ const entries=Object.entries(electronicsPresets);
+ const existing=new Set(state.materials.filter(m=>m.area==="Elektronik").map(m=>String(m.name||"").trim().toLocaleLowerCase("de")));
+ const missing=entries.filter(([,p])=>!existing.has(p.name.toLocaleLowerCase("de")));
+ if(!missing.length){appAlert("Alle Elektronikmaterialien sind bereits vorhanden.");return}
+ if(!await appConfirm(missing.length+" Elektronikmaterialien als neue Einträge speichern? Unbekannter Lagerbestand wird mit 0 angesetzt; vorhandene Materialien bleiben unverändert.","Elektronikmaterialien importieren","Materialien speichern"))return;
+ for(const [key,p] of missing){
+  const perPiece=p.price>0?p.price/p.quantity:0;
+  const length=key==="cob";
+  state.materials.push({
+   id:uid(),name:p.name,area:"Elektronik",category:p.category,
+   useCategory:"accessory",suitableActivities:["assemble","material","other"],
+   supplier:"Amazon",manufacturer:"",color:"",location:"",image:"",
+   price:p.price,quantity:p.quantity,unit:p.unit,unitPrice:perPiece,
+   workshopUnit:length?"cm":"Stück",workshopUnitAmount:length?0.01:1,
+   mainRole:false,consumableRole:true,consumableCategory:p.category,
+   defaultConsumption:1,consumptionLevels:{small:1,medium:1,large:1},
+   consumableModules:["3d","laser","vinyl","textil"],
+   stock:0,minStock:0,trackStock:false,stockHistory:[],
+   salePrice:0,variants:[],favorite:false,autoAdd:false,scaleWithSize:false,
+   note:p.note+" Materialverbrauch im Rechner als "+(length?"cm":"Stück")+" eingeben."
+  });
+ }
+ save();renderMaterialCategoryFilter();renderMaterials();
+ appAlert(missing.length+" Elektronikmaterialien gespeichert. Lagerbestand und Einkaufspreise bitte anhand deiner Bestellungen prüfen.");
+});
 $("electronicsMaterialPresetBtn")?.addEventListener("click",()=>{
  const preset=electronicsPresets[$("electronicsMaterialPreset")?.value];if(!preset)return;
  openMaterialEditor();
