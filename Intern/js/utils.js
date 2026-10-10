@@ -13,6 +13,7 @@ export const MATERIAL_CATEGORIES={
   "Vinylfolie":["Vinylfolie","Spezialfolie","Reflexfolie","Sonstiges"],
   "Übertragungsfolie":["Übertragungsfolie","Sonstiges"],
   "Textilfolie":["Textilfolie","Spezialfolie","Textilien","Rohlinge","Sonstiges"],
+  "Elektronik":["LED & Beleuchtung","Netzteile & Stromversorgung","Widerstände","Schalter & Taster","Kabel & Steckverbinder","Batterien & Akkus","Elektronikmodule","Platinen & Bauteile","Sonstiges"],
   "Sonstiges":["Kleber","Reinigung","Schleifen","Farbe & Finish","Abkleben","Wartung","Verpackung","Sonstiges"]
 };
 export const MATERIAL_USE_CATEGORIES=[
