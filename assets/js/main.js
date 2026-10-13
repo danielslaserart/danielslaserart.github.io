@@ -5,8 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }).format(new Date());
   const holidayKey = "dla-holiday-dismissed-2026";
   const header = document.querySelector(".site-header");
-  if (header && berlinDay >= "2026-10-15" && berlinDay < "2026-10-20"
-      && sessionStorage.getItem(holidayKey) !== "yes") {
+  const holidayPreview = new URLSearchParams(window.location.search).get("urlaub") === "vorschau";
+  if (header && (holidayPreview || (berlinDay >= "2026-10-15" && berlinDay < "2026-10-20"))
+      && (holidayPreview || sessionStorage.getItem(holidayKey) !== "yes")) {
     const notice = document.createElement("aside");
     notice.className = "holiday-notice";
     notice.setAttribute("aria-label", "Urlaubsinformation");
