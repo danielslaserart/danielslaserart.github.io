@@ -1,4 +1,30 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Zeitlich begrenzter Urlaubshinweis (Europe/Berlin, 15.–19.10.2026)
+  const berlinDay = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit"
+  }).format(new Date());
+  const holidayKey = "dla-holiday-dismissed-2026";
+  const header = document.querySelector(".site-header");
+  if (header && berlinDay >= "2026-10-15" && berlinDay < "2026-10-20"
+      && sessionStorage.getItem(holidayKey) !== "yes") {
+    const notice = document.createElement("aside");
+    notice.className = "holiday-notice";
+    notice.setAttribute("aria-label", "Urlaubsinformation");
+    notice.innerHTML = `<div class="holiday-notice-inner">
+      <div class="holiday-notice-copy">
+        <strong>🌴 Kurze Urlaubspause</strong>
+        <p>Vom 15.10. bis einschließlich 19.10.2026 bin ich im Urlaub.
+        Ab dem <strong>20.10.2026</strong> bin ich wieder für euch da und beantworte eure Anfragen.</p>
+      </div>
+      <button type="button" class="holiday-notice-close" aria-label="Urlaubshinweis schließen">×</button>
+    </div>`;
+    header.insertAdjacentElement("afterend", notice);
+    notice.querySelector(".holiday-notice-close").addEventListener("click", () => {
+      sessionStorage.setItem(holidayKey, "yes");
+      notice.remove();
+    });
+  }
+
   // Menü
   const toggle = document.querySelector(".menu-toggle");
   const menu = document.querySelector(".menu");
