@@ -200,3 +200,43 @@
     padding: 7px 8px;
   }
 }
+
+
+/* Zeitlich begrenzte Urlaubsinformation */
+.holiday-notice {
+  position: relative;
+  z-index: 5;
+  width: min(var(--container, 1180px), calc(100% - 32px));
+  margin: 14px auto 0;
+  color: #f1e9db;
+  background: #322a1d;
+  border: 1px solid #8a6b38;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.2);
+}
+.holiday-notice-inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+}
+.holiday-notice-copy strong { color: #e7c98d; }
+.holiday-notice-copy > strong { display: block; margin-bottom: 5px; }
+.holiday-notice-copy p { margin: 0; line-height: 1.55; font-size: .93rem; }
+.holiday-notice-close {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: #e7c98d;
+  cursor: pointer;
+  font-size: 26px;
+  line-height: 1;
+  padding: 0 3px;
+}
+.holiday-notice-close:focus-visible { outline: 2px solid #e7c98d; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .holiday-notice { width: calc(100% - 20px); margin-top: 9px; }
+  .holiday-notice-inner { padding: 12px; gap: 8px; }
+  .holiday-notice-copy p { font-size: .88rem; }
+}
