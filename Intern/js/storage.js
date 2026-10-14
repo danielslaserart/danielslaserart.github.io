@@ -207,7 +207,7 @@ export function normalizeProcessingProfiles(profiles){
   return (Array.isArray(profiles)?profiles:[]).map(normalizeProcessingProfile).filter(Boolean);
 }
 export function normalizeProjectStatus(status){
-  return ({open:"offer",payment:"waiting"}[status])||(["offer","progress","waiting","done","doneNoInvoice","billed"].includes(status)?status:"offer");
+  return ({open:"offer",payment:"waiting"}[status])||(["offer","progress","waiting","done","doneNoInvoice","gifted","billed"].includes(status)?status:"offer");
 }
 export function normalizeOrderType(value,project={}){
   const normalized=String(value??"").trim().toLowerCase().replace(/[\s_-]/g,"");
