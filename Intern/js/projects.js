@@ -24,9 +24,9 @@ export function filterProjectsByCustomer(projects,selectedCustomerId){
 function safeDate(value){const date=new Date(value||0);return Number.isNaN(date.getTime())?'Datum unbekannt':date.toLocaleDateString('de-DE');}
 function projectTimestamp(project,field){const date=new Date(project?.[field]||project?.created||0);return Number.isNaN(date.getTime())?0:date.getTime();}
 function projectStatusLabel(status){
-  return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",doneNoInvoice:"Erledigt o.R.",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
+  return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",doneNoInvoice:"Erledigt o.R.",gifted:"Verschenkt",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
-function projectStatusClass(status){return `status-${["offer","progress","waiting","done","doneNoInvoice","billed"].includes(status)?status:"offer"}`;}
+function projectStatusClass(status){return `status-${["offer","progress","waiting","done","doneNoInvoice","gifted","billed"].includes(status)?status:"offer"}`;}
 function orderTypeLabel(type){return ({own:"Eigenes Produkt",customerObject:"Kundenobjekt",service:"Dienstleistung",design:"🖥️ Design"})[type]||"Eigenes Produkt";}
 function priceTypeLabel(type,isPreferred=false){
   const normalized=type||(isPreferred?"regularCustomer":"normal");
@@ -46,14 +46,15 @@ function actualProjectPrice(project){
   // Die Übersicht muss denselben gespeicherten Preis zeigen wie die Projektakte.
   // Projektpositionen dürfen diesen Preis nicht beim Anzeigen neu berechnen.
   const agreed=project?.agreementPrice;
-  if(["done","doneNoInvoice","billed"].includes(project?.status)&&agreed!==null&&agreed!==undefined)return num(agreed);
+  if(["done","doneNoInvoice","gifted","billed"].includes(project?.status)&&agreed!==null&&agreed!==undefined)return num(agreed);
+  if(project?.status==="gifted")return 0;
   const stored=project?.recommendedSalePrice??project?.recommendedPrice??project?.calculationSnapshot?.results?.calculatedPrice??project?.pricingBreakdown?.sale??project?.sale;
   if(stored!==null&&stored!==undefined)return num(stored);
   return Array.isArray(project?.positions)?positionTotals(project).recommended+projectIndividualization(project):0;
 }
 export function renderProjectPriceBlock(project){
   const hasAgreement=project.agreementPrice!=null;
-  const closed=["done","doneNoInvoice","billed"].includes(project.status);
+  const closed=["done","doneNoInvoice","gifted","billed"].includes(project.status);
   const work=positionTotals(project).work;
   return `<div class="project-price-block"><strong>${euro(actualProjectPrice(project))}</strong>${work>0?`<span class="project-agreed-price">Arbeitskosten: ${euro(work)}</span>`:""}<span class="project-agreed-price">${closed?"Verkaufspreis":`Vereinbart: ${hasAgreement?euro(project.agreementPrice):"Nicht festgelegt"}`}</span>${hasAgreement?renderPriceTypeBadge(project.priceType,project.isPreferredRepeatPrice):""}</div>`;
 }
@@ -401,7 +402,7 @@ export function viewProject(id){
   statusSelect.onchange=()=>{
     const previousStatus=p.status;
     p.status=statusSelect.value;
-    if(!["done","doneNoInvoice","billed"].includes(previousStatus)&&["done","doneNoInvoice","billed"].includes(p.status))deductPositionStock(p);
+    if(!["done","doneNoInvoice","gifted","billed"].includes(previousStatus)&&["done","doneNoInvoice","gifted","billed"].includes(p.status))deductPositionStock(p);
     p.updated=new Date().toISOString();
     save();renderProjects();updateHome();
   };
