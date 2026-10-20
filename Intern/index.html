@@ -28,7 +28,7 @@
   </script>
 <style>
 #offers{max-width:1050px;margin-inline:auto}
-#offers .offer-editor{display:grid;gap:18px}
+#offers .offer-editor{display:grid;gap:18px}#offers [hidden]{display:none!important}#offers .offer-help{font-size:.9rem;opacity:.85}#offers .offer-help summary{cursor:pointer;padding:8px 0}#offers .offer-help p{padding:8px 0}#offers #offerOverview>label{display:block;margin-bottom:14px}#offers #offerOverview>label input{margin-top:7px}
 #offers label{display:flex;flex-direction:column;gap:7px;min-width:0}
 #offers input,#offers select{width:100%;min-width:0;box-sizing:border-box}
 #offers .offer-meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
@@ -811,9 +811,10 @@
   </section>
 
   <section id="offers" class="screen">
-    <div class="section-head"><div><div class="eyebrow">DANIELS LASER ART</div><h2>📄 Angebote</h2></div><button type="button" id="offerNewBtn" class="secondary small">＋ Neu</button></div>
-    <div id="offerEditor" class="offer-editor card">
-      <div class="section-head"><div><div class="eyebrow">ANGEBOTSENTWURF</div><h3 id="offerEditorHeading">Neues Angebot</h3></div></div>
+    <div class="section-head"><div><div class="eyebrow">DANIELS LASER ART</div><h2>📄 Angebote</h2><p style="opacity:.7;margin:4px 0 0">Angebote verwalten und neue erstellen</p></div><button type="button" id="offerNewBtn" class="primary small">＋ Neues Angebot</button></div>
+    <div id="offerOverview" class="card"><div class="section-head"><div><h3>Meine Angebote</h3><p style="opacity:.7;margin:4px 0 0">Öffnen, bearbeiten oder als PDF ausgeben</p></div></div><label>Suche<input id="offerSearch" type="search" placeholder="Angebot oder Kunde suchen …"></label><div id="offerSavedList"></div></div>
+    <div id="offerEditor" class="offer-editor card" hidden>
+      <div class="section-head"><div><div class="eyebrow">ANGEBOT BEARBEITEN</div><h3 id="offerEditorHeading">Neues Angebot</h3></div><button id="offerBackBtn" type="button" class="secondary small">← Übersicht</button></div>
       <div class="offer-meta-grid">
         <label>Angebotstitel<input id="offerTitle" placeholder="z. B. Schwibbögen Weihnachten"></label>
         <label>Kunde<select id="offerCustomerId"><option value="">Kein Kunde / später zuordnen</option></select></label>
@@ -828,9 +829,8 @@
       <p id="offerCostWarning" class="offer-note">Für mindestens eine Position fehlen die Selbstkosten. Bitte nachtragen, damit Gewinn und Marge zuverlässig berechnet werden.</p>
       <button type="button" id="offerSaveBtn" class="primary wide">Angebot speichern</button>
       <button type="button" id="offerConvertBtn" class="secondary wide" disabled>✓ Als Auftrag übernehmen</button>
-      <p class="offer-note">Einmalkosten sind bereits im Grundpreis enthalten und werden bei identischen Exemplaren nur einmal angesetzt. Rabatte bleiben manuell. Die Preisstufen verwenden den gespeicherten Preisvorschlag (günstig −20 %, Premium +20 %); du kannst den Preis jederzeit individuell anpassen. Die Selbstkosten werden aus der Ursprungskalkulation übernommen und können angepasst werden. Einmalige Selbstkosten müssen separat gekennzeichnet werden, damit sie nur einmal anfallen.</p>
+      <details class="offer-help"><summary>Hinweise zur Preisberechnung</summary><p class="offer-note">Einmalkosten sind bereits im Grundpreis enthalten und werden bei identischen Exemplaren nur einmal angesetzt. Rabatte bleiben manuell. Die Preisstufen verwenden den gespeicherten Preisvorschlag (günstig −20 %, Premium +20 %); du kannst den Preis jederzeit individuell anpassen. Die Selbstkosten werden aus der Ursprungskalkulation übernommen und können angepasst werden. Einmalige Selbstkosten müssen separat gekennzeichnet werden, damit sie nur einmal anfallen.</p></details>
     </div>
-    <div class="card"><h3>Gespeicherte Angebote</h3><div id="offerSavedList"></div></div>
   </section>
 
   <section id="projects" class="screen">
@@ -1268,6 +1268,6 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=9.6"></script>
+<script type="module" src="js/app.js?v=9.7"></script>
 </body>
 </html>
