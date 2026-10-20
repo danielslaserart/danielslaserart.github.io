@@ -1,7 +1,7 @@
 import { $, num, euro, uid, esc } from "./utils.js?v=7.2";
 import { state, save, defaults, getRealProjects } from "./storage.js?v=7.2";
 import { renderMaterials } from "./materials.js?v=7.2";
-import { renderProjects, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=7.2";
+import { renderProjects, renderOfferBuilder, viewProject, renderReferenceProjects, renderExperienceValues } from "./projects.js?v=7.2";
 import { fillSettings } from "./settings.js?v=7.2";
 import { renderTools, resetTool } from "./statistics.js?v=7.2";
 import { renderCalculator, renderConsumables, applyCalculatorFields, calculate, titles, setTimerSeconds, setEditingProjectId, setCalculatorProductSize, setCalculatorConsumables, setCalculatorPositions, getCalculatorProductSize, getOrderType, syncAutomaticFirstPosition } from "./calculator.js?v=7.2";
@@ -17,6 +17,7 @@ export function setScreen(id){
   document.querySelectorAll(".bottom-nav [data-screen]").forEach(b=>b.classList.toggle("active",b.dataset.screen===id||(b.dataset.screen==="learning"&&learningScreens.includes(id))));
   if(id==="materials") renderMaterials();
   if(id==="projects") renderProjects();
+  if(id==="offers") renderOfferBuilder();
   if(id==="customers") document.dispatchEvent(new CustomEvent("dla:customers-opened"));
   if(id==="references") renderReferenceProjects();
   if(id==="experience") renderExperienceValues();
