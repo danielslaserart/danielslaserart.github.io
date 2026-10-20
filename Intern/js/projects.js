@@ -464,10 +464,14 @@ function offerRow(item){
   return {...item,quantity,baseUnitPrice:base,oneTimeCost:once,discount,total,unitPrice:total/quantity,baseUnitCost,oneTimeCostPart,totalCost,profit:costKnown?offerRound(total-totalCost):null};
 }
 function offerSourceCost(p){
-  const stored=[p.cost,p.selfCosts,p.calculationSnapshot?.results?.cost,p.pricingBreakdown?.cost].find(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))&&Number(v)>=0);
-  if(stored!==undefined)return offerRound(stored);
+  if(!p?.id)return null;
+  const candidates=[p.cost,p.selfCosts,p.calculationSnapshot?.results?.cost,p.pricingBreakdown?.cost];
+  const positive=candidates.find(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))&&Number(v)>0);
+  if(positive!==undefined)return offerRound(positive);
   const calculated=Array.isArray(p.positions)&&p.positions.length?positionTotals(p).cost:getCostCoveringMinimumPrice(p);
-  return Number.isFinite(Number(calculated))&&Number(calculated)>0?offerRound(calculated):null;
+  if(Number.isFinite(Number(calculated))&&Number(calculated)>0)return offerRound(calculated);
+  const explicitZero=candidates.some(v=>v!==null&&v!==undefined&&Number(v)===0);
+  return explicitZero&&p.calculationSnapshot?0:null;
 }
 function offerSummary(items){
   const rows=items.map(offerRow);
