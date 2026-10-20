@@ -659,7 +659,19 @@ document.getElementById("offers")?.addEventListener("input",event=>{
   offerDirty=true;offerUpdateTotals();
 });
 document.addEventListener("dla:edit-offer",event=>{editOfferProject(event.detail?.id)});
+function recordOfferFromProject(project,selectedPrice){
+  if(project.recordType==="offer")return project;
+  const existing=getOffers().find(offer=>offer.sourceProjectId===project.id&&offer.offerItems?.length===1&&offer.sale===offerRound(selectedPrice));
+  if(existing)return existing;
+  const price=offerRound(selectedPrice),cost=offerSourceCost(project),now=new Date().toISOString();
+  const item=offerRow({projectId:project.id,description:project.title||project.type||"Individuelle Anfertigung",quantity:1,baseUnitPrice:price,priceLevel:"custom",oneTimeCost:0,discount:0,baseUnitCost:cost,oneTimeCostPart:0});
+  const offer={id:uid(),recordType:"offer",sourceProjectId:project.id,title:project.title||"Einzelangebot",customerId:project.customerId||"",customer:project.customer||"",customerAddress:project.customerAddress||"",type:"Angebot",status:"offer",offerStatus:"draft",offerItems:[item],sale:price,recommendedSalePrice:price,recommendedPrice:price,actualPrice:price,cost:item.totalCost,offerCostVerified:item.totalCost!==null,offerProfit:item.profit,qty:1,created:now,updated:now};
+  state.offers.push(offer);save();renderOfferSavedList();
+  return offer;
+}
 async function printOffer(p,selectedPrice=p.sale){
+  p=recordOfferFromProject(p,selectedPrice);
+  selectedPrice=p.sale;
   if(OFFER_PDF_TEMPLATE==="legacy"){printOfferLegacy(p,selectedPrice);return}
   const today=new Date();
   const created=new Date(p.created||p.updated||Date.now());
