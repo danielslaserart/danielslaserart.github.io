@@ -79,7 +79,7 @@ export function renderProjects(){
     if(sort==='created')return projectTimestamp(b,'created')-projectTimestamp(a,'created');
     return projectTimestamp(b,'updated')-projectTimestamp(a,'updated');
   });
-  const totalProfit=realProjects.reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
+  const totalProfit=realProjects.filter(p=>!p.offerItems?.length).reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   if($('projectStatCount'))$('projectStatCount').textContent=realProjects.length;
   if($('projectStatProfit'))$('projectStatProfit').textContent=euro(totalProfit);
   if($('projectStatAverage'))$('projectStatAverage').textContent=realProjects.length?euro(realProjects.reduce((sum,p)=>sum+num(p.sale),0)/realProjects.length):euro(0);
@@ -546,7 +546,7 @@ function offerSave(){
   const sum=offerRound(items.reduce((value,item)=>value+item.total,0));
   const now=new Date().toISOString();
   const old=offerDraft.id?getRealProjects().find(p=>p.id===offerDraft.id):null;
-  const saved={...(old||{}),...offerDraft,id:old?.id||uid(),title,customerId:customer?.id||"",customer:customer?offerCustomerName(customer):"",customerAddress:customer?customerAddressById(customer.id)||"":"",type:"Angebot",status:offerDraft.offerStatus==="accepted"?"progress":"offer",offerStatus:$("offerStatus").value,offerItems:items,sale:sum,recommendedSalePrice:sum,recommendedPrice:sum,estimatedPrice:sum,actualPrice:sum,qty:items.reduce((value,item)=>value+item.quantity,0),updated:now,created:old?.created||now,notes:old?.notes||"Sammelangebot – Herstellungskosten und Gewinn nicht automatisch berechnet."};
+  const saved={...(old||{}),...offerDraft,id:old?.id||uid(),title,customerId:customer?.id||"",customer:customer?offerCustomerName(customer):"",customerAddress:customer?customerAddressById(customer.id)||"":"",type:"Angebot",status:old?.status==="progress"?"progress":"offer",offerStatus:$("offerStatus").value,offerItems:items,sale:sum,recommendedSalePrice:sum,recommendedPrice:sum,estimatedPrice:sum,actualPrice:sum,qty:items.reduce((value,item)=>value+item.quantity,0),updated:now,created:old?.created||now,notes:old?.notes||"Sammelangebot – Herstellungskosten und Gewinn nicht automatisch berechnet."};
   if(old)Object.assign(old,saved);else state.projects.push(saved);
   save();renderProjects();offerDraft=structuredClone(saved);offerDirty=false;
   renderOfferSavedList();offerFillEditor();
