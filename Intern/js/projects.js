@@ -381,9 +381,9 @@ export function viewProject(id){
     </div>`:""}
     ${Array.isArray(p.offerItems)&&p.offerItems.length?`<h3>Artikel im Sammelangebot</h3><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:10px 6px">Artikel</th><th style="text-align:right;padding:10px 6px">Menge</th><th style="text-align:right;padding:10px 6px">Einzelpreis</th><th style="text-align:right;padding:10px 6px">Gesamt</th></tr></thead><tbody>${p.offerItems.map(item=>`<tr style="border-top:1px solid var(--border, #555)"><td style="padding:10px 6px">${esc(item.description||"Artikel")}</td><td style="text-align:right;padding:10px 6px">${Math.max(1,num(item.quantity))} ×</td><td style="text-align:right;padding:10px 6px">${euro(num(item.total)/Math.max(1,num(item.quantity)))}</td><td style="text-align:right;padding:10px 6px"><strong>${euro(item.total)}</strong></td></tr>`).join("")}</tbody><tfoot><tr style="border-top:2px solid var(--border, #555)"><td colspan="3" style="padding:12px 6px"><strong>Angebotssumme</strong></td><td style="text-align:right;padding:12px 6px"><strong>${euro(p.offerItems.reduce((sum,item)=>sum+num(item.total),0))}</strong></td></tr></tfoot></table></div>`:""}
     ${!p.offerItems?.length?renderProjectPositions(p):""}
-    ${projectProcessingDetails(p)}
-    ${customerCalculationOverview(p)}
-    ${p.orderType==="customerObject"?"":`<h3>Tatsächliche Kosten</h3><div class="project-view-details">
+    ${p.offerItems?.length?"":projectProcessingDetails(p)}
+    ${p.offerItems?.length?"":customerCalculationOverview(p)}
+    ${p.offerItems?.length?"":p.orderType==="customerObject"?"":`<h3>Tatsächliche Kosten</h3><div class="project-view-details">
       <div><span>Selbstkosten</span><strong>${euro(selfCosts)}</strong></div>
     </div><h3>Preisübersicht</h3><div class="project-view-details">
       ${p.estimatedPrice!=null?`<div><span>Ursprüngliche Schätzung</span><strong>${euro(p.estimatedPrice)}</strong></div>`:""}
@@ -392,7 +392,7 @@ export function viewProject(id){
       <div><span>Gewinnmarge</span><strong>${actualProjectPrice(p)>0?`${((actualProjectPrice(p)-selfCosts)/actualProjectPrice(p)*100).toLocaleString("de-DE",{maximumFractionDigits:1})} %`:"0,0 %"}</strong></div>
       ${recommendationRows(ownRecommendations.withWorkTiers,ownRecommendations.withoutWorkTiers)}
     </div>`}
-    ${priceAgreementHtml(p,getPriceLadderData(p.orderType==="customerObject"?currentCustomerCalculation(p).source:ownPriceSource))}
+    ${p.offerItems?.length?"":priceAgreementHtml(p,getPriceLadderData(p.orderType==="customerObject"?currentCustomerCalculation(p).source:ownPriceSource))}
     ${(p.tags||[]).length?`<div class="tag-row">${p.tags.map(t=>`<span>#${esc(t)}</span>`).join("")}</div>`:""}
     ${p.notes?`<div class="project-view-notes"><b>Notizen</b><p>${esc(p.notes)}</p></div>`:""}
     ${cons?`<h3>Verbrauchsmaterial</h3><div class="project-view-details">${cons}</div>`:""}
@@ -412,8 +412,9 @@ export function viewProject(id){
     try{await navigator.clipboard.writeText(text);await appAlert("Die wichtigsten Projektdaten inklusive aller Preisstufen wurden für ChatGPT kopiert.");}
     catch(error){console.error(error);await appAlert("Kopieren wurde vom Browser blockiert.");}
   };
-  $("projectViewEditBtn").onclick=()=>{dialog.close();loadProject(id,false)};
-  $("offerComposeBtn").onclick=()=>{dialog.close();composeOffer(p)};
+  $("projectViewEditBtn").textContent=p.offerItems?.length?"✎ Angebot bearbeiten":"✎ Kalkulation bearbeiten";
+  $("projectViewEditBtn").onclick=()=>{dialog.close();if(p.offerItems?.length){document.querySelector('[data-screen="offers"]')?.click();editOfferProject(id)}else loadProject(id,false)};
+  $("offerComposeBtn").onclick=()=>{dialog.close();document.querySelector('[data-screen="offers"]')?.click();if(!p.offerItems?.length)offerAddProject(p.id)};
   $("offerPdfBtn").onclick=async()=>{let price=p.sale;if(p.agreementPrice!=null){const choice=await appForm({title:"Preis für Kunden-PDF",message:"Interne Notizen und Preis-Historie werden nicht im PDF ausgegeben.",fields:[{name:"priceSource",label:"Endpreis verwenden",type:"select",value:"project",options:[{value:"project",label:`Bisheriger Projektpreis (${euro(p.sale)})`},{value:"agreement",label:`Vereinbarter Verkaufspreis (${euro(p.agreementPrice)})`}]}],acceptText:"PDF erstellen"});if(!choice)return;price=choice.priceSource==="agreement"?p.agreementPrice:p.sale}await printOffer(p,price)};
   $("closeProjectViewBtn").onclick=()=>dialog.close();
   dialog.onclick=e=>{if(e.target===dialog)dialog.close()};
@@ -440,53 +441,144 @@ function offerItemRows(p){
     total:Math.round((Number(item.total)||0)*100)/100
   })):null;
 }
+
+const offerRound=value=>Math.round((Number(value)||0)*100)/100;
+const offerQuantity=value=>Math.max(1,Math.floor(Number(value)||1));
+const offerSourcePrice=p=>Math.max(0,num(p.recommendedSalePrice??p.sale));
+const offerCustomerName=c=>c?.companyName||c?.name||[c?.firstName,c?.lastName].filter(Boolean).join(" ")||"Kunde";
+const offerSources=()=>getRealProjects().filter(p=>!p.offerItems?.length);
+let offerDraft=null;
+let offerDirty=false;
+function offerRow(item){
+  const quantity=offerQuantity(item.quantity);
+  const base=Math.max(0,num(item.baseUnitPrice??item.unitPrice));
+  const once=Math.min(base,Math.max(0,num(item.oneTimeCost)));
+  const discount=Math.max(0,num(item.discount));
+  const total=offerRound(Math.max(0,quantity*base-(quantity-1)*once-discount));
+  return {...item,quantity,baseUnitPrice:base,oneTimeCost:once,discount,total,unitPrice:total/quantity};
+}
+function offerOptions(selected){
+  return '<option value="">Projekt auswählen …</option>'+offerSources().map(p=>`<option value="${esc(p.id)}" ${p.id===selected?"selected":""}>${esc(p.title||p.projectName||"Projekt")} · ${euro(offerSourcePrice(p))}</option>`).join("");
+}
+function offerCustomerOptions(selected){
+  return '<option value="">Kein Kunde / später zuordnen</option>'+(state.customers||[]).map(c=>`<option value="${esc(c.id)}" ${c.id===selected?"selected":""}>${esc(offerCustomerName(c))}</option>`).join("");
+}
+function offerRenderList(){
+  const list=$("offerEditorItems"),sum=$("offerEditorTotal");
+  if(!list||!offerDraft)return;
+  list.innerHTML=offerDraft.offerItems.length?offerDraft.offerItems.map((raw,i)=>{
+    const item=offerRow(raw);
+    return `<div class="offer-line card" data-offer-index="${i}">
+      <div class="offer-line-head"><strong>Position ${i+1}</strong><button type="button" class="secondary small" data-offer-remove="${i}">Entfernen</button></div>
+      <label>Artikelbezeichnung<input data-offer-field="description" value="${esc(item.description||"")}" aria-label="Artikelbezeichnung"></label>
+      <div class="offer-line-grid">
+        <label>Menge<input data-offer-field="quantity" type="number" min="1" step="1" value="${item.quantity}"></label>
+        <label>Grundpreis pro Stück (€)<input data-offer-field="baseUnitPrice" type="number" min="0" step=".01" value="${item.baseUnitPrice}"></label>
+        <label>Einmalkosten im Grundpreis (€)<input data-offer-field="oneTimeCost" type="number" min="0" step=".01" value="${item.oneTimeCost}"></label>
+        <label>Manueller Nachlass gesamt (€)<input data-offer-field="discount" type="number" min="0" step=".01" value="${item.discount}"></label>
+      </div>
+      <div class="offer-line-totals"><span>Effektiver Stückpreis: <strong data-offer-unit="${i}">${euro(item.unitPrice)}</strong></span><span>Position: <strong data-offer-total="${i}">${euro(item.total)}</strong></span></div>
+    </div>`;
+  }).join(""):'<p>Noch keine Artikelpositionen. Wähle ein Projekt und klicke auf „Artikel hinzufügen“.</p>';
+  const total=offerRound(offerDraft.offerItems.reduce((sum,item)=>sum+offerRow(item).total,0));
+  sum.textContent=euro(total);
+  $("offerEditorCount").textContent=String(offerDraft.offerItems.reduce((sum,item)=>sum+offerQuantity(item.quantity),0));
+  $("offerSaveBtn").disabled=!offerDraft.offerItems.length;
+}
+function offerUpdateTotals(){
+  if(!offerDraft)return;
+  offerDraft.offerItems.forEach((raw,i)=>{
+    const row=offerRow(raw);
+    const unit=document.querySelector('[data-offer-unit="'+i+'"]');
+    const total=document.querySelector('[data-offer-total="'+i+'"]');
+    if(unit)unit.textContent=euro(row.unitPrice);
+    if(total)total.textContent=euro(row.total);
+  });
+  $("offerEditorTotal").textContent=euro(offerDraft.offerItems.reduce((sum,item)=>sum+offerRow(item).total,0));
+  $("offerEditorCount").textContent=String(offerDraft.offerItems.reduce((sum,item)=>sum+offerQuantity(item.quantity),0));
+}
 export function renderOfferBuilder(){
-  const select=$("offerStartProject"),button=$("offerStartBtn");
-  if(!select||!button)return;
-  const projects=getRealProjects().filter(p=>!p.offerItems?.length);
-  select.innerHTML=projects.length?projects.map(p=>`<option value="${esc(p.id)}">${esc(p.title||p.projectName||"Projekt")} – ${euro(num(p.recommendedSalePrice??p.sale))}</option>`).join(""):'<option value="">Noch keine kalkulierten Projekte</option>';
-  button.disabled=!projects.length;
+  const picker=$("offerSourceProject");
+  if(!picker)return;
+  const selected=picker.value;
+  picker.innerHTML=offerOptions(selected);
+  const customer=$("offerCustomerId");
+  if(customer)customer.innerHTML=offerCustomerOptions(offerDraft?.customerId||"");
+  renderOfferSavedList();
+  if(!offerDraft)offerNewDraft();
 }
-document.getElementById("offerStartBtn")?.addEventListener("click",()=>{
-  const project=getRealProjects().find(p=>p.id===$("offerStartProject")?.value);
-  if(project)composeOffer(project);
+function offerNewDraft(){
+  offerDraft={title:"Neues Sammelangebot",customerId:"",offerStatus:"draft",offerItems:[],status:"offer"};
+  offerDirty=false;
+  offerFillEditor();
+}
+function offerFillEditor(){
+  if(!offerDraft)return;
+  $("offerTitle").value=offerDraft.title||"";
+  $("offerCustomerId").innerHTML=offerCustomerOptions(offerDraft.customerId||"");
+  $("offerStatus").value=offerDraft.offerStatus||"draft";
+  $("offerEditorHeading").textContent=offerDraft.id?"Angebot bearbeiten":"Neues Angebot";
+  $("offerEditor").classList.remove("hidden");
+  offerRenderList();
+}
+export function editOfferProject(id){
+  const project=getRealProjects().find(p=>p.id===id&&p.offerItems?.length);
+  if(!project)return;
+  offerDraft=structuredClone(project);
+  offerDraft.offerItems=offerDraft.offerItems.map(item=>({...item,baseUnitPrice:item.baseUnitPrice??(num(item.unitPrice)+num(item.oneTimeCost)*(1-1/offerQuantity(item.quantity)))}));
+  offerDirty=false;
+  offerFillEditor();
+}
+function offerAddProject(id){
+  const source=offerSources().find(p=>p.id===id);
+  if(!source||!offerDraft)return;
+  offerDraft.offerItems.push({projectId:source.id,description:source.title||source.projectName||"Artikel",quantity:1,baseUnitPrice:offerSourcePrice(source),oneTimeCost:0,discount:0});
+  offerDirty=true;offerRenderList();
+}
+function offerSave(){
+  if(!offerDraft?.offerItems.length)return appAlert("Bitte mindestens einen Artikel hinzufügen.");
+  const title=$("offerTitle").value.trim();
+  if(!title)return appAlert("Bitte einen Angebotstitel eingeben.");
+  const customer=(state.customers||[]).find(c=>c.id===$("offerCustomerId").value);
+  const items=offerDraft.offerItems.map(offerRow);
+  const sum=offerRound(items.reduce((value,item)=>value+item.total,0));
+  const now=new Date().toISOString();
+  const old=offerDraft.id?getRealProjects().find(p=>p.id===offerDraft.id):null;
+  const saved={...(old||{}),...offerDraft,id:old?.id||uid(),title,customerId:customer?.id||"",customer:customer?offerCustomerName(customer):"",customerAddress:customer?(customer.address||customer.postalAddress||""):"",type:"Angebot",status:offerDraft.offerStatus==="accepted"?"progress":"offer",offerStatus:$("offerStatus").value,offerItems:items,sale:sum,recommendedSalePrice:sum,recommendedPrice:sum,estimatedPrice:sum,actualPrice:sum,qty:items.reduce((value,item)=>value+item.quantity,0),updated:now,created:old?.created||now,notes:old?.notes||"Sammelangebot – Herstellungskosten und Gewinn nicht automatisch berechnet."};
+  if(old)Object.assign(old,saved);else state.projects.push(saved);
+  save();renderProjects();offerDraft=structuredClone(saved);offerDirty=false;
+  renderOfferSavedList();offerFillEditor();
+  appAlert("Angebot gespeichert. Die Artikel und Stückzahlen bleiben beim Bearbeiten erhalten.");
+}
+function renderOfferSavedList(){
+  const target=$("offerSavedList");if(!target)return;
+  const offers=getRealProjects().filter(p=>p.offerItems?.length).sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
+  target.innerHTML=offers.length?offers.map(p=>`<div class="offer-saved-row"><div><strong>${esc(p.title||"Sammelangebot")}</strong><small>${esc(customerNameById(p.customerId)||p.customer||"Ohne Kundenzuordnung")} · ${p.offerItems.length} Positionen · ${esc(({draft:"Entwurf",sent:"Versendet",accepted:"Angenommen",rejected:"Abgelehnt"})[p.offerStatus]||"Entwurf")}</small></div><strong>${euro(p.sale)}</strong><button type="button" class="secondary small" data-offer-edit="${esc(p.id)}">Bearbeiten</button></div>`).join(""):'<p>Noch keine Sammelangebote gespeichert.</p>';
+}
+document.getElementById("offers")?.addEventListener("click",async event=>{
+  const t=event.target.closest("button");if(!t)return;
+  if(t.id==="offerAddBtn"){offerAddProject($("offerSourceProject").value);return;}
+  if(t.id==="offerNewBtn"){if(offerDirty&&!await appConfirm("Ungespeicherte Änderungen verwerfen?"))return;offerNewDraft();return;}
+  if(t.id==="offerSaveBtn"){offerSave();return;}
+  if(t.dataset.offerEdit){if(offerDirty&&!await appConfirm("Ungespeicherte Änderungen verwerfen?"))return;editOfferProject(t.dataset.offerEdit);return;}
+  if(t.dataset.offerRemove!==undefined){offerDraft.offerItems.splice(Number(t.dataset.offerRemove),1);offerDirty=true;offerRenderList();}
 });
-async function composeOffer(startProject){
-  const available=getRealProjects().filter(project=>project.id!==startProject.id&&!project.offerItems?.length);
-  const choices=[startProject,...available].map(project=>({value:project.id,label:`${project.title||project.projectName||"Projekt"} – ${euro(num(project.recommendedSalePrice??project.sale))}`}));
-  const items=[];
-  let pending=startProject;
-  while(pending){
-    const result=await appForm({title:"Artikel zum Angebot hinzufügen",message:"Stückpreis aus der gespeicherten Kalkulation. Einmalige Kosten werden bei identischen Exemplaren nur einmal berechnet. Mit „Fertig“ schließt du die Zusammenstellung ab.",fields:[
-      {name:"projectId",label:"Kalkulierter Artikel",type:"select",value:pending.id,options:choices},
-      {name:"quantity",label:"Stückzahl",type:"number",value:1},
-      {name:"once",label:"Einmalige Kosten im Stückpreis enthalten (€)",type:"number",value:0}
-    ],acceptText:"Artikel übernehmen"});
-    if(!result)break;
-    const project=[startProject,...available].find(row=>row.id===result.projectId);
-    if(!project)continue;
-    const quantity=Math.max(1,Math.floor(Number(result.quantity)||1));
-    const unitPrice=Math.max(0,num(project.recommendedSalePrice??project.sale));
-    const once=Math.max(0,Math.min(unitPrice,num(result.once)));
-    const total=Math.round((quantity*unitPrice-(quantity-1)*once)*100)/100;
-    items.push({projectId:project.id,description:project.title||project.projectName||"Individuelle Anfertigung",quantity,unitPrice:total/quantity,total,oneTimeCost:once});
-    const more=await appConfirm(`${items.length} Artikelposition(en) übernommen. Weiteren Artikel hinzufügen?`);
-    if(!more)break;
-    pending=startProject;
-  }
-  if(!items.length)return;
-  const customerOptions=[{value:"",label:"Kein Kunde / später zuordnen"},...(state.customers||[]).map(c=>({value:c.id,label:c.companyName||c.name||[c.firstName,c.lastName].filter(Boolean).join(" ")||"Kunde"}))];
-  const customerChoice=await appForm({title:"Kunde für das Sammelangebot",message:"Der Kunde wird unabhängig von den verwendeten Projektvorlagen ausgewählt.",fields:[
-    {name:"customerId",label:"Kunde auswählen",type:"select",value:"",options:customerOptions},
-    {name:"title",label:"Angebotstitel",type:"text",value:"Sammelangebot – "+(startProject.title||"Artikel")}
-  ],acceptText:"Angebot speichern"});
-  if(!customerChoice)return;
-  const selectedCustomer=(state.customers||[]).find(c=>c.id===customerChoice.customerId);
-  const total=Math.round(items.reduce((sum,item)=>sum+item.total,0)*100)/100;
-  const project={id:uid(),title:customerChoice.title?.trim()||`Sammelangebot – ${startProject.title||"Artikel"}`,type:"Angebot",status:"offer",customerId:selectedCustomer?.id||"",customer:selectedCustomer?(selectedCustomer.companyName||selectedCustomer.name||[selectedCustomer.firstName,selectedCustomer.lastName].filter(Boolean).join(" ")):"",customerAddress:"",created:new Date().toISOString(),updated:new Date().toISOString(),sale:total,recommendedSalePrice:total,recommendedPrice:total,cost:0,qty:items.reduce((sum,item)=>sum+item.quantity,0),offerItems:items,notes:"Sammelangebot: Einzelkalkulationen bleiben in den ursprünglichen Projekten. Herstellungskosten und Gewinn des Sammelangebots werden nicht automatisch berechnet."};
-  state.projects.push(project);save();renderProjects();
-  await appAlert(`Sammelangebot gespeichert: ${euro(total)}. Du kannst es unter Projekte öffnen und als PDF ausgeben.`);
-}
+document.getElementById("offers")?.addEventListener("input",event=>{
+  const target=event.target;
+  if(!offerDraft)return;
+  if(target.id==="offerTitle"){offerDraft.title=target.value;offerDirty=true;return;}
+  if(target.id==="offerCustomerId"){offerDraft.customerId=target.value;offerDirty=true;return;}
+  if(target.id==="offerStatus"){offerDraft.offerStatus=target.value;offerDirty=true;return;}
+  if(!target.dataset.offerField)return;
+  const line=target.closest("[data-offer-index]");
+  if(!line)return;
+  const item=offerDraft.offerItems[Number(line.dataset.offerIndex)];
+  if(!item)return;
+  const key=target.dataset.offerField;
+  item[key]=key==="description"?target.value:Number(target.value);
+  offerDirty=true;offerUpdateTotals();
+});
+document.addEventListener("dla:edit-offer",event=>{editOfferProject(event.detail?.id)});
 async function printOffer(p,selectedPrice=p.sale){
   if(OFFER_PDF_TEMPLATE==="legacy"){printOfferLegacy(p,selectedPrice);return}
   const today=new Date();
