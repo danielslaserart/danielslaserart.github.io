@@ -79,7 +79,7 @@ export function renderProjects(){
     if(sort==='created')return projectTimestamp(b,'created')-projectTimestamp(a,'created');
     return projectTimestamp(b,'updated')-projectTimestamp(a,'updated');
   });
-  const totalProfit=realProjects.filter(p=>!p.offerItems?.length||p.offerCostVerified).reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
+  const totalProfit=realProjects.filter(p=>!p.offerItems?.length||(p.offerCostVerified&&["progress","done","doneNoInvoice","billed"].includes(p.status))).reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   if($('projectStatCount'))$('projectStatCount').textContent=realProjects.length;
   if($('projectStatProfit'))$('projectStatProfit').textContent=euro(totalProfit);
   if($('projectStatAverage'))$('projectStatAverage').textContent=realProjects.length?euro(realProjects.reduce((sum,p)=>sum+num(p.sale),0)/realProjects.length):euro(0);
