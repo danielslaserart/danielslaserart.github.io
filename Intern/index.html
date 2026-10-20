@@ -789,14 +789,22 @@
   </section>
 
   <section id="offers" class="screen">
-    <div class="section-head"><div><div class="eyebrow">KUNDENANGEBOTE</div><h2>Angebot zusammenstellen</h2></div></div>
-    <div class="card">
-      <p>Mehrere kalkulierte Artikel und Stückzahlen in einem gemeinsamen Angebot zusammenfassen. Einmalige Kosten werden nur einmal berücksichtigt; kein automatischer Mengenrabatt.</p>
-      <label>Ersten kalkulierten Artikel auswählen
-        <select id="offerStartProject"><option value="">Projekte werden geladen …</option></select>
-      </label>
-      <button id="offerStartBtn" class="primary wide" type="button">＋ Angebot zusammenstellen</button>
-      <p class="muted">Weitere Artikel kannst du anschließend hinzufügen. Das fertige Sammelangebot findest du unter Projekte und kannst es dort als PDF ausgeben.</p>
+    <div class="section-head"><div><div class="eyebrow">ANGEBOTSVERWALTUNG</div><h2>📄 Angebote</h2></div></div>
+    <div class="card" style="display:grid;gap:18px">
+      <div><h3 style="margin:0 0 8px">Neues Sammelangebot</h3><p style="margin:0;opacity:.8">Mehrere Artikel und Stückzahlen in einem Angebot kombinieren – ohne automatischen Mengenrabatt.</p></div>
+      <div class="card" style="background:rgba(176,141,87,.08);border:1px solid rgba(176,141,87,.35);padding:16px">
+        <strong>1. Artikel auswählen</strong>
+        <label style="display:block;margin-top:12px">Kalkuliertes Projekt
+          <select id="offerStartProject" style="width:100%"><option value="">Projekte werden geladen …</option></select>
+        </label>
+        <p style="font-size:.85em;opacity:.75;margin:10px 0 0">Du kannst anschließend beliebig viele weitere Positionen ergänzen.</p>
+      </div>
+      <div class="card" style="background:rgba(176,141,87,.08);border:1px solid rgba(176,141,87,.35);padding:16px">
+        <strong>2. Mengen und Preise festlegen</strong>
+        <p style="margin:8px 0 0;opacity:.8">Für jede Position die Stückzahl und einmalige Kosten eintragen. Den Kunden wählst du am Ende unabhängig aus.</p>
+      </div>
+      <button id="offerStartBtn" class="primary wide" type="button">＋ Neues Angebot erstellen</button>
+      <p style="font-size:.85em;opacity:.75;margin:0">Gespeicherte Sammelangebote findest du unter <strong>Projekte</strong>. Dort kannst du sie ansehen und als PDF ausgeben.</p>
     </div>
   </section>
 
@@ -1235,6 +1243,6 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=9.1"></script>
+<script type="module" src="js/app.js?v=9.2"></script>
 </body>
 </html>
