@@ -94,7 +94,7 @@ export const defaults = {
       risks:{under50:0,from50To100:0,from100To250:0,from250To500:0,over500:0}
     }
   },
-  materials:[],processingProfiles:[],projects:[],customers:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastOwnModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
+  materials:[],processingProfiles:[],projects:[],offers:[],customers:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastOwnModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[]
 };
 export function normalizeCustomerRecord(customer={}){
@@ -147,6 +147,11 @@ function normalizeLoadedState(saved){
     merged.machines=Array.isArray(merged.machines)?merged.machines:[];
     merged.processingProfiles=normalizeProcessingProfiles(merged.processingProfiles);
     merged.projects=(merged.projects||[]).map(normalizeProjectRecord);
+    merged.offers=Array.isArray(merged.offers)?merged.offers.filter(Boolean):[];
+    // Altbestand: Sammelangebote aus Projekte in eigenständige Angebote überführen.
+    const legacyOffers=merged.projects.filter(p=>Array.isArray(p.offerItems)&&p.offerItems.length);
+    for(const offer of legacyOffers){if(!merged.offers.some(existing=>existing.id===offer.id))merged.offers.push({...offer,recordType:"offer"});}
+    merged.projects=merged.projects.filter(p=>!(Array.isArray(p.offerItems)&&p.offerItems.length));
     merged.customers=normalizeCustomers(merged.customers);
     migrateEmbeddedReferences(merged);
     return merged;
@@ -302,7 +307,8 @@ export function normalizeLearningRecord(record={}){
 }
 export function isRealProject(record){return record?.recordType!=="reference";}
 export function isReferenceRecord(record){return record?.recordType==="reference";}
-export function getRealProjects(){return state.projects.filter(Boolean).filter(isRealProject);}
+export function getRealProjects(){return state.projects.filter(Boolean).filter(isRealProject).filter(p=>!p.offerItems?.length);}
+export function getOffers(){return (state.offers||[]).filter(Boolean);}
 export function getReferenceProjects(){return state.projects.filter(isReferenceRecord);}
 export function mergeSettings(settings={}){
   const customerObject={
@@ -364,7 +370,7 @@ function scheduleCloudSave(){
 }
 function isNeutralState(value){
   return !value||(
-    !(value.customers?.length)&&!(value.projects?.length)&&!(value.materials?.length)&&
+    !(value.customers?.length)&&!(value.projects?.length)&&!(value.offers?.length)&&!(value.materials?.length)&&
     !(value.machines?.length)&&!(value.processingProfiles?.length)&&!(value.templates?.length)&&
     !(value.learningRecords?.length)&&Object.values(value.settings||{}).every(item=>
       item&&typeof item==="object"?Object.values(item).every(nested=>nested&&typeof nested==="object"?Object.values(nested).every(v=>!v):!nested):!item
