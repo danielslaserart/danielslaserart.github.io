@@ -439,6 +439,17 @@ function offerItemRows(p){
     total:Math.round((Number(item.total)||0)*100)/100
   })):null;
 }
+export function renderOfferBuilder(){
+  const select=$("offerStartProject"),button=$("offerStartBtn");
+  if(!select||!button)return;
+  const projects=getRealProjects().filter(p=>!p.offerItems?.length);
+  select.innerHTML=projects.length?projects.map(p=>`<option value="${esc(p.id)}">${esc(p.title||p.projectName||"Projekt")} – ${euro(num(p.recommendedSalePrice??p.sale))}</option>`).join(""):'<option value="">Noch keine kalkulierten Projekte</option>';
+  button.disabled=!projects.length;
+}
+document.getElementById("offerStartBtn")?.addEventListener("click",()=>{
+  const project=getRealProjects().find(p=>p.id===$("offerStartProject")?.value);
+  if(project)composeOffer(project);
+});
 async function composeOffer(startProject){
   const available=getRealProjects().filter(project=>project.id!==startProject.id&&!project.offerItems?.length);
   const choices=[startProject,...available].map(project=>({value:project.id,label:`${project.title||project.projectName||"Projekt"} – ${euro(num(project.recommendedSalePrice??project.sale))}`}));
@@ -457,7 +468,7 @@ async function composeOffer(startProject){
     const unitPrice=Math.max(0,num(project.recommendedSalePrice??project.sale));
     const once=Math.max(0,Math.min(unitPrice,num(result.once)));
     const total=Math.round((quantity*unitPrice-(quantity-1)*once)*100)/100;
-    items.push({projectId:project.id,description:project.title||project.projectName||"Individuelle Anfertigung",quantity,unitPrice:Math.round(total/quantity*100)/100,total,oneTimeCost:once});
+    items.push({projectId:project.id,description:project.title||project.projectName||"Individuelle Anfertigung",quantity,unitPrice:total/quantity,total,oneTimeCost:once});
     const more=await appConfirm(`${items.length} Artikelposition(en) übernommen. Weiteren Artikel hinzufügen?`);
     if(!more)break;
     pending=startProject;
