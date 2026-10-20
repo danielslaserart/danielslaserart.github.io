@@ -401,6 +401,8 @@ export function viewProject(id){
 
   const statusSelect=$("projectViewStatusSelect");
   statusSelect.value=p.status||"offer";
+  statusSelect.disabled=Boolean(p.recordType==="offer");
+  statusSelect.title=p.recordType==="offer"?"Angebotsstatus im Angebotseditor ändern":"";
   statusSelect.onchange=()=>{
     const previousStatus=p.status;
     p.status=statusSelect.value;
@@ -415,6 +417,7 @@ export function viewProject(id){
   };
   $("projectViewEditBtn").textContent=p.offerItems?.length?"✎ Angebot bearbeiten":"✎ Kalkulation bearbeiten";
   $("projectViewEditBtn").onclick=()=>{dialog.close();if(p.offerItems?.length){document.querySelector('[data-screen="offers"]')?.click();editOfferProject(id)}else loadProject(id,false)};
+  $("offerComposeBtn").disabled=Boolean(p.offerItems?.length);
   $("offerComposeBtn").onclick=()=>{dialog.close();document.querySelector('[data-screen="offers"]')?.click();if(!p.offerItems?.length)offerAddProject(p.id)};
   $("offerPdfBtn").onclick=async()=>{let price=p.offerItems?.length?p.offerItems.reduce((sum,item)=>sum+num(item.total),0):p.sale;if(!p.offerItems?.length&&p.agreementPrice!=null){const choice=await appForm({title:"Preis für Kunden-PDF",message:"Interne Notizen und Preis-Historie werden nicht im PDF ausgegeben.",fields:[{name:"priceSource",label:"Endpreis verwenden",type:"select",value:"project",options:[{value:"project",label:`Bisheriger Projektpreis (${euro(p.sale)})`},{value:"agreement",label:`Vereinbarter Verkaufspreis (${euro(p.agreementPrice)})`}]}],acceptText:"PDF erstellen"});if(!choice)return;price=choice.priceSource==="agreement"?p.agreementPrice:p.sale}await printOffer(p,price)};
   $("closeProjectViewBtn").onclick=()=>dialog.close();
