@@ -824,10 +824,11 @@
         <div class="offer-add-row"><select id="offerSourceProject" aria-label="Kalkulierten Artikel wählen"><option value="">Projekt auswählen …</option></select><button type="button" id="offerAddBtn" class="secondary">＋ Artikel hinzufügen</button></div>
       </div>
       <div id="offerEditorItems" class="offer-lines"></div>
-      <div class="offer-editor-summary"><div><small>Stückzahl gesamt</small><strong id="offerEditorCount">0</strong></div><div><small>Angebotssumme</small><strong id="offerEditorTotal">0,00 €</strong></div></div>
+      <div class="offer-editor-summary"><div><small>Stückzahl gesamt</small><strong id="offerEditorCount">0</strong></div><div><small>Angebotssumme</small><strong id="offerEditorTotal">0,00 €</strong></div><div><small>Selbstkosten gesamt</small><strong id="offerEditorCosts">–</strong></div><div><small>Gewinn gesamt</small><strong id="offerEditorProfit">–</strong></div><div><small>Gewinnmarge</small><strong id="offerEditorMargin">–</strong></div></div>
+      <p id="offerCostWarning" class="offer-note">Für mindestens eine Position fehlen die Selbstkosten. Bitte nachtragen, damit Gewinn und Marge zuverlässig berechnet werden.</p>
       <button type="button" id="offerSaveBtn" class="primary wide">Angebot speichern</button>
       <button type="button" id="offerConvertBtn" class="secondary wide" disabled>✓ Als Auftrag übernehmen</button>
-      <p class="offer-note">Einmalkosten sind bereits im Grundpreis enthalten und werden bei identischen Exemplaren nur einmal angesetzt. Rabatte bleiben manuell. Herstellungskosten und Gewinn werden für Sammelangebote noch nicht automatisch berechnet.</p>
+      <p class="offer-note">Einmalkosten sind bereits im Grundpreis enthalten und werden bei identischen Exemplaren nur einmal angesetzt. Rabatte bleiben manuell. Die Selbstkosten werden aus der Ursprungskalkulation übernommen und können angepasst werden. Einmalige Selbstkosten müssen separat gekennzeichnet werden, damit sie nur einmal anfallen.</p>
     </div>
     <div class="card"><h3>Gespeicherte Angebote</h3><div id="offerSavedList"></div></div>
   </section>
@@ -1267,6 +1268,6 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=9.4"></script>
+<script type="module" src="js/app.js?v=9.5"></script>
 </body>
 </html>
