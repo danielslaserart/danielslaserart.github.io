@@ -26,6 +26,28 @@
       console.error("Nicht behandelter Promise-Fehler:",event.reason);
     });
   </script>
+<style>
+#offers{max-width:1050px;margin-inline:auto}
+#offers .offer-editor{display:grid;gap:18px}
+#offers label{display:flex;flex-direction:column;gap:7px;min-width:0}
+#offers input,#offers select{width:100%;min-width:0;box-sizing:border-box}
+#offers .offer-meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
+#offers .offer-add-panel{border:1px solid rgba(176,141,87,.45);background:rgba(176,141,87,.07);padding:15px;border-radius:12px}
+#offers .offer-add-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin-top:10px;align-items:end}
+#offers .offer-lines{display:grid;gap:12px}
+#offers .offer-line{display:grid;gap:12px;padding:16px}
+#offers .offer-line-head,#offers .offer-line-totals{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+#offers .offer-line-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:10px}
+#offers .offer-line-totals{border-top:1px solid rgba(176,141,87,.3);padding-top:12px}
+#offers .offer-editor-summary{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid rgba(176,141,87,.5);padding-top:18px}
+#offers .offer-editor-summary>div{display:grid;gap:5px}
+#offers .offer-editor-summary strong{font-size:1.35rem}
+#offers .offer-note{opacity:.75;font-size:.85rem;line-height:1.5;margin:0}
+#offers .offer-saved-row{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid rgba(176,141,87,.2)}
+#offers .offer-saved-row>div{display:grid;gap:4px;min-width:180px;flex:1}
+#offers .offer-saved-row small{opacity:.75}
+@media(max-width:540px){#offers .offer-add-row{grid-template-columns:1fr}#offers .offer-line{padding:12px}}
+</style>
 </head>
 <body>
 <div id="authGate" class="auth-gate auth-pending">
@@ -789,23 +811,24 @@
   </section>
 
   <section id="offers" class="screen">
-    <div class="section-head"><div><div class="eyebrow">ANGEBOTSVERWALTUNG</div><h2>📄 Angebote</h2></div></div>
-    <div class="card" style="display:grid;gap:18px">
-      <div><h3 style="margin:0 0 8px">Neues Sammelangebot</h3><p style="margin:0;opacity:.8">Mehrere Artikel und Stückzahlen in einem Angebot kombinieren – ohne automatischen Mengenrabatt.</p></div>
-      <div class="card" style="background:rgba(176,141,87,.08);border:1px solid rgba(176,141,87,.35);padding:16px">
-        <strong>1. Artikel auswählen</strong>
-        <label style="display:block;margin-top:12px">Kalkuliertes Projekt
-          <select id="offerStartProject" style="width:100%"><option value="">Projekte werden geladen …</option></select>
-        </label>
-        <p style="font-size:.85em;opacity:.75;margin:10px 0 0">Du kannst anschließend beliebig viele weitere Positionen ergänzen.</p>
+    <div class="section-head"><div><div class="eyebrow">DANIELS LASER ART</div><h2>📄 Angebote</h2></div><button type="button" id="offerNewBtn" class="secondary small">＋ Neu</button></div>
+    <div id="offerEditor" class="offer-editor card">
+      <div class="section-head"><div><div class="eyebrow">ANGEBOTSENTWURF</div><h3 id="offerEditorHeading">Neues Angebot</h3></div></div>
+      <div class="offer-meta-grid">
+        <label>Angebotstitel<input id="offerTitle" placeholder="z. B. Schwibbögen Weihnachten"></label>
+        <label>Kunde<select id="offerCustomerId"><option value="">Kein Kunde / später zuordnen</option></select></label>
+        <label>Status<select id="offerStatus"><option value="draft">Entwurf</option><option value="sent">Versendet</option><option value="accepted">Angenommen</option><option value="rejected">Abgelehnt</option></select></label>
       </div>
-      <div class="card" style="background:rgba(176,141,87,.08);border:1px solid rgba(176,141,87,.35);padding:16px">
-        <strong>2. Mengen und Preise festlegen</strong>
-        <p style="margin:8px 0 0;opacity:.8">Für jede Position die Stückzahl und einmalige Kosten eintragen. Den Kunden wählst du am Ende unabhängig aus.</p>
+      <div class="offer-add-panel">
+        <strong>Artikel aus Kalkulation hinzufügen</strong>
+        <div class="offer-add-row"><select id="offerSourceProject" aria-label="Kalkulierten Artikel wählen"><option value="">Projekt auswählen …</option></select><button type="button" id="offerAddBtn" class="secondary">＋ Artikel hinzufügen</button></div>
       </div>
-      <button id="offerStartBtn" class="primary wide" type="button">＋ Neues Angebot erstellen</button>
-      <p style="font-size:.85em;opacity:.75;margin:0">Gespeicherte Sammelangebote findest du unter <strong>Projekte</strong>. Dort kannst du sie ansehen und als PDF ausgeben.</p>
+      <div id="offerEditorItems" class="offer-lines"></div>
+      <div class="offer-editor-summary"><div><small>Stückzahl gesamt</small><strong id="offerEditorCount">0</strong></div><div><small>Angebotssumme</small><strong id="offerEditorTotal">0,00 €</strong></div></div>
+      <button type="button" id="offerSaveBtn" class="primary wide">Angebot speichern</button>
+      <p class="offer-note">Einmalkosten sind bereits im Grundpreis enthalten und werden bei identischen Exemplaren nur einmal angesetzt. Rabatte bleiben manuell. Herstellungskosten und Gewinn werden für Sammelangebote noch nicht automatisch berechnet.</p>
     </div>
+    <div class="card"><h3>Gespeicherte Angebote</h3><div id="offerSavedList"></div></div>
   </section>
 
   <section id="projects" class="screen">
@@ -1243,6 +1266,6 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=9.2"></script>
+<script type="module" src="js/app.js?v=9.3"></script>
 </body>
 </html>
