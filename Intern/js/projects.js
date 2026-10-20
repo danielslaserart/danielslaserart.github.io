@@ -412,6 +412,7 @@ export function viewProject(id){
     catch(error){console.error(error);await appAlert("Kopieren wurde vom Browser blockiert.");}
   };
   $("projectViewEditBtn").onclick=()=>{dialog.close();loadProject(id,false)};
+  $("offerComposeBtn").onclick=()=>{dialog.close();composeOffer(p)};
   $("offerPdfBtn").onclick=async()=>{let price=p.sale;if(p.agreementPrice!=null){const choice=await appForm({title:"Preis für Kunden-PDF",message:"Interne Notizen und Preis-Historie werden nicht im PDF ausgegeben.",fields:[{name:"priceSource",label:"Endpreis verwenden",type:"select",value:"project",options:[{value:"project",label:`Bisheriger Projektpreis (${euro(p.sale)})`},{value:"agreement",label:`Vereinbarter Verkaufspreis (${euro(p.agreementPrice)})`}]}],acceptText:"PDF erstellen"});if(!choice)return;price=choice.priceSource==="agreement"?p.agreementPrice:p.sale}await printOffer(p,price)};
   $("closeProjectViewBtn").onclick=()=>dialog.close();
   dialog.onclick=e=>{if(e.target===dialog)dialog.close()};
@@ -431,6 +432,42 @@ export function viewProject(id){
   try{if(!dialog.open)dialog.showModal()}catch(err){console.error(err);dialog.setAttribute("open","")}
 }
 
+function offerItemRows(p){
+  return Array.isArray(p.offerItems)&&p.offerItems.length?p.offerItems.map(item=>({
+    description:item.description,quantity:Math.max(1,Number(item.quantity)||1),
+    unit:"Stk.",unitPrice:Number(item.unitPrice)||0,
+    total:Math.round((Number(item.total)||0)*100)/100
+  })):null;
+}
+async function composeOffer(startProject){
+  const available=getRealProjects().filter(project=>project.id!==startProject.id&&!project.offerItems?.length);
+  const choices=[startProject,...available].map(project=>({value:project.id,label:`${project.title||project.projectName||"Projekt"} – ${euro(num(project.recommendedSalePrice??project.sale))}`}));
+  const items=[];
+  let pending=startProject;
+  while(pending){
+    const result=await appForm({title:"Artikel zum Angebot hinzufügen",message:"Stückpreis aus der gespeicherten Kalkulation. Einmalige Kosten werden bei identischen Exemplaren nur einmal berechnet. Mit „Fertig“ schließt du die Zusammenstellung ab.",fields:[
+      {name:"projectId",label:"Kalkulierter Artikel",type:"select",value:pending.id,options:choices},
+      {name:"quantity",label:"Stückzahl",type:"number",value:1},
+      {name:"once",label:"Einmalige Kosten im Stückpreis enthalten (€)",type:"number",value:0}
+    ],acceptText:"Artikel übernehmen"});
+    if(!result)break;
+    const project=[startProject,...available].find(row=>row.id===result.projectId);
+    if(!project)continue;
+    const quantity=Math.max(1,Math.floor(Number(result.quantity)||1));
+    const unitPrice=Math.max(0,num(project.recommendedSalePrice??project.sale));
+    const once=Math.max(0,Math.min(unitPrice,num(result.once)));
+    const total=Math.round((quantity*unitPrice-(quantity-1)*once)*100)/100;
+    items.push({projectId:project.id,description:project.title||project.projectName||"Individuelle Anfertigung",quantity,unitPrice:Math.round(total/quantity*100)/100,total,oneTimeCost:once});
+    const more=await appConfirm(`${items.length} Artikelposition(en) übernommen. Weiteren Artikel hinzufügen?`);
+    if(!more)break;
+    pending=startProject;
+  }
+  if(!items.length)return;
+  const total=Math.round(items.reduce((sum,item)=>sum+item.total,0)*100)/100;
+  const project={id:uid(),title:`Sammelangebot – ${startProject.title||"Artikel"}`,type:startProject.type||"Angebot",status:"offer",customerId:startProject.customerId||"",customer:startProject.customer||"",customerAddress:startProject.customerAddress||"",created:new Date().toISOString(),updated:new Date().toISOString(),sale:total,recommendedSalePrice:total,recommendedPrice:total,cost:0,qty:items.reduce((sum,item)=>sum+item.quantity,0),offerItems:items,notes:"Sammelangebot: Einzelkalkulationen bleiben in den ursprünglichen Projekten. Herstellungskosten und Gewinn des Sammelangebots werden nicht automatisch berechnet."};
+  state.projects.push(project);save();renderProjects();
+  await appAlert(`Sammelangebot gespeichert: ${euro(total)}. Du kannst es unter Projekte öffnen und als PDF ausgeben.`);
+}
 async function printOffer(p,selectedPrice=p.sale){
   if(OFFER_PDF_TEMPLATE==="legacy"){printOfferLegacy(p,selectedPrice);return}
   const today=new Date();
@@ -440,7 +477,7 @@ async function printOffer(p,selectedPrice=p.sale){
   const address=(customerAddressById(p.customerId)||p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
   if(address.split(/\r?\n/).filter(Boolean).length<3)await appAlert("Für einen Fensterbriefumschlag fehlt eine vollständige Kundenanschrift. Das Angebot wird trotzdem erstellt.");
   try{
-    const offerData={offerNumber:offerNo,date:today.toLocaleDateString("de-DE"),projectName:p.title||p.type||"Individuelle Anfertigung",address,positions:[{description:p.title||p.type||"Individuelle Anfertigung",quantity:qty,unit:"Stk.",unitPrice,total:totalPrice}],total:totalPrice};
+    const offerData={offerNumber:offerNo,date:today.toLocaleDateString("de-DE"),projectName:p.title||p.type||"Individuelle Anfertigung",address,positions:offerItemRows(p)||[{description:p.title||p.type||"Individuelle Anfertigung",quantity:qty,unit:"Stk.",unitPrice,total:totalPrice}],total:totalPrice};
     const bytes=await createOfferPdf(offerData);
     downloadOfferPdf(bytes,offerPdfFilename(offerData));
   }catch(error){
