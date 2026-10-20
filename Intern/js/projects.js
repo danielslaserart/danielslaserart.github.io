@@ -1,5 +1,5 @@
 import { $, num, euro, uid, esc, compressProjectImage } from "./utils.js?v=7.2";
-import { state, save, getRealProjects, getReferenceProjects } from "./storage.js?v=7.2";
+import { state, save, getRealProjects, getOffers, getReferenceProjects } from "./storage.js?v=7.2";
 import { loadCalculatorData, updateHome, createTemplateFromProject, startNewOrder } from "./ui.js?v=7.2";
 import { resolveMaterialSelection } from "./materials.js?v=7.2";
 import { workshopUnit, computePriceRecommendations, paintingSurcharge } from "./calculator.js?v=7.2";
@@ -353,8 +353,8 @@ function projectChatGptText(p,ownRecommendations,currentPositionTotals){
   return lines.filter(line=>line!==null&&line!==undefined).join("\n").replace(/\n{3,}/g,"\n\n");
 }
 export function viewProject(id){
-  const p=getRealProjects().find(x=>x.id===id);
-  if(!p){appAlert("Projekt wurde nicht gefunden.");return;}
+  const p=getRealProjects().find(x=>x.id===id)||getOffers().find(x=>x.id===id);
+  if(!p){appAlert("Projekt oder Angebot wurde nicht gefunden.");return;}
   const dialog=$("projectViewDialog");
   const currentPositionTotals=positionTotals(p);
   const selfCosts=Array.isArray(p.positions)?currentPositionTotals.cost:getCostCoveringMinimumPrice(p);
@@ -446,6 +446,20 @@ function offerItemRows(p){
 const offerRound=value=>Math.round((Number(value)||0)*100)/100;
 const offerQuantity=value=>Math.max(1,Math.floor(Number(value)||1));
 const offerSourcePrice=p=>Math.max(0,num(p.recommendedSalePrice??p.sale));
+const offerPriceLevels=p=>{
+  const recommended=offerRound(offerSourcePrice(p));
+  const minimum=offerSourceCost(p);
+  const agreed=p.agreementPrice;
+  const levels=[
+    {value:"recommended",label:"Preisvorschlag",price:recommended},
+    {value:"normal",label:"Normalpreis",price:recommended},
+    {value:"low",label:"Günstiger Preis (−20 %)",price:offerRound(recommended*.8)},
+    {value:"premium",label:"Premium (+20 %)",price:offerRound(recommended*1.2)}
+  ];
+  if(minimum!==null)levels.push({value:"minimum",label:"Selbstkosten / Mindestpreis",price:offerRound(minimum)});
+  if(agreed!==null&&agreed!==undefined&&Number.isFinite(Number(agreed)))levels.push({value:"agreement",label:"Vereinbarter Preis",price:offerRound(agreed)});
+  return levels;
+};
 const offerCustomerName=c=>c?.companyName||c?.name||[c?.firstName,c?.lastName].filter(Boolean).join(" ")||"Kunde";
 const offerSources=()=>getRealProjects().filter(p=>!p.offerItems?.length);
 let offerDraft=null;
@@ -505,6 +519,7 @@ function offerRenderList(){
       <div class="offer-line-head"><strong>Position ${i+1}</strong><button type="button" class="secondary small" data-offer-remove="${i}">Entfernen</button></div>
       <label>Artikelbezeichnung<input data-offer-field="description" value="${esc(item.description||"")}" aria-label="Artikelbezeichnung"></label>
       <div class="offer-line-grid">
+        <label>Preisstufe<select data-offer-field="priceLevel">${offerPriceLevels(offerSources().find(p=>p.id===item.projectId)||{recommendedSalePrice:item.baseUnitPrice,cost:item.baseUnitCost}).map(level=>`<option value="${level.value}" ${(item.priceLevel||"recommended")===level.value?"selected":""}>${esc(level.label)} · ${euro(level.price)}</option>`).join("")}<option value="custom" ${item.priceLevel==="custom"?"selected":""}>Individueller Preis</option></select></label>
         <label>Menge<input data-offer-field="quantity" type="number" min="1" step="1" value="${item.quantity}"></label>
         <label>Grundpreis pro Stück (€)<input data-offer-field="baseUnitPrice" type="number" min="0" step=".01" value="${item.baseUnitPrice}"></label>
         <label>Einmalkosten im Grundpreis (€)<input data-offer-field="oneTimeCost" type="number" min="0" step=".01" value="${item.oneTimeCost}"></label>
@@ -520,7 +535,7 @@ function offerRenderList(){
   $("offerEditorCount").textContent=String(offerDraft.offerItems.reduce((sum,item)=>sum+offerQuantity(item.quantity),0));
   offerRenderSummary();
   $("offerSaveBtn").disabled=!offerDraft.offerItems.length;
-  $("offerConvertBtn").disabled=!offerDraft.id||offerDraft.status==="progress";
+  $("offerConvertBtn").disabled=!offerDraft.id||Boolean(offerDraft.linkedProjectId);
 }
 function offerUpdateTotals(){
   if(!offerDraft)return;
@@ -550,7 +565,7 @@ export function renderOfferBuilder(){
   if(!offerDraft)offerNewDraft();
 }
 function offerNewDraft(){
-  offerDraft={title:"Neues Sammelangebot",customerId:"",offerStatus:"draft",offerItems:[],status:"offer"};
+  offerDraft={title:"",customerId:"",offerStatus:"draft",offerItems:[],status:"offer"};
   offerDirty=false;
   offerFillEditor();
 }
@@ -560,12 +575,12 @@ function offerFillEditor(){
   $("offerCustomerId").innerHTML=offerCustomerOptions(offerDraft.customerId||"");
   $("offerStatus").value=offerDraft.offerStatus||"draft";
   $("offerEditorHeading").textContent=offerDraft.id?"Angebot bearbeiten":"Neues Angebot";
-  $("offerConvertBtn").textContent=offerDraft.status==="progress"?"Bereits als Auftrag übernommen":"✓ Als Auftrag übernehmen";
+  $("offerConvertBtn").textContent=offerDraft.linkedProjectId?"Bereits als Auftrag übernommen":"✓ Als Auftrag übernehmen";
   $("offerEditor").classList.remove("hidden");
   offerRenderList();
 }
 export function editOfferProject(id){
-  const project=getRealProjects().find(p=>p.id===id&&p.offerItems?.length);
+  const project=getOffers().find(p=>p.id===id);
   if(!project)return;
   offerDraft=structuredClone(project);
   offerDraft.offerItems=offerDraft.offerItems.map(item=>({...item,baseUnitPrice:item.baseUnitPrice??(num(item.unitPrice)+num(item.oneTimeCost)*(1-1/offerQuantity(item.quantity))),baseUnitCost:item.baseUnitCost??(item.totalCost!=null?num(item.totalCost)/offerQuantity(item.quantity):offerSourceCost(offerSources().find(p=>p.id===item.projectId)||{}))}));
@@ -575,7 +590,7 @@ export function editOfferProject(id){
 function offerAddProject(id){
   const source=offerSources().find(p=>p.id===id);
   if(!source||!offerDraft)return;
-  offerDraft.offerItems.push({projectId:source.id,description:source.title||source.projectName||"Artikel",quantity:1,baseUnitPrice:offerSourcePrice(source),oneTimeCost:0,discount:0,baseUnitCost:offerSourceCost(source),oneTimeCostPart:0});
+  offerDraft.offerItems.push({projectId:source.id,description:source.title||source.projectName||"Artikel",quantity:1,baseUnitPrice:offerSourcePrice(source),priceLevel:"recommended",oneTimeCost:0,discount:0,baseUnitCost:offerSourceCost(source),oneTimeCostPart:0});
   offerDirty=true;offerRenderList();
 }
 function offerSave(){
@@ -587,16 +602,17 @@ function offerSave(){
   const sum=offerRound(items.reduce((value,item)=>value+item.total,0));
   const costs=offerSummary(items);
   const now=new Date().toISOString();
-  const old=offerDraft.id?getRealProjects().find(p=>p.id===offerDraft.id):null;
+  const old=offerDraft.id?getOffers().find(p=>p.id===offerDraft.id):null;
   const saved={...(old||{}),...offerDraft,id:old?.id||uid(),title,customerId:customer?.id||"",customer:customer?offerCustomerName(customer):"",customerAddress:customer?customerAddressById(customer.id)||"":"",type:"Angebot",status:old?.status==="progress"?"progress":"offer",offerStatus:$("offerStatus").value,offerItems:items,sale:sum,recommendedSalePrice:sum,recommendedPrice:sum,estimatedPrice:sum,actualPrice:sum,cost:costs.costs,offerCostVerified:costs.known,offerProfit:costs.profit,qty:items.reduce((value,item)=>value+item.quantity,0),updated:now,created:old?.created||now,notes:old?.notes||"Sammelangebot mit positionsbezogenen Selbstkosten und Gewinnberechnung."};
-  if(old)Object.assign(old,saved);else state.projects.push(saved);
+  saved.recordType="offer";
+  if(old)Object.assign(old,saved);else state.offers.push(saved);
   save();renderProjects();offerDraft=structuredClone(saved);offerDirty=false;
   renderOfferSavedList();offerFillEditor();
   appAlert("Angebot gespeichert. Die Artikel und Stückzahlen bleiben beim Bearbeiten erhalten.");
 }
 function renderOfferSavedList(){
   const target=$("offerSavedList");if(!target)return;
-  const offers=getRealProjects().filter(p=>p.offerItems?.length).sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
+  const offers=getOffers().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
   target.innerHTML=offers.length?offers.map(p=>`<div class="offer-saved-row"><div><strong>${esc(p.title||"Sammelangebot")}</strong><small>${esc(customerNameById(p.customerId)||p.customer||"Ohne Kundenzuordnung")} · ${p.offerItems.length} Positionen · ${esc(p.status==="progress"?"In Arbeit":({draft:"Entwurf",sent:"Versendet",accepted:"Angenommen",rejected:"Abgelehnt"})[p.offerStatus]||"Entwurf")}</small></div><strong>${euro(p.sale)}</strong><button type="button" class="secondary small" data-offer-view="${esc(p.id)}">Ansehen / PDF</button><button type="button" class="secondary small" data-offer-edit="${esc(p.id)}">Bearbeiten</button></div>`).join(""):'<p>Noch keine Sammelangebote gespeichert.</p>';
 }
 document.getElementById("offers")?.addEventListener("click",async event=>{
@@ -604,7 +620,17 @@ document.getElementById("offers")?.addEventListener("click",async event=>{
   if(t.id==="offerAddBtn"){offerAddProject($("offerSourceProject").value);return;}
   if(t.id==="offerNewBtn"){if(offerDirty&&!await appConfirm("Ungespeicherte Änderungen verwerfen?"))return;offerNewDraft();return;}
   if(t.id==="offerSaveBtn"){offerSave();return;}
-  if(t.id==="offerConvertBtn"){if(!offerDraft?.id)return;const saved=getRealProjects().find(p=>p.id===offerDraft.id);if(!saved||saved.status==="progress")return;if(offerDirty){await appAlert("Bitte zuerst die Änderungen speichern.");return;}if(!await appConfirm("Dieses Angebot als Auftrag übernehmen? Alle Artikel und Mengen bleiben erhalten."))return;saved.status="progress";saved.offerStatus="accepted";saved.updated=new Date().toISOString();save();renderProjects();editOfferProject(saved.id);renderOfferSavedList();await appAlert("Das Angebot ist jetzt ein Auftrag mit Status „In Arbeit“.");return;}
+  if(t.id==="offerConvertBtn"){
+    if(!offerDraft?.id)return;
+    const saved=getOffers().find(p=>p.id===offerDraft.id);
+    if(!saved||saved.linkedProjectId)return;
+    if(offerDirty){await appAlert("Bitte zuerst die Änderungen speichern.");return;}
+    if(!await appConfirm("Aus diesem Angebot einen Auftrag in Projekte anlegen? Das ursprüngliche Angebot bleibt im Angebotsbereich."))return;
+    const order={...structuredClone(saved),id:uid(),recordType:"project",status:"progress",sourceOfferId:saved.id,created:new Date().toISOString(),updated:new Date().toISOString()};
+    state.projects.push(order);saved.linkedProjectId=order.id;saved.offerStatus="accepted";
+    save();renderProjects();editOfferProject(saved.id);renderOfferSavedList();
+    await appAlert("Auftrag unter Projekte angelegt. Das Angebot bleibt separat gespeichert.");return;
+  }
   if(t.dataset.offerView){viewProject(t.dataset.offerView);return;}
   if(t.dataset.offerEdit){if(offerDirty&&!await appConfirm("Ungespeicherte Änderungen verwerfen?"))return;editOfferProject(t.dataset.offerEdit);return;}
   if(t.dataset.offerRemove!==undefined){offerDraft.offerItems.splice(Number(t.dataset.offerRemove),1);offerDirty=true;offerRenderList();}
@@ -621,7 +647,15 @@ document.getElementById("offers")?.addEventListener("input",event=>{
   const item=offerDraft.offerItems[Number(line.dataset.offerIndex)];
   if(!item)return;
   const key=target.dataset.offerField;
+  if(key==="priceLevel"){
+    item.priceLevel=target.value;
+    const source=offerSources().find(p=>p.id===item.projectId);
+    const level=source?offerPriceLevels(source).find(p=>p.value===target.value):null;
+    if(level)item.baseUnitPrice=level.price;
+    offerDirty=true;offerRenderList();return;
+  }
   item[key]=key==="description"?target.value:Number(target.value);
+  if(key==="baseUnitPrice")item.priceLevel="custom";
   offerDirty=true;offerUpdateTotals();
 });
 document.addEventListener("dla:edit-offer",event=>{editOfferProject(event.detail?.id)});
