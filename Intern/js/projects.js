@@ -379,7 +379,8 @@ export function viewProject(id){
       ${p.fields?.customerEmail?`<div><span>E-Mail</span><strong>${esc(p.fields.customerEmail)}</strong></div>`:""}
       ${p.fields?.customerPhone?`<div><span>Telefon</span><strong>${esc(p.fields.customerPhone)}</strong></div>`:""}
     </div>`:""}
-    ${renderProjectPositions(p)}
+    ${Array.isArray(p.offerItems)&&p.offerItems.length?`<h3>Artikel im Sammelangebot</h3><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:10px 6px">Artikel</th><th style="text-align:right;padding:10px 6px">Menge</th><th style="text-align:right;padding:10px 6px">Einzelpreis</th><th style="text-align:right;padding:10px 6px">Gesamt</th></tr></thead><tbody>${p.offerItems.map(item=>`<tr style="border-top:1px solid var(--border, #555)"><td style="padding:10px 6px">${esc(item.description||"Artikel")}</td><td style="text-align:right;padding:10px 6px">${Math.max(1,num(item.quantity))} ×</td><td style="text-align:right;padding:10px 6px">${euro(num(item.total)/Math.max(1,num(item.quantity)))}</td><td style="text-align:right;padding:10px 6px"><strong>${euro(item.total)}</strong></td></tr>`).join("")}</tbody><tfoot><tr style="border-top:2px solid var(--border, #555)"><td colspan="3" style="padding:12px 6px"><strong>Angebotssumme</strong></td><td style="text-align:right;padding:12px 6px"><strong>${euro(p.offerItems.reduce((sum,item)=>sum+num(item.total),0))}</strong></td></tr></tfoot></table></div>`:""}
+    ${!p.offerItems?.length?renderProjectPositions(p):""}
     ${projectProcessingDetails(p)}
     ${customerCalculationOverview(p)}
     ${p.orderType==="customerObject"?"":`<h3>Tatsächliche Kosten</h3><div class="project-view-details">
@@ -474,8 +475,15 @@ async function composeOffer(startProject){
     pending=startProject;
   }
   if(!items.length)return;
+  const customerOptions=[{value:"",label:"Kein Kunde / später zuordnen"},...(state.customers||[]).map(c=>({value:c.id,label:c.companyName||c.name||[c.firstName,c.lastName].filter(Boolean).join(" ")||"Kunde"}))];
+  const customerChoice=await appForm({title:"Kunde für das Sammelangebot",message:"Der Kunde wird unabhängig von den verwendeten Projektvorlagen ausgewählt.",fields:[
+    {name:"customerId",label:"Kunde auswählen",type:"select",value:"",options:customerOptions},
+    {name:"title",label:"Angebotstitel",type:"text",value:"Sammelangebot – "+(startProject.title||"Artikel")}
+  ],acceptText:"Angebot speichern"});
+  if(!customerChoice)return;
+  const selectedCustomer=(state.customers||[]).find(c=>c.id===customerChoice.customerId);
   const total=Math.round(items.reduce((sum,item)=>sum+item.total,0)*100)/100;
-  const project={id:uid(),title:`Sammelangebot – ${startProject.title||"Artikel"}`,type:startProject.type||"Angebot",status:"offer",customerId:startProject.customerId||"",customer:startProject.customer||"",customerAddress:startProject.customerAddress||"",created:new Date().toISOString(),updated:new Date().toISOString(),sale:total,recommendedSalePrice:total,recommendedPrice:total,cost:0,qty:items.reduce((sum,item)=>sum+item.quantity,0),offerItems:items,notes:"Sammelangebot: Einzelkalkulationen bleiben in den ursprünglichen Projekten. Herstellungskosten und Gewinn des Sammelangebots werden nicht automatisch berechnet."};
+  const project={id:uid(),title:customerChoice.title?.trim()||`Sammelangebot – ${startProject.title||"Artikel"}`,type:"Angebot",status:"offer",customerId:selectedCustomer?.id||"",customer:selectedCustomer?(selectedCustomer.companyName||selectedCustomer.name||[selectedCustomer.firstName,selectedCustomer.lastName].filter(Boolean).join(" ")):"",customerAddress:"",created:new Date().toISOString(),updated:new Date().toISOString(),sale:total,recommendedSalePrice:total,recommendedPrice:total,cost:0,qty:items.reduce((sum,item)=>sum+item.quantity,0),offerItems:items,notes:"Sammelangebot: Einzelkalkulationen bleiben in den ursprünglichen Projekten. Herstellungskosten und Gewinn des Sammelangebots werden nicht automatisch berechnet."};
   state.projects.push(project);save();renderProjects();
   await appAlert(`Sammelangebot gespeichert: ${euro(total)}. Du kannst es unter Projekte öffnen und als PDF ausgeben.`);
 }
