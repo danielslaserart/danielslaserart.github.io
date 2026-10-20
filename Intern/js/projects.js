@@ -467,6 +467,7 @@ const offerCustomerName=c=>c?.companyName||c?.name||[c?.firstName,c?.lastName].f
 const offerSources=()=>getRealProjects().filter(p=>!p.offerItems?.length);
 let offerDraft=null;
 let offerDirty=false;
+function offerShowEditor(show){$("offerOverview").hidden=show;$("offerEditor").hidden=!show;$("offerNewBtn").hidden=show;}
 function offerRow(item){
   const quantity=offerQuantity(item.quantity);
   const base=Math.max(0,num(item.baseUnitPrice??item.unitPrice));
@@ -565,12 +566,14 @@ export function renderOfferBuilder(){
   const customer=$("offerCustomerId");
   if(customer)customer.innerHTML=offerCustomerOptions(offerDraft?.customerId||"");
   renderOfferSavedList();
-  if(!offerDraft)offerNewDraft();
+  if(!offerDraft)offerNewDraft(false);
+  offerShowEditor(false);
 }
-function offerNewDraft(){
+function offerNewDraft(show=true){
   offerDraft={title:"",customerId:"",offerStatus:"draft",offerItems:[],status:"offer"};
   offerDirty=false;
   offerFillEditor();
+  offerShowEditor(show);
 }
 function offerFillEditor(){
   if(!offerDraft)return;
@@ -581,6 +584,7 @@ function offerFillEditor(){
   $("offerConvertBtn").textContent=offerDraft.linkedProjectId?"Bereits als Auftrag übernommen":"✓ Als Auftrag übernehmen";
   $("offerEditor").classList.remove("hidden");
   offerRenderList();
+  offerShowEditor(true);
 }
 export function editOfferProject(id){
   const project=getOffers().find(p=>p.id===id);
@@ -611,17 +615,20 @@ function offerSave(){
   if(old)Object.assign(old,saved);else state.offers.push(saved);
   save();renderProjects();offerDraft=structuredClone(saved);offerDirty=false;
   renderOfferSavedList();offerFillEditor();
-  appAlert("Angebot gespeichert. Die Artikel und Stückzahlen bleiben beim Bearbeiten erhalten.");
+  offerShowEditor(false);
+  appAlert("Angebot gespeichert. Du findest es in der Angebotsübersicht.");
 }
 function renderOfferSavedList(){
   const target=$("offerSavedList");if(!target)return;
-  const offers=getOffers().sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
+  const search=($("offerSearch")?.value||"").trim().toLowerCase();
+  const offers=getOffers().filter(p=>!search||[p.title,customerNameById(p.customerId),p.customer,p.offerStatus].some(v=>String(v||"").toLowerCase().includes(search))).sort((a,b)=>new Date(b.updated||b.created)-new Date(a.updated||a.created));
   target.innerHTML=offers.length?offers.map(p=>`<div class="offer-saved-row"><div><strong>${esc(p.title||"Sammelangebot")}</strong><small>${esc(customerNameById(p.customerId)||p.customer||"Ohne Kundenzuordnung")} · ${p.offerItems.length} Positionen · ${esc(p.status==="progress"?"In Arbeit":({draft:"Entwurf",sent:"Versendet",accepted:"Angenommen",rejected:"Abgelehnt"})[p.offerStatus]||"Entwurf")}</small></div><strong>${euro(p.sale)}</strong><button type="button" class="secondary small" data-offer-view="${esc(p.id)}">Ansehen / PDF</button><button type="button" class="secondary small" data-offer-edit="${esc(p.id)}">Bearbeiten</button></div>`).join(""):'<p>Noch keine Sammelangebote gespeichert.</p>';
 }
 document.getElementById("offers")?.addEventListener("click",async event=>{
   const t=event.target.closest("button");if(!t)return;
   if(t.id==="offerAddBtn"){offerAddProject($("offerSourceProject").value);return;}
-  if(t.id==="offerNewBtn"){if(offerDirty&&!await appConfirm("Ungespeicherte Änderungen verwerfen?"))return;offerNewDraft();return;}
+  if(t.id==="offerNewBtn"){offerNewDraft();return;}
+  if(t.id==="offerBackBtn"){if(offerDirty&&!await appConfirm("Ungespeicherte Änderungen verwerfen?"))return;offerDirty=false;offerShowEditor(false);renderOfferSavedList();return;}
   if(t.id==="offerSaveBtn"){offerSave();return;}
   if(t.id==="offerConvertBtn"){
     if(!offerDraft?.id)return;
@@ -638,6 +645,7 @@ document.getElementById("offers")?.addEventListener("click",async event=>{
   if(t.dataset.offerEdit){if(offerDirty&&!await appConfirm("Ungespeicherte Änderungen verwerfen?"))return;editOfferProject(t.dataset.offerEdit);return;}
   if(t.dataset.offerRemove!==undefined){offerDraft.offerItems.splice(Number(t.dataset.offerRemove),1);offerDirty=true;offerRenderList();}
 });
+document.getElementById("offerSearch")?.addEventListener("input",renderOfferSavedList);
 document.getElementById("offers")?.addEventListener("input",event=>{
   const target=event.target;
   if(!offerDraft)return;
