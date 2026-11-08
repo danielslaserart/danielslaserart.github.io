@@ -54,9 +54,10 @@ function actualProjectPrice(project){
 }
 export function renderProjectPriceBlock(project){
   const hasAgreement=project.agreementPrice!=null;
+  const hasRange=project.agreementRangeMin!=null&&project.agreementRangeMax!=null;
   const closed=["done","doneNoInvoice","gifted","billed"].includes(project.status);
   const work=positionTotals(project).work;
-  return `<div class="project-price-block"><strong>${euro(actualProjectPrice(project))}</strong>${work>0?`<span class="project-agreed-price">Arbeitskosten: ${euro(work)}</span>`:""}<span class="project-agreed-price">${closed?"Verkaufspreis":`Vereinbart: ${hasAgreement?euro(project.agreementPrice):"Nicht festgelegt"}`}</span>${hasAgreement?renderPriceTypeBadge(project.priceType,project.isPreferredRepeatPrice):""}</div>`;
+  return `<div class="project-price-block"><strong>${euro(actualProjectPrice(project))}</strong>${work>0?`<span class="project-agreed-price">Arbeitskosten: ${euro(work)}</span>`:""}<span class="project-agreed-price">${closed?"Verkaufspreis":`Vereinbart: ${hasAgreement?euro(project.agreementPrice):hasRange?`${euro(project.agreementRangeMin)} – ${euro(project.agreementRangeMax)} (Spanne)`:"Nicht festgelegt"}`}</span>${hasAgreement?renderPriceTypeBadge(project.priceType,project.isPreferredRepeatPrice):""}</div>`;
 }
 export function renderProjects(){
   const realProjects=getRealProjects();
@@ -347,6 +348,7 @@ function projectChatGptText(p,ownRecommendations,currentPositionTotals){
     premiumWith!=null?("Premiumpreis mit Arbeitszeit: "+euro(premiumWith)):"",
     recommended!=null?("Empfohlener Verkaufspreis: "+euro(recommended)):"",
     p.agreementPrice!=null?("Vereinbarter Preis: "+euro(p.agreementPrice)):"Vereinbarter Preis: noch nicht festgelegt",
+    p.agreementRangeMin!=null&&p.agreementRangeMax!=null?("Dem Kunden genannte Preisspanne: "+euro(p.agreementRangeMin)+" – "+euro(p.agreementRangeMax)):"",
     "",
     p.notes?("Notizen: "+p.notes):""
   ];
