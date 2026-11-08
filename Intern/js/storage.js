@@ -243,6 +243,8 @@ export function normalizeProjectRecord(project={}){
     title:String(project.title||project.projectName||project.name||"Unbenanntes Projekt"),
     customerName:String(project.customerName||project.customer||""),
     agreementPrice:(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===null||(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===undefined||(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)===""?null:num(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice),
+    agreementRangeMin:project.agreementRangeMin==null||project.agreementRangeMin===""?null:Math.max(0,num(project.agreementRangeMin)),
+    agreementRangeMax:project.agreementRangeMax==null||project.agreementRangeMax===""?null:Math.max(0,num(project.agreementRangeMax)),
     priceAgreementDate:(project.priceAgreementDate??project.agreementPriceDate)&&!Number.isNaN(new Date(project.priceAgreementDate??project.agreementPriceDate).getTime())?project.priceAgreementDate??project.agreementPriceDate:null,
     isPreferredRepeatPrice:(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==null&&(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==undefined&&(project.agreementPrice??project.agreedPrice??project.customerAgreementPrice)!==""&&Boolean(project.isPreferredRepeatPrice??project.isPreferredCustomerPrice),
     priceType:["normal","regularCustomer","special","promotion","repeatOrder","other"].includes(project.priceType??project.agreementPriceType)?project.priceType??project.agreementPriceType:(Boolean(project.isPreferredRepeatPrice??project.isPreferredCustomerPrice)?"regularCustomer":"normal"),
