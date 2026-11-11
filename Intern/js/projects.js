@@ -573,8 +573,38 @@ export function renderOfferBuilder(){
   if(!offerDraft)offerNewDraft(false);
   offerShowEditor(false);
 }
+function offerValidityControls(){
+  const mode=$("offerValidityMode")?.value||"days";
+  $("offerValidityDaysWrap").hidden=mode!=="days";
+  $("offerValidityDateWrap").hidden=mode!=="date";
+}
+function offerReadValidity(){
+  const mode=$("offerValidityMode").value;
+  if(mode==="none")return {offerValidityMode:"none",offerValidityDays:null,offerValidityDate:null};
+  if(mode==="date"){
+    const date=$("offerValidityDate").value;
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))throw new Error("Bitte ein gültiges Ablaufdatum wählen.");
+    return {offerValidityMode:"date",offerValidityDays:null,offerValidityDate:date};
+  }
+  const days=Number($("offerValidityDays").value);
+  if(!Number.isInteger(days)||days<1||days>3650)throw new Error("Bitte eine Gültigkeit von 1 bis 3650 Tagen angeben.");
+  return {offerValidityMode:"days",offerValidityDays:days,offerValidityDate:null};
+}
+function offerValidityForPdf(p,date){
+  const mode=p.offerValidityMode||"days";
+  if(mode==="none")return {validityEnabled:false,validUntil:""};
+  if(mode==="date"){
+    const value=p.offerValidityDate;
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value||""))return {validityEnabled:false,validUntil:""};
+    const [y,m,d]=value.split("-");
+    return {validityEnabled:true,validUntil:`${d}.${m}.${y}`};
+  }
+  const days=Number.isInteger(Number(p.offerValidityDays))&&Number(p.offerValidityDays)>0?Number(p.offerValidityDays):14;
+  const expiry=new Date(date.getFullYear(),date.getMonth(),date.getDate()+days);
+  return {validityEnabled:true,validUntil:expiry.toLocaleDateString("de-DE")};
+}
 function offerNewDraft(show=true){
-  offerDraft={title:"",customerId:"",offerStatus:"draft",offerItems:[],status:"offer"};
+  offerDraft={title:"",customerId:"",offerStatus:"draft",offerItems:[],status:"offer",offerValidityMode:"days",offerValidityDays:14,offerValidityDate:null};
   offerDirty=false;
   offerFillEditor();
   offerShowEditor(show);
@@ -584,6 +614,10 @@ function offerFillEditor(){
   $("offerTitle").value=offerDraft.title||"";
   $("offerCustomerId").innerHTML=offerCustomerOptions(offerDraft.customerId||"");
   $("offerStatus").value=offerDraft.offerStatus||"draft";
+  $("offerValidityMode").value=offerDraft.offerValidityMode||"days";
+  $("offerValidityDays").value=offerDraft.offerValidityDays??14;
+  $("offerValidityDate").value=offerDraft.offerValidityDate||"";
+  offerValidityControls();
   $("offerEditorHeading").textContent=offerDraft.id?"Angebot bearbeiten":"Neues Angebot";
   $("offerConvertBtn").textContent=offerDraft.linkedProjectId?"Bereits als Auftrag übernommen":"✓ Als Auftrag übernehmen";
   $("offerEditor").classList.remove("hidden");
@@ -609,12 +643,14 @@ function offerSave(){
   const title=$("offerTitle").value.trim();
   if(!title)return appAlert("Bitte einen Angebotstitel eingeben.");
   const customer=(state.customers||[]).find(c=>c.id===$("offerCustomerId").value);
+  let validity;
+  try{validity=offerReadValidity();}catch(error){return appAlert(error.message);}
   const items=offerDraft.offerItems.map(offerRow);
   const sum=offerRound(items.reduce((value,item)=>value+item.total,0));
   const costs=offerSummary(items);
   const now=new Date().toISOString();
   const old=offerDraft.id?getOffers().find(p=>p.id===offerDraft.id):null;
-  const saved={...(old||{}),...offerDraft,id:old?.id||uid(),title,customerId:customer?.id||"",customer:customer?offerCustomerName(customer):"",customerAddress:customer?customerAddressById(customer.id)||"":"",type:"Angebot",status:old?.status==="progress"?"progress":"offer",offerStatus:$("offerStatus").value,offerItems:items,sale:sum,recommendedSalePrice:sum,recommendedPrice:sum,estimatedPrice:sum,actualPrice:sum,cost:costs.costs,offerCostVerified:costs.known,offerProfit:costs.profit,qty:items.reduce((value,item)=>value+item.quantity,0),updated:now,created:old?.created||now,notes:old?.notes||"Sammelangebot mit positionsbezogenen Selbstkosten und Gewinnberechnung."};
+  const saved={...(old||{}),...offerDraft,id:old?.id||uid(),title,customerId:customer?.id||"",customer:customer?offerCustomerName(customer):"",customerAddress:customer?customerAddressById(customer.id)||"":"",type:"Angebot",status:old?.status==="progress"?"progress":"offer",offerStatus:$("offerStatus").value,...validity,offerItems:items,sale:sum,recommendedSalePrice:sum,recommendedPrice:sum,estimatedPrice:sum,actualPrice:sum,cost:costs.costs,offerCostVerified:costs.known,offerProfit:costs.profit,qty:items.reduce((value,item)=>value+item.quantity,0),updated:now,created:old?.created||now,notes:old?.notes||"Sammelangebot mit positionsbezogenen Selbstkosten und Gewinnberechnung."};
   saved.recordType="offer";
   if(old)Object.assign(old,saved);else state.offers.push(saved);
   save();renderProjects();offerDraft=structuredClone(saved);offerDirty=false;
@@ -673,6 +709,9 @@ document.getElementById("offers")?.addEventListener("change",async event=>{
   try{item.imageData=await offerPrepareImage(input.files[0]);offerDirty=true;offerRenderList();}
   catch(error){await appAlert(error.message||"Bild konnte nicht geladen werden.");}
 });
+document.getElementById("offerValidityMode")?.addEventListener("change",()=>{offerValidityControls();offerDirty=true;});
+document.getElementById("offerValidityDays")?.addEventListener("input",()=>{offerDirty=true;});
+document.getElementById("offerValidityDate")?.addEventListener("input",()=>{offerDirty=true;});
 document.getElementById("offerSearch")?.addEventListener("input",renderOfferSavedList);
 document.getElementById("offers")?.addEventListener("input",event=>{
   const target=event.target;
@@ -704,7 +743,7 @@ function recordOfferFromProject(project,selectedPrice){
   if(existing)return existing;
   const price=offerRound(selectedPrice),cost=offerSourceCost(project),now=new Date().toISOString();
   const item=offerRow({projectId:project.id,description:project.title||project.type||"Individuelle Anfertigung",quantity:1,baseUnitPrice:price,priceLevel:"custom",oneTimeCost:0,discount:0,baseUnitCost:cost,oneTimeCostPart:0});
-  const offer={id:uid(),recordType:"offer",sourceProjectId:project.id,title:project.title||"Einzelangebot",customerId:project.customerId||"",customer:project.customer||"",customerAddress:project.customerAddress||"",type:"Angebot",status:"offer",offerStatus:"draft",offerItems:[item],sale:price,recommendedSalePrice:price,recommendedPrice:price,actualPrice:price,cost:item.totalCost,offerCostVerified:item.totalCost!==null,offerProfit:item.profit,qty:1,created:now,updated:now};
+  const offer={id:uid(),recordType:"offer",offerValidityMode:"days",offerValidityDays:14,offerValidityDate:null,sourceProjectId:project.id,title:project.title||"Einzelangebot",customerId:project.customerId||"",customer:project.customer||"",customerAddress:project.customerAddress||"",type:"Angebot",status:"offer",offerStatus:"draft",offerItems:[item],sale:price,recommendedSalePrice:price,recommendedPrice:price,actualPrice:price,cost:item.totalCost,offerCostVerified:item.totalCost!==null,offerProfit:item.profit,qty:1,created:now,updated:now};
   state.offers.push(offer);save();renderOfferSavedList();
   return offer;
 }
@@ -719,7 +758,7 @@ async function printOffer(p,selectedPrice=p.sale){
   const address=(customerAddressById(p.customerId)||p.customerAddress||p.fields?.customerAddress||p.customer||"").trim();
   if(address.split(/\r?\n/).filter(Boolean).length<3)await appAlert("Für einen Fensterbriefumschlag fehlt eine vollständige Kundenanschrift. Das Angebot wird trotzdem erstellt.");
   try{
-    const offerData={offerNumber:offerNo,date:today.toLocaleDateString("de-DE"),projectName:p.title||p.type||"Individuelle Anfertigung",address,positions:offerItemRows(p)||[{description:p.title||p.type||"Individuelle Anfertigung",quantity:qty,unit:"Stk.",unitPrice,total:totalPrice}],total:totalPrice};
+    const offerData={offerNumber:offerNo,date:today.toLocaleDateString("de-DE"),...offerValidityForPdf(p,today),projectName:p.title||p.type||"Individuelle Anfertigung",address,positions:offerItemRows(p)||[{description:p.title||p.type||"Individuelle Anfertigung",quantity:qty,unit:"Stk.",unitPrice,total:totalPrice}],total:totalPrice};
     const bytes=await createOfferPdf(offerData);
     downloadOfferPdf(bytes,offerPdfFilename(offerData));
   }catch(error){
