@@ -171,9 +171,8 @@ export async function createOfferPdf(data,options={}){
     ["Betreff",offer.projectName],
     ["Angebotsnummer",offer.offerNumber],
     ["Angebotsdatum",offer.date],
-    ["Gültig bis",offer.validUntil||"14 Tage"]
+    ...(offer.validityEnabled?[["Gültig bis",offer.validUntil||"14 Tage"]]:[])
   ];
-  if(!offer.validityEnabled){const index=detailItems.findIndex(item=>item[0]==="Gültigkeit");if(index>=0)detailItems.splice(index,1);}
   if(offer.customerNumber)detailItems.splice(2,0,["Kundennummer",offer.customerNumber]);
   const detailWidth=(mm(layout.pageWidthMm-layout.contentLeftMm-layout.contentRightMm)-(detailItems.length-1)*mm(5))/detailItems.length;
   detailItems.forEach(([label,value],index)=>{
