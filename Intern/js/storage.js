@@ -348,6 +348,25 @@ function migrateEmbeddedReferences(container){
     }));
   });
 }
+export async function syncBwaMonthsVerified(months){
+  if(!canWriteCloud())throw new Error("Bitte zuerst vollständig bei Supabase anmelden.");
+  if(!months||typeof months!=="object"||Array.isArray(months))throw new Error("Ungültige Monatsdaten.");
+  const client=await createSupabaseClient();
+  const {data:existing,error:readError}=await client.from("app_state").select("data").eq("user_id",currentUser.id).single();
+  if(readError)throw readError;
+  const remote=existing?.data?.bwaMonths||{};
+  const merged={...remote,...months};
+  const payload={...existing.data,bwaMonths:merged};
+  const {error:writeError}=await client.from("app_state").update({data:payload,updated_at:new Date().toISOString()}).eq("user_id",currentUser.id);
+  if(writeError)throw writeError;
+  const {data:check,error:verifyError}=await client.from("app_state").select("data").eq("user_id",currentUser.id).single();
+  if(verifyError)throw verifyError;
+  for(const [key,value] of Object.entries(merged)){
+    if(JSON.stringify(check?.data?.bwaMonths?.[key])!==JSON.stringify(value))throw new Error("Cloud-Prüfung fehlgeschlagen für "+key);
+  }
+  state.bwaMonths=structuredClone(merged);
+  return structuredClone(merged);
+}
 export function save(){
   if(!canWriteCloud()){
     setSyncStatus("Gesperrt","error");
