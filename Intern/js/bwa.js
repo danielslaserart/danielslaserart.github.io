@@ -3,9 +3,16 @@ const KEY="dla_bwa_months_v1", $=id=>document.getElementById(id);
 const euro=n=>Number(n||0).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
 const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let months={};
+let cloudState=null,cloudSave=null,cloudReady=false;
+let syncInProgress=false;
+function validMonths(data){return data&&typeof data==="object"&&!Array.isArray(data)?Object.fromEntries(Object.entries(data).filter(([key,v])=>/^\\d{4}-\\d{2}$/.test(key)&&v&&Number.isFinite(Number(v.profit)))):{}}
+function persistCloud(){if(!cloudReady||!cloudState||!cloudSave)return;cloudState.bwaMonths=structuredClone(months);const ok=cloudSave();if(ok===false)notify("Cloud-Speicherung derzeit gesperrt; lokale Sicherung verwenden.",true)}
+function initCloud(){import("./storage.js?v=7.2").then(mod=>{cloudState=mod.state;cloudSave=mod.save;document.addEventListener("dla:state-loaded",syncFromCloud);document.addEventListener("dla:security-reset",()=>{cloudReady=false;months={};render();notify("Abgemeldet – Cloud-Daten nicht geladen.")});if(document.getElementById("authGate")?.classList.contains("hidden"))syncFromCloud()}).catch(e=>notify("Cloud-Anbindung konnte nicht geladen werden: "+e.message,true))}
+function syncFromCloud(){if(!cloudState)return;cloudReady=true;const remote=validMonths(cloudState.bwaMonths);const local=validMonths(months);const keys=Object.keys(remote);if(keys.length){months=remote;try{localStorage.setItem(KEY,JSON.stringify(months))}catch{};render();notify("Monatsdaten aus Supabase geladen.");const missing=Object.keys(local).filter(k=>!remote[k]);if(missing.length)notify("Cloud-Daten geladen. "+missing.length+" lokale Monat(e) fehlen in der Cloud. Bitte JSON-Sicherung verwenden, bevor du sie zusammenführst.")}else if(Object.keys(local).length){months=local;cloudState.bwaMonths=structuredClone(local);persistCloud();render();notify("Vorhandene Monatsdaten werden in Supabase übernommen.")}else{months={};render();notify("Cloud-Synchronisierung bereit.")}}
+
 try{months=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch{months={}}
 function notify(s,error=false){$("bwaMessage").textContent=s;$("bwaMessage").style.color=error?"#ef8c8c":""}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(months));return true}catch{notify("Speichern im Browser fehlgeschlagen. Bitte Datensicherung herunterladen.",true);return false}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(months));persistCloud();return true}catch{notify("Speichern im Browser fehlgeschlagen. Bitte Datensicherung herunterladen.",true);return false}}
 function amount(s){const v=String(s).replace(/\s/g,"").replace(/\./g,"").replace(",",".");return Number(v)}
 let selected="all";
 const costNames={"1100":"Personalkosten","1120":"Raumkosten","1140":"Steuern","1150":"Versicherungen / Beiträge","1160":"Besondere Kosten","1180":"Kfz-Kosten","1200":"Werbung / Reisen","1220":"Warenabgabe","1240":"Abschreibungen","1250":"Reparaturen","1260":"Sonstige Kosten"};
@@ -51,4 +58,5 @@ const totals=k=>euro(entries.reduce((s,x)=>s+Number(x[k]||0),0));
 const doc='<!doctype html><html lang="de"><meta charset="utf-8"><title>Monatliche Gewinnauswertung</title><style>body{font:15px Arial,sans-serif;max-width:1050px;margin:40px auto;padding:0 20px;color:#222}table{border-collapse:collapse;width:100%}td,th{padding:12px 8px;border-bottom:1px solid #bbb;text-align:right}td:first-child,th:first-child{text-align:left}thead,tfoot{background:#eee}.note{margin-top:30px;font-size:12px;line-height:1.6}button{padding:12px;margin-bottom:20px}@media print{button{display:none}body{margin:10mm auto}}</style><button onclick="window.print()">Drucken / als PDF speichern</button><h1>Daniel\'s Laser Art – Monatliche Gewinnauswertung</h1><p>Grundlage: importierte BWAs aus Papierkram · erstellt am '+new Date().toLocaleDateString("de-DE")+'</p><table><thead><tr><th>Monat</th><th>Umsatz</th><th>Material</th><th>Weitere Kosten</th><th>Ergebnis</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><th>Summe</th><th>'+totals("revenue")+'</th><th>'+totals("material")+'</th><th>'+totals("costs")+'</th><th>'+totals("profit")+'</th></tr></tfoot></table><p class="note">Vorläufige buchhalterische BWA-Ergebnisse. Keine amtliche Einkommensbescheinigung und keine Berechnung des für ALG I anrechenbaren Nebeneinkommens. Original-BWAs aufbewahren.</p></html>';
 download("Daniels_Laser_Art_Monatsnachweis.html",doc,"text/html;charset=utf-8")});
 render();
+initCloud();
 })();
