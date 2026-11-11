@@ -97,6 +97,7 @@ function normalizeOffer(data){
     offerNumber:clean(data.offerNumber)||"A-2026-0001",
     date:clean(data.date)||new Date().toLocaleDateString("de-DE"),
     validUntil:clean(data.validUntil),
+    validityEnabled:data.validityEnabled!==false,
     customerNumber:clean(data.customerNumber),
     projectName:clean(data.projectName)||"Individueller Auftrag",
     contactPerson:clean(data.contactPerson),
@@ -172,6 +173,7 @@ export async function createOfferPdf(data,options={}){
     ["Angebotsdatum",offer.date],
     ["Gültig bis",offer.validUntil||"14 Tage"]
   ];
+  if(!offer.validityEnabled){const index=detailItems.findIndex(item=>item[0]==="Gültigkeit");if(index>=0)detailItems.splice(index,1);}
   if(offer.customerNumber)detailItems.splice(2,0,["Kundennummer",offer.customerNumber]);
   const detailWidth=(mm(layout.pageWidthMm-layout.contentLeftMm-layout.contentRightMm)-(detailItems.length-1)*mm(5))/detailItems.length;
   detailItems.forEach(([label,value],index)=>{
@@ -244,7 +246,7 @@ export async function createOfferPdf(data,options={}){
   drawRightTopText(page,money(offer.total),{right:mm(layout.contentRightMm),top:yTop+mm(3),size:13,font:bold,color:gold});
   yTop+=mm(15);
   const defaultNotes=[
-    "Dieses Angebot ist 14 Tage ab dem Ausstellungsdatum gültig.",
+    ...(offer.validityEnabled?[`Dieses Angebot ist bis zum ${offer.validUntil||"angegebenen Datum"} gültig.`]:[]),
     "Gemäß § 19 UStG wird aufgrund der Kleinunternehmerregelung keine Umsatzsteuer erhoben."
   ];
   for(const note of [...defaultNotes,...offer.notes]){
