@@ -94,7 +94,7 @@ export const defaults = {
       risks:{under50:0,from50To100:0,from100To250:0,from250To500:0,over500:0}
     }
   },
-  materials:[],processingProfiles:[],projects:[],offers:[],customers:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastOwnModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
+  bwaMonths:{},materials:[],processingProfiles:[],projects:[],offers:[],customers:[],templates:[],learningRecords:[],motifEstimator:{calibrationFactor:1,samples:0,lastDetected:"high"},activeModule:"3d",lastOwnModule:"3d",lastPrice:null,timer:{running:false,startedAt:null,elapsed:0},
   machines:[]
 };
 export function normalizeCustomerRecord(customer={}){
