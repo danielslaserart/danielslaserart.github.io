@@ -974,18 +974,35 @@
     <details class="card settings-panel system-section-panel"><summary><span>Daten &amp; Sicherung</span><small>Cloud-Status, Export und Wiederherstellung</small></summary><div class="settings-panel-body"><div class="cloud-card"><h3>☁ Cloud-Speicherung</h3><p>Materialien, Einstellungen und Projekte werden nach jeder Änderung automatisch gespeichert.</p></div><div class="backup"><h3>Zusätzliche Sicherung</h3><p>Zusätzlich kannst du eine lokale Sicherungsdatei herunterladen oder wieder einlesen.</p><div class="button-row"><button id="exportBtn" class="secondary" type="button">Backup herunterladen</button><label class="secondary file-button">Backup einlesen<input id="importInput" type="file" accept=".json,application/json"></label></div></div></div></details>
   </section>
 
-  <!-- Gewinnauswertung: eigenständiger letzter Hauptbereich -->
+  <!-- Eigenständiger letzter Bereich: Gewinnauswertung -->
   <section id="bwa" class="screen">
-    <div class="section-head"><div><div class="eyebrow">BUCHHALTUNG · PAPIERKRAM</div><h2>Monatliche Gewinnauswertung</h2></div></div>
-    <div class="card" style="padding:18px;margin-bottom:16px">
-      <p>Monats-BWA aus Papierkram als PDF einlesen. Die Auswertung bleibt getrennt von Projekten und Angeboten und wird in diesem Browser gespeichert.</p>
-      <label>Monats-BWA auswählen <input id="bwaPdf" type="file" accept=".pdf,application/pdf" multiple></label>
-      <p id="bwaMessage" role="status" aria-live="polite"></p>
-      <div class="button-row"><button id="bwaPrint" type="button" class="secondary">Nachweis drucken / PDF</button><button id="bwaBackup" type="button" class="secondary">Datensicherung herunterladen</button></div>
-      <label>Datensicherung wiederherstellen <input id="bwaRestore" type="file" accept=".json,application/json"></label>
+    <div class="section-head"><div><div class="eyebrow">BUCHHALTUNG · PAPIERKRAM</div><h2>Gewinnauswertung</h2><p>Monats-BWAs importieren, vergleichen und nachweisen.</p></div></div>
+    <div class="bwa-layout">
+      <div class="card bwa-card">
+        <h3>Monat auswählen</h3>
+        <div class="bwa-filter"><label>Auswertung <select id="bwaMonthSelect"><option value="all">Alle Monate – Gesamtübersicht</option></select></label></div>
+        <div class="bwa-metrics">
+          <div class="bwa-metric"><small>Umsatz</small><strong id="bwaRevenue">0,00 €</strong></div>
+          <div class="bwa-metric"><small>Material</small><strong id="bwaMaterial">0,00 €</strong></div>
+          <div class="bwa-metric"><small>Weitere Kosten</small><strong id="bwaCosts">0,00 €</strong></div>
+          <div class="bwa-metric bwa-profit"><small>Ergebnis</small><strong id="bwaProfit">0,00 €</strong></div>
+        </div>
+        <div id="bwaBreakdown" class="bwa-breakdown"></div>
+      </div>
+      <div class="card bwa-card">
+        <h3>Papierkram-BWA importieren</h3>
+        <label>PDF-Dateien auswählen <input id="bwaPdf" type="file" accept=".pdf,application/pdf" multiple></label>
+        <p id="bwaMessage" class="bwa-message" role="status" aria-live="polite"></p>
+        <div class="bwa-actions"><button id="bwaPrint" type="button" class="primary">Nachweis erstellen</button><button id="bwaBackup" type="button" class="secondary">Sicherung herunterladen</button></div>
+        <label>Sicherung wiederherstellen <input id="bwaRestore" type="file" accept=".json,application/json"></label>
+        <p class="bwa-hint">Daten werden getrennt von Projekten in diesem Browser gespeichert. Bitte regelmäßig eine Sicherung herunterladen.</p>
+      </div>
+      <div class="card bwa-card bwa-wide">
+        <h3>Alle importierten Monate</h3>
+        <div id="bwaTable" class="bwa-table-wrap"></div>
+      </div>
+      <p class="bwa-disclaimer">Die Ergebnisse sind vorläufige Buchhaltungswerte aus Papierkram, keine amtliche Einkommensbescheinigung und keine Berechnung des ALG-I-Nebeneinkommens. Original-BWAs aufbewahren.</p>
     </div>
-    <div class="card" style="padding:18px;overflow-x:auto"><h3>Monatsübersicht</h3><div id="bwaTable"></div></div>
-    <p style="font-size:.85rem;opacity:.8">Vorläufige buchhalterische BWA-Ergebnisse, keine amtliche Einkommensbescheinigung und keine Berechnung des ALG-I-Nebeneinkommens. Original-BWAs aufbewahren. Datensicherung regelmäßig herunterladen.</p>
   </section>
 </main>
 <dialog id="appDialog" class="app-dialog">
@@ -1286,6 +1303,39 @@
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
 <script type="module" src="js/app.js?v=9.8"></script>
-<script defer src="js/bwa.js?v=1.0"></script>
+<style>
+/* Gewinnauswertung – ausschließlich innerhalb des eigenen Bereichs */
+#bwa{max-width:1120px;margin-inline:auto;padding-bottom:130px}
+#bwa *{box-sizing:border-box}
+#bwa .bwa-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px}
+#bwa .bwa-card{min-width:0;padding:clamp(16px,2.5vw,25px);border:1px solid rgba(176,141,87,.35);border-radius:17px;background:rgba(19,16,17,.88);box-shadow:0 8px 25px rgba(0,0,0,.15)}
+#bwa .bwa-card h3{margin:0 0 18px;font-size:1.12rem;letter-spacing:.01em}
+#bwa .bwa-card label{display:grid;gap:8px;margin:12px 0;color:#e4cba7;font-size:.9rem;font-weight:600}
+#bwa .bwa-card select,#bwa .bwa-card input[type=file]{width:100%;max-width:100%;min-height:45px;padding:10px;border-radius:10px;border:1px solid rgba(176,141,87,.38);background:#17120f;color:#f5eee6;font:inherit}
+#bwa .bwa-card select{appearance:auto}
+#bwa .bwa-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0}
+#bwa .bwa-metric{min-width:0;padding:15px;border-radius:12px;background:rgba(176,141,87,.08);border:1px solid rgba(176,141,87,.2);display:grid;gap:7px}
+#bwa .bwa-metric small{color:#d1b99b;font-size:.8rem}
+#bwa .bwa-metric strong{font-size:clamp(1.15rem,2.4vw,1.65rem);font-weight:750;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+#bwa .bwa-profit{border-color:rgba(176,141,87,.55);background:rgba(176,141,87,.15)}
+#bwa .bwa-profit strong.positive{color:#8de0aa}
+#bwa .bwa-profit strong.negative{color:#ff9d9d}
+#bwa .bwa-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+#bwa .bwa-actions button{min-height:43px;flex:1 1 160px;font-size:.9rem}
+#bwa .bwa-message{min-height:1.5em;font-size:.85rem;color:#a7dfb5}
+#bwa .bwa-hint,#bwa .bwa-disclaimer{font-size:.82rem;line-height:1.55;color:#c9bcae}
+#bwa .bwa-wide,#bwa .bwa-disclaimer{grid-column:1/-1}
+#bwa .bwa-table-wrap{overflow-x:auto;max-width:100%}
+#bwa .bwa-table-wrap table{width:100%;border-collapse:collapse;min-width:590px;font-size:.88rem}
+#bwa .bwa-table-wrap th,#bwa .bwa-table-wrap td{padding:13px 10px;border-bottom:1px solid rgba(176,141,87,.2);text-align:right;white-space:nowrap}
+#bwa .bwa-table-wrap th:first-child,#bwa .bwa-table-wrap td:first-child{text-align:left}
+#bwa .bwa-table-wrap tbody tr{cursor:pointer}
+#bwa .bwa-table-wrap tbody tr:hover,#bwa .bwa-table-wrap tr.bwa-selected{background:rgba(176,141,87,.14)}
+#bwa .bwa-breakdown{font-size:.87rem}
+#bwa .bwa-breakdown h4{margin:12px 0}
+#bwa .bwa-breakdown .bwa-detail{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(176,141,87,.15)}
+@media(max-width:760px){#bwa .bwa-layout{grid-template-columns:minmax(0,1fr)}#bwa .bwa-wide,#bwa .bwa-disclaimer{grid-column:auto}}
+</style>
+<script defer src="js/bwa.js?v=2.0"></script>
 </body>
 </html>
