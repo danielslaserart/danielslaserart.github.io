@@ -107,7 +107,8 @@ function normalizeOffer(data){
       quantity:Number(position.quantity||1),
       unit:clean(position.unit)||"Stk.",
       unitPrice:Number(position.unitPrice??position.total??0),
-      total:Number(position.total??(Number(position.unitPrice||0)*Number(position.quantity||1)))
+      total:Number(position.total??(Number(position.unitPrice||0)*Number(position.quantity||1))),
+      imageData:typeof position.imageData==="string"&&/^data:image\/(jpeg|png);base64,/.test(position.imageData)?position.imageData:null
     })),
     total:Number(data.total??positions.reduce((sum,position)=>sum+Number(position.total??(Number(position.unitPrice||0)*Number(position.quantity||1))),0)),
     intro:clean(data.intro)||"Vielen Dank für Ihre Anfrage. Gern biete ich Ihnen folgende Leistung an:",
@@ -255,6 +256,25 @@ export async function createOfferPdf(data,options={}){
   }
   if(yTop+mm(13)>mm(layout.footerTopMm))await newContinuationPage();
   drawTopText(page,offer.closing,{x:left,top:yTop+mm(3),size:8.5,font:regular,color:ink,maxWidth:contentWidth,lineHeight:11});
+
+  // Optionale Skizzen/Produktbilder als separate Anlagen nach der Preistabelle.
+  const illustrated=offer.positions.filter(position=>position.imageData);
+  for(const position of illustrated){
+    const attachment=await addPage(false);
+    drawTopText(attachment,"Anlage zum Angebot - Position "+position.position,{x:left,top:mm(32),size:12,font:bold,color:gold});
+    drawTopText(attachment,position.description,{x:left,top:mm(43),size:9,font:regular,color:ink,maxWidth:contentWidth,lineHeight:12});
+    try{
+      const base64=position.imageData.split(",")[1];
+      const binary=atob(base64);
+      const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+      const embedded=position.imageData.startsWith("data:image/png")?await pdf.embedPng(bytes):await pdf.embedJpg(bytes);
+      const maxWidth=contentWidth,maxHeight=mm(175);
+      const scale=Math.min(maxWidth/embedded.width,maxHeight/embedded.height,1.8);
+      const width=embedded.width*scale,height=embedded.height*scale;
+      attachment.drawImage(embedded,{x:left+(contentWidth-width)/2,y:attachment.getHeight()-mm(67)-height,width,height});
+      drawTopText(attachment,"Darstellung zur Veranschaulichung. Maße und Ausführung gemäß Angebot.",{x:left,top:mm(252),size:8,font:regular,color:muted,maxWidth:contentWidth});
+    }catch(error){console.warn("Angebotsbild konnte nicht eingebettet werden",error);}
+  }
 
   const totalPages=pages.length;
   pages.forEach((current,index)=>{
