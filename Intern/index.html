@@ -993,7 +993,7 @@
         <h3>Papierkram-BWA importieren</h3>
         <label>PDF-Dateien auswählen <input id="bwaPdf" type="file" accept=".pdf,application/pdf" multiple></label>
         <p id="bwaMessage" class="bwa-message" role="status" aria-live="polite"></p>
-        <div class="bwa-actions"><button id="bwaPrint" type="button" class="primary">Nachweis erstellen</button><button id="bwaBackup" type="button" class="secondary">Sicherung herunterladen</button></div>
+        <div class="bwa-actions"><button id="bwaPrint" type="button" class="primary">Nachweis erstellen</button><button id="bwaSync" type="button" class="secondary">Jetzt synchronisieren</button><button id="bwaBackup" type="button" class="secondary">Sicherung herunterladen</button></div>
         <label>Sicherung wiederherstellen <input id="bwaRestore" type="file" accept=".json,application/json"></label>
         <p class="bwa-hint">Daten werden getrennt von Projekten in diesem Browser gespeichert. Bitte regelmäßig eine Sicherung herunterladen.</p>
       </div>
@@ -1336,6 +1336,6 @@
 #bwa .bwa-breakdown .bwa-detail{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(176,141,87,.15)}
 @media(max-width:760px){#bwa .bwa-layout{grid-template-columns:minmax(0,1fr)}#bwa .bwa-wide,#bwa .bwa-disclaimer{grid-column:auto}}
 </style>
-<script defer src="js/bwa.js?v=3.0"></script>
+<script defer src="js/bwa.js?v=4.0"></script>
 </body>
 </html>
