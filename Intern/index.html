@@ -28,7 +28,7 @@
   </script>
 <style>
 #offers{max-width:1050px;margin-inline:auto}
-#offers .offer-editor{display:grid;gap:18px}#offers [hidden]{display:none!important}#offers .offer-help{font-size:.9rem;opacity:.85}#offers .offer-help summary{cursor:pointer;padding:8px 0}#offers .offer-help p{padding:8px 0}#offers #offerOverview>label{display:block;margin-bottom:14px}#offers #offerOverview>label input{margin-top:7px}
+#offers .offer-editor{display:grid;gap:18px}#offers [hidden]{display:none!important}#offers .offer-validity{display:grid;gap:12px;padding:15px}#offers .offer-validity small{opacity:.75}#offers .offer-help{font-size:.9rem;opacity:.85}#offers .offer-help summary{cursor:pointer;padding:8px 0}#offers .offer-help p{padding:8px 0}#offers #offerOverview>label{display:block;margin-bottom:14px}#offers #offerOverview>label input{margin-top:7px}
 #offers label{display:flex;flex-direction:column;gap:7px;min-width:0}
 #offers input,#offers select{width:100%;min-width:0;box-sizing:border-box}
 #offers .offer-meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
@@ -822,6 +822,7 @@
         <label>Kunde<select id="offerCustomerId"><option value="">Kein Kunde / später zuordnen</option></select></label>
         <label>Status<select id="offerStatus"><option value="draft">Entwurf</option><option value="sent">Versendet</option><option value="accepted">Angenommen</option><option value="rejected">Abgelehnt</option></select></label>
       </div>
+      <div class="offer-validity card"><strong>Gültigkeit des Angebots</strong><div class="offer-meta-grid"><label>Gültigkeit<select id="offerValidityMode"><option value="days">Für eine bestimmte Anzahl Tage</option><option value="date">Bis zu einem Datum</option><option value="none">Ohne Gültigkeitsfrist</option></select></label><label id="offerValidityDaysWrap">Gültig für (Tage)<input id="offerValidityDays" type="number" min="1" max="3650" step="1" value="14"></label><label id="offerValidityDateWrap" hidden>Gültig bis<input id="offerValidityDate" type="date"></label></div><small>Die Gültigkeit erscheint im Angebots-PDF. Ohne Frist wird kein Ablaufdatum angegeben.</small></div>
       <div class="offer-add-panel">
         <strong>Projekt auswählen – anschließend Menge, Preis, Größe und Bild je Artikel festlegen</strong>
         <div class="offer-add-row"><select id="offerSourceProject" aria-label="Kalkulierten Artikel wählen"><option value="">Projekt auswählen …</option></select><button type="button" id="offerAddBtn" class="secondary">＋ Artikel hinzufügen</button></div>
@@ -1302,7 +1303,7 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=9.9"></script>
+<script type="module" src="js/app.js?v=10.0"></script>
 <style>
 /* Gewinnauswertung – ausschließlich innerhalb des eigenen Bereichs */
 #bwa{max-width:1120px;margin-inline:auto;padding-bottom:130px}
