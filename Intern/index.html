@@ -981,7 +981,7 @@
     <div class="bwa-layout">
       <div class="card bwa-card">
         <h3>Monat auswählen</h3>
-        <div class="bwa-filter"><label>Auswertung <select id="bwaMonthSelect"><option value="all">Alle Monate – Gesamtübersicht</option></select></label></div>
+        <div class="bwa-filter bwa-select-row"><label>Jahr <select id="bwaYearSelect"><option value="all">Alle Jahre</option></select></label><label>Monat <select id="bwaMonthSelect"><option value="all">Alle Monate</option></select></label></div>
         <div class="bwa-metrics">
           <div class="bwa-metric"><small>Umsatz</small><strong id="bwaRevenue">0,00 €</strong></div>
           <div class="bwa-metric"><small>Material</small><strong id="bwaMaterial">0,00 €</strong></div>
@@ -994,7 +994,7 @@
         <h3>Papierkram-BWA importieren</h3>
         <label>PDF-Dateien auswählen <input id="bwaPdf" type="file" accept=".pdf,application/pdf" multiple></label>
         <p id="bwaMessage" class="bwa-message" role="status" aria-live="polite"></p>
-        <div class="bwa-actions"><button id="bwaPrint" type="button" class="primary">Nachweis erstellen</button><button id="bwaSync" type="button" class="secondary">Jetzt synchronisieren</button><button id="bwaBackup" type="button" class="secondary">Sicherung herunterladen</button></div>
+        <div class="bwa-export-options"><label>Nachweis für Jahr <select id="bwaPrintYear"><option value="all">Alle Jahre</option></select></label><label>Nachweis für Monat <select id="bwaPrintMonth"><option value="all">Alle Monate</option></select></label></div><div class="bwa-actions"><button id="bwaPrint" type="button" class="primary">Nachweis erstellen</button><button id="bwaSync" type="button" class="secondary">Jetzt synchronisieren</button><button id="bwaBackup" type="button" class="secondary">Sicherung herunterladen</button></div>
         <label>Sicherung wiederherstellen <input id="bwaRestore" type="file" accept=".json,application/json"></label>
         <p class="bwa-hint">Daten werden getrennt von Projekten in diesem Browser gespeichert. Bitte regelmäßig eine Sicherung herunterladen.</p>
       </div>
@@ -1306,6 +1306,8 @@
 <script type="module" src="js/app.js?v=10.0"></script>
 <style>
 /* Gewinnauswertung – ausschließlich innerhalb des eigenen Bereichs */
+#bwa .bwa-select-row,#bwa .bwa-export-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:480px){#bwa .bwa-select-row,#bwa .bwa-export-options{grid-template-columns:1fr}}
 #bwa{max-width:1120px;margin-inline:auto;padding-bottom:130px}
 #bwa *{box-sizing:border-box}
 #bwa .bwa-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px}
@@ -1337,6 +1339,6 @@
 #bwa .bwa-breakdown .bwa-detail{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(176,141,87,.15)}
 @media(max-width:760px){#bwa .bwa-layout{grid-template-columns:minmax(0,1fr)}#bwa .bwa-wide,#bwa .bwa-disclaimer{grid-column:auto}}
 </style>
-<script defer src="js/bwa.js?v=5.0"></script>
+<script defer src="js/bwa.js?v=6.0"></script>
 </body>
 </html>
