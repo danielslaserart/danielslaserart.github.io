@@ -72,11 +72,40 @@ const revenue=codes["1020"]??codes["1051"],material=Math.abs(codes["1060"]||0),p
 return {month,filename:file.name,revenue,material,costs,profit,amounts:codes,updated:new Date().toISOString()}
 }
 $("bwaPdf").addEventListener("change",async e=>{const files=[...e.target.files];for(const file of files){try{const data=await parsePdf(file);if(months[data.month]&&!confirm(data.month+" ist bereits vorhanden. Überschreiben?"))continue;months[data.month]=data;save();render();notify(file.name+": "+euro(data.profit)+" Ergebnis eingelesen.")}catch(err){notify(file.name+": "+err.message,true)}}e.target.value=""});
-$("bwaPrint").addEventListener("click",()=>{const entries=allEntries().filter(x=>(printYear==="all"||x.month.startsWith(printYear+"-"))&&(printMonth==="all"||x.month===printMonth));if(!entries.length){notify("Für diesen Nachweis sind keine Monatsdaten vorhanden.",true);return}
-const rows=entries.map(x=>'<tr><td>'+escape(x.month)+'</td><td>'+euro(x.revenue)+'</td><td>'+euro(Math.abs(x.material))+'</td><td>'+euro(Math.abs(x.costs))+'</td><td>'+euro(x.profit)+'</td></tr>').join("");
-const totals=k=>{const value=entries.reduce((s,x)=>s+Number(x[k]||0),0);return euro(k==="material"||k==="costs"?Math.abs(value):value)};
-const doc='<!doctype html><html lang="de"><meta charset="utf-8"><title>Monatliche Gewinnauswertung</title><style>body{font:15px Arial,sans-serif;max-width:1050px;margin:40px auto;padding:0 20px;color:#222}table{border-collapse:collapse;width:100%}td,th{padding:12px 8px;border-bottom:1px solid #bbb;text-align:right}td:first-child,th:first-child{text-align:left}thead,tfoot{background:#eee}.note{margin-top:30px;font-size:12px;line-height:1.6}button{padding:12px;margin-bottom:20px}@media print{button{display:none}body{margin:10mm auto}}</style><button onclick="window.print()">Drucken / als PDF speichern</button><h1>Daniel\'s Laser Art – Monatliche Gewinnauswertung</h1><p>Grundlage: importierte BWAs aus Papierkram · erstellt am '+new Date().toLocaleDateString("de-DE")+'</p><table><thead><tr><th>Monat</th><th>Umsatz</th><th>Material</th><th>Weitere Kosten</th><th>Ergebnis</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><th>Summe</th><th>'+totals("revenue")+'</th><th>'+totals("material")+'</th><th>'+totals("costs")+'</th><th>'+totals("profit")+'</th></tr></tfoot></table><p class="note">Vorläufige buchhalterische BWA-Ergebnisse. Keine amtliche Einkommensbescheinigung und keine Berechnung des für ALG I anrechenbaren Nebeneinkommens. Original-BWAs aufbewahren.</p></html>';
-download("Daniels_Laser_Art_Nachweis_"+(printMonth!=="all"?printMonth:printYear!=="all"?printYear:"Gesamt")+".html",doc,"text/html;charset=utf-8")});
+$("bwaPrint").addEventListener("click",()=>{
+ const entries=allEntries().filter(x=>(printYear==="all"||x.month.startsWith(printYear+"-"))&&(printMonth==="all"||x.month===printMonth));
+ if(!entries.length){notify("Für diesen Nachweis sind keine Monatsdaten vorhanden.",true);return}
+ const total=k=>entries.reduce((n,x)=>n+Number(x[k]||0),0);
+ const income=total("revenue"),result=total("profit"),expense=income-result;
+ const period=printMonth!=="all"?monthName(printMonth):printYear!=="all"?"Jahr "+printYear:"Alle importierten Monate";
+ const money=n=>euro(Math.abs(n));
+ const resultLabel=n=>n<0?"Verlust":"Gewinn";
+ const resultClass=n=>n<0?"loss":"gain";
+ const details=entries.map(x=>{
+   const expenses=Number(x.revenue||0)-Number(x.profit||0);
+   const named=Object.entries(costNames).filter(([code])=>Number(x.amounts?.[code]||0)!==0);
+   const detailRows=named.map(([code,label])=>'<tr><td>'+escape(label)+'</td><td>'+money(Number(x.amounts[code]))+'</td></tr>').join("");
+   return '<section class="month"><h2>'+escape(monthName(x.month))+'</h2><table><tbody>'+
+   '<tr><th>Betriebseinnahmen (Umsatz)</th><td>'+euro(x.revenue)+'</td></tr>'+
+   '<tr><th>Material / Wareneinkauf</th><td>'+money(x.material)+'</td></tr>'+
+   '<tr><th>Weitere Aufwendungen (rechnerisch)</th><td>'+money(x.costs)+'</td></tr>'+
+   '<tr class="sum"><th>Ausgaben / Aufwendungen gesamt (rechnerisch)</th><td>'+money(expenses)+'</td></tr>'+
+   '<tr class="result '+resultClass(x.profit)+'"><th>'+resultLabel(x.profit)+' laut BWA</th><td>'+money(x.profit)+'</td></tr></tbody></table>'+
+   (detailRows?'<h3>In der BWA ausgewiesene Einzelpositionen</h3><table><tbody>'+detailRows+'</tbody></table>':'')+
+   '<p class="hint">Die Einzelpositionen sind Teil der Gesamtausgaben und werden nicht zusätzlich abgezogen.</p></section>';
+ }).join("");
+ const rows=entries.map(x=>'<tr><td>'+escape(monthName(x.month))+'</td><td>'+euro(x.revenue)+'</td><td>'+money(Number(x.revenue)-Number(x.profit))+'</td><td class="'+resultClass(x.profit)+'">'+(x.profit<0?"−":"")+money(x.profit)+'</td></tr>').join("");
+ const doc='<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gewinnnachweis – '+escape(period)+'</title><style>'+
+ 'body{font:15px/1.5 Arial,sans-serif;color:#242424;max-width:900px;margin:30px auto;padding:0 22px}h1{font-size:24px;margin-bottom:5px}h2{font-size:19px;margin:22px 0 9px}h3{font-size:14px;margin:16px 0 6px}.subtitle{color:#555;margin:0 0 20px}.toolbar{margin-bottom:24px}button{padding:12px 16px;cursor:pointer}table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{padding:9px 8px;border-bottom:1px solid #ddd}th{text-align:left;font-weight:600}td:last-child,th:last-child{text-align:right}.summary{background:#f3f3f3;padding:14px 18px;border:1px solid #ddd;border-radius:8px}.summary .line{display:flex;justify-content:space-between;gap:15px;padding:6px 0}.summary .final{border-top:2px solid #777;margin-top:7px;padding-top:12px;font-size:19px;font-weight:bold}.gain{color:#176536}.loss{color:#a12020}.month{break-inside:avoid;page-break-inside:avoid;margin-top:25px;border-top:1px solid #bbb}.sum{background:#f5f5f5}.result{font-weight:bold}.hint,.note{font-size:12px;color:#555}.note{border-top:1px solid #ccc;padding-top:12px;margin-top:26px}@page{size:A4;margin:15mm}@media print{body{margin:0;max-width:none;padding:0;font-size:11pt}.toolbar{display:none}.month{break-inside:avoid}}'+
+ '</style></head><body><div class="toolbar"><button onclick="window.print()">Drucken / als PDF speichern</button></div>'+
+ '<h1>Daniel’s Laser Art – Gewinn- und Verlustnachweis</h1><p class="subtitle">Auswertungszeitraum: '+escape(period)+' · erstellt am '+new Date().toLocaleDateString("de-DE")+'<br>Grundlage: importierte betriebswirtschaftliche Auswertungen (BWA) aus Papierkram</p>'+
+ '<div class="summary"><div class="line"><strong>Betriebseinnahmen</strong><strong>'+euro(income)+'</strong></div>'+
+ '<div class="line"><strong>Ausgaben / Aufwendungen (rechnerisch)</strong><strong>'+money(expense)+'</strong></div>'+
+ '<div class="line final"><span>'+resultLabel(result)+' laut BWA</span><span class="'+resultClass(result)+'">'+money(result)+'</span></div></div>'+
+ (entries.length>1?'<h2>Monatsübersicht</h2><table><thead><tr><th>Monat</th><th>Einnahmen</th><th>Ausgaben / Aufwendungen</th><th>Ergebnis</th></tr></thead><tbody>'+rows+'</tbody></table>':'')+
+ details+'<p class="note">Die Ausgaben / Aufwendungen sind rechnerisch aus BWA-Umsatz abzüglich BWA-Ergebnis ermittelt und können Abschreibungen sowie nicht zahlungswirksame Posten enthalten. Daher sind sie nicht zwingend identisch mit den tatsächlichen Zahlungsabflüssen oder den Betriebsausgaben einer Einnahmenüberschussrechnung. Vorläufige buchhalterische Ergebnisse, keine amtliche Einkommensbescheinigung und keine Berechnung des für ALG I anrechenbaren Nebeneinkommens. Original-BWAs als Belege aufbewahren.</p></body></html>';
+ download("Daniels_Laser_Art_Nachweis_"+(printMonth!=="all"?printMonth:printYear!=="all"?printYear:"Gesamt")+".html",doc,"text/html;charset=utf-8");
+});
 render();
 initCloud();
 })();
