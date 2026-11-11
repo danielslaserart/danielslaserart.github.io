@@ -442,7 +442,7 @@ export function viewProject(id){
 
 function offerItemRows(p){
   return Array.isArray(p.offerItems)&&p.offerItems.length?p.offerItems.map(item=>({
-    description:item.description,quantity:Math.max(1,Number(item.quantity)||1),
+    description:[item.description,item.dimensions?`Maße: ${item.dimensions}`:""].filter(Boolean).join(" | "),imageData:item.imageData||null,quantity:Math.max(1,Number(item.quantity)||1),
     unit:"Stk.",unitPrice:Number(item.unitPrice)||0,
     total:Math.round((Number(item.total)||0)*100)/100
   })):null;
@@ -524,6 +524,8 @@ function offerRenderList(){
     return `<div class="offer-line card" data-offer-index="${i}">
       <div class="offer-line-head"><strong>Position ${i+1}</strong><button type="button" class="secondary small" data-offer-remove="${i}">Entfernen</button></div>
       <label>Artikelbezeichnung<input data-offer-field="description" value="${esc(item.description||"")}" aria-label="Artikelbezeichnung"></label>
+      <label>Maße / Größe (z. B. 40 × 30 × 10 cm)<input data-offer-field="dimensions" placeholder="Breite × Höhe × Tiefe, Einheit" value="${esc(item.dimensions||"")}"></label>
+      <div class="offer-image-tools"><label>Entwurf / technische Zeichnung / Produktbild<input type="file" accept="image/png,image/jpeg,image/webp" data-offer-image="${i}"></label>${item.imageData?`<img src="${item.imageData}" alt="Vorschau zu Position ${i+1}" class="offer-image-preview"><button type="button" class="secondary small" data-offer-image-remove="${i}">Bild entfernen</button>`:"<small>Optional: JPG, PNG oder WebP. Wird im Angebots-PDF als Anlage gezeigt.</small>"}</div>
       <div class="offer-line-grid">
         <label>Preisstufe<select data-offer-field="priceLevel">${offerPriceLevels(offerSources().find(p=>p.id===item.projectId)||{recommendedSalePrice:item.baseUnitPrice,cost:item.baseUnitCost}).map(level=>`<option value="${level.value}" ${(item.priceLevel||"recommended")===level.value?"selected":""}>${esc(level.label)} · ${euro(level.price)}</option>`).join("")}<option value="custom" ${item.priceLevel==="custom"?"selected":""}>Individueller Preis</option></select></label>
         <label>Menge<input data-offer-field="quantity" type="number" min="1" step="1" value="${item.quantity}"></label>
@@ -645,7 +647,31 @@ document.getElementById("offers")?.addEventListener("click",async event=>{
   }
   if(t.dataset.offerView){viewProject(t.dataset.offerView);return;}
   if(t.dataset.offerEdit){if(offerDirty&&!await appConfirm("Ungespeicherte Änderungen verwerfen?"))return;editOfferProject(t.dataset.offerEdit);return;}
+  if(t.dataset.offerImageRemove!==undefined){offerDraft.offerItems[Number(t.dataset.offerImageRemove)].imageData=null;offerDirty=true;offerRenderList();return;}
   if(t.dataset.offerRemove!==undefined){offerDraft.offerItems.splice(Number(t.dataset.offerRemove),1);offerDirty=true;offerRenderList();}
+});
+async function offerPrepareImage(file){
+  if(!file||!["image/png","image/jpeg","image/webp"].includes(file.type))throw Error("Bitte ein PNG-, JPG- oder WebP-Bild auswählen.");
+  if(file.size>12*1024*1024)throw Error("Das Bild ist zu groß (maximal 12 MB).");
+  const image=await createImageBitmap(file);
+  try{
+    const ratio=Math.min(1,1100/Math.max(image.width,image.height));
+    const canvas=document.createElement("canvas");
+    canvas.width=Math.max(1,Math.round(image.width*ratio));
+    canvas.height=Math.max(1,Math.round(image.height*ratio));
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    return canvas.toDataURL("image/jpeg",0.77);
+  }finally{image.close();}
+}
+document.getElementById("offers")?.addEventListener("change",async event=>{
+  const input=event.target.closest("[data-offer-image]");
+  if(!input?.files?.length||!offerDraft)return;
+  const index=Number(input.dataset.offerImage),item=offerDraft.offerItems[index];
+  if(!item)return;
+  try{item.imageData=await offerPrepareImage(input.files[0]);offerDirty=true;offerRenderList();}
+  catch(error){await appAlert(error.message||"Bild konnte nicht geladen werden.");}
 });
 document.getElementById("offerSearch")?.addEventListener("input",renderOfferSavedList);
 document.getElementById("offers")?.addEventListener("input",event=>{
@@ -667,7 +693,7 @@ document.getElementById("offers")?.addEventListener("input",event=>{
     if(level)item.baseUnitPrice=level.price;
     offerDirty=true;offerRenderList();return;
   }
-  item[key]=key==="description"?target.value:Number(target.value);
+  item[key]=["description","dimensions"].includes(key)?target.value:Number(target.value);
   if(key==="baseUnitPrice")item.priceLevel="custom";
   offerDirty=true;offerUpdateTotals();
 });
