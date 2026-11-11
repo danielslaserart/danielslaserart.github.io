@@ -973,6 +973,20 @@
     <details class="card settings-panel system-section-panel"><summary><span>Maschinen-Kostenprofile</span><small>Kosten und Geschwindigkeiten je Maschine</small></summary><div class="settings-panel-body machines-section"><p class="tool-intro">Hier speicherst du Kosten und Standardgeschwindigkeiten jeder Maschine. Der Motiv-Schätzer übernimmt diese Werte automatisch.</p><div id="machineList" class="machine-list"></div></div></details>
     <details class="card settings-panel system-section-panel"><summary><span>Daten &amp; Sicherung</span><small>Cloud-Status, Export und Wiederherstellung</small></summary><div class="settings-panel-body"><div class="cloud-card"><h3>☁ Cloud-Speicherung</h3><p>Materialien, Einstellungen und Projekte werden nach jeder Änderung automatisch gespeichert.</p></div><div class="backup"><h3>Zusätzliche Sicherung</h3><p>Zusätzlich kannst du eine lokale Sicherungsdatei herunterladen oder wieder einlesen.</p><div class="button-row"><button id="exportBtn" class="secondary" type="button">Backup herunterladen</button><label class="secondary file-button">Backup einlesen<input id="importInput" type="file" accept=".json,application/json"></label></div></div></div></details>
   </section>
+
+  <!-- Gewinnauswertung: eigenständiger letzter Hauptbereich -->
+  <section id="bwa" class="screen">
+    <div class="section-head"><div><div class="eyebrow">BUCHHALTUNG · PAPIERKRAM</div><h2>Monatliche Gewinnauswertung</h2></div></div>
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      <p>Monats-BWA aus Papierkram als PDF einlesen. Die Auswertung bleibt getrennt von Projekten und Angeboten und wird in diesem Browser gespeichert.</p>
+      <label>Monats-BWA auswählen <input id="bwaPdf" type="file" accept=".pdf,application/pdf" multiple></label>
+      <p id="bwaMessage" role="status" aria-live="polite"></p>
+      <div class="button-row"><button id="bwaPrint" type="button" class="secondary">Nachweis drucken / PDF</button><button id="bwaBackup" type="button" class="secondary">Datensicherung herunterladen</button></div>
+      <label>Datensicherung wiederherstellen <input id="bwaRestore" type="file" accept=".json,application/json"></label>
+    </div>
+    <div class="card" style="padding:18px;overflow-x:auto"><h3>Monatsübersicht</h3><div id="bwaTable"></div></div>
+    <p style="font-size:.85rem;opacity:.8">Vorläufige buchhalterische BWA-Ergebnisse, keine amtliche Einkommensbescheinigung und keine Berechnung des ALG-I-Nebeneinkommens. Original-BWAs aufbewahren. Datensicherung regelmäßig herunterladen.</p>
+  </section>
 </main>
 <dialog id="appDialog" class="app-dialog">
   <form class="dialog-card" method="dialog" onsubmit="return false">
@@ -1062,6 +1076,7 @@
   <button data-screen="electronics"><span>⚡</span><small>Elektronik</small></button>
   <button data-screen="offers"><span>📄</span><small>Angebote</small></button>
   <button data-screen="tools"><span>⌘</span><small>Werkzeuge</small></button>
+  <button data-screen="bwa"><span>▤</span><small>Gewinn</small></button>
 </nav>
 
 <dialog id="materialDialog">
@@ -1271,5 +1286,6 @@
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
 <script type="module" src="js/app.js?v=9.8"></script>
+<script defer src="js/bwa.js?v=1.0"></script>
 </body>
 </html>
