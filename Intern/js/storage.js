@@ -351,21 +351,28 @@ function migrateEmbeddedReferences(container){
 export async function syncBwaMonthsVerified(months){
   if(!canWriteCloud())throw new Error("Bitte zuerst vollständig bei Supabase anmelden.");
   if(!months||typeof months!=="object"||Array.isArray(months))throw new Error("Ungültige Monatsdaten.");
+  // Prevent an older debounced whole-state save from overwriting the BWA update.
+  clearTimeout(saveTimer);saveTimer=null;
   const client=await createSupabaseClient();
   const {data:existing,error:readError}=await client.from("app_state").select("data").eq("user_id",currentUser.id).single();
   if(readError)throw readError;
   const remote=existing?.data?.bwaMonths||{};
   const merged={...remote,...months};
-  const payload={...existing.data,bwaMonths:merged};
-  const {error:writeError}=await client.from("app_state").update({data:payload,updated_at:new Date().toISOString()}).eq("user_id",currentUser.id);
-  if(writeError)throw writeError;
+  // Merge into the canonical in-memory state before any cloud write.
+  state.bwaMonths=structuredClone(merged);
+  const payload={...state,bwaMonths:structuredClone(merged)};
+  await saveCloudState(payload);
+  // Verify meaningful values, not JSON object key order or optional metadata.
   const {data:check,error:verifyError}=await client.from("app_state").select("data").eq("user_id",currentUser.id).single();
   if(verifyError)throw verifyError;
+  const stored=check?.data?.bwaMonths||{};
   for(const [key,value] of Object.entries(merged)){
-    if(JSON.stringify(check?.data?.bwaMonths?.[key])!==JSON.stringify(value))throw new Error("Cloud-Prüfung fehlgeschlagen für "+key);
+    const actual=stored[key];
+    if(!actual||["revenue","material","costs","profit"].some(field=>Number(actual[field]||0)!==Number(value[field]||0))){
+      throw new Error("Cloud-Prüfung fehlgeschlagen für "+key+" (Datensatz fehlt oder Werte weichen ab)");
+    }
   }
-  state.bwaMonths=structuredClone(merged);
-  return structuredClone(merged);
+  return structuredClone(stored);
 }
 export function save(){
   if(!canWriteCloud()){
