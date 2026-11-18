@@ -17,6 +17,14 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- Automatisch gepflegte Übersicht der vier neuesten Arbeiten -->
+  <url>
+    <loc>https://danielslaserart.de/neueste-arbeiten.html</loc>
+    <lastmod>2026-11-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Shop -->
   <url>
     <loc>https://danielslaserart.de/shop.html</loc>

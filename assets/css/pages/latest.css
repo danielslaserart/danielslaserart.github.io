@@ -1,0 +1,83 @@
+.latest-intro {
+  max-width: 760px;
+}
+
+.latest-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.latest-project-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.latest-project-image {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.latest-project-image::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 48px;
+  height: 48px;
+  background: url('../../images/branding/logo.webp') center / contain no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+}
+
+.latest-project-image img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.latest-project-image:hover img {
+  transform: scale(1.02);
+}
+
+.latest-project-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.latest-project-body h2 {
+  margin: 4px 0 10px;
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+}
+
+.latest-project-body > p:not(.latest-project-meta) {
+  flex: 1;
+  margin-top: 0;
+  color: var(--muted);
+}
+
+.latest-project-meta {
+  margin: 0;
+  color: var(--accent-gold);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.latest-project-link {
+  margin-top: 8px;
+}
+
+@media (max-width: 700px) {
+  .latest-grid {
+    grid-template-columns: 1fr;
+  }
+}
