@@ -79,6 +79,10 @@ window.GALLERIES = {
     description: "Persönliche Geschenkideen mit Namen, Datum, Botschaft oder besonderem Anlass.",
     images: [
       {
+        src: "assets/images/personalisierte-geschenke/schwibbogen-trabant-ben-beleuchtet.webp",
+        text: "Personalisierter und batteriebeleuchteter Holzschwibbogen mit Trabant 601, Namensschild und detailreicher Waldkulisse."
+      },
+      {
         src: "assets/images/personalisierte-geschenke/trainerlichter-gruppe-beleuchtet.webp",
         text: "Personalisierte Lichtdekorationen aus Holz – mehrschichtig gelasert, fein graviert und mit warmem Licht für besondere Anlässe."
       },
