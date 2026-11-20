@@ -79,6 +79,10 @@ window.GALLERIES = {
     description: "Persönliche Geschenkideen mit Namen, Datum, Botschaft oder besonderem Anlass.",
     images: [
       {
+        src: "assets/images/personalisierte-geschenke/dankeschoen-eispiraten-arche-noah-meerane.webp",
+        text: "Persönlicher Dankeschön-Holzbogen der Kinder der Arche Noah Meerane für die Eispiraten – detailreich gelasert und graviert."
+      },
+      {
         src: "assets/images/personalisierte-geschenke/schwibbogen-trabant-ben-beleuchtet.webp",
         text: "Personalisierter und batteriebeleuchteter Holzschwibbogen mit Trabant 601, Namensschild und detailreicher Waldkulisse."
       },
