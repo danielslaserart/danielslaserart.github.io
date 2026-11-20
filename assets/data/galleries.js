@@ -80,7 +80,7 @@ window.GALLERIES = {
     images: [
       {
         src: "assets/images/personalisierte-geschenke/dankeschoen-eispiraten-arche-noah-meerane.webp",
-        text: "Persönlicher Dankeschön-Holzbogen der Kinder der Arche Noah Meerane für die Eispiraten – detailreich gelasert und graviert."
+        text: "Persönlicher Dankeschön-Holzbogen mit Crimmel und Fritzi vor dem Eisstadion und dem Gebäude der Arche Noah – detailreich gelasert und graviert."
       },
       {
         src: "assets/images/personalisierte-geschenke/schwibbogen-trabant-ben-beleuchtet.webp",
