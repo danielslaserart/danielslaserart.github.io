@@ -208,6 +208,10 @@ window.GALLERIES = {
     description: "Einzigartige Arbeiten nach deinen eigenen Vorstellungen.",
     images: [
       {
+        src: "assets/images/kreative-einzelstuecke/svm-woelfe-schwibbogen.webp",
+        text: "Mehrschichtiger SVM-Wölfe-Schwibbogen mit Wolf, winterlicher Stadtsilhouette und farbiger Beleuchtung."
+      },
+      {
         src: "assets/images/kreative-einzelstuecke/einzelstueck1.webp",
         text: "Kreatives Einzelstück mit individueller Gestaltung."
       },
