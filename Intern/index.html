@@ -836,7 +836,27 @@
     </div>
   </section>
 
-  <section id="projects" class="screen">
+  <section id="commission" class="screen">
+<div class="section-head"><div><div class="eyebrow">DANIELS LASER ART</div><h2>Provisionsverkäufe</h2></div></div>
+<div class="card" style="display:grid;gap:14px">
+<label>Projekt auswählen<select id="commissionProject"><option value="">Projekt auswählen …</option></select></label>
+<p id="commissionReference" style="margin:0;opacity:.8"></p>
+<label>Berechnungsrichtung<select id="commissionMode"><option value="net">Gewünschter Erlös nach Provision</option><option value="gross">Verkaufspreis für den Kunden</option></select></label>
+<label id="commissionAmountLabel">Betrag (€)<input id="commissionAmount" type="number" min="0" step=".01" placeholder="0,00"></label>
+<label>Provision (%)<input id="commissionRate" type="number" min="0" max="99.99" step=".01" value="0"></label>
+<label>Selbstkosten des ausgewählten Projekts (€)<input id="commissionCost" type="number" min="0" step=".01" placeholder="Nicht bekannt"></label>
+<button type="button" class="secondary" id="commissionReset">Zurücksetzen</button>
+</div>
+<div class="card" style="display:grid;gap:12px;margin-top:14px" aria-live="polite">
+<h3>Ergebnis</h3><div id="commissionError" role="alert"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px">
+<div><small>Verkaufspreis</small><h3 id="commissionGross">–</h3></div>
+<div><small>Provisionsgebühr</small><h3 id="commissionFee">–</h3></div>
+<div><small>Dein Erlös</small><h3 id="commissionNet">–</h3></div>
+<div><small>Gewinn nach Selbstkosten</small><h3 id="commissionProfit">–</h3></div>
+</div><small>Provision wird vom gesamten Kundenpreis berechnet. Beträge beziehen sich auf das ausgewählte Projekt insgesamt. Diese Berechnung verändert keine gespeicherten Projekte.</small>
+</div></section>
+<section id="projects" class="screen">
     <div class="section-head">
       <div><div class="eyebrow">VERLAUF</div><h2>Projekte</h2></div>
       <button id="clearProjectsBtn" class="ghost danger small">Alle löschen</button>
@@ -1094,6 +1114,7 @@
   <button data-screen="electronics"><span>⚡</span><small>Elektronik</small></button>
   <button data-screen="offers"><span>📄</span><small>Angebote</small></button>
   <button data-screen="tools"><span>⌘</span><small>Werkzeuge</small></button>
+  <button data-screen="commission"><span>%</span><small>Provision</small></button>
   <button data-screen="bwa"><span>▤</span><small>Gewinn</small></button>
 </nav>
 
@@ -1303,7 +1324,7 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=10.0"></script>
+<script type="module" src="js/app.js?v=10.1"></script>
 <style>
 /* Gewinnauswertung – ausschließlich innerhalb des eigenen Bereichs */
 #bwa .bwa-select-row,#bwa .bwa-export-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
