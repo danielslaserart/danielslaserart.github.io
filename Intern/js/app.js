@@ -108,6 +108,7 @@ function commissionRefresh(){
 }
 function commissionCalculate(){
  const mode=commissionEl("commissionMode").value;
+ commissionEl("commissionAmountLabel").firstChild.textContent=mode==="net"?"Gewünschter Erlös (€)":"Verkaufspreis (€)";
  const amount=commissionEl("commissionAmount").valueAsNumber,rate=commissionEl("commissionRate").valueAsNumber,cost=commissionEl("commissionCost").valueAsNumber;
  const valid=Number.isFinite(amount)&&amount>=0&&Number.isFinite(rate)&&rate>=0&&rate<100;
  const round=n=>Math.round((n+Number.EPSILON)*100)/100;
@@ -118,7 +119,7 @@ function commissionCalculate(){
   if(Number.isFinite(cost)&&cost>=0)profit=round(net-cost);
  }
  commissionEl("commissionError").textContent=valid||commissionEl("commissionAmount").value===""?"":"Bitte einen gültigen Betrag und eine Provision von 0 bis unter 100 % eingeben.";
- for(const [id,value] of [["commissionGross",gross],["commissionFee",fee],["commissionNet",net],["commissionProfit",profit]])commissionEl(id).textContent=value===null?"–":euro(value);
+ for(const [id,value] of [["commissionGross",gross],["commissionFee",fee],["commissionNet",net],["commissionProfit",profit]]){const el=commissionEl(id);el.textContent=value===null?"–":euro(value);el.dataset.negative=String(value!==null&&value<0);}
 }
 function commissionSelect(){
  const project=getRealProjects().find(p=>p.id===commissionEl("commissionProject").value);
