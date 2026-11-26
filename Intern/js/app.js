@@ -94,3 +94,46 @@ export function initializeApp(){
 }
 
 initializeApp();
+
+import { getRealProjects } from "./storage.js?v=7.2";
+import { euro } from "./utils.js?v=7.2";
+import { getPriceLadderData } from "./price-ladder.js?v=7.2";
+const commissionEl=id=>document.getElementById(id);
+function commissionRefresh(){
+ const select=commissionEl("commissionProject");if(!select)return;
+ const selected=select.value;
+ select.replaceChildren(new Option("Projekt auswählen …",""));
+ for(const project of getRealProjects())select.add(new Option(project.title||project.projectName||"Projekt",project.id));
+ select.value=selected;
+}
+function commissionCalculate(){
+ const mode=commissionEl("commissionMode").value;
+ const amount=commissionEl("commissionAmount").valueAsNumber,rate=commissionEl("commissionRate").valueAsNumber,cost=commissionEl("commissionCost").valueAsNumber;
+ const valid=Number.isFinite(amount)&&amount>=0&&Number.isFinite(rate)&&rate>=0&&rate<100;
+ const round=n=>Math.round((n+Number.EPSILON)*100)/100;
+ let gross=null,fee=null,net=null,profit=null;
+ if(valid){
+  gross=mode==="net"?Math.ceil((amount/(1-rate/100))*100-1e-8)/100:round(amount);
+  fee=round(gross*rate/100);net=round(gross-fee);
+  if(Number.isFinite(cost)&&cost>=0)profit=round(net-cost);
+ }
+ commissionEl("commissionError").textContent=valid||commissionEl("commissionAmount").value===""?"":"Bitte einen gültigen Betrag und eine Provision von 0 bis unter 100 % eingeben.";
+ for(const [id,value] of [["commissionGross",gross],["commissionFee",fee],["commissionNet",net],["commissionProfit",profit]])commissionEl(id).textContent=value===null?"–":euro(value);
+}
+function commissionSelect(){
+ const project=getRealProjects().find(p=>p.id===commissionEl("commissionProject").value);
+ const ladder=project?getPriceLadderData(project):null;
+ const price=ladder?.agreementPrice??ladder?.recommendedSalePrice??null;
+ commissionEl("commissionAmount").value=price??"";
+ commissionEl("commissionCost").value=ladder?.selfCosts??"";
+ commissionEl("commissionReference").textContent=project?"Projektpreis: "+(price===null?"nicht bekannt":euro(price))+" · Gesamtprojekt":"";
+ commissionCalculate();
+}
+if(commissionEl("commissionProject")){
+ commissionEl("commissionProject").addEventListener("change",commissionSelect);
+ for(const id of ["commissionAmount","commissionRate","commissionCost","commissionMode"])commissionEl(id).addEventListener("input",commissionCalculate);
+ commissionEl("commissionReset").addEventListener("click",()=>{commissionEl("commissionProject").value="";commissionEl("commissionRate").value="0";commissionEl("commissionMode").value="net";commissionSelect();});
+ document.querySelector('[data-screen="commission"]')?.addEventListener("click",commissionRefresh);
+ document.addEventListener("dla:state-loaded",commissionRefresh);
+ document.addEventListener("dla:projects-rendered",commissionRefresh);
+}
