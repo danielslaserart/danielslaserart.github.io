@@ -24,9 +24,9 @@ export function filterProjectsByCustomer(projects,selectedCustomerId){
 function safeDate(value){const date=new Date(value||0);return Number.isNaN(date.getTime())?'Datum unbekannt':date.toLocaleDateString('de-DE');}
 function projectTimestamp(project,field){const date=new Date(project?.[field]||project?.created||0);return Number.isNaN(date.getTime())?0:date.getTime();}
 function projectStatusLabel(status){
-  return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",doneNoInvoice:"Erledigt o.R.",gifted:"Verschenkt",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
+  return ({offer:"Angebot",progress:"In Arbeit",waiting:"Wartet",done:"Fertig",doneNoInvoice:"Erledigt o.R.",gifted:"Verschenkt",commission:"Provision",billed:"Abgerechnet",open:"Angebot",payment:"Wartet"})[status]||"Angebot";
 }
-function projectStatusClass(status){return `status-${["offer","progress","waiting","done","doneNoInvoice","gifted","billed"].includes(status)?status:"offer"}`;}
+function projectStatusClass(status){return `status-${["offer","progress","waiting","done","doneNoInvoice","gifted","commission","billed"].includes(status)?status:"offer"}`;}
 function orderTypeLabel(type){return ({own:"Eigenes Produkt",customerObject:"Kundenobjekt",service:"Dienstleistung",design:"🖥️ Design"})[type]||"Eigenes Produkt";}
 function priceTypeLabel(type,isPreferred=false){
   const normalized=type||(isPreferred?"regularCustomer":"normal");
@@ -80,7 +80,7 @@ export function renderProjects(){
     if(sort==='created')return projectTimestamp(b,'created')-projectTimestamp(a,'created');
     return projectTimestamp(b,'updated')-projectTimestamp(a,'updated');
   });
-  const totalProfit=realProjects.filter(p=>!p.offerItems?.length||(p.offerCostVerified&&["progress","done","doneNoInvoice","billed"].includes(p.status))).reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
+  const totalProfit=realProjects.filter(p=>p.status!=="commission").filter(p=>!p.offerItems?.length||(p.offerCostVerified&&["progress","done","doneNoInvoice","billed"].includes(p.status))).reduce((sum,p)=>sum+num(p.sale)-num(p.cost),0);
   if($('projectStatCount'))$('projectStatCount').textContent=realProjects.length;
   if($('projectStatProfit'))$('projectStatProfit').textContent=euro(totalProfit);
   if($('projectStatAverage'))$('projectStatAverage').textContent=realProjects.length?euro(realProjects.reduce((sum,p)=>sum+num(p.sale),0)/realProjects.length):euro(0);
