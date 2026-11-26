@@ -49,7 +49,19 @@
 @media(max-width:540px){#offers .offer-add-row{grid-template-columns:1fr}#offers .offer-line{padding:12px}}
 </style>
 <style>.status-commission{color:#b88a36!important;border-color:#b88a36!important}</style>
-</head>
+<style>
+#commission.active{padding-bottom:calc(180px + env(safe-area-inset-bottom,0px));scroll-margin-bottom:180px}
+#commission .commission-form,#commission .commission-results{display:grid;gap:14px;padding:16px;box-sizing:border-box;min-width:0}
+#commission .commission-results{margin-top:14px}
+#commission .commission-results h3{margin:0}
+#commission .commission-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#commission .commission-tile{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:12px;border:1px solid currentColor;border-radius:12px;background:rgba(0,0,0,.22)}
+#commission .commission-tile small{font:500 .78rem/1.35 system-ui,sans-serif;color:inherit;overflow-wrap:anywhere}
+#commission .commission-tile h3{font:700 clamp(1rem,5vw,1.45rem)/1.2 system-ui,sans-serif;color:inherit;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#commission .commission-gross{color:#e9c477}#commission .commission-fee{color:#ffad69}#commission .commission-net{color:#a9d6ee}#commission .commission-profit{color:#8bd6a4}#commission .commission-profit:has(h3[data-negative="true"]){color:#ff9090}
+#commission .commission-results>small{font:400 .78rem/1.5 system-ui,sans-serif;opacity:.8}
+#commissionError:empty{display:none}#commissionError{color:#ff9090}
+</style></head>
 <body>
 <div id="authGate" class="auth-gate auth-pending">
   <div class="auth-card card">
@@ -839,7 +851,7 @@
 
   <section id="commission" class="screen">
 <div class="section-head"><div><div class="eyebrow">DANIELS LASER ART</div><h2>Provisionsverkäufe</h2></div></div>
-<div class="card" style="display:grid;gap:14px">
+<div class="card commission-form">
 <label>Projekt auswählen<select id="commissionProject"><option value="">Projekt auswählen …</option></select></label>
 <p id="commissionReference" style="margin:0;opacity:.8"></p>
 <label>Berechnungsrichtung<select id="commissionMode"><option value="net">Gewünschter Erlös nach Provision</option><option value="gross">Verkaufspreis für den Kunden</option></select></label>
@@ -848,13 +860,13 @@
 <label>Selbstkosten des ausgewählten Projekts (€)<input id="commissionCost" type="number" min="0" step=".01" placeholder="Nicht bekannt"></label>
 <button type="button" class="secondary" id="commissionReset">Zurücksetzen</button>
 </div>
-<div class="card" style="display:grid;gap:12px;margin-top:14px" aria-live="polite">
+<div class="card commission-results" aria-live="polite">
 <h3>Ergebnis</h3><div id="commissionError" role="alert"></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px">
-<div><small>Verkaufspreis</small><h3 id="commissionGross">–</h3></div>
-<div><small>Provisionsgebühr</small><h3 id="commissionFee">–</h3></div>
-<div><small>Dein Erlös</small><h3 id="commissionNet">–</h3></div>
-<div><small>Gewinn nach Selbstkosten</small><h3 id="commissionProfit">–</h3></div>
+<div class="commission-grid">
+<div class="commission-tile commission-gross"><small>Verkaufspreis</small><h3 id="commissionGross">–</h3></div>
+<div class="commission-tile commission-fee"><small>Provisionsgebühr</small><h3 id="commissionFee">–</h3></div>
+<div class="commission-tile commission-net"><small>Dein Erlös</small><h3 id="commissionNet">–</h3></div>
+<div class="commission-tile commission-profit"><small>Gewinn nach Selbstkosten</small><h3 id="commissionProfit">–</h3></div>
 </div><small>Provision wird vom gesamten Kundenpreis berechnet. Beträge beziehen sich auf das ausgewählte Projekt insgesamt. Diese Berechnung verändert keine gespeicherten Projekte.</small>
 </div></section>
 <section id="projects" class="screen">
@@ -1325,7 +1337,7 @@
 <script defer src="js/electronics-advanced.js?v=2.0"></script>
 <script defer src="js/electronics-battery.js?v=3.0"></script>
 <script defer src="js/electronics-tabs.js?v=1.0"></script>
-<script type="module" src="js/app.js?v=10.2"></script>
+<script type="module" src="js/app.js?v=10.3"></script>
 <style>
 /* Gewinnauswertung – ausschließlich innerhalb des eigenen Bereichs */
 #bwa .bwa-select-row,#bwa .bwa-export-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
